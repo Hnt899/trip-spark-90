@@ -1,10 +1,28 @@
 import { Star } from "lucide-react";
 
 const TestimonialsSection = () => {
+  const testimonials = [
+    { name: "Марина", date: "01.11.2025", text: "Дешевые билеты и удобно покупать. Всё прошло быстро!" },
+    { name: "Алексей", date: "28.10.2025", text: "Отличный сервис! Нашёл билеты за минуты." },
+    { name: "Елена", date: "25.10.2025", text: "Поддержка ответила мгновенно, помогли с возвратом." },
+    { name: "Дмитрий", date: "22.10.2025", text: "Удобный интерфейс, понятно даже новичку." },
+    { name: "Анна", date: "20.10.2025", text: "Лучший сервис для покупки ж/д билетов!" },
+    { name: "Сергей", date: "18.10.2025", text: "Быстро, надёжно, без лишних действий." },
+    { name: "Ольга", date: "15.10.2025", text: "Цены действительно выгодные, проверяла на других сайтах." },
+    { name: "Иван", date: "12.10.2025", text: "Пользуюсь постоянно, никогда не подводили." },
+    { name: "Татьяна", date: "10.10.2025", text: "Удобное приложение, всё под рукой." },
+    { name: "Михаил", date: "08.10.2025", text: "Отличная работа службы поддержки!" },
+    { name: "Наталья", date: "05.10.2025", text: "Рекомендую всем друзьям и знакомым!" },
+    { name: "Владимир", date: "02.10.2025", text: "Простота и скорость – вот что нужно!" },
+    { name: "Светлана", date: "29.09.2025", text: "Забронировала билеты за пару минут." },
+    { name: "Андрей", date: "26.09.2025", text: "Прозрачные цены, никаких скрытых комиссий." },
+    { name: "Мария", date: "23.09.2025", text: "Очень довольна сервисом, спасибо!" },
+  ];
+
   return (
-    <section className="py-20 bg-secondary text-secondary-foreground">
+    <section className="py-20 bg-secondary text-secondary-foreground overflow-hidden">
       <div className="container">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <div className="space-y-8">
             <div className="space-y-4">
               <h2 className="text-3xl md:text-4xl font-bold">
@@ -32,30 +50,22 @@ const TestimonialsSection = () => {
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="bg-card p-6 rounded-xl border border-border/10">
-              <div className="flex items-start gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-lg font-semibold">
-                  М
+          <div className="relative h-[500px] overflow-hidden">
+            <div className="animate-scroll-vertical space-y-4 hover:[animation-play-state:paused]">
+              {[...testimonials, ...testimonials].map((testimonial, index) => (
+                <div key={index} className="bg-card p-6 rounded-xl border border-border/10">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-lg font-semibold text-card-foreground">
+                      {testimonial.name[0]}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-card-foreground">{testimonial.name}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.date}</p>
+                    </div>
+                  </div>
+                  <p className="text-card-foreground">{testimonial.text}</p>
                 </div>
-                <div>
-                  <p className="font-semibold text-card-foreground">Марина</p>
-                  <p className="text-sm text-muted-foreground">70X71</p>
-                </div>
-              </div>
-              <p className="text-card-foreground">
-                дешевые билеты и удобно покупать.
-              </p>
-            </div>
-
-            <div className="flex justify-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-primary"></div>
-              <div className="w-2 h-2 rounded-full bg-border"></div>
-              <div className="w-2 h-2 rounded-full bg-border"></div>
-            </div>
-
-            <div className="text-center text-sm text-secondary-foreground/60">
-              01 — 03
+              ))}
             </div>
           </div>
         </div>

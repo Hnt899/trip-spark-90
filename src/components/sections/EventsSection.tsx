@@ -30,6 +30,69 @@ const EventsSection = () => {
       venue: "Газпром Арена",
       color: "from-orange-800 to-blue-900",
     },
+    {
+      city: "Москва",
+      age: "16+",
+      price: "от 3000",
+      artist: "Сергей Лазарев",
+      date: "5 ноября",
+      venue: "Crocus City Hall",
+      color: "from-purple-900 to-purple-600",
+    },
+    {
+      city: "Екатеринбург",
+      age: "18+",
+      price: "от 2800",
+      artist: "Макс Корж",
+      date: "15 ноября",
+      venue: "КРК Уралец",
+      color: "from-blue-900 to-blue-600",
+    },
+    {
+      city: "Нижний Новгород",
+      age: "12+",
+      price: "от 2200",
+      artist: "Земфира",
+      date: "18 ноября",
+      venue: "КЗ Нагорный",
+      color: "from-green-900 to-green-600",
+    },
+    {
+      city: "Новосибирск",
+      age: "16+",
+      price: "от 2600",
+      artist: "Би-2",
+      date: "25 ноября",
+      venue: "Дворец Спорта",
+      color: "from-yellow-900 to-yellow-600",
+    },
+    {
+      city: "Сочи",
+      age: "18+",
+      price: "от 3500",
+      artist: "Мот",
+      date: "1 декабря",
+      venue: "Фестивальный",
+      color: "from-teal-900 to-teal-600",
+    },
+    {
+      city: "Уфа",
+      age: "12+",
+      price: "от 2400",
+      artist: "Полина Гагарина",
+      date: "8 декабря",
+      venue: "Конгресс-Холл",
+      color: "from-indigo-900 to-indigo-600",
+    },
+    {
+      city: "Владивосток",
+      age: "16+",
+      price: "от 2900",
+      artist: "Монеточка",
+      date: "12 декабря",
+      venue: "Фетисов Арена",
+      color: "from-rose-900 to-rose-600",
+    },
   ];
 
   return (
@@ -82,14 +145,14 @@ const EventsSection = () => {
           <Button
             variant="outline"
             size="icon"
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 hidden lg:flex"
+            className="absolute -left-6 top-1/2 -translate-y-1/2 hidden lg:flex bg-background/80 backdrop-blur-sm hover:bg-background/90 z-10"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 hidden lg:flex"
+            className="absolute -right-6 top-1/2 -translate-y-1/2 hidden lg:flex bg-background/80 backdrop-blur-sm hover:bg-background/90 z-10"
           >
             <ChevronRight className="w-4 h-4" />
           </Button>

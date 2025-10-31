@@ -65,14 +65,14 @@ const RoutesSection = () => {
           <Button
             variant="outline"
             size="icon"
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 hidden lg:flex"
+            className="absolute -left-6 top-1/2 -translate-y-1/2 hidden lg:flex bg-background/80 backdrop-blur-sm hover:bg-background/90 z-10"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 hidden lg:flex"
+            className="absolute -right-6 top-1/2 -translate-y-1/2 hidden lg:flex bg-background/80 backdrop-blur-sm hover:bg-background/90 z-10"
           >
             <ChevronRight className="w-4 h-4" />
           </Button>

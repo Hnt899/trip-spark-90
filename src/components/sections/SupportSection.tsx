@@ -43,22 +43,12 @@ const SupportSection = () => {
             </div>
 
             <div className="relative hidden lg:block">
-              <div className="relative bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-8 aspect-square flex items-center justify-center">
-                <div className="w-full space-y-4">
-                  <div className="bg-card p-4 rounded-xl border shadow-sm">
-                    <p className="font-semibold mb-2">Поддержка 24/7</p>
-                    <p className="text-sm text-muted-foreground">Здравствуйте!</p>
-                  </div>
-                  <div className="bg-card p-4 rounded-xl border shadow-sm">
-                    <p className="text-sm text-muted-foreground">Задайте вопрос</p>
-                  </div>
-                  <div className="bg-card p-4 rounded-xl border shadow-sm">
-                    <p className="text-sm text-muted-foreground">Проблемы с заказом?</p>
-                  </div>
-                  <div className="bg-card p-4 rounded-xl border shadow-sm">
-                    <p className="text-sm text-muted-foreground">Нужна помощь сейчас</p>
-                  </div>
-                </div>
+              <div className="relative rounded-2xl overflow-hidden aspect-square bg-gradient-to-br from-primary/10 to-accent/10">
+                <img 
+                  src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=800&fit=crop" 
+                  alt="Поддержка клиентов" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
