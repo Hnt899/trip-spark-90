@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const EventsSection = () => {
   const events = [
@@ -95,6 +96,68 @@ const EventsSection = () => {
     },
   ];
 
+  // Slider config
+  const visibleCount = 3;
+  const cardWidthPercent = 100.1 / visibleCount;
+
+  // Build clones for seamless loop: tail + original + head
+  const trackItems = useMemo(() => {
+    const head = events.slice(0, visibleCount);
+    const tail = events.slice(-visibleCount);
+    return [...tail, ...events, ...head];
+  }, []);
+
+  const totalOriginal = events.length;
+  const startAt = visibleCount; // initial in real range
+  const [current, setCurrent] = useState(startAt);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [slideWidthPx, setSlideWidthPx] = useState(0);
+
+  useEffect(() => {
+    const update = () => {
+      const w = containerRef.current?.offsetWidth ?? 0;
+      setSlideWidthPx(w / visibleCount);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const goTo = (next: number) => {
+    setIsAnimating(true);
+    setCurrent(next);
+  };
+
+  const handlePrev = () => goTo(current - 1);
+  const handleNext = () => goTo(current + 1);
+
+  const handleTransitionEnd = () => {
+    setIsAnimating(false);
+    if (current < visibleCount) {
+      // moved into left clones -> snap to mirrored real index
+      const snap = current + totalOriginal;
+      setCurrent(snap);
+      if (trackRef.current) {
+        trackRef.current.style.transition = "none";
+        trackRef.current.style.transform = `translateX(-${(snap - startAt) * slideWidthPx}px)`;
+        void trackRef.current.offsetHeight;
+        trackRef.current.style.transition = "transform 500ms ease";
+      }
+    } else if (current >= totalOriginal + visibleCount) {
+      // moved into right clones -> snap back
+      const snap = current - totalOriginal;
+      setCurrent(snap);
+      if (trackRef.current) {
+        trackRef.current.style.transition = "none";
+        trackRef.current.style.transform = `translateX(-${(snap - startAt) * slideWidthPx}px)`;
+        void trackRef.current.offsetHeight;
+        trackRef.current.style.transition = "transform 500ms ease";
+      }
+    }
+  };
+
   return (
     <section className="py-20">
       <div className="container">
@@ -113,46 +176,61 @@ const EventsSection = () => {
         </div>
 
         <div className="relative">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event, index) => (
-              <div 
-                key={index}
-                className="group relative overflow-hidden rounded-2xl aspect-[3/4] cursor-pointer hover:scale-105 transition-transform duration-300"
-              >
-                <div className={`absolute inset-0 bg-gradient-to-br ${event.color}`}>
-                  <div className="absolute inset-0 bg-black/20"></div>
-                </div>
-                
-                <div className="relative h-full p-6 flex flex-col justify-between text-white">
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-3xl font-bold">{event.city}</h3>
-                    <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm">
-                      {event.age}
-                    </span>
-                  </div>
+          <div className="overflow-hidden" ref={containerRef}>
+            <div
+              ref={trackRef}
+              className="flex"
+              style={{
+                transform: `translateX(-${(current - startAt) * slideWidthPx}px)`,
+                transition: isAnimating ? "transform 500ms ease" : undefined,
+              }}
+              onTransitionEnd={handleTransitionEnd}
+            >
+              {trackItems.map((event, index) => (
+                <div
+                  key={`${event.city}-${index}`}
+                  className="pr-6 flex-shrink-0"
+                  style={{ minWidth: `${cardWidthPercent}%` }}
+                >
+                  <div 
+                    className="group relative overflow-hidden rounded-2xl aspect-[3/4] cursor-pointer transition-transform duration-300"
+                  >
+                    <div className={`absolute inset-0 bg-gradient-to-br ${event.color}`}>
+                      <div className="absolute inset-0 bg-black/20"></div>
+                    </div>
 
-                  <div className="space-y-2">
-                    <p className="text-4xl font-bold">{event.price}</p>
-                    <p className="text-xl font-semibold">{event.artist}</p>
-                    <p className="text-sm opacity-90">{event.date}</p>
-                    <p className="text-sm opacity-90">{event.venue}</p>
+                    <div className="relative h-full p-6 flex flex-col justify-between text-white">
+                      <div className="flex justify-between items-start">
+                        <h3 className="text-3xl font-bold">{event.city}</h3>
+                        <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm">{event.age}</span>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-4xl font-bold">{event.price}</p>
+                        <p className="text-xl font-semibold">{event.artist}</p>
+                        <p className="text-sm opacity-90">{event.date}</p>
+                        <p className="text-sm opacity-90">{event.venue}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           <Button
             variant="outline"
             size="icon"
-            className="absolute -left-6 top-1/2 -translate-y-1/2 hidden lg:flex bg-background/80 backdrop-blur-sm hover:bg-background/90 z-10"
+            className="absolute left-0 -translate-x-full top-1/2 -translate-y-1/2 hidden lg:flex bg-background/80 backdrop-blur-sm hover:bg-background/90 z-10"
+            onClick={handlePrev}
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            className="absolute -right-6 top-1/2 -translate-y-1/2 hidden lg:flex bg-background/80 backdrop-blur-sm hover:bg-background/90 z-10"
+            className="absolute right-0 translate-x-1/2 top-1/2 -translate-y-1/2 hidden lg:flex bg-background/80 backdrop-blur-sm hover:bg-background/90 z-10"
+            onClick={handleNext}
           >
             <ChevronRight className="w-4 h-4" />
           </Button>

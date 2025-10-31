@@ -33,19 +33,19 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <div className="relative hidden lg:flex gap-4 animate-slide-in">
+          <div className="relative hidden lg:flex gap-4 animate-slide-in mr-[calc(50%-50vw)]">
             <div className="flex-1">
               <img 
                 src={heroTrain} 
                 alt="Современный поезд" 
-                className="rounded-2xl shadow-2xl w-full h-[400px] object-cover"
+                className="rounded-2xl shadow-2xl w-full h-[800px] object-cover"
               />
             </div>
             <div className="flex-1">
               <img 
                 src={trainInterior} 
                 alt="Интерьер поезда" 
-                className="rounded-2xl shadow-2xl w-full h-[400px] object-cover"
+                className="rounded-2xl shadow-2xl w-full h-[800px] object-cover"
               />
             </div>
           </div>
@@ -55,7 +55,7 @@ const HeroSection = () => {
           className={cn(
             "bg-card p-4 rounded-2xl shadow-xl border z-10 w-full mt-8",
             "flex flex-col gap-6",
-            "lg:absolute lg:left-0 lg:right-[28%] lg:-bottom-6 lg:mt-0"
+            "lg:absolute lg:left-0 lg:right-[28%] lg:top-1/2 lg:translate-y-[10%] lg:transform lg:mt-0"
           )}
         >
           <div className="flex gap-2 flex-wrap">
