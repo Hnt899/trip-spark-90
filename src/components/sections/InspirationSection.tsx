@@ -86,64 +86,84 @@ const InspirationSection = () => {
         e.preventDefault();
         e.stopPropagation();
         
-        // Синхронизируем позицию, учитывая цикл
-        const singleContentWidth = container.scrollWidth / 3;
-        let currentScroll = container.scrollLeft;
-        
-        // Нормализуем позицию в пределах первой копии (вычитаем копии)
-        while (currentScroll >= singleContentWidth * 2) {
-          currentScroll = currentScroll - singleContentWidth;
-        }
-        
-        scrollPositionRef.current = currentScroll;
-        
         // Останавливаем автоскролл
         setIsPaused(true);
-        isJumpingRef.current = false;
         if (resumeTimeoutRef.current) {
           window.clearTimeout(resumeTimeoutRef.current);
         }
 
+        // Получаем текущую позицию (может быть в любой из трех копий)
+        const singleContentWidth = container.scrollWidth / 3;
+        let currentScroll = container.scrollLeft;
+        
+        // Нормализуем позицию для обработки переходов
+        // Если мы в третьей копии, переключаемся на первую (как в автоскролле)
+        const transitionPoint = singleContentWidth * 2;
+        if (currentScroll >= transitionPoint) {
+          currentScroll = currentScroll - singleContentWidth;
+          container.scrollLeft = currentScroll;
+        }
+        
         // Плавная горизонтальная прокрутка колесиком
         const scrollDelta = e.deltaY * 1;
         const targetScroll = currentScroll + scrollDelta;
-        const contentMaxScroll = singleContentWidth - container.clientWidth;
         
-        // Обрабатываем переход через границу (зацикливание)
-        let finalTarget = targetScroll;
-        if (finalTarget < 0) {
-          finalTarget = contentMaxScroll + finalTarget;
-        } else if (finalTarget > contentMaxScroll) {
-          finalTarget = finalTarget - contentMaxScroll;
-        }
+        // Используем объект для хранения изменяемых значений
+        const animState = {
+          startScroll: currentScroll,
+          targetScroll: targetScroll,
+          startTime: null as number | null,
+        };
         
-        const startScroll = currentScroll;
-        const distance = finalTarget - startScroll;
-        let startTime: number | null = null;
         const duration = 100;
         
         const animate = (currentTime: number) => {
-          if (startTime === null) startTime = currentTime;
-          const elapsed = currentTime - startTime;
+          if (animState.startTime === null) animState.startTime = currentTime;
+          const elapsed = currentTime - animState.startTime;
           const progress = Math.min(elapsed / duration, 1);
           
           // Easing функция для плавности
           const ease = 1 - Math.pow(1 - progress, 3);
-          let newScroll = startScroll + distance * ease;
           
-          // Нормализуем в пределах первой копии и применяем к реальной позиции
-          if (newScroll < 0) {
-            newScroll = contentMaxScroll + newScroll;
-          } else if (newScroll > contentMaxScroll) {
-            newScroll = newScroll - contentMaxScroll;
+          // Вычисляем новую позицию скролла
+          const distance = animState.targetScroll - animState.startScroll;
+          let newScroll = animState.startScroll + distance * ease;
+          
+          // Проверяем переходы через границы (точно так же, как в автоскролле)
+          // Если дошли до конца второй копии, мгновенно переключаемся на первую
+          // Визуально контент идентичен, поэтому переход незаметен
+          if (newScroll >= transitionPoint) {
+            // Мгновенно переключаемся на эквивалентную позицию в первой копии
+            const adjustedScroll = newScroll - singleContentWidth;
+            container.scrollLeft = adjustedScroll;
+            scrollPositionRef.current = adjustedScroll;
+            // Обновляем startScroll, чтобы анимация продолжалась от новой позиции
+            animState.startScroll = adjustedScroll;
+          } else if (newScroll < 0) {
+            // Скроллим назад за начало первой копии -> переключаемся на конец второй
+            const adjustedScroll = newScroll + singleContentWidth;
+            container.scrollLeft = adjustedScroll;
+            scrollPositionRef.current = adjustedScroll;
+            // Обновляем startScroll, чтобы анимация продолжалась от новой позиции
+            animState.startScroll = adjustedScroll;
+          } else {
+            // Применяем позицию к контейнеру
+            container.scrollLeft = newScroll;
+            scrollPositionRef.current = newScroll;
           }
-          
-          // Применяем к реальной позиции скролла (в первой копии)
-          container.scrollLeft = newScroll;
-          scrollPositionRef.current = newScroll;
           
           if (progress < 1) {
             requestAnimationFrame(animate);
+          } else {
+            // После завершения анимации финальная проверка границ
+            const finalScroll = container.scrollLeft;
+            if (finalScroll >= transitionPoint) {
+              container.scrollLeft = finalScroll - singleContentWidth;
+              scrollPositionRef.current = finalScroll - singleContentWidth;
+            } else if (finalScroll < 0) {
+              container.scrollLeft = finalScroll + singleContentWidth;
+              scrollPositionRef.current = finalScroll + singleContentWidth;
+            }
           }
         };
         
