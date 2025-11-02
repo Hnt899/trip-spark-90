@@ -1,15 +1,22 @@
-import Header from "@/components/Header";
+import RoutesHeader from "@/components/RoutesHeader";
 import Footer from "@/components/Footer";
+import HeroRoutes from "@/components/sections/HeroRoutes";
+import RoutesHeroSection from "@/components/sections/RoutesHeroSection";
+import ProcessSection from "@/components/sections/ProcessSection";
+import BloggersSection from "@/components/sections/BloggersSection";
+import RegionsRoutesSection from "@/components/sections/RegionsRoutesSection";
+import PhotographersSection from "@/components/sections/PhotographersSection";
 
 const Routes = () => {
   return (
     <div className="min-h-screen">
-      <Header />
-      <main className="container py-20">
-        <h1 className="text-4xl font-bold mb-6">Маршруты</h1>
-        <p className="text-lg text-muted-foreground">
-          Страница с маршрутами находится в разработке.
-        </p>
+      <main>
+        <HeroRoutes />
+        <RoutesHeroSection />
+        <RegionsRoutesSection />
+        <ProcessSection />
+        <BloggersSection />
+        <PhotographersSection />
       </main>
       <Footer />
     </div>
