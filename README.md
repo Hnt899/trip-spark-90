@@ -1,58 +1,50 @@
-# Welcome to your Lovable project
+# Добро пожаловать в ваш проект
 
-## Project info
+## Информация о проекте
 
-**URL**: https://lovable.dev/projects/2bfc69b8-d0d1-43a1-b8ca-00442aa0a96e
+## Как редактировать код?
 
-## How can I edit this code?
+Есть несколько способов редактирования вашего приложения.
 
-There are several ways of editing your application.
+**Используйте ваш любимый IDE**
 
-**Use Lovable**
+Если вы хотите работать локально, используя свой IDE, вы можете клонировать этот репозиторий и отправлять изменения.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/2bfc69b8-d0d1-43a1-b8ca-00442aa0a96e) and start prompting.
+Единственное требование — установленные Node.js и npm — [установка с помощью nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Выполните следующие шаги:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Шаг 1: Клонируйте репозиторий, используя Git URL проекта.
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# Шаг 2: Перейдите в директорию проекта.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
+# Шаг 3: Установите необходимые зависимости.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Шаг 4: Запустите сервер разработки с автоматической перезагрузкой и мгновенным предпросмотром.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+**Редактирование файла напрямую в GitHub**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Перейдите к нужному файлу (файлам).
+- Нажмите кнопку "Edit" (иконка карандаша) в правом верхнем углу просмотра файла.
+- Внесите изменения и зафиксируйте их.
 
-**Use GitHub Codespaces**
+**Использование GitHub Codespaces**
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Перейдите на главную страницу вашего репозитория.
+- Нажмите на кнопку "Code" (зеленая кнопка) в правом верхнем углу.
+- Выберите вкладку "Codespaces".
+- Нажмите на "New codespace", чтобы запустить новую среду Codespace.
+- Редактируйте файлы непосредственно в Codespace и зафиксируйте и отправьте изменения, когда закончите.
 
-## What technologies are used for this project?
+## Какие технологии используются в этом проекте?
 
-This project is built with:
+Этот проект построен с использованием:
 
 - Vite
 - TypeScript
@@ -60,14 +52,13 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## Как развернуть этот проект?
 
-Simply open [Lovable](https://lovable.dev/projects/2bfc69b8-d0d1-43a1-b8ca-00442aa0a96e) and click on Share -> Publish.
+Для развертывания проекта выполните сборку и разместите файлы на любом хостинге:
 
-## Can I connect a custom domain to my Lovable project?
+```sh
+# Соберите проект для продакшена
+npm run build
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+# Результат будет в папке dist/
+```
