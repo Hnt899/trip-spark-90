@@ -92,31 +92,34 @@ const RouteList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
-  // Автоматический поиск региона при вводе
+  // Автоматический поиск региона при вводе, если запрос точно совпадает с регионом
   useEffect(() => {
     if (searchQuery.trim()) {
       const foundRegion = regions.find(
         (region) =>
-          region.toLowerCase().includes(searchQuery.toLowerCase()) && region !== "Все регионы"
+          region.toLowerCase() === searchQuery.toLowerCase().trim() && region !== "Все регионы"
       );
       if (foundRegion) {
         setActiveRegion(foundRegion);
-        return;
       }
     }
   }, [searchQuery]);
 
-  // Фильтрация маршрутов по региону и поисковому запросу
-  let filteredRoutes = activeRegion === "Все регионы" 
-    ? routes 
-    : routes.filter(route => route.region === activeRegion);
-
-  // Если есть поисковый запрос, дополнительно фильтруем по названию
+  // Фильтрация маршрутов
+  let filteredRoutes: Route[];
+  
   if (searchQuery.trim()) {
-    filteredRoutes = filteredRoutes.filter(route =>
-      route.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      route.region.toLowerCase().includes(searchQuery.toLowerCase())
+    // Если есть поисковый запрос, ищем по всем маршрутам независимо от региона
+    const query = searchQuery.toLowerCase().trim();
+    filteredRoutes = routes.filter(route =>
+      route.name.toLowerCase().includes(query) ||
+      route.region.toLowerCase().includes(query)
     );
+  } else {
+    // Если нет поискового запроса, фильтруем по активному региону
+    filteredRoutes = activeRegion === "Все регионы" 
+      ? routes 
+      : routes.filter(route => route.region === activeRegion);
   }
 
   const handleRouteClick = (routeId: string) => {
