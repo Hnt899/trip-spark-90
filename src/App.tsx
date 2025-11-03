@@ -10,6 +10,8 @@ import RouteDetail from "./pages/RouteDetail";
 import Reference from "./pages/Reference";
 import Blog from "./pages/Blog";
 import Guide from "./pages/Guide";
+import GuideArticlePage from "./pages/guide/GuideArticlePage";
+import ChtodelatEsliya from "./pages/guide/articles/passenger/ChtodelatEsliya";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -135,6 +137,8 @@ const App = () => (
           <Route path="/reference/trains/eating-on-train" element={<EatingOnTrain />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/guide" element={<Guide />} />
+          <Route path="/guide/passenger/chto-delat-esli-ya-zabelel-v-doroge" element={<ChtodelatEsliya />} />
+          <Route path="/guide/:category/:slug" element={<GuideArticlePage />} />
           <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

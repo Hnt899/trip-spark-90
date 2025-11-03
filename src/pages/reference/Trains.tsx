@@ -14,8 +14,6 @@ const Trains = () => {
           <Link to="/reference" className="hover:text-primary">Справочная</Link>
           <span>/</span>
           <Link to="/reference/trains" className="hover:text-primary">Поезда</Link>
-          <span>/</span>
-          <span>Справочная информация о ж/д билетах</span>
         </div>
 
         {/* Main Heading */}
