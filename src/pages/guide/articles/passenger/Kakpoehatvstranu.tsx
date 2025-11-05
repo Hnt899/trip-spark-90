@@ -69,7 +69,7 @@ const Kakpoehatvstranu = () => {
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-4">
                   <li>Через сайты авиакомпаний</li>
-                  <li>Через агрегаторы билетов (GoTrip и другие)</li>
+                  <li>Через агрегаторы билетов (TudaSuda и другие)</li>
                   <li>Сравнивайте цены на разных платформах</li>
                   <li>Покупайте заранее для лучших цен</li>
                 </ul>

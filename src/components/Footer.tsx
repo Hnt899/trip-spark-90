@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Train } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -9,11 +8,8 @@ const Footer = () => {
       <div className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div className="space-y-6">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-foreground">
-                <Train className="w-5 h-5 text-secondary" />
-              </div>
-              <span className="text-xl font-bold">GoTrip</span>
+            <Link to="/" className="flex items-center">
+              <span className="text-xl font-bold">TudaSuda</span>
             </Link>
 
             <div className="space-y-2 text-sm">
@@ -60,7 +56,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-12 pt-6 border-t border-background/20 text-center text-sm opacity-80">
-          © 2025 GoTrip. Все права защищены.
+          © 2025 TudaSuda. Все права защищены.
         </div>
       </div>
     </footer>

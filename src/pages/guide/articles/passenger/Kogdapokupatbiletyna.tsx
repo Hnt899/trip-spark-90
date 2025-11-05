@@ -41,7 +41,7 @@ const Kogdapokupatbiletyna = () => {
                 <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-4">
                   <li><strong>60 дней</strong> — для большинства поездов</li>
                   <li><strong>90 дней</strong> — для некоторых популярных направлений</li>
-                  <li>Точные сроки можно уточнить на сайте РЖД или GoTrip</li>
+                  <li>Точные сроки можно уточнить на сайте РЖД или TudaSuda</li>
                 </ul>
               </div>
             </CardContent>
@@ -143,7 +143,7 @@ const Kogdapokupatbiletyna = () => {
                   <div>
                     <p className="text-base font-semibold mb-1">Используйте календарь низких цен</p>
                     <p className="text-sm text-muted-foreground">
-                      На сайтах GoTrip и РЖД можно посмотреть календарь с ценами на разные даты и выбрать оптимальную.
+                      На сайтах TudaSuda и РЖД можно посмотреть календарь с ценами на разные даты и выбрать оптимальную.
                     </p>
                   </div>
                 </div>

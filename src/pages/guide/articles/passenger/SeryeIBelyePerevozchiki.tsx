@@ -123,7 +123,7 @@ const SeryeIBelyePerevozchiki = () => {
 
                 <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                   <p className="text-sm leading-relaxed">
-                    <strong>Совет:</strong> Покупайте билеты через официальные платформы, такие как GoTrip, которые работают только с проверенными перевозчиками.
+                    <strong>Совет:</strong> Покупайте билеты через официальные платформы, такие как TudaSuda, которые работают только с проверенными перевозчиками.
                   </p>
                 </div>
               </div>

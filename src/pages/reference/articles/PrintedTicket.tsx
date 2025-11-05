@@ -36,7 +36,7 @@ const PrintedTicket = () => {
                 <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
                   <p>
                     Когда вы оплатите билеты, мы пришлём <strong>СМС с кодом заказа</strong> и <strong>письмо с электронным билетом</strong>. 
-                    Билет также можно найти в профиле на сайте GoTrip или в разделе <strong>«Заказы»</strong> приложения.
+                    Билет также можно найти в профиле на сайте TudaSuda или в разделе <strong>«Заказы»</strong> приложения.
                   </p>
                 </div>
               </div>

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Train } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
+import logoImage from "@/assets/logo.png";
 
 const Header = () => {
   const location = useLocation();
@@ -21,12 +21,13 @@ const Header = () => {
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary">
-              <Train className="w-5 h-5 text-secondary-foreground" />
-            </div>
-            <span className="text-xl font-bold text-foreground">GoTrip</span>
+        <div className="container flex h-36 items-center justify-between">
+          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <img 
+              src={logoImage} 
+              alt="TudaSuda" 
+              className="h-32 w-auto object-contain"
+            />
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">

@@ -36,7 +36,7 @@ const Gdepokupatbiletna = () => {
 
               <div className="space-y-4">
                 <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-4">
-                  <li><strong>Сайт GoTrip</strong> — удобная покупка билетов онлайн</li>
+                  <li><strong>Сайт TudaSuda</strong> — удобная покупка билетов онлайн</li>
                   <li><strong>Официальный сайт РЖД</strong> — покупка билетов на пригородные поезда</li>
                   <li><strong>Мобильное приложение</strong> — покупка билетов через приложение</li>
                 </ul>

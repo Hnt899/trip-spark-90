@@ -15,17 +15,17 @@ const ProfilePurpose = () => {
           <span>/</span>
           <Link to="/reference/trains" className="hover:text-primary">Поезда</Link>
           <span>/</span>
-          <span>Всё о профиле GoTrip</span>
+          <span>Всё о профиле TudaSuda</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Всё о профиле GoTrip</h1>
+        <h1 className="text-4xl font-bold mb-8">Всё о профиле TudaSuda</h1>
 
         <div className="space-y-8">
           {/* Введение */}
           <Card className="bg-primary/5 border-primary/20">
             <CardContent className="p-6">
               <p className="text-lg leading-relaxed">
-                Покупать на GoTrip можно и без регистрации, но с профилем удобно управлять заказами, общаться с контакт-центром 
-                и пользоваться другими опциями. Рассказываем, как создать профиль GoTrip и что в нём можно сделать.
+                Покупать на TudaSuda можно и без регистрации, но с профилем удобно управлять заказами, общаться с контакт-центром 
+                и пользоваться другими опциями. Рассказываем, как создать профиль TudaSuda и что в нём можно сделать.
               </p>
             </CardContent>
           </Card>
@@ -38,7 +38,7 @@ const ProfilePurpose = () => {
                 <li>
                   <Link to="#login" className="text-primary hover:underline flex items-center gap-2">
                     <LogIn className="w-4 h-4" />
-                    Как войти в профиль GoTrip
+                    Как войти в профиль TudaSuda
                   </Link>
                 </li>
                 <li>
@@ -80,7 +80,7 @@ const ProfilePurpose = () => {
                 <li>
                   <Link to="#wallet" className="text-primary hover:underline flex items-center gap-2">
                     <Wallet className="w-4 h-4" />
-                    Как проверить баланс и лимиты GoTrip Кошелька
+                    Как проверить баланс и лимиты TudaSuda Кошелька
                   </Link>
                 </li>
                 <li>
@@ -98,7 +98,7 @@ const ProfilePurpose = () => {
             <CardContent className="p-6">
               <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                 <LogIn className="w-6 h-6 text-primary" />
-                Как войти в профиль GoTrip
+                Как войти в профиль TudaSuda
               </h2>
               
               <div className="space-y-4 text-base leading-relaxed">
@@ -193,7 +193,7 @@ const ProfilePurpose = () => {
               
               <div className="space-y-4 text-base leading-relaxed">
                 <p>
-                  При первой покупке на GoTrip паспортные данные пассажиров сохраняются автоматически, чтобы их не нужно было указывать при оформлении 
+                  При первой покупке на TudaSuda паспортные данные пассажиров сохраняются автоматически, чтобы их не нужно было указывать при оформлении 
                   следующих заказов. Чтобы посмотреть информацию о пассажирах, в профиле на сайте нажмите вкладку <strong>«Пассажиры»</strong>. 
                   В приложении данные хранятся в разделе <strong>«Профиль»</strong>. При желании вы можете удалить ненужных пассажиров из списка.
                 </p>
@@ -252,7 +252,7 @@ const ProfilePurpose = () => {
                 </p>
                 <p>
                   Вступить в программу лояльности больше нельзя, но она всё ещё работает для активных участников. Вместо программы лояльности можно открыть 
-                  GoTrip Кошелёк, чтобы получать кешбэк 3% баллами за заказы. Эти баллы получится использовать для оплаты следующих покупок.
+                  TudaSuda Кошелёк, чтобы получать кешбэк 3% баллами за заказы. Эти баллы получится использовать для оплаты следующих покупок.
                 </p>
               </div>
             </CardContent>
@@ -263,11 +263,11 @@ const ProfilePurpose = () => {
             <CardContent className="p-6">
               <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                 <Wallet className="w-6 h-6 text-primary" />
-                Как проверить баланс и лимиты GoTrip Кошелька
+                Как проверить баланс и лимиты TudaSuda Кошелька
               </h2>
               
               <p className="text-base leading-relaxed">
-                Если вы уже открыли GoTrip Кошелёк, в профиле появится одноимённый раздел — <strong>«Кошелёк»</strong>. Здесь можно пополнить баланс Кошелька, 
+                Если вы уже открыли TudaSuda Кошелёк, в профиле появится одноимённый раздел — <strong>«Кошелёк»</strong>. Здесь можно пополнить баланс Кошелька, 
                 узнать количество накопленных баллов кешбэка и проверить лимиты. Ещё есть блок с ответами на частые вопросы. Они подскажут, как пополнить 
                 Кошелёк и заработать кешбэк.
               </p>
@@ -284,14 +284,14 @@ const ProfilePurpose = () => {
               
               <div className="space-y-4 text-base leading-relaxed">
                 <p>
-                  Удалить профиль GoTrip можно в любой момент. Однако в этом случае вы потеряете доступ к истории заказов и баллам, которые накопили по программе лояльности.
+                  Удалить профиль TudaSuda можно в любой момент. Однако в этом случае вы потеряете доступ к истории заказов и баллам, которые накопили по программе лояльности.
                 </p>
                 <p>
                   Чтобы удалить профиль, на странице с личными данными нажмите <strong>«Удалить аккаунт»</strong>.
                 </p>
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                   <p className="text-amber-900">
-                    Если вы пользовались GoTrip Кошельком, закройте его перед удалением аккаунта. Чтобы это сделать, сначала потратьте остаток денег и напишите контакт-центр.
+                    Если вы пользовались TudaSuda Кошельком, закройте его перед удалением аккаунта. Чтобы это сделать, сначала потратьте остаток денег и напишите контакт-центр.
                   </p>
                 </div>
                 <p>

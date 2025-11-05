@@ -81,7 +81,7 @@ const TrainSchedule = () => {
                 </ul>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <p className="text-blue-900">
-                    В обоих случаях вы можете заказать <strong>уведомление от GoTrip</strong> — мы пришлём электронное письмо, если кто-то сдаст билет 
+                    В обоих случаях вы можете заказать <strong>уведомление от TudaSuda</strong> — мы пришлём электронное письмо, если кто-то сдаст билет 
                     или когда начнутся продажи. Это бесплатно.
                   </p>
                 </div>

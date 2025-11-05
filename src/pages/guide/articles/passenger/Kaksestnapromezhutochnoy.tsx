@@ -121,7 +121,7 @@ const Kaksestnapromezhutochnoy = () => {
 
               <div className="space-y-4">
                 <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-4">
-                  <li>Проверьте расписание на сайте РЖД или GoTrip</li>
+                  <li>Проверьте расписание на сайте РЖД или TudaSuda</li>
                   <li>Узнайте время прибытия поезда на нужную промежуточную станцию</li>
                   <li>Придите на станцию заранее, чтобы не опоздать</li>
                   <li>Уточните платформу прибытия поезда на информационном табло</li>

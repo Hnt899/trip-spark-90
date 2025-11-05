@@ -729,11 +729,11 @@ const Profile = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4" />
-                    <span>Email: <a href="mailto:support@gotrip.ru" className="text-primary hover:underline">support@gotrip.ru</a></span>
+                    <span>Email: <a href="mailto:support@tudasuda.ru" className="text-primary hover:underline">support@tudasuda.ru</a></span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MessageCircle className="w-4 h-4" />
-                    <span>Telegram: <a href="https://t.me/gotrip_support" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@gotrip_support</a></span>
+                    <span>Telegram: <a href="https://t.me/tudasuda_support" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@tudasuda_support</a></span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Send className="w-4 h-4" />

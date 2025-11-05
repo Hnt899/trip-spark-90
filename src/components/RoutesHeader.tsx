@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import logoImage from "@/assets/logo.png";
 
 const RoutesHeader = () => {
   const location = useLocation();
@@ -8,12 +9,13 @@ const RoutesHeader = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 w-full bg-black/40 backdrop-blur supports-[backdrop-filter]:bg-black/20">
-      <div className="container flex h-16 items-center justify-between">
-        <Link to="/routes" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <span className="text-2xl font-bold">
-            <span className="text-white">Go</span>
-            <span className="text-primary">Trip</span>
-          </span>
+      <div className="container flex h-36 items-center justify-between">
+        <Link to="/routes" className="flex items-center hover:opacity-80 transition-opacity">
+          <img 
+            src={logoImage} 
+            alt="TudaSuda" 
+            className="h-32 w-auto object-contain"
+          />
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">

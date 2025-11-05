@@ -172,7 +172,7 @@ const Trains = () => {
                   to="/reference/trains/profile-purpose"
                   className="text-primary hover:underline"
                 >
-                  Для чего нужен профиль GoTrip
+                  Для чего нужен профиль TudaSuda
                 </Link>
               </li>
               <li>
@@ -493,10 +493,10 @@ const Trains = () => {
             <p className="text-muted-foreground">
               Напишите нам:{" "}
               <a
-                href="mailto:railway@gotrip.ru"
+                href="mailto:railway@tudasuda.ru"
                 className="text-primary hover:underline"
               >
-                railway@gotrip.ru
+                railway@tudasuda.ru
               </a>
             </p>
           </section>

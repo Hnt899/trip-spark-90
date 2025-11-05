@@ -8,7 +8,7 @@ const RoutesHeroSection = () => {
         <Card className="mb-12 shadow-lg">
           <CardContent className="p-8 md:p-12 text-center">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
-              <span className="text-[#FF8C00]">Проверено GoTrip</span>
+              <span className="text-[#FF8C00]">Проверено TudaSuda</span>
               {" — "}
               <span className="text-foreground">
                 маршруты по регионам России с честными оценками тревел-блогеров и журналистов

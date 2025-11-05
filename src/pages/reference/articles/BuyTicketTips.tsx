@@ -55,16 +55,16 @@ const BuyTicketTips = () => {
             </CardContent>
           </Card>
 
-          {/* Покупка на GoTrip */}
+          {/* Покупка на TudaSuda */}
           <Card>
             <CardContent className="p-6">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                 <Heart className="w-6 h-6 text-primary" />
-                Покупка на GoTrip
+                Покупка на TudaSuda
               </h2>
               <div className="space-y-3 text-base leading-relaxed">
                 <p>
-                  На GoTrip можно легко выбрать и безопасно оплатить ж/д билеты. Такие билеты ничем не отличаются от билетов, приобретенных в кассе. 
+                  На TudaSuda можно легко выбрать и безопасно оплатить ж/д билеты. Такие билеты ничем не отличаются от билетов, приобретенных в кассе. 
                   Электронный билет совершенно равноправен с билетом на бланке — по тому и другому вас обязательно пустят в поезд.
                 </p>
                 <p>

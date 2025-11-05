@@ -160,7 +160,7 @@ const ChtodelatEsliya = () => {
                 <p className="text-base font-semibold">Если покупали билет на автобус у нас, то вернуть его можно вот такими способами:</p>
                 <ol className="list-decimal list-inside space-y-2 text-base leading-relaxed ml-4">
                   <li>На сайте в личном кабинете</li>
-                  <li>В приложении GoTrip</li>
+                  <li>В приложении TudaSuda</li>
                   <li>По заявке на возврат через почту. Нужно прикрепить справку о болезни, больничный лист или акт о несчастном случае.</li>
                 </ol>
                 <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">

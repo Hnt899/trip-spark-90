@@ -25,7 +25,7 @@ const Reference = () => {
               className="flex-1 max-w-2xl h-12 text-base rounded-lg"
             />
             <Button className="bg-primary hover:bg-primary/90 text-white px-6 py-6 rounded-lg font-semibold">
-              GoTrip!
+              TudaSuda!
             </Button>
           </div>
           <p className="text-sm text-muted-foreground ml-1">

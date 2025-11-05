@@ -239,7 +239,7 @@ const RouteList = () => {
                     и купить билеты можно
                   </h2>
                   <h2 className="text-3xl md:text-4xl font-bold">
-                    на GoTrip
+                    на TudaSuda
                   </h2>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">

@@ -16,7 +16,7 @@ const Guide = () => {
       <main className="container py-12 max-w-6xl">
         {/* Заголовок */}
         <div className="mb-12">
-          <h1 className="text-5xl font-bold mb-4">Путеводитель GoTrip</h1>
+          <h1 className="text-5xl font-bold mb-4">Путеводитель TudaSuda</h1>
         <p className="text-lg text-muted-foreground">
             Обзоры городов и стран, достопримечательности, советы, неожиданные ответы на вопросы пассажиров и бобры. Они добры.
           </p>

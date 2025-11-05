@@ -8,7 +8,7 @@ const ProcessSection = () => {
         <Card className="shadow-lg">
           <CardContent className="p-6 md:p-8">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-              GoTrip вместе с тревел-блогерами и журналистами протестировали маршруты,
+              TudaSuda вместе с тревел-блогерами и журналистами протестировали маршруты,
               которые составили представители регионов
             </h2>
           </CardContent>

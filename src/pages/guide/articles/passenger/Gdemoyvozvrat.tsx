@@ -38,7 +38,7 @@ const Gdemoyvozvrat = () => {
                 <div>
                   <h3 className="text-xl font-semibold mb-3">Онлайн</h3>
                   <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-4">
-                    <li>Зайдите в личный кабинет на сайте GoTrip</li>
+                    <li>Зайдите в личный кабинет на сайте TudaSuda</li>
                     <li>Перейдите в раздел "Мои заказы" или "Возвраты"</li>
                     <li>Найдите ваш заказ с возвратом</li>
                     <li>Проверьте статус обработки возврата</li>
