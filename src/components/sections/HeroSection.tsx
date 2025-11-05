@@ -7,16 +7,20 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
+import { useNavigate } from "react-router-dom";
 import heroTrain from "@/assets/hero-train.jpg";
 import trainInterior from "@/assets/train-interior.jpg";
 import { cn } from "@/lib/utils";
 import { cities } from "@/data/cities";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
   const [tripType, setTripType] = useState<"round" | "one">("round");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [fromCity, setFromCity] = useState<string | undefined>();
   const [toCity, setToCity] = useState<string | undefined>();
+  const [ticketType, setTicketType] = useState<string>("coupe");
+  const [passengers, setPassengers] = useState<string>("1");
 
   return (
     <section className="relative py-20 overflow-hidden bg-gradient-to-b from-muted/30 to-background">
@@ -169,7 +173,7 @@ const HeroSection = () => {
               )}
             </Popover>
 
-            <Select defaultValue="coupe">
+            <Select value={ticketType} onValueChange={setTicketType}>
               <SelectTrigger className="h-14 w-full lg:w-[140px] lg:shrink-0">
                 <SelectValue placeholder="Класс" />
               </SelectTrigger>
@@ -180,7 +184,7 @@ const HeroSection = () => {
               </SelectContent>
             </Select>
 
-            <Select defaultValue="1">
+            <Select value={passengers} onValueChange={setPassengers}>
               <SelectTrigger className="h-14 w-full lg:w-[160px] lg:shrink-0">
                 <SelectValue placeholder="Кто едет" />
               </SelectTrigger>
@@ -192,7 +196,22 @@ const HeroSection = () => {
               </SelectContent>
             </Select>
 
-            <Button className="h-14 px-8 w-full lg:w-auto shrink-0 bg-primary hover:bg-primary/90">
+            <Button
+              className="h-14 px-8 w-full lg:w-auto shrink-0 bg-primary hover:bg-primary/90"
+              onClick={() => {
+                if (!fromCity || !toCity || !dateRange?.from) {
+                  return;
+                }
+                const params = new URLSearchParams({
+                  from: fromCity,
+                  to: toCity,
+                  date: format(dateRange.from, "yyyy-MM-dd"),
+                  ticketType,
+                  passengers
+                });
+                navigate(`/train-search?${params.toString()}`);
+              }}
+            >
               Найти поезда
             </Button>
           </div>

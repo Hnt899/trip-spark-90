@@ -48,6 +48,159 @@ import Puteshestvovatnainvalidnomkresle from "./articles/passenger/Puteshestvova
 import Kakputeshestvuyutslepye from "./articles/passenger/Kakputeshestvuyutslepye";
 import Chtonadoznatpro from "./articles/passenger/Chtonadoznatpro";
 
+// Разборы
+import Virusiantibiotiki from "./articles/analysis/Virusiantibiotiki";
+import Faqprozdorove from "./articles/analysis/Faqprozdorove";
+import Plemenaamazonki from "./articles/analysis/Plemenaamazonki";
+import Kakoemorevybrat from "./articles/analysis/Kakoemorevybrat";
+import PoletovbolsheAviaproisshestviy from "./articles/analysis/PoletovbolsheAviaproisshestviy";
+import Meteorologiyaipolety from "./articles/analysis/Meteorologiyaipolety";
+import Meditsinskayastrahovka from "./articles/analysis/Meditsinskayastrahovka";
+import Avtorskietury from "./articles/analysis/Avtorskietury";
+import Pochemumyputeshestvuem from "./articles/analysis/Pochemumyputeshestvuem";
+import Kakdoytidosevernogo from "./articles/analysis/Kakdoytidosevernogo";
+import Poezdkilyudeysogranicheniyami from "./articles/analysis/Poezdkilyudeysogranicheniyami";
+
+// Транспорт
+import Pitanievagona from "./articles/transport/Pitanievagona";
+import Ep2dm from "./articles/transport/Ep2dm";
+import Novyeplatskarty1Vm from "./articles/transport/Novyeplatskarty1Vm";
+import Novyeplatskartyt from "./articles/transport/Novyeplatskartyt";
+import Kapsulnyyvagon from "./articles/transport/Kapsulnyyvagon";
+import PlatskartElochka from "./articles/transport/PlatskartElochka";
+import Raznyeelektrichki from "./articles/transport/Raznyeelektrichki";
+import Kakbyliustroenyparovozy from "./articles/transport/Kakbyliustroenyparovozy";
+import Retropoezdsparovozom from "./articles/transport/Retropoezdsparovozom";
+import Lastochki from "./articles/transport/Lastochki";
+import Shtabnoyvagon from "./articles/transport/Shtabnoyvagon";
+import Vkabinemashinista from "./articles/transport/Vkabinemashinista";
+import Yahromaer2k980 from "./articles/transport/Yahromaer2k980";
+import Marshrutizatsiyanazhd from "./articles/transport/Marshrutizatsiyanazhd";
+import VagonElektrostantsiya from "./articles/transport/VagonElektrostantsiya";
+import Lokomotivy from "./articles/transport/Lokomotivy";
+import Lip from "./articles/transport/Lip";
+import Aeroekspress from "./articles/transport/Aeroekspress";
+import Mc21 from "./articles/transport/Mc21";
+import Sobakivaeroportu from "./articles/transport/Sobakivaeroportu";
+import Aeroportvnukovo from "./articles/transport/Aeroportvnukovo";
+import Ekipazhperedvyletom from "./articles/transport/Ekipazhperedvyletom";
+import Kakrabotaetdispetcher from "./articles/transport/Kakrabotaetdispetcher";
+import Pokakimpravilamletit from "./articles/transport/Pokakimpravilamletit";
+import Protsentryupravleniya from "./articles/transport/Protsentryupravleniya";
+import Prosluzhbyterminala from "./articles/transport/Prosluzhbyterminala";
+import Medsluzhbaaeroporta from "./articles/transport/Medsluzhbaaeroporta";
+import Ty214 from "./articles/transport/Ty214";
+import Avtomatizatsiyahel from "./articles/transport/Avtomatizatsiyahel";
+import Zachemoblivayutsamoletpered from "./articles/transport/Zachemoblivayutsamoletpered";
+import Kakposaditsamolet from "./articles/transport/Kakposaditsamolet";
+import Ty144 from "./articles/transport/Ty144";
+import Navigatsiyasamoleta from "./articles/transport/Navigatsiyasamoleta";
+import Ty154 from "./articles/transport/Ty154";
+import Boeing747 from "./articles/transport/Boeing747";
+import An2 from "./articles/transport/An2";
+import Sj100 from "./articles/transport/Sj100";
+import Boeing737Ng from "./articles/transport/Boeing737Ng";
+import AirbusA320 from "./articles/transport/AirbusA320";
+import Evropeyskayaavtobusnayakompaniya from "./articles/transport/Evropeyskayaavtobusnayakompaniya";
+import Progorodskoytransport from "./articles/transport/Progorodskoytransport";
+import Provoditeleyavtobusov from "./articles/transport/Provoditeleyavtobusov";
+import Otechestvennyemikroavtobusy from "./articles/transport/Otechestvennyemikroavtobusy";
+import Ezdovyesobaki from "./articles/transport/Ezdovyesobaki";
+
+// Надолго в другую страну
+import Argentina from "./articles/long-term/Argentina";
+import Armeniya from "./articles/long-term/Armeniya";
+import Bali from "./articles/long-term/Bali";
+import Braziliya from "./articles/long-term/Braziliya";
+import Gruziya from "./articles/long-term/Gruziya";
+import Germaniya from "./articles/long-term/Germaniya";
+import Dubay from "./articles/long-term/Dubay";
+import Egipet from "./articles/long-term/Egipet";
+import Ispaniya from "./articles/long-term/Ispaniya";
+import Kazahstan from "./articles/long-term/Kazahstan";
+import KyrgyzstanKirgiziya from "./articles/long-term/KyrgyzstanKirgiziya";
+import Kolumbiya from "./articles/long-term/Kolumbiya";
+import KostaRika from "./articles/long-term/KostaRika";
+import Meksika from "./articles/long-term/Meksika";
+import Portugaliya from "./articles/long-term/Portugaliya";
+import Serbiya from "./articles/long-term/Serbiya";
+import Tailand from "./articles/long-term/Tailand";
+import Tayvan from "./articles/long-term/Tayvan";
+import Uzbekistan from "./articles/long-term/Uzbekistan";
+import Frantsiya from "./articles/long-term/Frantsiya";
+import Chernogoriya from "./articles/long-term/Chernogoriya";
+import ShriLanka from "./articles/long-term/ShriLanka";
+import Yuzhnayakoreya from "./articles/long-term/Yuzhnayakoreya";
+
+// Первый раз
+import Planery from "./articles/first-time/Planery";
+import Gastroturizmvrossii from "./articles/first-time/Gastroturizmvrossii";
+import Gastrotury from "./articles/first-time/Gastrotury";
+import Kakvzoytinaeverest from "./articles/first-time/Kakvzoytinaeverest";
+import Namototsikle from "./articles/first-time/Namototsikle";
+import Kakvstatnagornye from "./articles/first-time/Kakvstatnagornye";
+import Kaknachatbegat from "./articles/first-time/Kaknachatbegat";
+import Kakpoytipeshkomv from "./articles/first-time/Kakpoytipeshkomv";
+import Kakvpervyevstatna from "./articles/first-time/Kakvpervyevstatna";
+
+// Фишки России
+import Cheburashka from "./articles/russia-features/Cheburashka";
+import Elka from "./articles/russia-features/Elka";
+import Kvashenayakapusta from "./articles/russia-features/Kvashenayakapusta";
+import Dalnoboyschikipozimnikam from "./articles/russia-features/Dalnoboyschikipozimnikam";
+import Maslenitsa from "./articles/russia-features/Maslenitsa";
+import Zavodkabelya from "./articles/russia-features/Zavodkabelya";
+import Interesnyemesta from "./articles/russia-features/Interesnyemesta";
+import Kosmoskakkonstruktsiya from "./articles/russia-features/Kosmoskakkonstruktsiya";
+import GdeKogdaChtoraspuskaetsya from "./articles/russia-features/GdeKogdaChtoraspuskaetsya";
+import Etochtozaborschevik from "./articles/russia-features/Etochtozaborschevik";
+import Kakchitatnalichniki from "./articles/russia-features/Kakchitatnalichniki";
+
+// Россия (города)
+import Moscow from "./articles/russia/Moscow";
+import SPB from "./articles/russia/SPB";
+import Crimea from "./articles/russia/Crimea";
+import Simferopol from "./articles/russia/Simferopol";
+import Sevastopol from "./articles/russia/Sevastopol";
+import Maykop from "./articles/russia/Maykop";
+import Kazan from "./articles/russia/Kazan";
+import Ekaterinburg from "./articles/russia/Ekaterinburg";
+import Krasnodar from "./articles/russia/Krasnodar";
+import RostovNaDonu from "./articles/russia/RostovNaDonu";
+import Vladivostok from "./articles/russia/Vladivostok";
+import Samara from "./articles/russia/Samara";
+import NizhniyNovgorod from "./articles/russia/NizhniyNovgorod";
+import Novosibirsk from "./articles/russia/Novosibirsk";
+import Krasnoyarsk from "./articles/russia/Krasnoyarsk";
+import Irkutsk from "./articles/russia/Irkutsk";
+import Kaliningrad from "./articles/russia/Kaliningrad";
+import PetropavlovskKamchatskiy from "./articles/russia/PetropavlovskKamchatskiy";
+import Yakutsk from "./articles/russia/Yakutsk";
+import Makhachkala from "./articles/russia/Makhachkala";
+import Murmansk from "./articles/russia/Murmansk";
+import Khabarovsk from "./articles/russia/Khabarovsk";
+import Ryazan from "./articles/russia/Ryazan";
+import Kasimov from "./articles/russia/Kasimov";
+import Stavropol from "./articles/russia/Stavropol";
+import Yaroslavl from "./articles/russia/Yaroslavl";
+import Volgograd from "./articles/russia/Volgograd";
+import Perm from "./articles/russia/Perm";
+import Tyumen from "./articles/russia/Tyumen";
+import Syktyvkar from "./articles/russia/Syktyvkar";
+import Voronezh from "./articles/russia/Voronezh";
+import Vladimir from "./articles/russia/Vladimir";
+import Suzdal from "./articles/russia/Suzdal";
+import Izhevsk from "./articles/russia/Izhevsk";
+import Tomsk from "./articles/russia/Tomsk";
+import Tula from "./articles/russia/Tula";
+import Tver from "./articles/russia/Tver";
+import Abakan from "./articles/russia/Abakan";
+import Chelyabinsk from "./articles/russia/Chelyabinsk";
+import UlanUde from "./articles/russia/UlanUde";
+import Arkhangelsk from "./articles/russia/Arkhangelsk";
+import Ufa from "./articles/russia/Ufa";
+import GornoAltaysk from "./articles/russia/GornoAltaysk";
+
 // Функция для создания имени компонента
 function createComponentName(title: string): string {
   return title
@@ -308,21 +461,7 @@ const russiaFeatures = [
   "Космос как конструкция",
   "Где, когда, что распускается",
   "Это что за борщевик",
-  "Как читать наличники",
-  "Баня",
-  "Круги воды",
-  "Что такое советская кухня",
-  "Про коммунальные квартиры",
-  "Про ВХУТЕМАС",
-  "Про матрёшку",
-  "Про дачи",
-  "Про медведей",
-  "Про балалайку",
-  "Здравствуй, дерево!",
-  "Про панельки",
-  "Про Третьяковскую галерею",
-  "Баргузин",
-  "Про центральное отопление"
+  "Как читать наличники"
 ];
 
 russiaFeatures.forEach(title => {
@@ -351,343 +490,51 @@ important.forEach(title => {
   };
 });
 
-// Регионы России
+// Россия (города)
 const russiaArticles = [
-  // Москва
   "Москва",
-  "Московская область",
-  "Про пастилу в Коломне",
-  "Производство в Жостово",
-  "Москва по вертикали",
-  "Про Коломну",
-  "«Диснейленды» в Москве",
-  "Про юрты и чумы в Москве",
-  "Как делают коврижки в Зарайске",
-  // Санкт-Петербург
   "Санкт-Петербург",
-  "Ленинградская область",
-  "Библиотека Аалто в Выборге",
-  "Другой взгляд на привычные места",
-  "Дешёвые билеты в Петербург",
-  "Про Выборг",
-  "Как точно выкопать себе трилобита",
-  "Про кафе в оранжереях",
-  "Рутуб: Про Выборг",
-  // Крым
   "Крым",
   "Симферополь",
   "Севастополь",
-  "Как попасть в «Артек»",
-  // Адыгея
   "Майкоп",
-  "Республика Адыгея",
-  // Татарстан
   "Казань",
-  "Республика Татарстан",
-  "Как делают валенки",
-  "С детьми — в Казань",
-  "Про Казань",
-  "Рутуб: Про Казань",
-  "Про татарскую кухню",
-  "Про мясо",
-  // Свердловская область
   "Екатеринбург",
-  "Свердловская область",
-  "Сысерть: как делают фарфоровые чашки",
-  "Про Екатеринбург",
-  "Где купаться на Урале",
-  "Про стрит-арт в Екатеринбурге",
-  // Краснодарский край
   "Краснодар",
-  "Краснодарский край",
-  "Как выращивают краснодарский чай",
-  // Ростовская область
   "Ростов-на-Дону",
-  "Ростовская область",
-  // Приморский край
   "Владивосток",
-  "Приморский край",
-  "Чайна-таун Миллионка",
-  "Про Владивосток",
-  "Рутуб: Про Владивосток",
-  // Самарская область
   "Самара",
-  "Самарская область",
-  "Самара: запасная главная",
-  "Про Самару",
-  // Нижегородская область
   "Нижний Новгород",
-  "Нижегородская область",
-  "Нижний Новгород — за что его все ругают",
-  // Новосибирская область
   "Новосибирск",
-  "Новосибирская область",
-  "Город на шпалах",
-  // Красноярский край
   "Красноярск",
-  "Красноярский край",
-  "Красноярская и Саяно-Шушенская ГЭС",
-  "В тундру к оленеводам",
-  "Как мы строили Норильск",
-  // Иркутская область
   "Иркутск",
-  "Иркутская область",
-  // Калининградская область
   "Калининград",
-  "Калининградская область",
-  "С детьми — в Калининград",
-  "Зоопарк здорового человека",
-  "Эскимо из зяблика",
-  "Как развивался туризм",
-  "Про Калининград",
-  "Рутуб: Про Калининград",
-  // Камчатский край
   "Петропавловск-Камчатский",
-  "Камчатский край",
-  "Как живут на Камчатке",
-  // Якутия
   "Якутск",
-  "Республика Саха (Якутия)",
-  "Про Якутию",
-  "Рутуб: Про Якутию",
-  // Дагестан
   "Махачкала",
-  "Республика Дагестан",
-  "Про Дагестан",
-  "Ответы про Дагестан",
-  "Рутуб: Ответы про Дагестан",
-  // Мурманская область
   "Мурманск",
-  "Мурманская область",
-  "Рыбачий и Средний",
-  "Зачем ехать на край Земли",
-  "Про Рыбачий",
-  "Про Терский берег",
-  "Рутуб: Про Рыбачий",
-  // Хабаровский край
   "Хабаровск",
-  "Хабаровский край",
-  "Про икру",
-  "Про китов на Шантарах",
-  "Про китов",
-  "Рутуб: Про китов",
-  // Рязанская область
   "Рязань",
-  "Рязанская область",
   "Касимов",
-  "Выходные в Рязани",
-  // Ставропольский край
   "Ставрополь",
-  "Ставропольский край",
-  // Ярославская область
   "Ярославль",
-  "Ярославская область",
-  "Нетипичный Ярославль",
-  "Как полетать на воздушном шаре",
-  "Про рыбинские вывески",
-  // Волгоградская область
   "Волгоград",
-  "Волгоградская область",
-  "Про Волгоград",
-  "Скоростной трамвай",
-  // Пермский край
   "Пермь",
-  "Пермский край",
-  // Тюменская область
   "Тюмень",
-  "Тюменская область",
-  "Россия — месторождение слонов",
-  // Коми
   "Сыктывкар",
-  "Республика Коми",
-  "Первая в мире лосеферма в Коми",
-  "Седьмое чудо России",
-  "Рутуб: Про Маньпупунёр",
-  "Рутуб: Про лосей",
-  // Воронежская область
   "Воронеж",
-  "Воронежская область",
-  "Бобры в бобронариуме",
-  // Владимирская область
   "Владимир",
-  "Владимирская область",
   "Суздаль",
-  // Удмуртия
   "Ижевск",
-  "Удмуртская Республика",
-  "ЦСДР в Ижевске",
-  "Про Удмуртию",
-  "Как жарят кофе в Ижевске",
-  "Один день на пожарной каланче",
-  // Томская область
   "Томск",
-  "Томская область",
-  // Тульская область
   "Тула",
-  "Тульская область",
-  "Как работают археологи",
-  "Про Тулу",
-  // Тверская область
   "Тверь",
-  "Тверская область",
-  "Русские котики",
-  // Хакасия
   "Абакан",
-  "Республика Хакасия",
-  "Про Хакасию",
-  // Челябинская область
   "Челябинск",
-  "Челябинская область",
-  // Бурятия
   "Улан-Удэ",
-  "Республика Бурятия",
-  "Бурятская национальная юрта",
-  "Советы от местных жителей",
-  "Про швейцарца из Бурятии",
-  // Архангельская область
   "Архангельск",
-  "Архангельская область",
-  "Как сшить судно",
-  "Один день в аэропорту на краю земли",
-  // Башкирия
   "Уфа",
-  "Республика Башкортостан",
-  // Алтай
   "Горно-Алтайск",
-  "Республика Алтай",
-  // Астраханская область
-  "Астрахань",
-  "Астраханская область",
-  "Шелковичный червь",
-  "Цветение кактусов",
-  "Пересадочный узел для птиц",
-  "Про Астрахань",
-  // Белгородская область
-  "Белгород",
-  "Белгородская область",
-  // Брянская область
-  "Брянск",
-  "Брянская область",
-  // Вологодская область
-  "Вологда",
-  "Вологодская область",
-  // Еврейская АО
-  "Биробиджан",
-  "Еврейская автономная область",
-  // Ивановская область
-  "Иваново",
-  "Ивановская область",
-  "Плёс",
-  "Первый советский вокзал",
-  "Про Иваново",
-  // Ингушетия
-  "Магас",
-  "Республика Ингушетия",
-  // Кабардино-Балкария
-  "Нальчик",
-  "Кабардино-Балкарская Республика",
-  // Калмыкия
-  "Элиста",
-  "Республика Калмыкия",
-  // Калужская область
-  "Калуга",
-  "Калужская область",
-  "Мусор как искусство",
-  // Карачаево-Черкесия
-  "Черкесск",
-  "Карачаево-Черкесская Республика",
-  "Астрономическое путешествие",
-  // Кемеровская область
-  "Кемерово",
-  "Кемеровская область — Кузбасс",
-  // Кировская область
-  "Киров",
-  "Кировская область",
-  // Костромская область
-  "Кострома",
-  "Костромская область",
-  // Курганская область
-  "Курган",
-  "Курганская область",
-  // Курская область
-  "Курск",
-  "Курская область",
-  // Липецкая область
-  "Липецк",
-  "Липецкая область",
-  // Магаданская область
-  "Магадан",
-  "Магаданская область",
-  // Марий Эл
-  "Йошкар-Ола",
-  "Республика Марий Эл",
-  // Мордовия
-  "Саранск",
-  "Республика Мордовия",
-  // Ненецкий АО
-  "Нарьян-Мар",
-  "Ненецкий автономный округ",
-  // Новгородская область
-  "Великий Новгород",
-  "Новгородская область",
-  "Про ёлочные игрушки",
-  // Омская область
-  "Омск",
-  "Омская область",
-  // Оренбургская область
-  "Оренбург",
-  "Оренбургская область",
-  // Орловская область
-  "Орёл",
-  "Орловская область",
-  // Пензенская область
-  "Пенза",
-  "Пензенская область",
-  // Псковская область
-  "Псков",
-  "Псковская область",
-  // Саратовская область
-  "Саратов",
-  "Саратовская область",
-  // Сахалинская область
-  "Южно-Сахалинск",
-  "Сахалинская область",
-  // Северная Осетия
-  "Владикавказ",
-  "Республика Северная Осетия – Алания",
-  // Смоленская область
-  "Смоленск",
-  "Смоленская область",
-  // Тамбовская область
-  "Тамбов",
-  "Тамбовская область",
-  // Тыва
-  "Кызыл",
-  "Республика Тыва",
-  // Ульяновская область
-  "Ульяновск",
-  "Ульяновская область",
-  "Про байбака",
-  // Чечня
-  "Грозный",
-  "Чеченская Республика",
-  // Чувашия
-  "Чебоксары",
-  "Чувашская Республика",
-  // Чукотский АО
-  "Анадырь",
-  "Чукотский автономный округ",
-  // Ямало-Ненецкий АО
-  "Салехард",
-  "Ямало-Ненецкий автономный округ",
-  "Салехард – транспортный рай",
-  "Бросить всё и уйти в тундру",
-  // Алтайский край
-  "Барнаул",
-  "Алтайский край",
-  // Забайкальский край
-  "Чита",
-  "Забайкальский край",
 ];
 
 russiaArticles.forEach(title => {
@@ -821,6 +668,19 @@ const invalidnoeSlug = createSlug("Путешествовать на инвал�
 const slepyeSlug = createSlug("Как путешествуют слепые?");
 const bezopasnostSlug = createSlug("Что надо знать про безопасность?");
 
+// Разборы
+const virusSlug = createSlug("Вирус и антибиотики");
+const faqZdravieSlug = createSlug("FAQ про здоровье");
+const plemenaSlug = createSlug("Племена Амазонки");
+const moreSlug = createSlug("Какое море выбрать");
+const poletovSlug = createSlug("Полётов больше, авиапроисшествий — нет");
+const meteorologiyaSlug = createSlug("Метеорология и полёты");
+const strahovkaSlug = createSlug("Медицинская страховка");
+const avtorskieSlug = createSlug("Авторские туры");
+const pochemuSlug = createSlug("Почему мы путешествуем");
+const polyusSlug = createSlug("Как дойти до Северного полюса");
+const ogranicheniyaSlug = createSlug("Поездки людей с ограничениями по здоровью");
+
 const articleComponents: Record<string, React.ComponentType> = {
   [`passenger/${sickArticleSlug}`]: ChtodelatEsliya,
   [`passenger/${stolenDocsSlug}`]: ChtodelatEsliukrali,
@@ -868,6 +728,159 @@ const articleComponents: Record<string, React.ComponentType> = {
   // Запасной вариант на случай различий в slug
   'passenger/chto-delat-esli-ya-zabelel-v-doroge': ChtodelatEsliya,
   'passenger/chto-delat-esli-ya-zabolel-v-doroge': ChtodelatEsliya,
+  
+  // Разборы
+  [`analysis/${virusSlug}`]: Virusiantibiotiki,
+  [`analysis/${faqZdravieSlug}`]: Faqprozdorove,
+  [`analysis/${plemenaSlug}`]: Plemenaamazonki,
+  [`analysis/${moreSlug}`]: Kakoemorevybrat,
+  [`analysis/${poletovSlug}`]: PoletovbolsheAviaproisshestviy,
+  [`analysis/${meteorologiyaSlug}`]: Meteorologiyaipolety,
+  [`analysis/${strahovkaSlug}`]: Meditsinskayastrahovka,
+  [`analysis/${avtorskieSlug}`]: Avtorskietury,
+  [`analysis/${pochemuSlug}`]: Pochemumyputeshestvuem,
+  [`analysis/${polyusSlug}`]: Kakdoytidosevernogo,
+  [`analysis/${ogranicheniyaSlug}`]: Poezdkilyudeysogranicheniyami,
+  
+  // Транспорт
+  [`transport/${createSlug("Питание вагона")}`]: Pitanievagona,
+  [`transport/${createSlug("ЭП2ДМ")}`]: Ep2dm,
+  [`transport/${createSlug("Новые плацкарты 1-ВМ")}`]: Novyeplatskarty1Vm,
+  [`transport/${createSlug("Новые плацкарты Т")}`]: Novyeplatskartyt,
+  [`transport/${createSlug("Капсульный вагон")}`]: Kapsulnyyvagon,
+  [`transport/${createSlug("Плацкарт-ёлочка")}`]: PlatskartElochka,
+  [`transport/${createSlug("Разные электрички")}`]: Raznyeelektrichki,
+  [`transport/${createSlug("Как были устроены паровозы")}`]: Kakbyliustroenyparovozy,
+  [`transport/${createSlug("Ретропоезд с паровозом")}`]: Retropoezdsparovozom,
+  [`transport/${createSlug("Ласточки")}`]: Lastochki,
+  [`transport/${createSlug("Штабной вагон")}`]: Shtabnoyvagon,
+  [`transport/${createSlug("В кабине машиниста")}`]: Vkabinemashinista,
+  [`transport/${createSlug("Яхрома ЭР2К-980")}`]: Yahromaer2k980,
+  [`transport/${createSlug("Маршрутизация на ЖД")}`]: Marshrutizatsiyanazhd,
+  [`transport/${createSlug("Вагон-электростанция")}`]: VagonElektrostantsiya,
+  [`transport/${createSlug("Локомотивы")}`]: Lokomotivy,
+  [`transport/${createSlug("Л и П - паровозы прошлого")}`]: Lip,
+  [`transport/${createSlug("Аэроэкспресс")}`]: Aeroekspress,
+  [`transport/${createSlug("MC-21")}`]: Mc21,
+  [`transport/${createSlug("Собаки в аэропорту")}`]: Sobakivaeroportu,
+  [`transport/${createSlug("Аэропорт Внуково")}`]: Aeroportvnukovo,
+  [`transport/${createSlug("Экипаж перед вылетом")}`]: Ekipazhperedvyletom,
+  [`transport/${createSlug("Как работает диспетчер")}`]: Kakrabotaetdispetcher,
+  [`transport/${createSlug("По каким правилам летит самолёт")}`]: Pokakimpravilamletit,
+  [`transport/${createSlug("Про центры управления")}`]: Protsentryupravleniya,
+  [`transport/${createSlug("Про службы терминала")}`]: Prosluzhbyterminala,
+  [`transport/${createSlug("Медслужба аэропорта")}`]: Medsluzhbaaeroporta,
+  [`transport/${createSlug("Ty-214")}`]: Ty214,
+  [`transport/${createSlug("Автоматизация HEL")}`]: Avtomatizatsiyahel,
+  [`transport/${createSlug("Зачем обливают самолёт перед вылетом?")}`]: Zachemoblivayutsamoletpered,
+  [`transport/${createSlug("Как посадить самолёт?")}`]: Kakposaditsamolet,
+  [`transport/${createSlug("Ty-144")}`]: Ty144,
+  [`transport/${createSlug("Навигация самолёта")}`]: Navigatsiyasamoleta,
+  [`transport/${createSlug("Ty-154")}`]: Ty154,
+  [`transport/${createSlug("Boeing 747")}`]: Boeing747,
+  [`transport/${createSlug("Ан-2")}`]: An2,
+  [`transport/${createSlug("SJ-100")}`]: Sj100,
+  [`transport/${createSlug("Boeing 737 NG")}`]: Boeing737Ng,
+  [`transport/${createSlug("Airbus A320")}`]: AirbusA320,
+  [`transport/${createSlug("Европейская автобусная компания")}`]: Evropeyskayaavtobusnayakompaniya,
+  [`transport/${createSlug("Про городской транспорт")}`]: Progorodskoytransport,
+  [`transport/${createSlug("Про водителей автобусов")}`]: Provoditeleyavtobusov,
+  [`transport/${createSlug("Отечественные микроавтобусы")}`]: Otechestvennyemikroavtobusy,
+  [`transport/${createSlug("Ездовые собаки")}`]: Ezdovyesobaki,
+
+  // Надолго в другую страну
+  [`long-term/${createSlug("Аргентина")}`]: Argentina,
+  [`long-term/${createSlug("Армения")}`]: Armeniya,
+  [`long-term/${createSlug("Бали")}`]: Bali,
+  [`long-term/${createSlug("Бразилия")}`]: Braziliya,
+  [`long-term/${createSlug("Грузия")}`]: Gruziya,
+  [`long-term/${createSlug("Германия")}`]: Germaniya,
+  [`long-term/${createSlug("Дубай")}`]: Dubay,
+  [`long-term/${createSlug("Египет")}`]: Egipet,
+  [`long-term/${createSlug("Испания")}`]: Ispaniya,
+  [`long-term/${createSlug("Казахстан")}`]: Kazahstan,
+  [`long-term/${createSlug("Кыргызстан (Киргизия)")}`]: KyrgyzstanKirgiziya,
+  [`long-term/${createSlug("Колумбия")}`]: Kolumbiya,
+  [`long-term/${createSlug("Коста-Рика")}`]: KostaRika,
+  [`long-term/${createSlug("Мексика")}`]: Meksika,
+  [`long-term/${createSlug("Португалия")}`]: Portugaliya,
+  [`long-term/${createSlug("Сербия")}`]: Serbiya,
+  [`long-term/${createSlug("Таиланд")}`]: Tailand,
+  [`long-term/${createSlug("Тайвань")}`]: Tayvan,
+  [`long-term/${createSlug("Узбекистан")}`]: Uzbekistan,
+  [`long-term/${createSlug("Франция")}`]: Frantsiya,
+  [`long-term/${createSlug("Черногория")}`]: Chernogoriya,
+  [`long-term/${createSlug("Шри-Ланка")}`]: ShriLanka,
+  [`long-term/${createSlug("Южная Корея")}`]: Yuzhnayakoreya,
+
+  // Первый раз
+  [`first-time/${createSlug("Планеры")}`]: Planery,
+  [`first-time/${createSlug("Гастротуризм в России")}`]: Gastroturizmvrossii,
+  [`first-time/${createSlug("Гастротуры")}`]: Gastrotury,
+  [`first-time/${createSlug("Как взойти на Эверест")}`]: Kakvzoytinaeverest,
+  [`first-time/${createSlug("На мотоцикле")}`]: Namototsikle,
+  [`first-time/${createSlug("Как встать на горные лыжи")}`]: Kakvstatnagornye,
+  [`first-time/${createSlug("Как начать бегать")}`]: Kaknachatbegat,
+  [`first-time/${createSlug("Как пойти пешком в горы")}`]: Kakpoytipeshkomv,
+  [`first-time/${createSlug("Как впервые встать на сап")}`]: Kakvpervyevstatna,
+
+  // Фишки России
+  [`russia-features/${createSlug("Чебурашка")}`]: Cheburashka,
+  [`russia-features/${createSlug("Ёлка")}`]: Elka,
+  [`russia-features/${createSlug("Квашеная капуста")}`]: Kvashenayakapusta,
+  [`russia-features/${createSlug("Дальнобойщики по зимникам")}`]: Dalnoboyschikipozimnikam,
+  [`russia-features/${createSlug("Масленица")}`]: Maslenitsa,
+  [`russia-features/${createSlug("Завод кабеля")}`]: Zavodkabelya,
+  [`russia-features/${createSlug("Интересные места")}`]: Interesnyemesta,
+  [`russia-features/${createSlug("Космос как конструкция")}`]: Kosmoskakkonstruktsiya,
+  [`russia-features/${createSlug("Где, когда, что распускается")}`]: GdeKogdaChtoraspuskaetsya,
+  [`russia-features/${createSlug("Это что за борщевик")}`]: Etochtozaborschevik,
+  [`russia-features/${createSlug("Как читать наличники")}`]: Kakchitatnalichniki,
+
+  // Россия (города)
+  [`russia/${createSlug("Москва")}`]: Moscow,
+  [`russia/${createSlug("Санкт-Петербург")}`]: SPB,
+  [`russia/${createSlug("Крым")}`]: Crimea,
+  [`russia/${createSlug("Симферополь")}`]: Simferopol,
+  [`russia/${createSlug("Севастополь")}`]: Sevastopol,
+  [`russia/${createSlug("Майкоп")}`]: Maykop,
+  [`russia/${createSlug("Казань")}`]: Kazan,
+  [`russia/${createSlug("Екатеринбург")}`]: Ekaterinburg,
+  [`russia/${createSlug("Краснодар")}`]: Krasnodar,
+  [`russia/${createSlug("Ростов-на-Дону")}`]: RostovNaDonu,
+  [`russia/${createSlug("Владивосток")}`]: Vladivostok,
+  [`russia/${createSlug("Самара")}`]: Samara,
+  [`russia/${createSlug("Нижний Новгород")}`]: NizhniyNovgorod,
+  [`russia/${createSlug("Новосибирск")}`]: Novosibirsk,
+  [`russia/${createSlug("Красноярск")}`]: Krasnoyarsk,
+  [`russia/${createSlug("Иркутск")}`]: Irkutsk,
+  [`russia/${createSlug("Калининград")}`]: Kaliningrad,
+  [`russia/${createSlug("Петропавловск-Камчатский")}`]: PetropavlovskKamchatskiy,
+  [`russia/${createSlug("Якутск")}`]: Yakutsk,
+  [`russia/${createSlug("Махачкала")}`]: Makhachkala,
+  [`russia/${createSlug("Мурманск")}`]: Murmansk,
+  [`russia/${createSlug("Хабаровск")}`]: Khabarovsk,
+  [`russia/${createSlug("Рязань")}`]: Ryazan,
+  [`russia/${createSlug("Касимов")}`]: Kasimov,
+  [`russia/${createSlug("Ставрополь")}`]: Stavropol,
+  [`russia/${createSlug("Ярославль")}`]: Yaroslavl,
+  [`russia/${createSlug("Волгоград")}`]: Volgograd,
+  [`russia/${createSlug("Пермь")}`]: Perm,
+  [`russia/${createSlug("Тюмень")}`]: Tyumen,
+  [`russia/${createSlug("Сыктывкар")}`]: Syktyvkar,
+  [`russia/${createSlug("Воронеж")}`]: Voronezh,
+  [`russia/${createSlug("Владимир")}`]: Vladimir,
+  [`russia/${createSlug("Суздаль")}`]: Suzdal,
+  [`russia/${createSlug("Ижевск")}`]: Izhevsk,
+  [`russia/${createSlug("Томск")}`]: Tomsk,
+  [`russia/${createSlug("Тула")}`]: Tula,
+  [`russia/${createSlug("Тверь")}`]: Tver,
+  [`russia/${createSlug("Абакан")}`]: Abakan,
+  [`russia/${createSlug("Челябинск")}`]: Chelyabinsk,
+  [`russia/${createSlug("Улан-Удэ")}`]: UlanUde,
+  [`russia/${createSlug("Архангельск")}`]: Arkhangelsk,
+  [`russia/${createSlug("Уфа")}`]: Ufa,
+  [`russia/${createSlug("Горно-Алтайск")}`]: GornoAltaysk,
 };
 
 const GuideArticlePage = () => {

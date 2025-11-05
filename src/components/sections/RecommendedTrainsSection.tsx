@@ -1,7 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Train } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 
 const RecommendedTrainsSection = () => {
+  const navigate = useNavigate();
+  
+  const handleViewTrain = (departureCity: string, arrivalCity: string) => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const params = new URLSearchParams({
+      from: departureCity,
+      to: arrivalCity,
+      date: format(tomorrow, "yyyy-MM-dd"),
+      ticketType: "all",
+      passengers: "1"
+    });
+    navigate(`/train-search?${params.toString()}`);
+  };
   const trains = [
     {
       departure: "07:10",
@@ -156,7 +172,11 @@ const RecommendedTrainsSection = () => {
                   <p className="text-sm text-muted-foreground">
                     {train.offers} предложений
                   </p>
-                  <Button variant="outline" className="h-9 px-4 text-sm">
+                  <Button 
+                    variant="outline" 
+                    className="h-9 px-4 text-sm"
+                    onClick={() => handleViewTrain(train.departureCity, train.arrivalCity)}
+                  >
                     Смотреть <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
