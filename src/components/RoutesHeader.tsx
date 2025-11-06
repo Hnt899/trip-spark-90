@@ -14,14 +14,14 @@ const RoutesHeader = () => {
           <img 
             src={logoImage} 
             alt="TudaSuda" 
-            className="h-32 w-auto object-contain"
+            className="h-20 w-auto object-contain"
           />
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
           <Link 
             to="/routes" 
-            className={`text-sm font-medium transition-colors hover:text-primary ${
+            className={`text-base font-medium transition-colors hover:text-primary ${
               isActive("/routes") ? "text-primary" : "text-white"
             }`}
           >
@@ -29,7 +29,7 @@ const RoutesHeader = () => {
           </Link>
           <Link 
             to="/routes/list" 
-            className={`text-sm font-medium transition-colors hover:text-primary ${
+            className={`text-base font-medium transition-colors hover:text-primary ${
               isActive("/routes/list") ? "text-primary" : "text-white"
             }`}
           >
@@ -40,7 +40,7 @@ const RoutesHeader = () => {
         <Button 
           asChild 
           variant="outline" 
-          className="border-white text-white !bg-transparent hover:!bg-white/10"
+          className="border-white text-white !bg-transparent hover:!bg-white/10 text-base"
         >
           <Link to="/">Вернуться на главную</Link>
         </Button>

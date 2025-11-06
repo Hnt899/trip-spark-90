@@ -129,7 +129,7 @@ const RouteList = () => {
   return (
     <div className="min-h-screen bg-[#F5F5FA]">
       <RoutesHeader />
-      <main className="pt-16">
+      <main className="pt-40">
         {/* Header Section */}
         <div className="bg-[#F5F5FA] py-8">
           <div className="container">

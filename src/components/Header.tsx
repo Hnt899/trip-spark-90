@@ -26,38 +26,38 @@ const Header = () => {
             <img 
               src={logoImage} 
               alt="TudaSuda" 
-              className="h-32 w-auto object-contain"
+              className="h-20 w-auto object-contain"
             />
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">
             <Link 
               to="/" 
-              className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/") ? "text-primary" : "text-foreground"}`}
+              className={`text-base font-medium transition-colors hover:text-primary ${isActive("/") ? "text-primary" : "text-foreground"}`}
             >
               Главная
             </Link>
             <Link 
               to="/routes" 
-              className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/routes") ? "text-primary" : "text-foreground"}`}
+              className={`text-base font-medium transition-colors hover:text-primary ${isActive("/routes") ? "text-primary" : "text-foreground"}`}
             >
               Маршруты
             </Link>
             <Link 
               to="/reference" 
-              className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/reference") ? "text-primary" : "text-foreground"}`}
+              className={`text-base font-medium transition-colors hover:text-primary ${isActive("/reference") ? "text-primary" : "text-foreground"}`}
             >
               Справочная
             </Link>
             <Link 
               to="/blog" 
-              className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/blog") ? "text-primary" : "text-foreground"}`}
+              className={`text-base font-medium transition-colors hover:text-primary ${isActive("/blog") ? "text-primary" : "text-foreground"}`}
             >
               Блог
             </Link>
             <Link 
               to="/guide" 
-              className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/guide") ? "text-primary" : "text-foreground"}`}
+              className={`text-base font-medium transition-colors hover:text-primary ${isActive("/guide") ? "text-primary" : "text-foreground"}`}
             >
               Путеводитель
             </Link>
@@ -65,15 +65,15 @@ const Header = () => {
 
           {user ? (
             <div className="flex items-center gap-2">
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" className="text-base">
                 <Link to="/profile">Личный кабинет</Link>
               </Button>
-              <Button onClick={handleSignOut} variant="ghost" size="sm">
+              <Button onClick={handleSignOut} variant="ghost" className="text-base">
                 Выйти
               </Button>
             </div>
           ) : (
-            <Button onClick={() => setAuthModalOpen(true)} variant="outline">
+            <Button onClick={() => setAuthModalOpen(true)} variant="outline" className="text-base">
               Войти / Регистрация
             </Button>
           )}

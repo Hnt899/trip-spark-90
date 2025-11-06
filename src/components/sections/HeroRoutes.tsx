@@ -212,7 +212,7 @@ const HeroRoutes = () => {
                 <div className="absolute inset-0 bg-black/40" />
 
                 {/* Content */}
-                <div className="absolute inset-0 flex items-center">
+                <div className="absolute top-36 left-0 right-0 bottom-0 flex items-center">
                   <div className="container px-6 md:px-12">
                     <div className="max-w-3xl space-y-8 text-white">
                       {/* Title with rating badge */}

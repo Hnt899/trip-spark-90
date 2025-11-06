@@ -8,7 +8,8 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
 import { useNavigate } from "react-router-dom";
-import heroTrain from "@/assets/hero-train.jpg";
+import trainBackground from "@/assets/fon.png";
+import heroTrain from "@/assets/hero-train.png";
 import trainInterior from "@/assets/train-interior.jpg";
 import { cn } from "@/lib/utils";
 import { cities } from "@/data/cities";
@@ -27,22 +28,40 @@ const HeroSection = () => {
       <div className="container relative pb-32 lg:pb-40">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <div className="space-y-8 animate-fade-in">
-            <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight">
                 Найдите билет на поезд онлайн
               </h1>
-              <p className="text-lg text-muted-foreground">
-                Поиск расписания, выбор мест, безопасная оплата и ЭПД — в одном окне.
-              </p>
+              <div className="space-y-4">
+                <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl">
+                  Поиск расписания, выбор мест, безопасная оплата и ЭПД — в одном окне. 
+                  Откройте для себя готовые маршруты по регионам России, путеводители с обзорами городов и достопримечательностей, 
+                  полезную справочную информацию и советы от опытных путешественников.
+                </p>
+              </div>
             </div>
           </div>
 
           <div className="relative hidden lg:flex gap-4 animate-slide-in mr-[calc(50%-50vw)]">
-            <div className="flex-1">
+            <div className="flex-1 relative overflow-visible">
+              {/* Фон (железная дорога) - появляется первым */}
+              <img 
+                src={trainBackground} 
+                alt="Железная дорога" 
+                className="rounded-2xl shadow-2xl w-full h-[800px] object-cover animate-fade-in"
+              />
+              {/* Поезд поверх фона - выезжает и становится на место */}
               <img 
                 src={heroTrain} 
                 alt="Современный поезд" 
-                className="rounded-2xl shadow-2xl w-full h-[800px] object-cover"
+                className="absolute top-0 object-contain animate-train-enter opacity-0"
+                style={{ 
+                  left: '-60%', 
+                  height: '800px',
+                  width: '182%',
+                  maxWidth: 'none',
+                  animationFillMode: 'forwards'
+                }}
               />
             </div>
             <div className="flex-1">
