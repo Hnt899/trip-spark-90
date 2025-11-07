@@ -14,6 +14,9 @@ import Guide from "./pages/Guide";
 import GuideArticlePage from "./pages/guide/GuideArticlePage";
 import ChtodelatEsliya from "./pages/guide/articles/passenger/ChtodelatEsliya";
 import TrainSearchResults from "./pages/TrainSearchResults";
+import FlightSearch from "./pages/FlightSearch";
+import BusSearch from "./pages/BusSearch";
+import HotelSearch from "./pages/HotelSearch";
 import SelectSeats from "./pages/SelectSeats";
 import Checkout from "./pages/Checkout";
 import Auth from "./pages/Auth";
@@ -146,6 +149,9 @@ const App = () => (
           <Route path="/guide/passenger/chto-delat-esli-ya-zabelel-v-doroge" element={<ChtodelatEsliya />} />
           <Route path="/guide/:category/:slug" element={<GuideArticlePage />} />
           <Route path="/train-search" element={<TrainSearchResults />} />
+          <Route path="/flight-search" element={<FlightSearch />} />
+          <Route path="/bus-search" element={<BusSearch />} />
+          <Route path="/hotel-search" element={<HotelSearch />} />
           <Route path="/select-seats" element={<SelectSeats />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/auth" element={<Auth />} />

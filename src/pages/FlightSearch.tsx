@@ -20,7 +20,7 @@ import {
   ChevronRight,
   ArrowLeftRight,
   Calendar as CalendarIcon,
-  Train
+  Plane
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -34,25 +34,24 @@ interface Amenity {
 }
 
 interface TicketType {
-  type: "platzkart" | "coupe" | "sv";
+  type: "economy" | "comfort" | "business" | "first";
   name: string;
-  lowerBerths: number;
-  upperBerths: number;
+  seats: number;
   price: number;
 }
 
-interface TrainRoute {
+interface FlightRoute {
   id: string;
-  trainNumber: string;
-  trainName: string;
+  flightNumber: string;
+  airlineName: string;
   tags?: string[];
   departureTime: string;
   departureDate: Date;
-  departureStation: string;
+  departureAirport: string;
   departureCity: string;
   arrivalTime: string;
   arrivalDate: Date;
-  arrivalStation: string;
+  arrivalAirport: string;
   arrivalCity: string;
   duration: string;
   amenities: Amenity[];
@@ -64,62 +63,62 @@ interface TrainRoute {
   minPrice: number;
 }
 
-// Хардкоженные данные для удобств
+// Хардкоженные данные для удобств самолётов
 const amenitiesData: Amenity[] = [
   {
     icon: <Snowflake className="w-5 h-5" />,
     name: "Кондиционер",
-    description: "Кондиционер установлен в вагоне для комфортной температуры"
+    description: "Кондиционер установлен в самолёте для комфортной температуры"
   },
   {
     icon: <Utensils className="w-5 h-5" />,
     name: "Питание",
-    description: "Питание доступно в вагоне-ресторане или можно заказать доставку в купе"
+    description: "Питание включено в стоимость билета или доступно к заказу на борту"
   },
   {
     icon: <Wifi className="w-5 h-5" />,
     name: "Wi-Fi",
-    description: "Бесплатный Wi-Fi доступен в поезде"
+    description: "Бесплатный Wi-Fi доступен на борту самолёта"
   },
   {
     icon: <Coffee className="w-5 h-5" />,
-    name: "Вагон-ресторан",
-    description: "В поезде есть вагон-ресторан с горячими блюдами и напитками"
+    name: "Бар на борту",
+    description: "На борту самолёта доступны горячие блюда и напитки"
   },
   {
     icon: <Users className="w-5 h-5" />,
-    name: "Женское/мужское купе",
-    description: "Доступны купе для женщин и мужчин"
+    name: "Просторные кресла",
+    description: "Удобные кресла с увеличенным пространством для ног"
   },
   {
     icon: <Droplet className="w-5 h-5" />,
-    name: "Биотуалет",
-    description: "В вагоне установлены биотуалеты"
+    name: "Туалет",
+    description: "В самолёте установлены туалеты"
   },
   {
     icon: <Play className="w-5 h-5" />,
-    name: "Мультимедийный портал",
-    description: "Кинотеатр, книги, музыка доступны через мультимедийный портал"
+    name: "Развлечения",
+    description: "Кинотеатр, книги, музыка доступны через мультимедийную систему"
   }
 ];
 
-// Маппинг вокзалов для городов
-const stationMap: Record<string, string[]> = {
-  "Москва": ["Ленинградский вокзал", "Киевский вокзал", "Восточный вокзал", "Казанский вокзал", "Ярославский вокзал"],
-  "Санкт-Петербург": ["Московский вокзал", "Ладожский вокзал", "Финляндский вокзал", "Витебский вокзал"],
-  "Казань": ["Казанский вокзал", "Центральный вокзал"],
-  "Сочи": ["Сочинский вокзал"],
-  "Новосибирск": ["Новосибирск-Главный", "Новосибирск-Южный"],
-  "Екатеринбург": ["Екатеринбург-Пассажирский"],
-  "Нижний Новгород": ["Московский вокзал"],
-  "Самара": ["Самара"],
-  "Ростов-на-Дону": ["Ростов-Главный"],
-  "Владивосток": ["Владивосток"]
+// Маппинг аэропортов для городов
+const airportMap: Record<string, string[]> = {
+  "Москва": ["Шереметьево", "Домодедово", "Внуково", "Жуковский"],
+  "Санкт-Петербург": ["Пулково", "Пулково-2"],
+  "Казань": ["Казань", "Казань-2"],
+  "Сочи": ["Сочи", "Адлер"],
+  "Новосибирск": ["Толмачёво", "Новосибирск"],
+  "Екатеринбург": ["Кольцово"],
+  "Нижний Новгород": ["Стригино"],
+  "Самара": ["Курумоч"],
+  "Ростов-на-Дону": ["Платов"],
+  "Владивосток": ["Кневичи"]
 };
 
-const getStation = (city: string, index: number = 0): string => {
-  const stations = stationMap[city] || [city];
-  return stations[index % stations.length];
+const getAirport = (city: string, index: number = 0): string => {
+  const airports = airportMap[city] || [city];
+  return airports[index % airports.length];
 };
 
 // Функция для генерации маршрутов на основе параметров поиска
@@ -127,23 +126,24 @@ const generateRoutes = (
   fromCity: string,
   toCity: string,
   departureDate: Date,
-  ticketType: string
-): TrainRoute[] => {
+  flightClass: string
+): FlightRoute[] => {
   // Хардкоженные данные маршрутов
-  const routes: TrainRoute[] = [
+  const routes: FlightRoute[] = [
     {
       id: "1",
-      trainNumber: "022А",
-      trainName: "Ночной экспресс",
-      departureTime: "00:25",
+      flightNumber: "SU 1234",
+      airlineName: "Аэрофлот",
+      tags: ["Прямой", "Утренний"],
+      departureTime: "06:25",
       departureDate,
-      departureStation: getStation(fromCity, 0),
+      departureAirport: getAirport(fromCity, 0),
       departureCity: fromCity,
       arrivalTime: "09:26",
       arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
+      arrivalAirport: getAirport(toCity, 0),
       arrivalCity: toCity,
-      duration: "9 ч 1 м",
+      duration: "3 ч 1 м",
       amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[2], amenitiesData[3], amenitiesData[4], amenitiesData[5]],
       reviews: {
         count: 169,
@@ -151,36 +151,34 @@ const generateRoutes = (
       },
       tickets: [
         {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 140,
-          upperBerths: 142,
-          price: 4605
+          type: "economy",
+          name: "Эконом",
+          seats: 142,
+          price: 8605
         },
         {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 16,
-          upperBerths: 0,
-          price: 12987
+          type: "business",
+          name: "Бизнес",
+          seats: 16,
+          price: 22987
         }
       ],
-      minPrice: 4605
+      minPrice: 8605
     },
     {
       id: "2",
-      trainNumber: "016А",
-      trainName: "Арктика",
-      tags: ["Фирменный", "Проходящий"],
-      departureTime: "00:46",
+      flightNumber: "DP 456",
+      airlineName: "Победа",
+      tags: ["Низкобюджетный", "Прямой"],
+      departureTime: "08:46",
       departureDate,
-      departureStation: getStation(fromCity, 0),
+      departureAirport: getAirport(fromCity, 1),
       departureCity: fromCity,
-      arrivalTime: "09:13",
+      arrivalTime: "11:13",
       arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 1),
+      arrivalAirport: getAirport(toCity, 0),
       arrivalCity: toCity,
-      duration: "8 ч 27 м",
+      duration: "2 ч 27 м",
       amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[2], amenitiesData[3], amenitiesData[4]],
       reviews: {
         count: 2000,
@@ -188,43 +186,40 @@ const generateRoutes = (
       },
       tickets: [
         {
-          type: "platzkart",
-          name: "Плацкарт",
-          lowerBerths: 29,
-          upperBerths: 98,
-          price: 2451
+          type: "economy",
+          name: "Эконом",
+          seats: 127,
+          price: 5451
         },
         {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 22,
-          upperBerths: 20,
-          price: 5516
+          type: "comfort",
+          name: "Комфорт",
+          seats: 42,
+          price: 9516
         },
         {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 6,
-          upperBerths: 6,
-          price: 14867
+          type: "business",
+          name: "Бизнес",
+          seats: 6,
+          price: 24867
         }
       ],
-      minPrice: 2451
+      minPrice: 5451
     },
     {
       id: "3",
-      trainNumber: "060*Г",
-      trainName: "Волга",
-      tags: ["Фирменный", "Проходящий"],
-      departureTime: "00:48",
+      flightNumber: "S7 789",
+      airlineName: "S7 Airlines",
+      tags: ["Прямой", "Дневной"],
+      departureTime: "12:48",
       departureDate,
-      departureStation: getStation(fromCity, 2),
+      departureAirport: getAirport(fromCity, 2),
       departureCity: fromCity,
-      arrivalTime: "09:57",
+      arrivalTime: "15:57",
       arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
+      arrivalAirport: getAirport(toCity, 0),
       arrivalCity: toCity,
-      duration: "9 ч 9 м",
+      duration: "3 ч 9 м",
       amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[2], amenitiesData[3], amenitiesData[6]],
       reviews: {
         count: 1400,
@@ -232,42 +227,39 @@ const generateRoutes = (
       },
       tickets: [
         {
-          type: "platzkart",
-          name: "Плацкарт",
-          lowerBerths: 72,
-          upperBerths: 79,
-          price: 3220
+          type: "economy",
+          name: "Эконом",
+          seats: 151,
+          price: 6220
         },
         {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 21,
-          upperBerths: 27,
-          price: 4861
+          type: "comfort",
+          name: "Комфорт",
+          seats: 48,
+          price: 8861
         },
         {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 16,
-          upperBerths: 0,
-          price: 16840
+          type: "business",
+          name: "Бизнес",
+          seats: 16,
+          price: 26840
         }
       ],
-      minPrice: 3220
+      minPrice: 6220
     },
     {
       id: "4",
-      trainNumber: "057M",
-      trainName: "",
-      departureTime: "01:00",
+      flightNumber: "UT 321",
+      airlineName: "ЮТэйр",
+      departureTime: "14:00",
       departureDate,
-      departureStation: getStation(fromCity, 1),
+      departureAirport: getAirport(fromCity, 0),
       departureCity: fromCity,
-      arrivalTime: "10:41",
+      arrivalTime: "17:41",
       arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
+      arrivalAirport: getAirport(toCity, 0),
       arrivalCity: toCity,
-      duration: "9 ч 41 м",
+      duration: "3 ч 41 м",
       amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[4], amenitiesData[5]],
       reviews: {
         count: 164,
@@ -275,43 +267,40 @@ const generateRoutes = (
       },
       tickets: [
         {
-          type: "platzkart",
-          name: "Плацкарт",
-          lowerBerths: 150,
-          upperBerths: 153,
-          price: 2196
+          type: "economy",
+          name: "Эконом",
+          seats: 113,
+          price: 5196
         },
         {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 61,
-          upperBerths: 66,
-          price: 2239
+          type: "comfort",
+          name: "Комфорт",
+          seats: 27,
+          price: 7239
         },
         {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 0,
-          upperBerths: 0,
-          price: 10005
+          type: "first",
+          name: "Первый класс",
+          seats: 0,
+          price: 20005
         }
       ],
-      minPrice: 2196
+      minPrice: 5196
     },
     {
       id: "5",
-      trainNumber: "050*C",
-      trainName: "",
-      tags: ["Проходящий"],
-      departureTime: "02:05",
+      flightNumber: "FV 654",
+      airlineName: "Россия",
+      tags: ["Прямой"],
+      departureTime: "16:05",
       departureDate,
-      departureStation: getStation(fromCity, 2),
+      departureAirport: getAirport(fromCity, 1),
       departureCity: fromCity,
-      arrivalTime: "11:00",
+      arrivalTime: "19:00",
       arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
+      arrivalAirport: getAirport(toCity, 0),
       arrivalCity: toCity,
-      duration: "8 ч 55 м",
+      duration: "2 ч 55 м",
       amenities: [amenitiesData[0], amenitiesData[4], amenitiesData[5]],
       reviews: {
         count: 282,
@@ -319,36 +308,34 @@ const generateRoutes = (
       },
       tickets: [
         {
-          type: "platzkart",
-          name: "Плацкарт",
-          lowerBerths: 76,
-          upperBerths: 96,
-          price: 2196
+          type: "economy",
+          name: "Эконом",
+          seats: 172,
+          price: 5196
         },
         {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 41,
-          upperBerths: 57,
-          price: 3183
+          type: "comfort",
+          name: "Комфорт",
+          seats: 98,
+          price: 8183
         }
       ],
-      minPrice: 2196
+      minPrice: 5196
     },
     {
       id: "6",
-      trainNumber: "082B",
-      trainName: "",
-      tags: ["Двухэтажный", "Проходящий"],
-      departureTime: "03:13",
+      flightNumber: "U6 987",
+      airlineName: "Уральские авиалинии",
+      tags: ["Прямой", "Вечерний"],
+      departureTime: "20:13",
       departureDate,
-      departureStation: getStation(fromCity, 2),
+      departureAirport: getAirport(fromCity, 2),
       departureCity: fromCity,
-      arrivalTime: "11:40",
+      arrivalTime: "23:40",
       arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
+      arrivalAirport: getAirport(toCity, 0),
       arrivalCity: toCity,
-      duration: "8 ч 27 м",
+      duration: "3 ч 27 м",
       amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[4], amenitiesData[5], amenitiesData[6]],
       reviews: {
         count: 1100,
@@ -356,70 +343,64 @@ const generateRoutes = (
       },
       tickets: [
         {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 160,
-          upperBerths: 186,
-          price: 2389
+          type: "comfort",
+          name: "Комфорт",
+          seats: 60,
+          price: 7389
         },
         {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 22,
-          upperBerths: 0,
-          price: 13098
+          type: "business",
+          name: "Бизнес",
+          seats: 22,
+          price: 23098
         }
       ],
-      minPrice: 2389
+      minPrice: 7389
     }
   ];
 
-  // Фильтруем по типу билета, если указан
-  if (ticketType && ticketType !== "all") {
+  // Фильтруем по классу обслуживания, если указан
+  if (flightClass && flightClass !== "all") {
     return routes.filter(route => 
-      route.tickets.some(ticket => ticket.type === ticketType)
+      route.tickets.some(ticket => ticket.type === flightClass)
     );
   }
 
   return routes;
 };
 
-const TrainSearchResults = () => {
+const FlightSearch = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const initialFromCity = searchParams.get("from") || "Москва";
   const initialToCity = searchParams.get("to") || "Санкт-Петербург";
   const dateStr = searchParams.get("date");
-  const initialTicketType = searchParams.get("ticketType") || "all";
   const initialPassengers = searchParams.get("passengers") || "1";
+  const initialFlightClass = searchParams.get("class") || "economy";
 
   const [fromCity, setFromCity] = useState(initialFromCity);
   const [toCity, setToCity] = useState(initialToCity);
-  const [ticketType, setTicketType] = useState(initialTicketType);
   const [passengers, setPassengers] = useState(initialPassengers);
+  const [flightClass, setFlightClass] = useState(initialFlightClass);
   const [selectedDate, setSelectedDate] = useState<Date>(dateStr ? new Date(dateStr) : new Date());
 
   const departureDate = selectedDate;
 
-  const routes = generateRoutes(fromCity, toCity, departureDate, ticketType);
+  const routes = generateRoutes(fromCity, toCity, departureDate, flightClass);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [fromCity, toCity, selectedDate, ticketType]);
+  }, [fromCity, toCity, selectedDate, flightClass]);
 
   // Обновляем URL при изменении параметров
-  const updateSearchParams = (newFrom?: string, newTo?: string, newDate?: Date, newTicketType?: string, newPassengers?: string) => {
+  const updateSearchParams = (newFrom?: string, newTo?: string, newDate?: Date, newPassengers?: string) => {
     const params = new URLSearchParams();
     params.set("from", newFrom || fromCity);
     params.set("to", newTo || toCity);
     params.set("date", format(newDate || selectedDate, "yyyy-MM-dd"));
-    if (newTicketType !== undefined) {
-      params.set("ticketType", newTicketType || "all");
-    } else if (ticketType !== "all") {
-      params.set("ticketType", ticketType);
-    }
     params.set("passengers", newPassengers || passengers);
+    params.set("class", flightClass);
     setSearchParams(params);
   };
 
@@ -580,7 +561,7 @@ const TrainSearchResults = () => {
                   <label className="text-xs text-muted-foreground mb-1 block">Кто едет</label>
                   <Select value={passengers} onValueChange={(value) => {
                     setPassengers(value);
-                    updateSearchParams(undefined, undefined, undefined, undefined, value);
+                    updateSearchParams(undefined, undefined, undefined, value);
                   }}>
                     <SelectTrigger className="h-12">
                       <SelectValue />
@@ -600,7 +581,7 @@ const TrainSearchResults = () => {
                     className="h-12 px-8 bg-purple-600 hover:bg-purple-700"
                     onClick={handleSearch}
                   >
-                    Найти поезда
+                    Найти авиабилеты
                   </Button>
                 </div>
               </div>
@@ -662,10 +643,10 @@ const TrainSearchResults = () => {
         {/* Заголовок */}
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Train className="w-5 h-5 text-primary" />
+            <Plane className="w-5 h-5 text-primary" />
           </div>
           <h1 className="text-3xl font-bold">
-            Ж/д билеты
+            Авиабилеты
           </h1>
         </div>
 
@@ -688,7 +669,7 @@ const TrainSearchResults = () => {
                         </span>
                       ))}
                       <span className="px-3 py-1 text-xs font-medium rounded-full bg-muted text-muted-foreground">
-                        {route.trainNumber} {route.trainName}
+                        {route.flightNumber} {route.airlineName}
                       </span>
                     </div>
 
@@ -701,7 +682,7 @@ const TrainSearchResults = () => {
                           <div className="text-sm text-muted-foreground">
                             {formatDate(route.departureDate)}
                           </div>
-                          <div className="text-sm font-medium mt-1">{route.departureStation}</div>
+                          <div className="text-sm font-medium mt-1">Аэропорт {route.departureAirport}</div>
                           <div className="text-sm text-muted-foreground">{route.departureCity}</div>
                         </div>
                       </div>
@@ -725,7 +706,7 @@ const TrainSearchResults = () => {
                           <div className="text-sm text-muted-foreground">
                             {formatDate(route.arrivalDate)}
                           </div>
-                          <div className="text-sm font-medium mt-1">{route.arrivalStation}</div>
+                          <div className="text-sm font-medium mt-1">Аэропорт {route.arrivalAirport}</div>
                           <div className="text-sm text-muted-foreground">{route.arrivalCity}</div>
                         </div>
                       </div>
@@ -774,9 +755,10 @@ const TrainSearchResults = () => {
                       {(() => {
                         // Все возможные типы мест
                         const allTicketTypes = [
-                          { type: "platzkart" as const, name: "Плацкарт" },
-                          { type: "coupe" as const, name: "Купе" },
-                          { type: "sv" as const, name: "СВ" }
+                          { type: "economy" as const, name: "Эконом" },
+                          { type: "comfort" as const, name: "Комфорт" },
+                          { type: "business" as const, name: "Бизнес" },
+                          { type: "first" as const, name: "Первый класс" }
                         ];
 
                         return allTicketTypes.map((ticketTypeInfo) => {
@@ -784,7 +766,7 @@ const TrainSearchResults = () => {
                           const ticket = route.tickets.find(t => t.type === ticketTypeInfo.type);
                           
                           // Если билета нет или он распродан
-                          const isSoldOut = !ticket || (ticket.lowerBerths === 0 && ticket.upperBerths === 0);
+                          const isSoldOut = !ticket || ticket.seats === 0;
                           
                           return (
                             <div
@@ -797,9 +779,7 @@ const TrainSearchResults = () => {
                                   <span className="text-red-600 ml-2 font-semibold">Распродано</span>
                                 ) : (
                                   <span className="text-muted-foreground ml-2">
-                                    {ticket.lowerBerths > 0 && `${ticket.lowerBerths} ниж`}
-                                    {ticket.lowerBerths > 0 && ticket.upperBerths > 0 && ", "}
-                                    {ticket.upperBerths > 0 && `${ticket.upperBerths} верх`}
+                                    {ticket.seats} мест
                                   </span>
                                 )}
                               </div>
@@ -828,9 +808,9 @@ const TrainSearchResults = () => {
                             from: fromCity,
                             to: toCity,
                             date: format(departureDate, "yyyy-MM-dd"),
-                            ticketType: ticketType,
+                            class: flightClass,
                             passengers: passengers,
-                            travelType: "train"
+                            travelType: "flight"
                           });
                           navigate(`/select-seats?${params.toString()}`);
                         }}
@@ -848,7 +828,7 @@ const TrainSearchResults = () => {
         {routes.length === 0 && (
           <div className="text-center py-12">
             <p className="text-lg text-muted-foreground">
-              К сожалению, на выбранную дату нет доступных поездов
+              К сожалению, на выбранную дату нет доступных рейсов
             </p>
           </div>
         )}
@@ -858,5 +838,4 @@ const TrainSearchResults = () => {
   );
 };
 
-export default TrainSearchResults;
-
+export default FlightSearch;

@@ -20,16 +20,24 @@ import {
   Plus,
   Power,
   Info,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Train,
+  Plane,
+  Bus,
+  Square,
+  Cloud,
+  Sun,
+  CloudRain,
+  Wind
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { ru } from "date-fns/locale";
 
 interface Car {
   id: string;
   number: string;
   name: string;
-  type: "coupe" | "sv";
+  type: "coupe" | "sv" | "economy" | "comfort" | "business" | "first" | "bus";
   totalSeats: number;
   lowerBerths: number;
   upperBerths: number;
@@ -41,6 +49,11 @@ interface Car {
   reviews: number;
   amenities: string[];
   availableSeats: number[];
+  // Для самолётов
+  rows?: number;
+  seatsPerRow?: number;
+  // Для автобусов
+  isBus?: boolean;
 }
 
 interface BestOption {
@@ -49,9 +62,19 @@ interface BestOption {
   seatNumber: string;
   type: "lower" | "upper";
   price: number;
+  ticketType?: string; // Для фильтрации по типу билета
+  isWindow?: boolean; // Для автобусов - место у окна
   description: string[];
   rating: number;
   amenities: string[];
+}
+
+interface WeatherData {
+  condition: "sunny" | "cloudy" | "partly-cloudy" | "rainy";
+  temperature: number;
+  humidity: number;
+  windSpeed: number;
+  description: string;
 }
 
 const SelectSeats = () => {
@@ -62,7 +85,9 @@ const SelectSeats = () => {
   const toCity = searchParams.get("to") || "Санкт-Петербург";
   const dateStr = searchParams.get("date");
   const ticketType = searchParams.get("ticketType") || "coupe";
+  const flightClass = searchParams.get("class") || "economy";
   const passengersParam = searchParams.get("passengers") || "1";
+  const travelType = searchParams.get("travelType") || "train"; // train, flight, bus
 
   // Если передано количество пассажиров (2, 3, 4), устанавливаем его как взрослых
   const initialAdults = parseInt(passengersParam) >= 2 && parseInt(passengersParam) <= 4 
@@ -72,21 +97,70 @@ const SelectSeats = () => {
   const [adults, setAdults] = useState(initialAdults);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
-  const [selectedTicketType, setSelectedTicketType] = useState<string>(ticketType);
+  const [selectedTicketType, setSelectedTicketType] = useState<string>(
+    travelType === "flight" ? flightClass : ticketType
+  );
+  const [busSeatFilter, setBusSeatFilter] = useState<"all" | "window">("all"); // Для фильтрации мест в автобусах
+  
+  // Определяем, нужно ли показывать графу для малышей до 5 лет
+  const showInfants = travelType === "train";
 
   const departureDate = dateStr ? new Date(dateStr) : new Date();
+  
+  // Вычисляем дату прибытия (для поездов может быть на следующий день)
+  const arrivalDate = travelType === "train" 
+    ? addDays(departureDate, 1) 
+    : departureDate;
   
   // Вычисляем общее количество пассажиров (взрослые + дети с местами, исключая малышей до 5 лет)
   const totalPassengers = adults + children;
 
-  // Хардкоженные данные для лучших вариантов
-  const bestOptions: BestOption[] = [
+  // Хардкоженные данные о погоде для городов
+  const getWeatherData = (city: string, date: Date): WeatherData => {
+    // Простая логика для демонстрации - можно заменить на реальный API
+    const cityWeatherMap: Record<string, WeatherData> = {
+      "Москва": { condition: "partly-cloudy", temperature: 15, humidity: 65, windSpeed: 12, description: "Переменная облачность" },
+      "Санкт-Петербург": { condition: "cloudy", temperature: 12, humidity: 75, windSpeed: 15, description: "Облачно" },
+      "Казань": { condition: "sunny", temperature: 18, humidity: 55, windSpeed: 8, description: "Солнечно" },
+      "Сочи": { condition: "sunny", temperature: 22, humidity: 70, windSpeed: 10, description: "Солнечно" },
+      "Новосибирск": { condition: "cloudy", temperature: 8, humidity: 60, windSpeed: 14, description: "Облачно" },
+      "Екатеринбург": { condition: "partly-cloudy", temperature: 10, humidity: 58, windSpeed: 11, description: "Переменная облачность" },
+      "Нижний Новгород": { condition: "rainy", temperature: 13, humidity: 80, windSpeed: 13, description: "Дождь" },
+      "Самара": { condition: "sunny", temperature: 16, humidity: 52, windSpeed: 9, description: "Солнечно" },
+      "Ростов-на-Дону": { condition: "sunny", temperature: 20, humidity: 62, windSpeed: 10, description: "Солнечно" },
+      "Владивосток": { condition: "cloudy", temperature: 14, humidity: 68, windSpeed: 16, description: "Облачно" }
+    };
+    
+    return cityWeatherMap[city] || { condition: "partly-cloudy", temperature: 15, humidity: 60, windSpeed: 10, description: "Переменная облачность" };
+  };
+
+  const departureWeather = getWeatherData(fromCity, departureDate);
+  const arrivalWeather = getWeatherData(toCity, arrivalDate);
+
+  const getWeatherIcon = (condition: string) => {
+    switch (condition) {
+      case "sunny":
+        return <Sun className="w-6 h-6 text-yellow-500" />;
+      case "cloudy":
+        return <Cloud className="w-6 h-6 text-gray-500" />;
+      case "partly-cloudy":
+        return <Cloud className="w-6 h-6 text-gray-400" />;
+      case "rainy":
+        return <CloudRain className="w-6 h-6 text-blue-500" />;
+      default:
+        return <Cloud className="w-6 h-6 text-gray-400" />;
+    }
+  };
+
+  // Хардкоженные данные для лучших вариантов поездов
+  const trainBestOptions: BestOption[] = [
     {
-      id: "1",
+      id: "train-1",
       carNumber: "4",
       seatNumber: "19",
       type: "lower",
       price: 5892,
+      ticketType: "coupe",
       description: [
         "Свободное купе",
         "Вагон посвободнее",
@@ -97,11 +171,12 @@ const SelectSeats = () => {
       amenities: ["dining", "wifi", "ac", "power", "pets"]
     },
     {
-      id: "2",
+      id: "train-2",
       carNumber: "4",
       seatNumber: "18",
       type: "upper",
       price: 5300,
+      ticketType: "coupe",
       description: [
         "Свободное купе",
         "Вагон посвободнее",
@@ -113,11 +188,12 @@ const SelectSeats = () => {
       amenities: ["dining", "wifi", "ac", "power", "pets"]
     },
     {
-      id: "3",
+      id: "train-3",
       carNumber: "4",
       seatNumber: "29",
       type: "lower",
       price: 5892,
+      ticketType: "coupe",
       description: [
         "Свободное купе",
         "Вагон посвободнее",
@@ -126,8 +202,237 @@ const SelectSeats = () => {
       ],
       rating: 9.7,
       amenities: ["dining", "wifi", "ac", "power", "pets"]
+    },
+    {
+      id: "train-sv-1",
+      carNumber: "8",
+      seatNumber: "5",
+      type: "lower",
+      price: 12987,
+      ticketType: "sv",
+      description: [
+        "СВ вагон",
+        "Больше комфорта",
+        "Меньше пассажиров",
+        "Нижние места"
+      ],
+      rating: 9.7,
+      amenities: ["dining", "wifi", "ac", "power"]
+    },
+    {
+      id: "train-sv-2",
+      carNumber: "8",
+      seatNumber: "12",
+      type: "lower",
+      price: 12987,
+      ticketType: "sv",
+      description: [
+        "СВ вагон",
+        "Больше комфорта",
+        "Меньше пассажиров",
+        "Нижние места"
+      ],
+      rating: 9.7,
+      amenities: ["dining", "wifi", "ac", "power"]
     }
   ];
+
+  // Хардкоженные данные для лучших вариантов самолётов
+  const flightBestOptions: BestOption[] = [
+    {
+      id: "flight-economy-1",
+      carNumber: "12",
+      seatNumber: "12A",
+      type: "lower",
+      price: 8605,
+      ticketType: "economy",
+      description: [
+        "У окна",
+        "Рядом с аварийным выходом",
+        "Больше места для ног"
+      ],
+      rating: 9.7,
+      amenities: ["wifi", "ac", "dining", "power"]
+    },
+    {
+      id: "flight-economy-2",
+      carNumber: "12",
+      seatNumber: "15C",
+      type: "lower",
+      price: 8605,
+      ticketType: "economy",
+      description: [
+        "В проходе",
+        "Удобный доступ",
+        "Рядом с туалетом"
+      ],
+      rating: 9.7,
+      amenities: ["wifi", "ac", "dining", "power"]
+    },
+    {
+      id: "flight-economy-3",
+      carNumber: "12",
+      seatNumber: "8F",
+      type: "lower",
+      price: 8605,
+      ticketType: "economy",
+      description: [
+        "У окна",
+        "В передней части салона",
+        "Меньше турбулентности"
+      ],
+      rating: 9.7,
+      amenities: ["wifi", "ac", "dining", "power"]
+    },
+    {
+      id: "flight-business-1",
+      carNumber: "1",
+      seatNumber: "2A",
+      type: "lower",
+      price: 22987,
+      ticketType: "business",
+      description: [
+        "Бизнес класс",
+        "Удобные кресла",
+        "Больше пространства"
+      ],
+      rating: 9.8,
+      amenities: ["wifi", "ac", "dining", "power", "restaurant"]
+    },
+    {
+      id: "flight-business-2",
+      carNumber: "1",
+      seatNumber: "3D",
+      type: "lower",
+      price: 22987,
+      ticketType: "business",
+      description: [
+        "Бизнес класс",
+        "Удобные кресла",
+        "Больше пространства"
+      ],
+      rating: 9.8,
+      amenities: ["wifi", "ac", "dining", "power", "restaurant"]
+    }
+  ];
+
+  // Хардкоженные данные для лучших вариантов автобусов
+  const busBestOptions: BestOption[] = [
+    {
+      id: "bus-1",
+      carNumber: "1",
+      seatNumber: "5",
+      type: "lower",
+      price: 2605,
+      ticketType: "bus",
+      isWindow: true,
+      description: [
+        "У окна",
+        "В передней части",
+        "Удобное место"
+      ],
+      rating: 9.7,
+      amenities: ["ac", "wifi", "window"]
+    },
+    {
+      id: "bus-2",
+      carNumber: "1",
+      seatNumber: "12",
+      type: "lower",
+      price: 2605,
+      ticketType: "bus",
+      isWindow: false,
+      description: [
+        "В проходе",
+        "Удобный доступ",
+        "Свободное место рядом"
+      ],
+      rating: 9.7,
+      amenities: ["ac", "wifi"]
+    },
+    {
+      id: "bus-3",
+      carNumber: "1",
+      seatNumber: "18",
+      type: "lower",
+      price: 2605,
+      ticketType: "bus",
+      isWindow: true,
+      description: [
+        "У окна",
+        "В средней части",
+        "Удобное место"
+      ],
+      rating: 9.7,
+      amenities: ["ac", "wifi", "window"]
+    },
+    {
+      id: "bus-4",
+      carNumber: "1",
+      seatNumber: "3",
+      type: "lower",
+      price: 2605,
+      ticketType: "bus",
+      isWindow: false,
+      description: [
+        "В проходе",
+        "В передней части",
+        "Удобный доступ"
+      ],
+      rating: 9.7,
+      amenities: ["ac", "wifi"]
+    },
+    {
+      id: "bus-5",
+      carNumber: "1",
+      seatNumber: "22",
+      type: "lower",
+      price: 2605,
+      ticketType: "bus",
+      isWindow: true,
+      description: [
+        "У окна",
+        "В задней части",
+        "Удобное место"
+      ],
+      rating: 9.7,
+      amenities: ["ac", "wifi", "window"]
+    }
+  ];
+
+  // Определяем, какие варианты показывать на основе выбранного типа
+  const getFilteredBestOptions = (): BestOption[] => {
+    let options: BestOption[] = [];
+    
+    if (travelType === "train") {
+      options = trainBestOptions.filter(opt => opt.ticketType === selectedTicketType);
+      // Если нет вариантов для выбранного типа, показываем самое дешёвое
+      if (options.length === 0) {
+        options = trainBestOptions.sort((a, b) => a.price - b.price).slice(0, 3);
+      }
+    } else if (travelType === "flight") {
+      options = flightBestOptions.filter(opt => opt.ticketType === selectedTicketType);
+      // Если нет вариантов для выбранного типа, показываем самое дешёвое
+      if (options.length === 0) {
+        options = flightBestOptions.sort((a, b) => a.price - b.price).slice(0, 3);
+      }
+    } else if (travelType === "bus") {
+      // Фильтруем по типу места (все доступные или у окна)
+      if (busSeatFilter === "window") {
+        options = busBestOptions.filter(opt => opt.isWindow === true);
+      } else {
+        options = busBestOptions;
+      }
+      // Если нет вариантов для выбранного фильтра, показываем все
+      if (options.length === 0) {
+        options = busBestOptions;
+      }
+    }
+    
+    return options.slice(0, 3); // Показываем максимум 3 варианта
+  };
+
+  const bestOptions = getFilteredBestOptions();
 
   // Хардкоженные данные для вагонов
   const coupeCars: Car[] = [
@@ -192,6 +497,64 @@ const SelectSeats = () => {
     }
   ];
 
+  // Данные для самолётов
+  const economyCars: Car[] = [
+    {
+      id: "economy-1",
+      number: "12",
+      name: "Эконом класс",
+      type: "economy",
+      totalSeats: 142,
+      lowerBerths: 142,
+      upperBerths: 0,
+      priceRange: { min: 8605, max: 8605 },
+      rating: 9.7,
+      reviews: 169,
+      amenities: ["ac", "wifi", "dining", "power"],
+      availableSeats: Array.from({ length: 142 }, (_, i) => i + 1),
+      rows: 24,
+      seatsPerRow: 6
+    }
+  ];
+
+  const businessCars: Car[] = [
+    {
+      id: "business-1",
+      number: "1",
+      name: "Бизнес класс",
+      type: "business",
+      totalSeats: 16,
+      lowerBerths: 16,
+      upperBerths: 0,
+      priceRange: { min: 22987, max: 22987 },
+      rating: 9.8,
+      reviews: 42,
+      amenities: ["ac", "wifi", "dining", "power", "restaurant"],
+      availableSeats: Array.from({ length: 16 }, (_, i) => i + 1),
+      rows: 4,
+      seatsPerRow: 4
+    }
+  ];
+
+  // Данные для автобусов
+  const busCars: Car[] = [
+    {
+      id: "bus-1",
+      number: "1",
+      name: "Автобус",
+      type: "bus",
+      totalSeats: 45,
+      lowerBerths: 45,
+      upperBerths: 0,
+      priceRange: { min: 2605, max: 2605 },
+      rating: 9.7,
+      reviews: 169,
+      amenities: ["ac", "wifi"],
+      availableSeats: Array.from({ length: 45 }, (_, i) => i + 1),
+      isBus: true
+    }
+  ];
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -225,6 +588,8 @@ const SelectSeats = () => {
         return <Power className="w-4 h-4" />;
       case "info":
         return <Info className="w-4 h-4" />;
+      case "window":
+        return <Square className="w-4 h-4" />;
       default:
         return null;
     }
@@ -239,7 +604,8 @@ const SelectSeats = () => {
       gender: "Женское/мужское купе",
       toilet: "Биотуалет",
       power: "Розетка",
-      info: "Информация"
+      info: "Информация",
+      window: "У окна"
     };
     return names[amenity] || amenity;
   };
@@ -297,7 +663,28 @@ const SelectSeats = () => {
 
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <h1 className="text-3xl font-bold">022А Ночной экспресс</h1>
+            <div className="flex items-center gap-3">
+              {travelType === "train" && (
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Train className="w-5 h-5 text-primary" />
+                </div>
+              )}
+              {travelType === "flight" && (
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Plane className="w-5 h-5 text-primary" />
+                </div>
+              )}
+              {travelType === "bus" && (
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Bus className="w-5 h-5 text-primary" />
+                </div>
+              )}
+              <h1 className="text-3xl font-bold">
+                {travelType === "train" && "022А Ночной экспресс"}
+                {travelType === "flight" && "SU 1234 Аэрофлот"}
+                {travelType === "bus" && "101 Автолайн"}
+              </h1>
+            </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">169 отзывов</span>
               <div className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-semibold">
@@ -307,22 +694,106 @@ const SelectSeats = () => {
           </div>
         </div>
 
-        {/* Информация о поезде */}
+        {/* Погода */}
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-bold mb-4">Погода</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Погода в городе отправления */}
+              <div className="space-y-3">
+                <div className="text-sm text-muted-foreground">
+                  Погода в вашем городе в день выезда
+                </div>
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200">
+                  <div className="flex-shrink-0">
+                    {getWeatherIcon(departureWeather.condition)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-lg mb-1">{fromCity}</div>
+                    <div className="text-sm text-muted-foreground mb-2">{formatDate(departureDate)}</div>
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <div>
+                        <div className="text-2xl font-bold">{departureWeather.temperature}°C</div>
+                        <div className="text-xs text-muted-foreground">{departureWeather.description}</div>
+                      </div>
+                      <div className="flex flex-col gap-1 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Droplet className="w-4 h-4 text-blue-500" />
+                          <span className="text-muted-foreground">Влажность: {departureWeather.humidity}%</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Wind className="w-4 h-4 text-gray-500" />
+                          <span className="text-muted-foreground">Ветер: {departureWeather.windSpeed} км/ч</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Погода в городе прибытия */}
+              <div className="space-y-3">
+                <div className="text-sm text-muted-foreground">
+                  Погода в городе прибытия в день приезда
+                </div>
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200">
+                  <div className="flex-shrink-0">
+                    {getWeatherIcon(arrivalWeather.condition)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-lg mb-1">{toCity}</div>
+                    <div className="text-sm text-muted-foreground mb-2">{formatDate(arrivalDate)}</div>
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <div>
+                        <div className="text-2xl font-bold">{arrivalWeather.temperature}°C</div>
+                        <div className="text-xs text-muted-foreground">{arrivalWeather.description}</div>
+                      </div>
+                      <div className="flex flex-col gap-1 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Droplet className="w-4 h-4 text-blue-500" />
+                          <span className="text-muted-foreground">Влажность: {arrivalWeather.humidity}%</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Wind className="w-4 h-4 text-gray-500" />
+                          <span className="text-muted-foreground">Ветер: {arrivalWeather.windSpeed} км/ч</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Информация о маршруте */}
         <Card className="mb-8">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
               <div className="flex flex-col md:flex-row gap-6 items-start md:items-center w-full">
                 <div>
-                  <div className="text-2xl font-bold">00:25</div>
+                  <div className="text-2xl font-bold">
+                    {travelType === "train" && "00:25"}
+                    {travelType === "flight" && "06:25"}
+                    {travelType === "bus" && "06:25"}
+                  </div>
                   <div className="text-sm text-muted-foreground">{formatDate(departureDate)}</div>
-                  <div className="text-sm font-medium mt-1">Ленинградский вокзал</div>
+                  <div className="text-sm font-medium mt-1">
+                    {travelType === "train" && "Ленинградский вокзал"}
+                    {travelType === "flight" && "Аэропорт Шереметьево"}
+                    {travelType === "bus" && "Автовокзал Центральный автовокзал"}
+                  </div>
                   <div className="text-sm text-muted-foreground">{fromCity}</div>
                 </div>
                 {/* Продолжительность с линией */}
                 <div className="flex-1 relative">
                   <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-2">
                     <Clock className="w-4 h-4" />
-                    <span>9 ч 1 м в пути</span>
+                    <span>
+                      {travelType === "train" && "9 ч 1 м в пути"}
+                      {travelType === "flight" && "3 ч 1 м в пути"}
+                      {travelType === "bus" && "9 ч 1 м в пути"}
+                    </span>
                   </div>
                   <div className="relative h-[2px] bg-border">
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-primary" />
@@ -330,9 +801,17 @@ const SelectSeats = () => {
                   </div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">09:26</div>
+                  <div className="text-2xl font-bold">
+                    {travelType === "train" && "09:26"}
+                    {travelType === "flight" && "09:26"}
+                    {travelType === "bus" && "15:26"}
+                  </div>
                   <div className="text-sm text-muted-foreground">{formatDate(departureDate)}</div>
-                  <div className="text-sm font-medium mt-1">Московский вокзал</div>
+                  <div className="text-sm font-medium mt-1">
+                    {travelType === "train" && "Московский вокзал"}
+                    {travelType === "flight" && "Аэропорт Пулково"}
+                    {travelType === "bus" && "Автовокзал Центральный автовокзал"}
+                  </div>
                   <div className="text-sm text-muted-foreground">{toCity}</div>
                 </div>
               </div>
@@ -376,7 +855,7 @@ const SelectSeats = () => {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium">Дети до 10 лет с местом, дешевле</div>
+                  <div className="font-medium">Дети до 10 лет с местом{travelType === "train" ? ", дешевле" : ""}</div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Button
@@ -397,112 +876,195 @@ const SelectSeats = () => {
                   </Button>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Малыши до 5 лет без места, бесплатно</div>
+              {showInfants && (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium">Малыши до 5 лет без места, бесплатно</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setInfants(Math.max(0, infants - 1))}
+                      disabled={infants <= 0}
+                    >
+                      <Minus className="w-4 h-4" />
+                    </Button>
+                    <span className="w-8 text-center font-medium">{infants}</span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setInfants(infants + 1)}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setInfants(Math.max(0, infants - 1))}
-                    disabled={infants <= 0}
-                  >
-                    <Minus className="w-4 h-4" />
-                  </Button>
-                  <span className="w-8 text-center font-medium">{infants}</span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setInfants(infants + 1)}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
         {/* Выбор вагона и мест */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4">Выберите вагон и места</h2>
-          <Tabs value={selectedTicketType} onValueChange={setSelectedTicketType}>
+          <h2 className="text-xl font-bold mb-4">
+            {travelType === "train" && "Выберите вагон и места"}
+            {travelType === "flight" && "Выберите класс и места"}
+            {travelType === "bus" && "Выберите места"}
+          </h2>
+          <Tabs 
+            value={travelType === "bus" ? busSeatFilter : selectedTicketType} 
+            onValueChange={(value) => {
+              if (travelType === "bus") {
+                setBusSeatFilter(value as "all" | "window");
+              } else {
+                setSelectedTicketType(value);
+              }
+            }}
+          >
             <TabsList className="mb-6">
-              <TabsTrigger value="coupe">
-                Купе
-                <span className="ml-2 text-sm text-muted-foreground">
-                  {coupeCars.reduce((sum, car) => sum + car.totalSeats, 0)} мест
-                </span>
-                <span className="ml-2 text-sm font-medium">
-                  {Math.min(...coupeCars.map(c => c.priceRange.min)).toLocaleString("ru-RU")} — {Math.max(...coupeCars.map(c => c.priceRange.max)).toLocaleString("ru-RU")} Р
-                </span>
-              </TabsTrigger>
-              <TabsTrigger value="sv">
-                СВ
-                <span className="ml-2 text-sm text-muted-foreground">
-                  {svCars.reduce((sum, car) => sum + car.totalSeats, 0)} мест
-                </span>
-                <span className="ml-2 text-sm font-medium">
-                  от {svCars[0]?.priceRange.min.toLocaleString("ru-RU")} Р
-                </span>
-              </TabsTrigger>
+              {travelType === "train" && (
+                <>
+                  <TabsTrigger value="coupe">
+                    Купе
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      {coupeCars.reduce((sum, car) => sum + car.totalSeats, 0)} мест
+                    </span>
+                    <span className="ml-2 text-sm font-medium">
+                      {Math.min(...coupeCars.map(c => c.priceRange.min)).toLocaleString("ru-RU")} — {Math.max(...coupeCars.map(c => c.priceRange.max)).toLocaleString("ru-RU")} Р
+                    </span>
+                  </TabsTrigger>
+                  <TabsTrigger value="sv">
+                    СВ
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      {svCars.reduce((sum, car) => sum + car.totalSeats, 0)} мест
+                    </span>
+                    <span className="ml-2 text-sm font-medium">
+                      от {svCars[0]?.priceRange.min.toLocaleString("ru-RU")} Р
+                    </span>
+                  </TabsTrigger>
+                </>
+              )}
+              {travelType === "flight" && (
+                <>
+                  <TabsTrigger value="economy">
+                    Эконом
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      {economyCars.reduce((sum, car) => sum + car.totalSeats, 0)} мест
+                    </span>
+                    <span className="ml-2 text-sm font-medium">
+                      от {economyCars[0]?.priceRange.min.toLocaleString("ru-RU")} Р
+                    </span>
+                  </TabsTrigger>
+                  <TabsTrigger value="business">
+                    Бизнес
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      {businessCars.reduce((sum, car) => sum + car.totalSeats, 0)} мест
+                    </span>
+                    <span className="ml-2 text-sm font-medium">
+                      от {businessCars[0]?.priceRange.min.toLocaleString("ru-RU")} Р
+                    </span>
+                  </TabsTrigger>
+                </>
+              )}
+              {travelType === "bus" && (
+                <>
+                  <TabsTrigger value="all">
+                    Все доступные места
+                  </TabsTrigger>
+                  <TabsTrigger value="window">
+                    У окна
+                  </TabsTrigger>
+                </>
+              )}
             </TabsList>
 
             {/* Лучшие варианты */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-4">Нашли лучшие варианты</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {bestOptions.map((option) => (
-                  <Card key={option.id} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div>
-                          <div className="font-semibold">Купе, {totalPassengers} {totalPassengers === 1 ? "место" : totalPassengers < 5 ? "места" : "мест"}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {option.seatNumber} {option.type === "lower" ? "нижнее" : "верхнее"}, {option.carNumber} вагон
+            {bestOptions.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-4">Нашли лучшие варианты</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {bestOptions.map((option) => (
+                    <Card key={option.id} className="hover:shadow-lg transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="space-y-4">
+                          <div>
+                            <div className="font-semibold">
+                              {travelType === "train" && (
+                                <>
+                                  {selectedTicketType === "coupe" ? "Купе" : "СВ"}, {totalPassengers} {totalPassengers === 1 ? "место" : totalPassengers < 5 ? "места" : "мест"}
+                                </>
+                              )}
+                              {travelType === "flight" && (
+                                <>
+                                  {selectedTicketType === "economy" ? "Эконом класс" : selectedTicketType === "business" ? "Бизнес класс" : selectedTicketType === "comfort" ? "Комфорт" : "Первый класс"}, {totalPassengers} {totalPassengers === 1 ? "место" : totalPassengers < 5 ? "места" : "мест"}
+                                </>
+                              )}
+                              {travelType === "bus" && (
+                                <>
+                                  Автобус, {totalPassengers} {totalPassengers === 1 ? "место" : totalPassengers < 5 ? "места" : "мест"}
+                                </>
+                              )}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {travelType === "train" && (
+                                <>
+                                  {option.seatNumber} {option.type === "lower" ? "нижнее" : "верхнее"}, {option.carNumber} вагон
+                                </>
+                              )}
+                              {travelType === "flight" && (
+                                <>
+                                  Место {option.seatNumber}, секция {option.carNumber}
+                                </>
+                              )}
+                              {travelType === "bus" && (
+                                <>
+                                  Место {option.seatNumber}
+                                </>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        <div className="text-2xl font-bold">
-                          {(option.price * totalPassengers).toLocaleString("ru-RU")} Р
-                        </div>
-                        {totalPassengers > 1 && (
-                          <div className="text-sm text-muted-foreground">
-                            {option.price.toLocaleString("ru-RU")} Р × {totalPassengers}
+                          <div className="text-2xl font-bold">
+                            {(option.price * totalPassengers).toLocaleString("ru-RU")} Р
                           </div>
-                        )}
-                        <div className="space-y-1">
-                          {option.description.map((desc, idx) => (
-                            <div key={idx} className="text-sm text-muted-foreground">• {desc}</div>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold">{option.rating}</span>
-                          <div className="flex gap-1">
-                            {option.amenities.map((amenity, idx) => (
-                              <div key={idx} className="w-6 h-6 rounded bg-purple-50 flex items-center justify-center text-purple-600">
-                                {getAmenityIcon(amenity)}
-                              </div>
+                          {totalPassengers > 1 && (
+                            <div className="text-sm text-muted-foreground">
+                              {option.price.toLocaleString("ru-RU")} Р × {totalPassengers}
+                            </div>
+                          )}
+                          <div className="space-y-1">
+                            {option.description.map((desc, idx) => (
+                              <div key={idx} className="text-sm text-muted-foreground">• {desc}</div>
                             ))}
                           </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold">{option.rating}</span>
+                            <div className="flex gap-1">
+                              {option.amenities.map((amenity, idx) => (
+                                <div key={idx} className="w-6 h-6 rounded bg-purple-50 flex items-center justify-center text-purple-600">
+                                  {getAmenityIcon(amenity)}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              className="flex-1 bg-purple-600 hover:bg-purple-700"
+                              onClick={() => handleSelectOption(option)}
+                            >
+                              Выбрать
+                            </Button>
+                            <Button variant="outline" size="sm">
+                              Подробнее
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button
-                            className="flex-1 bg-purple-600 hover:bg-purple-700"
-                            onClick={() => handleSelectOption(option)}
-                          >
-                            Выбрать
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            Подробнее
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Список вагонов */}
             <TabsContent value="coupe" className="space-y-4">
@@ -672,6 +1234,323 @@ const SelectSeats = () => {
                 </Card>
               ))}
             </TabsContent>
+
+            {/* Для самолётов */}
+            {travelType === "flight" && (
+              <>
+                <TabsContent value="economy" className="space-y-4">
+                  {economyCars.map((car) => (
+                    <Card key={car.id} className="hover:shadow-lg transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-4 mb-4">
+                              <div>
+                                <div className="text-xl font-bold">Эконом класс</div>
+                                <div className="text-sm text-muted-foreground">{car.totalSeats} мест</div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-semibold">
+                                  {car.rating}
+                                </div>
+                                <span className="text-sm text-muted-foreground">
+                                  {formatReviewCount(car.reviews)} отзывов
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 mb-4 flex-wrap">
+                              <TooltipProvider delayDuration={0}>
+                                {car.amenities.map((amenity, idx) => (
+                                  <Tooltip key={idx}>
+                                    <TooltipTrigger asChild>
+                                      <div className="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 cursor-help transition-colors border border-purple-100">
+                                        <div className="text-purple-600">
+                                          {getAmenityIcon(amenity)}
+                                        </div>
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="bg-[#1a1a1a] text-white border-0">
+                                      <div className="font-semibold text-white">{getAmenityName(amenity)}</div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                ))}
+                              </TooltipProvider>
+                            </div>
+                            {/* Визуализация мест самолёта */}
+                            <div className="mt-4">
+                              <div className="text-sm text-muted-foreground mb-2">Схема салона</div>
+                              <div className="flex gap-1 flex-wrap max-w-2xl">
+                                {Array.from({ length: car.totalSeats }).map((_, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="w-6 h-6 rounded bg-blue-100 border border-blue-200"
+                                    title={`Место ${idx + 1}`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="md:w-48 space-y-4">
+                            <div>
+                              <div className="text-2xl font-bold">
+                                {(car.priceRange.min * totalPassengers).toLocaleString("ru-RU")} Р
+                              </div>
+                              {totalPassengers > 1 && (
+                                <div className="text-sm text-muted-foreground mt-1">
+                                  {car.priceRange.min.toLocaleString("ru-RU")} Р × {totalPassengers}
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              className="w-full bg-purple-600 hover:bg-purple-700"
+                              onClick={() => handleSelectCar(car)}
+                            >
+                              Выбрать
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </TabsContent>
+                <TabsContent value="business" className="space-y-4">
+                  {businessCars.map((car) => (
+                    <Card key={car.id} className="hover:shadow-lg transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-4 mb-4">
+                              <div>
+                                <div className="text-xl font-bold">Бизнес класс</div>
+                                <div className="text-sm text-muted-foreground">{car.totalSeats} мест</div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-semibold">
+                                  {car.rating}
+                                </div>
+                                <span className="text-sm text-muted-foreground">
+                                  {formatReviewCount(car.reviews)} отзывов
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 mb-4 flex-wrap">
+                              <TooltipProvider delayDuration={0}>
+                                {car.amenities.map((amenity, idx) => (
+                                  <Tooltip key={idx}>
+                                    <TooltipTrigger asChild>
+                                      <div className="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 cursor-help transition-colors border border-purple-100">
+                                        <div className="text-purple-600">
+                                          {getAmenityIcon(amenity)}
+                                        </div>
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="bg-[#1a1a1a] text-white border-0">
+                                      <div className="font-semibold text-white">{getAmenityName(amenity)}</div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                ))}
+                              </TooltipProvider>
+                            </div>
+                            {/* Визуализация мест самолёта */}
+                            <div className="mt-4">
+                              <div className="text-sm text-muted-foreground mb-2">Схема салона</div>
+                              <div className="flex gap-1 flex-wrap max-w-2xl">
+                                {Array.from({ length: car.totalSeats }).map((_, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="w-6 h-6 rounded bg-blue-100 border border-blue-200"
+                                    title={`Место ${idx + 1}`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="md:w-48 space-y-4">
+                            <div>
+                              <div className="text-2xl font-bold">
+                                {(car.priceRange.min * totalPassengers).toLocaleString("ru-RU")} Р
+                              </div>
+                              {totalPassengers > 1 && (
+                                <div className="text-sm text-muted-foreground mt-1">
+                                  {car.priceRange.min.toLocaleString("ru-RU")} Р × {totalPassengers}
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              className="w-full bg-purple-600 hover:bg-purple-700"
+                              onClick={() => handleSelectCar(car)}
+                            >
+                              Выбрать
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </TabsContent>
+              </>
+            )}
+
+            {/* Для автобусов */}
+            {travelType === "bus" && (
+              <>
+                <TabsContent value="all" className="space-y-4">
+                  {busCars.map((car) => (
+                    <Card key={car.id} className="hover:shadow-lg transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-4 mb-4">
+                              <div>
+                                <div className="text-xl font-bold">Автобус</div>
+                                <div className="text-sm text-muted-foreground">{car.totalSeats} мест</div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-semibold">
+                                  {car.rating}
+                                </div>
+                                <span className="text-sm text-muted-foreground">
+                                  {formatReviewCount(car.reviews)} отзывов
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 mb-4 flex-wrap">
+                              <TooltipProvider delayDuration={0}>
+                                {car.amenities.map((amenity, idx) => (
+                                  <Tooltip key={idx}>
+                                    <TooltipTrigger asChild>
+                                      <div className="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 cursor-help transition-colors border border-purple-100">
+                                        <div className="text-purple-600">
+                                          {getAmenityIcon(amenity)}
+                                        </div>
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="bg-[#1a1a1a] text-white border-0">
+                                      <div className="font-semibold text-white">{getAmenityName(amenity)}</div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                ))}
+                              </TooltipProvider>
+                            </div>
+                            {/* Визуализация мест автобуса - все свободные места */}
+                            <div className="mt-4">
+                              <div className="text-sm text-muted-foreground mb-2">Свободные места</div>
+                              <div className="flex gap-1 flex-wrap max-w-2xl">
+                                {Array.from({ length: car.totalSeats }).map((_, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="w-6 h-6 rounded bg-blue-100 border border-blue-200"
+                                    title={`Место ${idx + 1}`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="md:w-48 space-y-4">
+                            <div>
+                              <div className="text-2xl font-bold">
+                                {(car.priceRange.min * totalPassengers).toLocaleString("ru-RU")} Р
+                              </div>
+                              {totalPassengers > 1 && (
+                                <div className="text-sm text-muted-foreground mt-1">
+                                  {car.priceRange.min.toLocaleString("ru-RU")} Р × {totalPassengers}
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              className="w-full bg-purple-600 hover:bg-purple-700"
+                              onClick={() => handleSelectCar(car)}
+                            >
+                              Выбрать
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </TabsContent>
+                <TabsContent value="window" className="space-y-4">
+                  {busCars.map((car) => {
+                    // Фильтруем места у окна (примерно каждое второе место)
+                    const windowSeats = Array.from({ length: car.totalSeats }, (_, i) => i + 1).filter((seat) => seat % 2 === 1);
+                    
+                    return (
+                      <Card key={car.id} className="hover:shadow-lg transition-shadow">
+                        <CardContent className="p-6">
+                          <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-4 mb-4">
+                                <div>
+                                  <div className="text-xl font-bold">Автобус</div>
+                                  <div className="text-sm text-muted-foreground">{windowSeats.length} мест у окна</div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-semibold">
+                                    {car.rating}
+                                  </div>
+                                  <span className="text-sm text-muted-foreground">
+                                    {formatReviewCount(car.reviews)} отзывов
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                                <TooltipProvider delayDuration={0}>
+                                  {[...car.amenities, "window"].map((amenity, idx) => (
+                                    <Tooltip key={idx}>
+                                      <TooltipTrigger asChild>
+                                        <div className="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 cursor-help transition-colors border border-purple-100">
+                                          <div className="text-purple-600">
+                                            {getAmenityIcon(amenity)}
+                                          </div>
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="bg-[#1a1a1a] text-white border-0">
+                                        <div className="font-semibold text-white">{getAmenityName(amenity)}</div>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  ))}
+                                </TooltipProvider>
+                              </div>
+                              {/* Визуализация мест автобуса - только места у окна */}
+                              <div className="mt-4">
+                                <div className="text-sm text-muted-foreground mb-2">Места у окна</div>
+                                <div className="flex gap-1 flex-wrap max-w-2xl">
+                                  {windowSeats.map((seatNum) => (
+                                    <div
+                                      key={seatNum}
+                                      className="w-6 h-6 rounded bg-blue-100 border border-blue-200"
+                                      title={`Место ${seatNum} (у окна)`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="md:w-48 space-y-4">
+                              <div>
+                                <div className="text-2xl font-bold">
+                                  {(car.priceRange.min * totalPassengers).toLocaleString("ru-RU")} Р
+                                </div>
+                                {totalPassengers > 1 && (
+                                  <div className="text-sm text-muted-foreground mt-1">
+                                    {car.priceRange.min.toLocaleString("ru-RU")} Р × {totalPassengers}
+                                  </div>
+                                )}
+                              </div>
+                              <Button
+                                className="w-full bg-purple-600 hover:bg-purple-700"
+                                onClick={() => handleSelectCar(car)}
+                              >
+                                Выбрать
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </TabsContent>
+              </>
+            )}
           </Tabs>
         </div>
       </main>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -7,44 +7,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
-  Snowflake, 
-  Utensils, 
-  Wifi, 
-  Coffee, 
-  Users, 
-  Droplet, 
-  Play,
   Clock,
-  ChevronRight,
   ArrowLeftRight,
   Calendar as CalendarIcon,
-  Train
+  Bus
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { ru } from "date-fns/locale";
 import { cities } from "@/data/cities";
 import { cn } from "@/lib/utils";
 
-interface Amenity {
-  icon: React.ReactNode;
-  name: string;
-  description: string;
-}
-
-interface TicketType {
-  type: "platzkart" | "coupe" | "sv";
-  name: string;
-  lowerBerths: number;
-  upperBerths: number;
-  price: number;
-}
-
-interface TrainRoute {
+interface BusRoute {
   id: string;
-  trainNumber: string;
-  trainName: string;
+  busNumber: string;
+  carrierName: string;
   tags?: string[];
   departureTime: string;
   departureDate: Date;
@@ -55,70 +32,29 @@ interface TrainRoute {
   arrivalStation: string;
   arrivalCity: string;
   duration: string;
-  amenities: Amenity[];
   reviews: {
     count: number;
     rating: number;
   };
-  tickets: TicketType[];
-  minPrice: number;
+  price: number;
 }
 
-// Хардкоженные данные для удобств
-const amenitiesData: Amenity[] = [
-  {
-    icon: <Snowflake className="w-5 h-5" />,
-    name: "Кондиционер",
-    description: "Кондиционер установлен в вагоне для комфортной температуры"
-  },
-  {
-    icon: <Utensils className="w-5 h-5" />,
-    name: "Питание",
-    description: "Питание доступно в вагоне-ресторане или можно заказать доставку в купе"
-  },
-  {
-    icon: <Wifi className="w-5 h-5" />,
-    name: "Wi-Fi",
-    description: "Бесплатный Wi-Fi доступен в поезде"
-  },
-  {
-    icon: <Coffee className="w-5 h-5" />,
-    name: "Вагон-ресторан",
-    description: "В поезде есть вагон-ресторан с горячими блюдами и напитками"
-  },
-  {
-    icon: <Users className="w-5 h-5" />,
-    name: "Женское/мужское купе",
-    description: "Доступны купе для женщин и мужчин"
-  },
-  {
-    icon: <Droplet className="w-5 h-5" />,
-    name: "Биотуалет",
-    description: "В вагоне установлены биотуалеты"
-  },
-  {
-    icon: <Play className="w-5 h-5" />,
-    name: "Мультимедийный портал",
-    description: "Кинотеатр, книги, музыка доступны через мультимедийный портал"
-  }
-];
-
-// Маппинг вокзалов для городов
-const stationMap: Record<string, string[]> = {
-  "Москва": ["Ленинградский вокзал", "Киевский вокзал", "Восточный вокзал", "Казанский вокзал", "Ярославский вокзал"],
-  "Санкт-Петербург": ["Московский вокзал", "Ладожский вокзал", "Финляндский вокзал", "Витебский вокзал"],
-  "Казань": ["Казанский вокзал", "Центральный вокзал"],
-  "Сочи": ["Сочинский вокзал"],
-  "Новосибирск": ["Новосибирск-Главный", "Новосибирск-Южный"],
-  "Екатеринбург": ["Екатеринбург-Пассажирский"],
-  "Нижний Новгород": ["Московский вокзал"],
-  "Самара": ["Самара"],
-  "Ростов-на-Дону": ["Ростов-Главный"],
-  "Владивосток": ["Владивосток"]
+// Маппинг автовокзалов для городов
+const busStationMap: Record<string, string[]> = {
+  "Москва": ["Центральный автовокзал", "Северные ворота", "Южные ворота", "Щёлковский автовокзал"],
+  "Санкт-Петербург": ["Автовокзал №2", "Обводный канал", "Парнас"],
+  "Казань": ["Центральный автовокзал", "Южный автовокзал"],
+  "Сочи": ["Центральный автовокзал"],
+  "Новосибирск": ["Центральный автовокзал", "Заельцовский"],
+  "Екатеринбург": ["Северный автовокзал"],
+  "Нижний Новгород": ["Центральный автовокзал"],
+  "Самара": ["Центральный автовокзал"],
+  "Ростов-на-Дону": ["Центральный автовокзал"],
+  "Владивосток": ["Центральный автовокзал"]
 };
 
-const getStation = (city: string, index: number = 0): string => {
-  const stations = stationMap[city] || [city];
+const getBusStation = (city: string, index: number = 0): string => {
+  const stations = busStationMap[city] || [city];
   return stations[index % stations.length];
 };
 
@@ -126,299 +62,162 @@ const getStation = (city: string, index: number = 0): string => {
 const generateRoutes = (
   fromCity: string,
   toCity: string,
-  departureDate: Date,
-  ticketType: string
-): TrainRoute[] => {
+  departureDate: Date
+): BusRoute[] => {
   // Хардкоженные данные маршрутов
-  const routes: TrainRoute[] = [
+  const routes: BusRoute[] = [
     {
       id: "1",
-      trainNumber: "022А",
-      trainName: "Ночной экспресс",
-      departureTime: "00:25",
+      busNumber: "101",
+      carrierName: "Автолайн",
+      tags: ["Комфорт", "Прямой"],
+      departureTime: "06:25",
       departureDate,
-      departureStation: getStation(fromCity, 0),
+      departureStation: getBusStation(fromCity, 0),
       departureCity: fromCity,
-      arrivalTime: "09:26",
+      arrivalTime: "15:26",
       arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
+      arrivalStation: getBusStation(toCity, 0),
       arrivalCity: toCity,
       duration: "9 ч 1 м",
-      amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[2], amenitiesData[3], amenitiesData[4], amenitiesData[5]],
       reviews: {
         count: 169,
         rating: 9.7
       },
-      tickets: [
-        {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 140,
-          upperBerths: 142,
-          price: 4605
-        },
-        {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 16,
-          upperBerths: 0,
-          price: 12987
-        }
-      ],
-      minPrice: 4605
+      price: 2605
     },
     {
       id: "2",
-      trainNumber: "016А",
-      trainName: "Арктика",
-      tags: ["Фирменный", "Проходящий"],
-      departureTime: "00:46",
+      busNumber: "205",
+      carrierName: "Экспресс",
+      tags: ["Комфорт", "Прямой"],
+      departureTime: "08:46",
       departureDate,
-      departureStation: getStation(fromCity, 0),
+      departureStation: getBusStation(fromCity, 1),
       departureCity: fromCity,
-      arrivalTime: "09:13",
+      arrivalTime: "17:13",
       arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 1),
+      arrivalStation: getBusStation(toCity, 0),
       arrivalCity: toCity,
       duration: "8 ч 27 м",
-      amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[2], amenitiesData[3], amenitiesData[4]],
       reviews: {
         count: 2000,
         rating: 8.7
       },
-      tickets: [
-        {
-          type: "platzkart",
-          name: "Плацкарт",
-          lowerBerths: 29,
-          upperBerths: 98,
-          price: 2451
-        },
-        {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 22,
-          upperBerths: 20,
-          price: 5516
-        },
-        {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 6,
-          upperBerths: 6,
-          price: 14867
-        }
-      ],
-      minPrice: 2451
+      price: 2451
     },
     {
       id: "3",
-      trainNumber: "060*Г",
-      trainName: "Волга",
-      tags: ["Фирменный", "Проходящий"],
-      departureTime: "00:48",
+      busNumber: "312",
+      carrierName: "Транс-Лайн",
+      tags: ["Прямой", "Дневной"],
+      departureTime: "10:48",
       departureDate,
-      departureStation: getStation(fromCity, 2),
+      departureStation: getBusStation(fromCity, 2),
       departureCity: fromCity,
-      arrivalTime: "09:57",
+      arrivalTime: "20:57",
       arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
+      arrivalStation: getBusStation(toCity, 0),
       arrivalCity: toCity,
-      duration: "9 ч 9 м",
-      amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[2], amenitiesData[3], amenitiesData[6]],
+      duration: "10 ч 9 м",
       reviews: {
         count: 1400,
         rating: 9.0
       },
-      tickets: [
-        {
-          type: "platzkart",
-          name: "Плацкарт",
-          lowerBerths: 72,
-          upperBerths: 79,
-          price: 3220
-        },
-        {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 21,
-          upperBerths: 27,
-          price: 4861
-        },
-        {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 16,
-          upperBerths: 0,
-          price: 16840
-        }
-      ],
-      minPrice: 3220
+      price: 3220
     },
     {
       id: "4",
-      trainNumber: "057M",
-      trainName: "",
-      departureTime: "01:00",
+      busNumber: "418",
+      carrierName: "Автобус-Тур",
+      departureTime: "14:00",
       departureDate,
-      departureStation: getStation(fromCity, 1),
+      departureStation: getBusStation(fromCity, 0),
       departureCity: fromCity,
-      arrivalTime: "10:41",
+      arrivalTime: "23:41",
       arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
+      arrivalStation: getBusStation(toCity, 0),
       arrivalCity: toCity,
       duration: "9 ч 41 м",
-      amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[4], amenitiesData[5]],
       reviews: {
         count: 164,
         rating: 7.8
       },
-      tickets: [
-        {
-          type: "platzkart",
-          name: "Плацкарт",
-          lowerBerths: 150,
-          upperBerths: 153,
-          price: 2196
-        },
-        {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 61,
-          upperBerths: 66,
-          price: 2239
-        },
-        {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 0,
-          upperBerths: 0,
-          price: 10005
-        }
-      ],
-      minPrice: 2196
+      price: 2196
     },
     {
       id: "5",
-      trainNumber: "050*C",
-      trainName: "",
-      tags: ["Проходящий"],
-      departureTime: "02:05",
+      busNumber: "527",
+      carrierName: "Межгород",
+      tags: ["Прямой"],
+      departureTime: "16:05",
       departureDate,
-      departureStation: getStation(fromCity, 2),
+      departureStation: getBusStation(fromCity, 1),
       departureCity: fromCity,
-      arrivalTime: "11:00",
-      arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
+      arrivalTime: "01:00",
+      arrivalDate: addDays(departureDate, 1),
+      arrivalStation: getBusStation(toCity, 0),
       arrivalCity: toCity,
       duration: "8 ч 55 м",
-      amenities: [amenitiesData[0], amenitiesData[4], amenitiesData[5]],
       reviews: {
         count: 282,
         rating: 7.6
       },
-      tickets: [
-        {
-          type: "platzkart",
-          name: "Плацкарт",
-          lowerBerths: 76,
-          upperBerths: 96,
-          price: 2196
-        },
-        {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 41,
-          upperBerths: 57,
-          price: 3183
-        }
-      ],
-      minPrice: 2196
+      price: 2196
     },
     {
       id: "6",
-      trainNumber: "082B",
-      trainName: "",
-      tags: ["Двухэтажный", "Проходящий"],
-      departureTime: "03:13",
+      busNumber: "634",
+      carrierName: "Туристический",
+      tags: ["Комфорт", "Прямой"],
+      departureTime: "20:13",
       departureDate,
-      departureStation: getStation(fromCity, 2),
+      departureStation: getBusStation(fromCity, 2),
       departureCity: fromCity,
-      arrivalTime: "11:40",
-      arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
+      arrivalTime: "04:40",
+      arrivalDate: addDays(departureDate, 1),
+      arrivalStation: getBusStation(toCity, 0),
       arrivalCity: toCity,
       duration: "8 ч 27 м",
-      amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[4], amenitiesData[5], amenitiesData[6]],
       reviews: {
         count: 1100,
         rating: 7.8
       },
-      tickets: [
-        {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 160,
-          upperBerths: 186,
-          price: 2389
-        },
-        {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 22,
-          upperBerths: 0,
-          price: 13098
-        }
-      ],
-      minPrice: 2389
+      price: 2389
     }
   ];
-
-  // Фильтруем по типу билета, если указан
-  if (ticketType && ticketType !== "all") {
-    return routes.filter(route => 
-      route.tickets.some(ticket => ticket.type === ticketType)
-    );
-  }
 
   return routes;
 };
 
-const TrainSearchResults = () => {
+const BusSearch = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const initialFromCity = searchParams.get("from") || "Москва";
   const initialToCity = searchParams.get("to") || "Санкт-Петербург";
   const dateStr = searchParams.get("date");
-  const initialTicketType = searchParams.get("ticketType") || "all";
   const initialPassengers = searchParams.get("passengers") || "1";
 
   const [fromCity, setFromCity] = useState(initialFromCity);
   const [toCity, setToCity] = useState(initialToCity);
-  const [ticketType, setTicketType] = useState(initialTicketType);
   const [passengers, setPassengers] = useState(initialPassengers);
   const [selectedDate, setSelectedDate] = useState<Date>(dateStr ? new Date(dateStr) : new Date());
 
   const departureDate = selectedDate;
 
-  const routes = generateRoutes(fromCity, toCity, departureDate, ticketType);
+  const routes = generateRoutes(fromCity, toCity, departureDate);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [fromCity, toCity, selectedDate, ticketType]);
+  }, [fromCity, toCity, selectedDate]);
 
   // Обновляем URL при изменении параметров
-  const updateSearchParams = (newFrom?: string, newTo?: string, newDate?: Date, newTicketType?: string, newPassengers?: string) => {
+  const updateSearchParams = (newFrom?: string, newTo?: string, newDate?: Date, newPassengers?: string) => {
     const params = new URLSearchParams();
     params.set("from", newFrom || fromCity);
     params.set("to", newTo || toCity);
     params.set("date", format(newDate || selectedDate, "yyyy-MM-dd"));
-    if (newTicketType !== undefined) {
-      params.set("ticketType", newTicketType || "all");
-    } else if (ticketType !== "all") {
-      params.set("ticketType", ticketType);
-    }
     params.set("passengers", newPassengers || passengers);
     setSearchParams(params);
   };
@@ -580,7 +379,7 @@ const TrainSearchResults = () => {
                   <label className="text-xs text-muted-foreground mb-1 block">Кто едет</label>
                   <Select value={passengers} onValueChange={(value) => {
                     setPassengers(value);
-                    updateSearchParams(undefined, undefined, undefined, undefined, value);
+                    updateSearchParams(undefined, undefined, undefined, value);
                   }}>
                     <SelectTrigger className="h-12">
                       <SelectValue />
@@ -600,7 +399,7 @@ const TrainSearchResults = () => {
                     className="h-12 px-8 bg-purple-600 hover:bg-purple-700"
                     onClick={handleSearch}
                   >
-                    Найти поезда
+                    Найти автобусы
                   </Button>
                 </div>
               </div>
@@ -648,7 +447,7 @@ const TrainSearchResults = () => {
                           "text-xs mt-1",
                           isSelected ? "text-white/90" : "text-muted-foreground"
                         )}>
-                          {routes[0]?.minPrice?.toLocaleString("ru-RU") || "4605"} Р
+                          {routes[0]?.price?.toLocaleString("ru-RU") || "2605"} Р
                         </div>
                       </button>
                     );
@@ -662,10 +461,10 @@ const TrainSearchResults = () => {
         {/* Заголовок */}
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Train className="w-5 h-5 text-primary" />
+            <Bus className="w-5 h-5 text-primary" />
           </div>
           <h1 className="text-3xl font-bold">
-            Ж/д билеты
+            Автобусы
           </h1>
         </div>
 
@@ -688,7 +487,7 @@ const TrainSearchResults = () => {
                         </span>
                       ))}
                       <span className="px-3 py-1 text-xs font-medium rounded-full bg-muted text-muted-foreground">
-                        {route.trainNumber} {route.trainName}
+                        {route.busNumber} {route.carrierName}
                       </span>
                     </div>
 
@@ -701,7 +500,7 @@ const TrainSearchResults = () => {
                           <div className="text-sm text-muted-foreground">
                             {formatDate(route.departureDate)}
                           </div>
-                          <div className="text-sm font-medium mt-1">{route.departureStation}</div>
+                          <div className="text-sm font-medium mt-1">Автовокзал {route.departureStation}</div>
                           <div className="text-sm text-muted-foreground">{route.departureCity}</div>
                         </div>
                       </div>
@@ -725,35 +524,10 @@ const TrainSearchResults = () => {
                           <div className="text-sm text-muted-foreground">
                             {formatDate(route.arrivalDate)}
                           </div>
-                          <div className="text-sm font-medium mt-1">{route.arrivalStation}</div>
+                          <div className="text-sm font-medium mt-1">Автовокзал {route.arrivalStation}</div>
                           <div className="text-sm text-muted-foreground">{route.arrivalCity}</div>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Удобства */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <TooltipProvider delayDuration={0}>
-                        {route.amenities.map((amenity, index) => (
-                          <Tooltip key={index}>
-                            <TooltipTrigger asChild>
-                              <div className="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 cursor-help transition-colors border border-purple-100">
-                                <div className="text-purple-600">
-                                  {amenity.icon}
-                                </div>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="bg-[#1a1a1a] text-white border-0">
-                              <div className="space-y-1">
-                                <div className="font-semibold text-white">{amenity.name}</div>
-                                <div className="text-sm text-gray-300 max-w-xs">
-                                  {amenity.description}
-                                </div>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        ))}
-                      </TooltipProvider>
                     </div>
                   </div>
 
@@ -769,55 +543,10 @@ const TrainSearchResults = () => {
                       </div>
                     </div>
 
-                    {/* Типы билетов и цены */}
-                    <div className="space-y-2">
-                      {(() => {
-                        // Все возможные типы мест
-                        const allTicketTypes = [
-                          { type: "platzkart" as const, name: "Плацкарт" },
-                          { type: "coupe" as const, name: "Купе" },
-                          { type: "sv" as const, name: "СВ" }
-                        ];
-
-                        return allTicketTypes.map((ticketTypeInfo) => {
-                          // Ищем билет в маршруте
-                          const ticket = route.tickets.find(t => t.type === ticketTypeInfo.type);
-                          
-                          // Если билета нет или он распродан
-                          const isSoldOut = !ticket || (ticket.lowerBerths === 0 && ticket.upperBerths === 0);
-                          
-                          return (
-                            <div
-                              key={ticketTypeInfo.type}
-                              className="flex items-center justify-between text-sm"
-                            >
-                              <div>
-                                <span className="font-medium">{ticketTypeInfo.name}</span>
-                                {isSoldOut ? (
-                                  <span className="text-red-600 ml-2 font-semibold">Распродано</span>
-                                ) : (
-                                  <span className="text-muted-foreground ml-2">
-                                    {ticket.lowerBerths > 0 && `${ticket.lowerBerths} ниж`}
-                                    {ticket.lowerBerths > 0 && ticket.upperBerths > 0 && ", "}
-                                    {ticket.upperBerths > 0 && `${ticket.upperBerths} верх`}
-                                  </span>
-                                )}
-                              </div>
-                              {!isSoldOut && ticket && (
-                                <span className="font-semibold">
-                                  от {ticket.price.toLocaleString("ru-RU")} Р
-                                </span>
-                              )}
-                            </div>
-                          );
-                        });
-                      })()}
-                    </div>
-
                     {/* Цена и кнопка */}
                     <div className="pt-4 border-t">
                       <div className="text-2xl font-bold mb-1">
-                        от {route.minPrice.toLocaleString("ru-RU")} Р
+                        {route.price.toLocaleString("ru-RU")} Р
                       </div>
                       <div className="text-sm text-muted-foreground mb-4">за одного</div>
                       <Button
@@ -828,9 +557,8 @@ const TrainSearchResults = () => {
                             from: fromCity,
                             to: toCity,
                             date: format(departureDate, "yyyy-MM-dd"),
-                            ticketType: ticketType,
                             passengers: passengers,
-                            travelType: "train"
+                            travelType: "bus"
                           });
                           navigate(`/select-seats?${params.toString()}`);
                         }}
@@ -848,7 +576,7 @@ const TrainSearchResults = () => {
         {routes.length === 0 && (
           <div className="text-center py-12">
             <p className="text-lg text-muted-foreground">
-              К сожалению, на выбранную дату нет доступных поездов
+              К сожалению, на выбранную дату нет доступных автобусов
             </p>
           </div>
         )}
@@ -858,5 +586,4 @@ const TrainSearchResults = () => {
   );
 };
 
-export default TrainSearchResults;
-
+export default BusSearch;
