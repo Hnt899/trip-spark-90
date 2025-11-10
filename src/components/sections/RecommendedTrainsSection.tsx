@@ -109,7 +109,7 @@ const RecommendedTrainsSection = () => {
                   md:grid-cols-[auto_140px_200px_140px_auto_160px_200px_140px]
                   lg:grid-cols-[auto_150px_210px_150px_auto_170px_210px_150px]"
                 >
-                  <div className="w-12 h-12 bg-destructive rounded flex items-center justify-center">
+                  <div className="w-12 h-12 bg-destructive rounded flex items-center justify-center ml-[65%]">
                     <Train className="w-6 h-6 text-white" />
                   </div>
 
@@ -136,7 +136,7 @@ const RecommendedTrainsSection = () => {
                     </p>
                   </div>
 
-                  <div className="w-12 h-12 bg-destructive rounded flex items-center justify-center ml-6">
+                  <div className="w-12 h-12 bg-destructive rounded flex items-center justify-center ml-[65%]">
                     <Train className="w-6 h-6 text-white" />
                   </div>
 
@@ -165,7 +165,7 @@ const RecommendedTrainsSection = () => {
                 </div>
 
                 {/* Правая часть */}
-                <div className="flex flex-col items-end gap-2 min-w-[190px]">
+                <div className="flex flex-col items-end gap-2 min-w-[190px] ml-[-2%]">
                   <p className="text-2xl font-bold text-foreground">
                     {train.price}
                   </p>

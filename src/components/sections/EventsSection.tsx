@@ -208,8 +208,7 @@ const EventsSection = () => {
                       <div className="space-y-2">
                         <p className="text-4xl font-bold">{event.price}</p>
                         <p className="text-xl font-semibold">{event.artist}</p>
-                        <p className="text-sm opacity-90">{event.date}</p>
-                        <p className="text-sm opacity-90">{event.venue}</p>
+                        <p className="text-sm opacity-90">{event.date} • {event.venue}</p>
                       </div>
                     </div>
                   </div>

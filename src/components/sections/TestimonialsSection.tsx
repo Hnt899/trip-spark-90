@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Star, Users, Clock, Shield, TrendingUp, Award, Heart } from "lucide-react";
 
 const TestimonialsSection = () => {
   const testimonials = [
@@ -33,29 +33,93 @@ const TestimonialsSection = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-8">
-              <div>
-                <p className="text-4xl font-bold mb-2">200,000+</p>
-                <p className="text-secondary-foreground/80">довольных клиентов</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold mb-1">200,000+</p>
+                  <p className="text-sm text-secondary-foreground/80">довольных клиентов</p>
+                </div>
               </div>
-              <div>
-                <p className="text-4xl font-bold mb-2">4,88</p>
-                <p className="text-secondary-foreground/80 mb-2">Средняя оценка</p>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  ))}
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold mb-1">4,88</p>
+                  <p className="text-sm text-secondary-foreground/80 mb-1">Средняя оценка</p>
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold mb-1">2 мин</p>
+                  <p className="text-sm text-secondary-foreground/80">среднее время ответа</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold mb-1">99.8%</p>
+                  <p className="text-sm text-secondary-foreground/80">успешных бронирований</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold mb-1">150+</p>
+                  <p className="text-sm text-secondary-foreground/80">городов России</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <Award className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold mb-1">5 лет</p>
+                  <p className="text-sm text-secondary-foreground/80">на рынке</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <Heart className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold mb-1">98%</p>
+                  <p className="text-sm text-secondary-foreground/80">рекомендуют нас</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold mb-1">24/7</p>
+                  <p className="text-sm text-secondary-foreground/80">поддержка клиентов</p>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="relative h-[500px] overflow-hidden">
-            <div className="animate-scroll-vertical space-y-4 hover:[animation-play-state:paused]">
+            <div className="animate-scroll-vertical space-y-3 hover:[animation-play-state:paused]">
               {[...testimonials, ...testimonials].map((testimonial, index) => (
-                <div key={index} className="bg-card p-6 rounded-xl border border-border/10">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-lg font-semibold text-card-foreground">
+                <div key={index} className="bg-card p-5 rounded-xl border border-border/10">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-base font-semibold text-card-foreground">
                       {testimonial.name[0]}
                     </div>
                     <div>

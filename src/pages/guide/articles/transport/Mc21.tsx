@@ -79,19 +79,84 @@ const Mc21 = () => {
                 </div>
                 <h2 className="text-2xl font-bold">Инновационные технологии</h2>
               </div>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-base leading-relaxed">Композитные материалы в конструкции</p>
+              <div className="space-y-4">
+                <p className="text-base leading-relaxed mb-4">
+                  МС-21 создан с использованием самых современных технологий и материалов, что делает его конкурентоспособным на мировом рынке.
+                </p>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-base font-semibold mb-1">Композитные материалы в конструкции</p>
+                      <p className="text-sm text-muted-foreground">
+                        Использование композитных материалов снижает вес самолёта, повышает прочность и долговечность конструкции
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-base font-semibold mb-1">Современные экономичные двигатели</p>
+                      <p className="text-sm text-muted-foreground">
+                        Новые двигатели обеспечивают снижение расхода топлива и выбросов, что делает полёты более экологичными и экономичными
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-base font-semibold mb-1">Передовая авионика и системы управления</p>
+                      <p className="text-sm text-muted-foreground">
+                        Современные системы управления и навигации повышают безопасность полёта и облегчают работу экипажа
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-base leading-relaxed">Современные экономичные двигатели</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Разработка и производство */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Info className="w-5 h-5 text-primary" />
                 </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-base leading-relaxed">Передовая авионика и системы управления</p>
+                <h2 className="text-2xl font-bold">Разработка и производство</h2>
+              </div>
+              <div className="space-y-4">
+                <p className="text-base leading-relaxed mb-4">
+                  МС-21 разрабатывался как проект национального значения, призванный возродить российскую авиапромышленность и создать конкурентоспособный самолёт.
+                </p>
+                <p className="text-base leading-relaxed mb-4">
+                  Разработка включала создание новых технологий, материалов и систем. Производство организовано на современных заводах с использованием передового оборудования.
+                </p>
+                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                  <p className="text-sm leading-relaxed">
+                    <strong>Важно:</strong> МС-21 — это не просто самолёт, а символ возрождения российской авиапромышленности и демонстрация способности создавать современную авиационную технику мирового уровня.
+                  </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Будущее МС-21 */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <Plane className="w-5 h-5 text-green-600" />
+                </div>
+                <h2 className="text-2xl font-bold">Будущее МС-21</h2>
+              </div>
+              <div className="space-y-4">
+                <p className="text-base leading-relaxed mb-4">
+                  МС-21 призван заменить устаревшие самолёты на внутренних и международных маршрутах. Он должен стать основой парка российских авиакомпаний и конкурировать с зарубежными аналогами.
+                </p>
+                <p className="text-base leading-relaxed">
+                  Развитие проекта МС-21 продолжается, создаются новые модификации, улучшаются характеристики. Это долгосрочный проект, который будет развиваться и совершенствоваться.
+                </p>
               </div>
             </CardContent>
           </Card>

@@ -108,13 +108,68 @@ const Sobakivaeroportu = () => {
                 </div>
                 <h2 className="text-2xl font-bold">Как работает команда кинолога и собаки</h2>
               </div>
-              <p className="text-base leading-relaxed mb-4">
-                Кинолог и его собака работают как единая команда. Собака использует своё исключительное обоняние для обнаружения опасных веществ, а кинолог интерпретирует поведение собаки и принимает решения.
-              </p>
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                <p className="text-sm leading-relaxed">
-                  <strong>Важно:</strong> Служебные собаки проходят специальную подготовку и регулярную переподготовку. Они не агрессивны к людям и обучены работать в условиях аэропорта, среди большого количества пассажиров и багажа.
+              <div className="space-y-4">
+                <p className="text-base leading-relaxed mb-4">
+                  Кинолог и его собака работают как единая команда. Собака использует своё исключительное обоняние для обнаружения опасных веществ, а кинолог интерпретирует поведение собаки и принимает решения.
                 </p>
+                <p className="text-base leading-relaxed mb-4">
+                  Обоняние собаки в тысячи раз чувствительнее человеческого, что позволяет им обнаруживать даже очень малые количества опасных веществ. Кинолог обучен понимать сигналы собаки и правильно реагировать на них.
+                </p>
+                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                  <p className="text-sm leading-relaxed">
+                    <strong>Важно:</strong> Служебные собаки проходят специальную подготовку и регулярную переподготовку. Они не агрессивны к людям и обучены работать в условиях аэропорта, среди большого количества пассажиров и багажа.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Подготовка собак */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Dog className="w-5 h-5 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold">Подготовка служебных собак</h2>
+              </div>
+              <div className="space-y-4">
+                <p className="text-base leading-relaxed mb-4">
+                  Служебные собаки проходят длительную и тщательную подготовку перед началом работы в аэропорту. Обучение включает не только обнаружение опасных веществ, но и работу в условиях аэропорта.
+                </p>
+                <p className="text-base leading-relaxed mb-4">
+                  Собаки учатся работать среди большого количества людей, не отвлекаться на посторонние запахи, правильно сигнализировать о находках. Это требует времени, терпения и профессионального подхода.
+                </p>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <p className="text-sm leading-relaxed">
+                    Регулярная переподготовка и тренировки поддерживают навыки собак на высоком уровне и обеспечивают эффективность их работы.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Важность кинологической службы */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-green-600" />
+                </div>
+                <h2 className="text-2xl font-bold">Важность кинологической службы</h2>
+              </div>
+              <div className="space-y-4">
+                <p className="text-base leading-relaxed mb-4">
+                  Кинологическая служба играет незаменимую роль в обеспечении безопасности аэропорта. Собаки могут обнаружить то, что не могут обнаружить технические средства досмотра.
+                </p>
+                <p className="text-base leading-relaxed mb-4">
+                  Работа кинологической службы дополняет технические средства досмотра, создавая многоуровневую систему безопасности. Это делает аэропорты более безопасными для всех.
+                </p>
+                <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                  <p className="text-sm leading-relaxed">
+                    <strong>Вывод:</strong> Служебные собаки в аэропорту — это не просто милые животные, а важная часть системы безопасности, которая помогает защищать жизни пассажиров и экипажей.
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -47,6 +47,9 @@ import ChtodelatEsliavtobus from "./articles/passenger/ChtodelatEsliavtobus";
 import Puteshestvovatnainvalidnomkresle from "./articles/passenger/Puteshestvovatnainvalidnomkresle";
 import Kakputeshestvuyutslepye from "./articles/passenger/Kakputeshestvuyutslepye";
 import Chtonadoznatpro from "./articles/passenger/Chtonadoznatpro";
+import Skolkooshibokmozhetbyt from "./articles/passenger/Skolkooshibokmozhetbyt";
+import Biletbezelektronnoyregistratsii from "./articles/passenger/Biletbezelektronnoyregistratsii";
+import Nadolipokupatobratnyy from "./articles/passenger/Nadolipokupatobratnyy";
 
 // Разборы
 import Virusiantibiotiki from "./articles/analysis/Virusiantibiotiki";
@@ -96,9 +99,7 @@ import Kakposaditsamolet from "./articles/transport/Kakposaditsamolet";
 import Ty144 from "./articles/transport/Ty144";
 import Navigatsiyasamoleta from "./articles/transport/Navigatsiyasamoleta";
 import Ty154 from "./articles/transport/Ty154";
-import Boeing747 from "./articles/transport/Boeing747";
 import An2 from "./articles/transport/An2";
-import Sj100 from "./articles/transport/Sj100";
 import Boeing737Ng from "./articles/transport/Boeing737Ng";
 import AirbusA320 from "./articles/transport/AirbusA320";
 import Evropeyskayaavtobusnayakompaniya from "./articles/transport/Evropeyskayaavtobusnayakompaniya";
@@ -366,9 +367,7 @@ const transport = [
   "Ty-144",
   "Навигация самолёта",
   "Ty-154",
-  "Boeing 747",
   "Ан-2",
-  "SJ-100",
   "Boeing 737 NG",
   "Airbus A320",
   "Европейская автобусная компания",
@@ -648,7 +647,7 @@ const zhivotnoeSlug = createSlug("Как перевезти животное?");
 const gostinitsydlyaSlug = createSlug("Как работают гостиницы для животных?");
 const opozdaliSlug = createSlug("Что делать, если опоздали на самолет?");
 const zaderzhaliSlug = createSlug("Что делать, если авиарейс задержали?");
-const shtorkuSlug = createSlug("Почему надо открывать шторку иллюминатора?");
+const shtorkuSlug = createSlug("Зачем открывать шторку иллюминатора?");
 const plohoSlug = createSlug("Где посадка, если пассажиру плохо?");
 const bezpaketovSlug = createSlug("Как поехать в страну без турпакетов?");
 const zmeyaSlug = createSlug("Что делать, если укусила змея?");
@@ -667,6 +666,9 @@ const avtobusSlug = createSlug("Что делать, если автобус н�
 const invalidnoeSlug = createSlug("Путешествовать на инвалидном кресле?");
 const slepyeSlug = createSlug("Как путешествуют слепые?");
 const bezopasnostSlug = createSlug("Что надо знать про безопасность?");
+const skolkoOshibokSlug = createSlug("Сколько ошибок может быть в билете?");
+const biletBezErSlug = createSlug("Билет без электронной регистрации?");
+const obratnyyBiletSlug = createSlug("Надо ли покупать обратный билет?");
 
 // Разборы
 const virusSlug = createSlug("Вирус и антибиотики");
@@ -725,6 +727,9 @@ const articleComponents: Record<string, React.ComponentType> = {
   [`passenger/${invalidnoeSlug}`]: Puteshestvovatnainvalidnomkresle,
   [`passenger/${slepyeSlug}`]: Kakputeshestvuyutslepye,
   [`passenger/${bezopasnostSlug}`]: Chtonadoznatpro,
+  [`passenger/${skolkoOshibokSlug}`]: Skolkooshibokmozhetbyt,
+  [`passenger/${biletBezErSlug}`]: Biletbezelektronnoyregistratsii,
+  [`passenger/${obratnyyBiletSlug}`]: Nadolipokupatobratnyy,
   // Запасной вариант на случай различий в slug
   'passenger/chto-delat-esli-ya-zabelel-v-doroge': ChtodelatEsliya,
   'passenger/chto-delat-esli-ya-zabolel-v-doroge': ChtodelatEsliya,
@@ -777,9 +782,7 @@ const articleComponents: Record<string, React.ComponentType> = {
   [`transport/${createSlug("Ty-144")}`]: Ty144,
   [`transport/${createSlug("Навигация самолёта")}`]: Navigatsiyasamoleta,
   [`transport/${createSlug("Ty-154")}`]: Ty154,
-  [`transport/${createSlug("Boeing 747")}`]: Boeing747,
   [`transport/${createSlug("Ан-2")}`]: An2,
-  [`transport/${createSlug("SJ-100")}`]: Sj100,
   [`transport/${createSlug("Boeing 737 NG")}`]: Boeing737Ng,
   [`transport/${createSlug("Airbus A320")}`]: AirbusA320,
   [`transport/${createSlug("Европейская автобусная компания")}`]: Evropeyskayaavtobusnayakompaniya,

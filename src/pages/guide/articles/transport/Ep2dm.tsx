@@ -139,9 +139,54 @@ const Ep2dm = () => {
               </div>
 
               <div className="space-y-4">
-                <p className="text-base leading-relaxed">
+                <p className="text-base leading-relaxed mb-4">
                   ЭП2ДМ работают на различных пригородных маршрутах, заменяя устаревшие модели электричек. Эти поезда можно встретить на линиях, где требуется повышенный комфорт и скорость движения.
                 </p>
+                <p className="text-base leading-relaxed mb-4">
+                  ЭП2ДМ используются на маршрутах с высокой пассажиропотоком, где важно обеспечить комфорт и надёжность перевозок. Они особенно популярны на линиях, связывающих крупные города с пригородами.
+                </p>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <p className="text-sm leading-relaxed">
+                    Постепенное внедрение ЭП2ДМ на различных маршрутах позволяет пассажирам оценить преимущества новых поездов и насладиться улучшенным комфортом поездки.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Преимущества модернизации */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold">Преимущества модернизации</h2>
+              </div>
+              <div className="space-y-4">
+                <p className="text-base leading-relaxed mb-4">
+                  Модернизация до ЭП2ДМ принесла множество преимуществ как для пассажиров, так и для железнодорожной инфраструктуры.
+                </p>
+                <div className="space-y-3">
+                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                    <p className="text-sm font-semibold mb-2">Для пассажиров:</p>
+                    <ul className="list-disc list-inside space-y-1 text-sm ml-4">
+                      <li>Повышенный комфорт поездки</li>
+                      <li>Лучшие условия в вагонах</li>
+                      <li>Современные удобства</li>
+                      <li>Более надёжное расписание</li>
+                    </ul>
+                  </div>
+                  <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                    <p className="text-sm font-semibold mb-2">Для перевозчика:</p>
+                    <ul className="list-disc list-inside space-y-1 text-sm ml-4">
+                      <li>Повышенная надёжность</li>
+                      <li>Энергоэффективность</li>
+                      <li>Снижение затрат на обслуживание</li>
+                      <li>Улучшение имиджа</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

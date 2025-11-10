@@ -113,12 +113,71 @@ const Kapsulnyyvagon = () => {
                 <p className="text-base leading-relaxed mb-4">
                   Капсульные вагоны пока находятся в стадии эксперимента и тестирования. Они позволяют оценить, насколько такая концепция подходит для российских пассажиров и железных дорог.
                 </p>
-                
+                <p className="text-base leading-relaxed mb-4">
+                  Во время эксперимента собирается обратная связь от пассажиров, анализируется спрос, оценивается экономическая эффективность. Это позволяет принять обоснованное решение о дальнейшем использовании капсульных вагонов.
+                </p>
                 <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
                   <p className="text-sm leading-relaxed">
                     <strong>Важно:</strong> В зависимости от результатов эксперимента, капсульные вагоны могут стать частью регулярного парка поездов или остаться нишевым решением для определённых маршрутов.
                   </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Сравнение с плацкартом */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Train className="w-5 h-5 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold">Сравнение с плацкартом</h2>
+              </div>
+              <div className="space-y-4">
+                <p className="text-base leading-relaxed mb-4">
+                  Капсульные вагоны предлагают альтернативу традиционному плацкарту. Каждая концепция имеет свои преимущества и подходит для разных типов пассажиров.
+                </p>
+                <div className="space-y-3">
+                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                    <p className="text-sm font-semibold mb-2">Преимущества капсул:</p>
+                    <ul className="list-disc list-inside space-y-1 text-sm ml-4">
+                      <li>Больше приватности</li>
+                      <li>Лучшая шумоизоляция</li>
+                      <li>Индивидуальное пространство</li>
+                      <li>Современный подход</li>
+                    </ul>
+                  </div>
+                  <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                    <p className="text-sm font-semibold mb-2">Преимущества плацкарта:</p>
+                    <ul className="list-disc list-inside space-y-1 text-sm ml-4">
+                      <li>Традиционная атмосфера</li>
+                      <li>Возможность общения</li>
+                      <li>Более доступная цена</li>
+                      <li>Проверенная временем концепция</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Будущее капсульных вагонов */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Info className="w-5 h-5 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold">Будущее капсульных вагонов</h2>
+              </div>
+              <div className="space-y-4">
+                <p className="text-base leading-relaxed mb-4">
+                  Будущее капсульных вагонов зависит от результатов эксперимента и реакции пассажиров. Если концепция окажется успешной, капсульные вагоны могут стать популярным выбором для определённых категорий пассажиров.
+                </p>
+                <p className="text-base leading-relaxed">
+                  Возможно, капсульные вагоны найдут своё место на длительных маршрутах, где приватность и комфорт особенно важны, или станут альтернативой для пассажиров, которые предпочитают уединение во время поездки.
+                </p>
               </div>
             </CardContent>
           </Card>

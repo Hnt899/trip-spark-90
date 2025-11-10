@@ -43,22 +43,42 @@ const HeroSection = () => {
     <section className="relative py-20 overflow-hidden bg-gradient-to-b from-muted/30 to-background">
       <div className="container relative pb-32 lg:pb-40">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          <div className="space-y-8 animate-fade-in">
+          <div className="animate-fade-in">
             <div className="space-y-6">
               <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight">
-                Путешествие это легко!
+                Путешествие<br />это легко!
               </h1>
               <div className="space-y-4">
-                <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl">
-                  Поиск расписания, выбор мест, безопасная оплата и ЭПД — в одном окне. 
-                  Откройте для себя готовые маршруты по регионам России, путеводители с обзорами городов и достопримечательностей, 
-                  полезную справочную информацию и советы от опытных путешественников.
+                <p className="text-lg md:text-xl text-muted-foreground font-semibold mb-3">
+                  Чем мы гордимся:
                 </p>
+                <ul className="space-y-2 text-base md:text-lg text-muted-foreground leading-relaxed max-w-3xl">
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Поиск расписания, выбор мест, безопасная оплата и ЭПД — в одном окне</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Готовые маршруты по регионам России</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Путеводители с обзорами городов и достопримечательностей</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Полезная справочная информация и советы от опытных путешественников</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Электронные билеты и быстрая регистрация</span>
+                  </li>
+                </ul>
               </div>
             </div>
 
             {/* Иконки типов поездок */}
-            <div className="flex gap-4 flex-wrap mt-6">
+            <div className="flex gap-4 flex-wrap mt-8 lg:mt-22">
               <button
                 onClick={() => setTravelType("train")}
                 className={cn(
@@ -168,7 +188,7 @@ const HeroSection = () => {
                   <img 
                     src={heroPlane} 
                     alt="Самолёт" 
-                    className="absolute top-0 object-contain animate-plane-enter opacity-0 pointer-events-none select-none"
+                    className="absolute top-16 object-contain animate-plane-enter opacity-0 pointer-events-none select-none"
                     style={{ 
                       left: '-60%', 
                       height: '800px',
@@ -261,7 +281,7 @@ const HeroSection = () => {
           className={cn(
             "bg-card rounded-2xl shadow-xl border z-10 w-full mt-8",
             "flex flex-col",
-            "lg:absolute lg:left-0 lg:right-[28%] lg:top-1/2 lg:translate-y-[10%] lg:transform lg:mt-0",
+            "lg:absolute lg:left-0 lg:right-[28%] lg:top-[66%] lg:transform lg:mt-0",
             "pointer-events-auto",
             travelType === "hotel" ? "p-4" : "p-4 gap-6"
           )}

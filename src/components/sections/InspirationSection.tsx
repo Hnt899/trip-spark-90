@@ -262,10 +262,10 @@ const InspirationSection = () => {
     <section className="py-20">
       <div className="container">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
             Вдохновение для следующей поездки
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-lg">
             Найдите идеи и направления
           </p>
         </div>
@@ -281,7 +281,7 @@ const InspirationSection = () => {
             {duplicatedDestinations.map((destination, index) => (
               <div 
                 key={index}
-                className="group cursor-pointer snap-start flex-shrink-0 w-[290px]"
+                className="group cursor-pointer snap-start flex-shrink-0 w-[380px]"
               >
                 <div className="relative overflow-hidden rounded-xl aspect-[4/3] mb-4">
                   <img 
@@ -291,10 +291,10 @@ const InspirationSection = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
-                <h3 className="text-xl font-semibold text-foreground mb-1">
+                <h3 className="text-2xl font-semibold text-foreground mb-1">
                   {destination.name}
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground text-base">
                   {destination.description}
                 </p>
               </div>

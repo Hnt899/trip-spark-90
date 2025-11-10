@@ -88,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const isEmail = emailOrPhone.includes('@');
     
     if (isEmail) {
-      // Отправка OTP на email
+      // Отправка OTP на email (используем Supabase)
       const { error } = await supabase.auth.signInWithOtp({
         email: emailOrPhone,
         options: {
@@ -98,33 +98,75 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       return { error };
     } else {
-      // Отправка SMS OTP на телефон
+      // Отправка SMS OTP на телефон через МТС Exolve
       const normalizedPhone = normalizePhoneForSMS(emailOrPhone);
-      console.log('Sending SMS OTP to:', normalizedPhone);
+      console.log('Sending SMS OTP via МТС Exolve to:', normalizedPhone);
       
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: normalizedPhone,
-        options: {
-          shouldCreateUser: true,
+      // Генерируем 6-значный код подтверждения
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Отправляем SMS через Edge Function
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+      
+      // Текст сообщения с кодом
+      const smsMessage = `Ваш код подтверждения: ${verificationCode}`;
+      
+      try {
+        const response = await fetch(`${supabaseUrl}/functions/v1/send-sms-exolve`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+          },
+          body: JSON.stringify({
+            phone: normalizedPhone,
+            message: smsMessage
+          })
+        });
+        
+        let result;
+        try {
+          result = await response.json();
+        } catch (jsonError) {
+          console.error('Failed to parse response as JSON:', jsonError);
+          const text = await response.text();
+          console.error('Response text:', text);
+          return { error: { message: 'Неверный ответ от сервера. Проверьте логи Edge Function.' } };
         }
-      });
-      
-      if (error) {
-        console.error('SMS OTP error:', error);
-        // Если SMS провайдер не настроен, используем fallback на email метод
-        if (error.message?.includes('SMS provider') || error.message?.includes('phone')) {
-          console.log('SMS provider not configured, falling back to email method');
-          const { error: emailError } = await supabase.auth.signInWithOtp({
-            email: normalizedPhone.replace(/\D/g, '') + '@temp.com',
-            options: {
-              shouldCreateUser: true,
-            }
+        
+        if (!response.ok || !result.success) {
+          console.error('SMS sending error:', result);
+          const errorMessage = result.error || result.details || 'Не удалось отправить SMS';
+          return { error: { message: errorMessage } };
+        }
+        
+        console.log('SMS sent successfully via МТС Exolve, message_id:', result.message_id);
+        
+        // Сохраняем код в БД
+        const expiresAt = new Date();
+        expiresAt.setMinutes(expiresAt.getMinutes() + 10); // Код действителен 10 минут
+        
+        const { error: dbError } = await supabase
+          .from('verification_codes')
+          .insert({
+            phone: normalizedPhone,
+            code: verificationCode,
+            expires_at: expiresAt.toISOString(),
+            used: false
           });
-          return { error: emailError };
+        
+        if (dbError) {
+          console.error('Error saving verification code:', dbError);
+          return { error: { message: 'Не удалось сохранить код подтверждения' } };
         }
+        
+        console.log('Verification code saved to database');
+        return { error: null };
+      } catch (error: any) {
+        console.error('Error calling SMS function:', error);
+        return { error: { message: 'Ошибка при отправке SMS: ' + (error.message || 'Неизвестная ошибка') } };
       }
-      
-      return { error };
     }
   };
 
@@ -134,38 +176,143 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let data, error;
     
     if (isEmail) {
-      // Верификация email OTP
-      const otpType = isRegistration ? 'signup' : 'email';
+      // Верификация email OTP (используем Supabase)
+      // Supabase сам определяет тип OTP при отправке (signup для новых, email для существующих)
+      // Пробуем оба типа, начиная с предполагаемого
+      const primaryType = isRegistration ? 'signup' : 'email';
+      const fallbackType = isRegistration ? 'email' : 'signup';
       
+      // Пробуем сначала предполагаемый тип
       ({ data, error } = await supabase.auth.verifyOtp({
         email: emailOrPhone,
         token,
-        type: otpType as 'email' | 'signup',
+        type: primaryType as 'email' | 'signup',
       }));
+      
+      // Если не сработало, пробуем альтернативный тип
+      if (error && !data?.user) {
+        console.log(`Primary OTP type ${primaryType} failed, trying ${fallbackType}`);
+        ({ data, error } = await supabase.auth.verifyOtp({
+          email: emailOrPhone,
+          token,
+          type: fallbackType as 'email' | 'signup',
+        }));
+      }
     } else {
-      // Верификация SMS OTP
+      // Верификация SMS OTP через нашу БД
       const normalizedPhone = normalizePhoneForSMS(emailOrPhone);
       console.log('Verifying SMS OTP for:', normalizedPhone);
       
-      const otpType = isRegistration ? 'sms' : 'phone';
+      // Ищем код в БД
+      const { data: codeData, error: codeError } = await supabase
+        .from('verification_codes')
+        .select('*')
+        .eq('phone', normalizedPhone)
+        .eq('code', token)
+        .eq('used', false)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       
-      ({ data, error } = await supabase.auth.verifyOtp({
-        phone: normalizedPhone,
-        token,
-        type: otpType as 'sms' | 'phone',
-      }));
+      if (codeError || !codeData) {
+        console.error('Code verification error:', codeError);
+        return { 
+          error: { message: 'Неверный код подтверждения или код истек' },
+          user: undefined 
+        };
+      }
       
-      // Если SMS провайдер не настроен, пробуем через email метод
-      if (error && (error.message?.includes('SMS provider') || error.message?.includes('phone'))) {
-        console.log('SMS verification failed, trying email fallback');
-        const email = normalizedPhone.replace(/\D/g, '') + '@temp.com';
-        const emailOtpType = isRegistration ? 'signup' : 'email';
+      // Помечаем код как использованный
+      await supabase
+        .from('verification_codes')
+        .update({ used: true })
+        .eq('id', codeData.id);
+      
+      // Создаем или находим пользователя в Supabase
+      // Используем временный email для создания аккаунта
+      const tempEmail = normalizedPhone.replace(/\D/g, '') + '@temp.com';
+      
+      // Генерируем постоянный пароль на основе номера телефона (для консистентности)
+      const phoneDigits = normalizedPhone.replace(/\D/g, '');
+      const tempPassword = 'phone_' + phoneDigits + '_' + phoneDigits.slice(-4);
+      
+      // Проверяем, существует ли пользователь, ища его в профилях
+      const { data: existingProfile } = await supabase
+        .from('user_profiles')
+        .select('user_id, email')
+        .eq('phone', normalizedPhone)
+        .maybeSingle();
+      
+      if (existingProfile?.user_id) {
+        // Пользователь существует - пробуем войти
+        // Сначала пробуем с нашим паролем
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: tempEmail,
+          password: tempPassword
+        });
         
-        ({ data, error } = await supabase.auth.verifyOtp({
-          email,
-          token,
-          type: emailOtpType as 'email' | 'signup',
-        }));
+        if (signInError && signInError.message?.includes('Invalid login credentials')) {
+          // Пароль не подходит - используем OTP для входа
+          const { error: otpError } = await supabase.auth.signInWithOtp({
+            email: tempEmail,
+            options: { shouldCreateUser: false }
+          });
+          
+          if (otpError) {
+            console.error('OTP sign in error:', otpError);
+            return { error: { message: 'Не удалось войти. Попробуйте зарегистрироваться заново.' }, user: undefined };
+          }
+          
+          // OTP отправлен - нужно попросить пользователя ввести код из email
+          return { error: { message: 'Проверьте email для входа' }, user: undefined };
+        } else if (signInError) {
+          console.error('Sign in error:', signInError);
+          return { error: signInError, user: undefined };
+        } else {
+          // Успешный вход
+          data = signInData;
+          error = null;
+        }
+      } else {
+        // Новый пользователь - создаем
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: tempEmail,
+          password: tempPassword,
+          options: {
+            data: {
+              phone: normalizedPhone,
+              temp_password: tempPassword
+            }
+          }
+        });
+        
+        if (signUpError) {
+          console.error('Sign up error:', signUpError);
+          return { error: signUpError, user: undefined };
+        }
+        
+        data = signUpData;
+        error = signUpError;
+      }
+      
+      // Сохраняем номер телефона в профиле
+      if (data?.user) {
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .upsert({
+            user_id: data.user.id,
+            phone: normalizedPhone,
+            email: tempEmail
+          }, {
+            onConflict: 'user_id'
+          });
+        
+        if (profileError) {
+          console.error('Error saving phone to profile:', profileError);
+        } else {
+          console.log('Phone saved to profile:', normalizedPhone);
+        }
       }
     }
 

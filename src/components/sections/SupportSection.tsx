@@ -6,12 +6,12 @@ const SupportSection = () => {
     <section className="py-20 bg-muted/30">
       <div className="container">
         <div className="bg-card rounded-2xl p-8 md:p-12 border">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-12 items-center">
             <div className="space-y-6">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground">
                 Нужна помощь с заказом?
               </h2>
-              <p className="text-muted-foreground text-lg">
+              <p className="text-muted-foreground text-lg leading-relaxed">
                 Онлайн-поддержка 24/7. Ответим за минуты и поможем со статусом билетов,
                 возвратами и любыми вопросами.
               </p>
@@ -27,15 +27,15 @@ const SupportSection = () => {
               </div>
 
               <div className="flex flex-col gap-3 pt-4">
-                <div className="flex items-center gap-2 text-sm">
+                <div className="flex items-center gap-2 text-base">
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
                   <span className="text-muted-foreground">Средний ответ — 2 минуты</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
+                <div className="flex items-center gap-2 text-base">
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
                   <span className="text-muted-foreground">Чат, звонок и e-mail</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
+                <div className="flex items-center gap-2 text-base">
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
                   <span className="text-muted-foreground">Решаем вопросы по возвратам</span>
                 </div>

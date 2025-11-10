@@ -119,7 +119,7 @@ const RoutesSection = () => {
                 <div key={`${route.name}-${index}`} className="flex-shrink-0" style={{ width: `${slideWidthPx}px` }}>
                   <div className="relative overflow-hidden rounded-xl aspect-[4/3] cursor-pointer transition-transform duration-300">
                     <img src={route.image} alt={route.name} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                     <h3 className="absolute bottom-4 left-4 text-white text-2xl font-bold">{route.name}</h3>
                   </div>
                 </div>
