@@ -5,12 +5,20 @@ const SupportSection = () => {
   return (
     <section className="py-20 bg-muted/30">
       <div className="container">
-        <div className="bg-card rounded-2xl p-8 md:p-12 border">
+        {/* Заголовок над карточкой */}
+        <div className="mb-8 md:mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-foreground">
+            Нужна помощь с заказом?
+          </h2>
+        </div>
+
+        {/* Карточка */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
           <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-12 items-center">
             <div className="space-y-6">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-                Нужна помощь с заказом?
-              </h2>
+              <h3 className="text-2xl md:text-3xl font-semibold mb-4 text-foreground">
+                Мы всегда готовы вам помочь
+              </h3>
               <p className="text-muted-foreground text-lg leading-relaxed">
                 Онлайн-поддержка 24/7. Ответим за минуты и поможем со статусом билетов,
                 возвратами и любыми вопросами.

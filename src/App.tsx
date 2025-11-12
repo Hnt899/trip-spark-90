@@ -25,6 +25,8 @@ import NotFound from "./pages/NotFound";
 
 // Reference pages
 import Trains from "./pages/reference/Trains";
+import Flights from "./pages/reference/Flights";
+import Buses from "./pages/reference/Buses";
 import DocumentsForPurchase from "./pages/reference/articles/DocumentsForPurchase";
 import HowToBuy from "./pages/reference/articles/HowToBuy";
 import HowToPay from "./pages/reference/articles/HowToPay";
@@ -93,6 +95,8 @@ const App = () => (
           <Route path="/routes/:id" element={<RouteDetail />} />
           <Route path="/reference" element={<Reference />} />
           <Route path="/reference/trains" element={<Trains />} />
+          <Route path="/reference/flights" element={<Flights />} />
+          <Route path="/reference/buses" element={<Buses />} />
           <Route path="/reference/trains/documents-for-purchase" element={<DocumentsForPurchase />} />
           <Route path="/reference/trains/how-to-buy" element={<HowToBuy />} />
           <Route path="/reference/trains/how-to-pay" element={<HowToPay />} />
