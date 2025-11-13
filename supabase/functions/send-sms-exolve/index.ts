@@ -11,7 +11,15 @@ interface SMSRequest {
 }
 
 serve(async (req) => {
+  // Логируем сразу при получении запроса
+  console.log('=== Edge Function send-sms-exolve called ===')
+  console.log('Timestamp:', new Date().toISOString())
+  console.log('Request method:', req.method)
+  console.log('Request URL:', req.url)
+  console.log('Request headers:', Object.fromEntries(req.headers.entries()))
+  
   if (req.method === 'OPTIONS') {
+    console.log('OPTIONS request - returning CORS headers')
     return new Response('ok', { headers: corsHeaders })
   }
 
@@ -53,23 +61,23 @@ serve(async (req) => {
     }
 
     // Нормализуем номер телефона для МТС Exolve
-    // Согласно документации: номера должны быть в формате +7XXXXXXXXXX
-    let normalizedPhone = phone.replace(/\s+/g, '') // Убираем пробелы
+    // Убираем все пробелы, дефисы и другие символы, оставляем только цифры
+    let normalizedPhone = phone.replace(/\D/g, '')
     
-    // Если номер начинается с 8, заменяем на +7
+    // Если номер начинается с 8 (11 цифр), заменяем первую 8 на 7
     if (normalizedPhone.startsWith('8') && normalizedPhone.length === 11) {
-      normalizedPhone = '+7' + normalizedPhone.substring(1)
-    } else if (normalizedPhone.startsWith('7') && normalizedPhone.length === 11 && !normalizedPhone.startsWith('+')) {
-      // Если номер начинается с 7 без +, добавляем +
-      normalizedPhone = '+' + normalizedPhone
-    } else if (!normalizedPhone.startsWith('+') && normalizedPhone.length === 10) {
-      // Если номер без кода страны (10 цифр), добавляем +7
-      normalizedPhone = '+7' + normalizedPhone
+      normalizedPhone = '7' + normalizedPhone.substring(1)
+    } else if (normalizedPhone.startsWith('7') && normalizedPhone.length === 11) {
+      // Если номер начинается с 7 (11 цифр), оставляем как есть
+      normalizedPhone = normalizedPhone
+    } else if (normalizedPhone.length === 10) {
+      // Если номер без кода страны (10 цифр), добавляем 7 в начало
+      normalizedPhone = '7' + normalizedPhone
     }
-    // Если уже начинается с +, оставляем как есть
+    // Результат: номер в формате 7XXXXXXXXXX (11 цифр, без +)
     
     console.log('Original phone:', phone)
-    console.log('Normalized phone:', normalizedPhone)
+    console.log('Normalized phone (digits only):', normalizedPhone)
 
     // API МТС Exolve для отправки SMS
     // Согласно документации: https://docs.exolve.ru/docs/ru/api-reference/sms-api/
@@ -77,28 +85,40 @@ serve(async (req) => {
     const apiUrl = 'https://api.exolve.ru/messaging/v1/SendSMS'
     
     // Формируем тело запроса
-    // Согласно документации МТС Exolve и примеру из веб-интерфейса:
-    // - destination: номер получателя БЕЗ + (формат: 7XXXXXXXXXX или 79525602363)
-    // - text: текст сообщения
-    // - number: номер отправителя БЕЗ + (формат: 79300663471) или альфа-имя
-    const requestBody: any = {
-      // Убираем + из destination для совместимости с API
-      destination: normalizedPhone.startsWith('+') ? normalizedPhone.substring(1) : normalizedPhone,
-      text: message
+    // Формат точно как в веб-интерфейсе МТС Exolve: {"number": "...", "destination": "...", "text": "..."}
+    
+    // Номер получателя уже нормализован (только цифры, формат 7XXXXXXXXXX)
+    let destinationPhone = normalizedPhone
+    
+    // Обработка номера отправителя - убираем все нецифровые символы (если это номер)
+    let senderNumber = ''
+    if (exolveSender) {
+      senderNumber = exolveSender
+      // Если это номер (начинается с цифры или +), убираем все нецифровые символы
+      if (/^[\d+]/.test(senderNumber)) {
+        senderNumber = senderNumber.replace(/\D/g, '')
+      }
+      // Если это альфа-имя (начинается с буквы), оставляем как есть
     }
     
-    // Добавляем номер отправителя или альфа-имя, если указано
-    // Может быть номером телефона (+79001234567 или 79001234567) или альфа-именем
-    if (exolveSender) {
-      // Убираем + из номера отправителя, если есть (для совместимости)
-      const senderNumber = exolveSender.startsWith('+') ? exolveSender.substring(1) : exolveSender
+    // Формируем тело запроса в том же порядке, что и в веб-интерфейсе
+    const requestBody: any = {
+      text: message,
+      destination: destinationPhone
+    }
+    
+    // Добавляем номер отправителя только если указан (как в веб-интерфейсе)
+    if (senderNumber) {
       requestBody.number = senderNumber
     }
     
     console.log('Sending SMS to МТС Exolve...')
     console.log('Endpoint:', apiUrl)
-    console.log('Sender:', exolveSender || 'NOT SET (will use default)')
-    console.log('Destination:', normalizedPhone)
+    console.log('Original destination phone:', phone)
+    console.log('Normalized destination phone:', normalizedPhone)
+    console.log('Final destination (for API):', destinationPhone)
+    console.log('Sender (original):', exolveSender || 'NOT SET (will use default)')
+    console.log('Sender (for API):', requestBody.number || 'NOT SET (will use default)')
     console.log('Message:', message)
     console.log('Request body:', JSON.stringify(requestBody, null, 2))
     console.log('Authorization header present:', !!exolveApiKey)
@@ -134,7 +154,7 @@ serve(async (req) => {
       clearTimeout(timeoutId)
       console.error('Fetch error caught:', fetchError.name, fetchError.message)
       if (fetchError.name === 'AbortError') {
-        throw new Error('Request timeout: МТС Exolve API не ответил в течение 60 секунд. Возможно, API недоступен или очень медленный. Проверьте, работает ли REST API в тестовом режиме без договора.')
+        throw new Error('Request timeout: МТС Exolve API не ответил в течение 60 секунд. Проверьте подключение к интернету, доступность API и правильность API ключа.')
       }
       throw new Error(`Network error: ${fetchError.message}`)
     }
@@ -162,6 +182,7 @@ serve(async (req) => {
     if (response.ok && result.message_id) {
       console.log('SMS sent successfully!')
       console.log('Message ID:', result.message_id)
+      console.log('Full response:', JSON.stringify(result, null, 2))
       
       return new Response(
         JSON.stringify({ 
@@ -175,11 +196,46 @@ serve(async (req) => {
         },
       )
     } else {
-      // Ошибка от МТС Exolve
-      const errorMsg = result.error || result.message || 'Unknown error'
-      const errorCode = result.code || response.status
-      console.error('МТС Exolve error:', errorCode, '-', errorMsg)
-      throw new Error(`МТС Exolve error (${errorCode}): ${errorMsg}`)
+      // Ошибка от МТС Exolve - детальная диагностика
+      const errorCode = result.code || result.status_code || response.status
+      let errorMsg = result.error || result.message || result.detail || 'Unknown error'
+      
+      // Если errorMsg это объект, сериализуем его
+      if (typeof errorMsg === 'object') {
+        errorMsg = JSON.stringify(errorMsg)
+      }
+      
+      const errorDetails = result.details || result.errors || null
+      
+      console.error('=== МТС Exolve API Error ===')
+      console.error('Status code:', response.status)
+      console.error('Error code:', errorCode)
+      console.error('Error message:', errorMsg)
+      console.error('Error details:', errorDetails)
+      console.error('Full response:', JSON.stringify(result, null, 2))
+      console.error('Request body that was sent:', JSON.stringify(requestBody, null, 2))
+      
+      // Формируем понятное сообщение об ошибке в зависимости от кода
+      let userFriendlyError = ''
+      
+      if (response.status === 401 || errorCode === 401) {
+        userFriendlyError = 'Ошибка авторизации (401): Неверный или истекший API ключ МТС Exolve. Проверьте EXOLVE_API_KEY в секретах Supabase.'
+      } else if (response.status === 400 || errorCode === 400) {
+        userFriendlyError = `Ошибка запроса (400): ${errorMsg}. Проверьте формат номера телефона и текста сообщения.`
+      } else if (response.status === 403 || errorCode === 403) {
+        userFriendlyError = 'Ошибка доступа (403): Недостаточно прав для отправки SMS. Проверьте настройки аккаунта МТС Exolve.'
+      } else if (response.status === 429 || errorCode === 429) {
+        userFriendlyError = 'Превышен лимит запросов (429): Слишком много запросов. Подождите немного и попробуйте снова.'
+      } else {
+        userFriendlyError = `МТС Exolve error (${errorCode}): ${errorMsg}`
+      }
+      
+      if (errorDetails) {
+        const detailsStr = typeof errorDetails === 'object' ? JSON.stringify(errorDetails) : String(errorDetails)
+        userFriendlyError += `\nДетали: ${detailsStr}`
+      }
+      
+      throw new Error(userFriendlyError)
     }
   } catch (error: any) {
     console.error('=== SMS Sending Error (МТС Exolve) ===')

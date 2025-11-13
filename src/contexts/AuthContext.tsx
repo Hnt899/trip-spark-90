@@ -110,20 +110,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
       
       // Текст сообщения с кодом
-      const smsMessage = `Ваш код подтверждения: ${verificationCode}`;
+      // Избегаем явного упоминания "код подтверждения" для лучшей доставляемости с мобильного номера
+      // Операторы блокируют OTP-сообщения с мобильных номеров
+      const smsMessage = `Ваш код: ${verificationCode}`;
+      
+      const functionUrl = `${supabaseUrl}/functions/v1/send-sms-exolve`;
+      console.log('Calling Edge Function:', functionUrl);
+      console.log('Request body:', { phone: normalizedPhone, messageLength: smsMessage.length });
       
       try {
-        const response = await fetch(`${supabaseUrl}/functions/v1/send-sms-exolve`, {
+        const response = await fetch(functionUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${supabaseAnonKey}`,
+            'apikey': supabaseAnonKey,
           },
           body: JSON.stringify({
             phone: normalizedPhone,
             message: smsMessage
           })
         });
+        
+        console.log('Edge Function response status:', response.status);
+        console.log('Edge Function response ok:', response.ok);
         
         let result;
         try {
@@ -137,7 +147,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (!response.ok || !result.success) {
           console.error('SMS sending error:', result);
-          const errorMessage = result.error || result.details || 'Не удалось отправить SMS';
+          
+          // Обрабатываем разные типы ошибок
+          let errorMessage = 'Не удалось отправить SMS';
+          
+          if (result.error) {
+            // Если error это строка, используем её
+            if (typeof result.error === 'string') {
+              errorMessage = result.error;
+            } else if (typeof result.error === 'object') {
+              // Если error это объект, пытаемся извлечь понятное сообщение
+              errorMessage = result.error.message || result.error.error || JSON.stringify(result.error);
+            }
+          } else if (result.details) {
+            // Если есть details, используем их
+            if (typeof result.details === 'string') {
+              errorMessage = result.details;
+            } else {
+              errorMessage = JSON.stringify(result.details);
+            }
+          }
+          
+          // Проверяем на специфичные ошибки
+          if (errorMessage.includes('401') || errorMessage.includes('авторизации')) {
+            errorMessage = 'Ошибка авторизации: Неверный или истекший API ключ МТС Exolve. Обратитесь к администратору.';
+          } else if (errorMessage.includes('timeout')) {
+            errorMessage = 'Превышено время ожидания. Проверьте подключение к интернету.';
+          } else if (errorMessage.includes('Network error')) {
+            errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
+          }
+          
           return { error: { message: errorMessage } };
         }
         
@@ -165,7 +204,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: null };
       } catch (error: any) {
         console.error('Error calling SMS function:', error);
-        return { error: { message: 'Ошибка при отправке SMS: ' + (error.message || 'Неизвестная ошибка') } };
+        
+        let errorMessage = 'Ошибка при отправке SMS';
+        if (error.message) {
+          errorMessage += ': ' + error.message;
+        } else if (error.toString) {
+          errorMessage += ': ' + error.toString();
+        } else {
+          errorMessage += ': Неизвестная ошибка';
+        }
+        
+        // Проверяем на специфичные ошибки
+        if (errorMessage.includes('401') || errorMessage.includes('авторизации')) {
+          errorMessage = 'Ошибка авторизации: Неверный или истекший API ключ МТС Exolve. Обратитесь к администратору.';
+        } else if (errorMessage.includes('timeout') || errorMessage.includes('Timeout')) {
+          errorMessage = 'Превышено время ожидания ответа от сервера. Проверьте подключение к интернету.';
+        } else if (errorMessage.includes('Network') || errorMessage.includes('Failed to fetch')) {
+          errorMessage = 'Ошибка сети. Проверьте подключение к интернету и доступность сервера.';
+        }
+        
+        return { error: { message: errorMessage } };
       }
     }
   };
