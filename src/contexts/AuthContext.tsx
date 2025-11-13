@@ -89,14 +89,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     if (isEmail) {
       // Отправка OTP на email (используем Supabase)
+      // Важно: не указываем emailRedirectTo, чтобы отправлялся OTP код, а не Magic Link
       const { error } = await supabase.auth.signInWithOtp({
         email: emailOrPhone,
         options: {
           shouldCreateUser: true,
-          // Не указываем emailRedirectTo, чтобы отправлялся код, а не ссылка
+          // Явно не указываем emailRedirectTo - это заставит Supabase отправить OTP код
+          // Если указать emailRedirectTo, Supabase отправит Magic Link вместо кода
         }
       });
-      return { error };
+      
+      if (error) {
+        console.error('Email OTP sending error:', error);
+        return { error };
+      }
+      
+      console.log('Email OTP sent successfully to:', emailOrPhone);
+      return { error: null };
     } else {
       // Отправка SMS OTP на телефон через МТС Exolve
       const normalizedPhone = normalizePhoneForSMS(emailOrPhone);
