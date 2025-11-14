@@ -103,3 +103,105 @@ All colors MUST be HSL.
 .animate-scroll-vertical {
   animation: scroll-vertical 30s linear infinite;
 }
+
+/* Custom clip-path classes for event cards */
+.event-mask-left {
+  clip-path: polygon(
+    0% 0%,
+    0% 100%,
+    30% 75%,
+    55% 85%,
+    80% 95%,
+    100% 100%,
+    100% 0%
+  );
+}
+
+.event-mask-right {
+  clip-path: polygon(
+    0% 0%,
+    0% 35%,
+    35% 45%,
+    55% 60%,
+    70% 80%,
+    100% 100%,
+    100% 0%
+  );
+}
+
+/* Диагональный срез для изображения в карточках новостей */
+@media (min-width: 768px) {
+  .wide-card-image img,
+  .wide-card-image-no-rounded img {
+    clip-path: polygon(0 0, 100% 0, 80% 50%, 100% 100%, 0 100%);
+  }
+}
+
+/* Мобильная версия: без диагонального среза */
+@media (max-width: 767px) {
+  .wide-card-image img,
+  .wide-card-image-no-rounded img {
+    clip-path: none;
+  }
+}
+
+/* Анимированная градиентная обводка для карточек сторисов */
+.story-card-border {
+  position: relative;
+  padding: 3px;
+  border-radius: 24px;
+  background: transparent;
+  overflow: visible;
+}
+
+.story-card-border::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: 24px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #8b5cf6, #3b82f6);
+  background-size: 400% 400%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+  animation: gradient-flow 4s ease-in-out infinite;
+  mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  padding: 3px;
+}
+
+.story-card-border:hover::before {
+  opacity: 1;
+}
+
+.story-card-border > * {
+  position: relative;
+  z-index: 1;
+  border-radius: 21px;
+  overflow: hidden;
+}
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 400% 50%;
+  }
+}
+
+/* Градиент для прогресс-бара в модальном окне сториса */
+.story-progress-gradient {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #8b5cf6, #3b82f6);
+  background-size: 400% 400%;
+  animation: gradient-flow 4s ease-in-out infinite;
+}
