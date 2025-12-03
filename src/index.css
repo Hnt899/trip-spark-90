@@ -199,32 +199,35 @@ All colors MUST be HSL.
   }
 }
 
-/* Градиент для прогресс-бара в модальном окне сториса */
-.story-progress-gradient {
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #8b5cf6, #3b82f6);
-  background-size: 400% 400%;
-  animation: gradient-flow 4s ease-in-out infinite;
-}
 @keyframes chatPulse {
-  0%,
-  80%,
-  100% {
-    transform: translateY(0);
-    box-shadow: 0 10px 35px -10px rgba(59, 130, 246, 0.35);
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.35);
   }
-  90% {
-    transform: translateY(-4px);
-    box-shadow: 0 14px 40px -10px rgba(59, 130, 246, 0.45);
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 12px rgba(59, 130, 246, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
   }
 }
 
 @keyframes chatWidgetIn {
   0% {
-    transform: translateY(16px) scale(0.98);
     opacity: 0;
+    transform: translateY(16px) scale(0.98);
   }
   100% {
-    transform: translateY(0) scale(1);
     opacity: 1;
+    transform: translateY(0) scale(1);
   }
+}
+
+/* Градиент для прогресс-бара в модальном окне сториса */
+.story-progress-gradient {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #8b5cf6, #3b82f6);
+  background-size: 400% 400%;
+  animation: gradient-flow 4s ease-in-out infinite;
 }

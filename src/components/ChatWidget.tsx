@@ -1,68 +1,98 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Bot, MessageCircle, Send, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Bot, Loader2, MessageCircle, Send, X } from "lucide-react";
 
 interface ChatMessage {
   id: string;
-  sender: "user" | "bot";
-  text: string;
+  role: "user" | "assistant";
+  content: string;
 }
 
-const ChatWidget = () => {
-  const initialMessages = useMemo<ChatMessage[]>(
-    () => [
-      {
-        id: "welcome",
-        sender: "bot",
-        text: "Привет! Я помогу с маршрутом и заказом билетов. Напиши свой вопрос 🙂",
-      },
-    ],
-    []
-  );
+const WELCOME_MESSAGE: ChatMessage = {
+  id: "welcome",
+  role: "assistant",
+  content: "Привет! Я помогу с маршрутом и заказом билетов. Напиши свой вопрос 🙂",
+};
 
+const ChatWidget = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const replyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const hasGreeted = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  };
 
-  useEffect(() => () => {
-    if (replyTimeoutRef.current) {
-      clearTimeout(replyTimeoutRef.current);
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
+  useEffect(() => {
+    if (isChatOpen && !hasGreeted.current) {
+      setMessages([WELCOME_MESSAGE]);
+      hasGreeted.current = true;
     }
-  }, []);
+  }, [isChatOpen]);
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  const handleSend = async () => {
+    if (!inputValue.trim() || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
-      sender: "user",
-      text: inputValue.trim(),
+      role: "user",
+      content: inputValue.trim(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
+    setIsLoading(true);
 
-    replyTimeoutRef.current = setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `bot-${Date.now()}`,
-          sender: "bot",
-          text: "Я — демо-бот, реальная логика ответа ещё не подключена.",
+    try {
+      const historyPayload = [...messages, userMessage]
+        .slice(-10)
+        .map((msg) => ({ role: msg.role, content: msg.content }));
+
+      const response = await fetch("http://localhost:4000/api/support/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      ]);
-    }, 1200);
+        body: JSON.stringify({ message: userMessage.content, history: historyPayload }),
+      });
+
+      if (!response.ok) {
+        throw new Error("HF API error");
+      }
+
+      const data = await response.json();
+      const replyText = data?.reply || "Извините, не удалось получить ответ. Попробуйте ещё раз.";
+
+      const assistantMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content: replyText,
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      const assistantMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content: "Не удалось связаться с сервером. Проверьте подключение и попробуйте снова.",
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
     setIsChatOpen(false);
-    setMessages(initialMessages);
+    setMessages([]);
     setInputValue("");
+    hasGreeted.current = false;
   };
 
   return (
@@ -113,19 +143,27 @@ const ChatWidget = () => {
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm transition-transform duration-200 ${
-                    message.sender === "user"
+                    message.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-md"
                       : "bg-white text-foreground border"
                   }`}
                 >
-                  {message.text}
+                  {message.content}
                 </div>
               </div>
             ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="flex items-center gap-2 rounded-2xl border bg-white px-4 py-3 text-sm text-foreground shadow-sm">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span>Печатаю ответ...</span>
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
@@ -147,7 +185,7 @@ const ChatWidget = () => {
               <button
                 type="submit"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary disabled:opacity-50"
-                disabled={!inputValue.trim()}
+                disabled={!inputValue.trim() || isLoading}
                 aria-label="Отправить сообщение"
               >
                 <Send className="h-5 w-5" />
