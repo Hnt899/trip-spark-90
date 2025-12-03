@@ -22,6 +22,7 @@ import Checkout from "./pages/Checkout";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import ChatWidget from "./components/ChatWidget";
 
 // Reference pages
 import Trains from "./pages/reference/Trains";
@@ -164,6 +165,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      <ChatWidget />
     </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>
