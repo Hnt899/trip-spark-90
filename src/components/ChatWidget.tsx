@@ -15,10 +15,9 @@ const WELCOME_MESSAGE: ChatMessage = {
 
 const ChatWidget = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const hasGreeted = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = () => {
@@ -28,13 +27,6 @@ const ChatWidget = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
-
-  useEffect(() => {
-    if (isChatOpen && !hasGreeted.current) {
-      setMessages([WELCOME_MESSAGE]);
-      hasGreeted.current = true;
-    }
-  }, [isChatOpen]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return;
@@ -59,7 +51,10 @@ const ChatWidget = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: userMessage.content, history: historyPayload }),
+        body: JSON.stringify({
+          message: userMessage.content,
+          history: historyPayload,
+        }),
       });
 
       if (!response.ok) {
@@ -67,7 +62,9 @@ const ChatWidget = () => {
       }
 
       const data = await response.json();
-      const replyText = data?.reply || "Извините, не удалось получить ответ. Попробуйте ещё раз.";
+      const replyText =
+        data?.reply ||
+        "Извините, не удалось получить ответ. Попробуйте ещё раз.";
 
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
@@ -80,7 +77,8 @@ const ChatWidget = () => {
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
         role: "assistant",
-        content: "Не удалось связаться с сервером. Проверьте подключение и попробуйте снова.",
+        content:
+          "Не удалось связаться с сервером. Проверьте подключение и попробуйте снова.",
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } finally {
@@ -90,9 +88,7 @@ const ChatWidget = () => {
 
   const handleClose = () => {
     setIsChatOpen(false);
-    setMessages([]);
-    setInputValue("");
-    hasGreeted.current = false;
+    setInputValue(""); // историю НЕ трогаем
   };
 
   return (
@@ -110,7 +106,10 @@ const ChatWidget = () => {
       )}
 
       {isChatOpen && (
-        <div className="pointer-events-auto fixed bottom-6 right-6 flex w-[380px] max-w-[92vw] flex-col rounded-3xl border border-border bg-white/90 backdrop-blur-md shadow-2xl transition-all duration-300 animate-[chatWidgetIn_0.32s_ease-out] md:w-[400px]" style={{ maxHeight: "80vh", minHeight: "440px" }}>
+        <div
+          className="pointer-events-auto fixed bottom-6 right-6 flex w-[380px] max-w-[92vw] flex-col rounded-3xl border border-border bg-white/90 backdrop-blur-md shadow-2xl transition-all duration-300 animate-[chatWidgetIn_0.32s_ease-out] md:w-[400px]"
+          style={{ maxHeight: "80vh", minHeight: "440px" }}
+        >
           <header className="flex items-center justify-between rounded-t-3xl px-5 py-4 border-b bg-gradient-to-r from-blue-600 to-primary text-white shadow-sm">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-white/15 backdrop-blur">
@@ -124,7 +123,7 @@ const ChatWidget = () => {
                   tudasuda
                 </div>
                 <div className="flex items-center gap-1 text-xs text-white/80">
-                  <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_0_4px_rgba(52,211,153,0.25)]"></span>
+                  <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_0_4px_rgba(52,211,153,0.25)]" />
                   online
                 </div>
               </div>
@@ -139,11 +138,16 @@ const ChatWidget = () => {
             </button>
           </header>
 
-          <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4 bg-gradient-to-b from-white/90 to-white" style={{ scrollbarWidth: "thin" }}>
+          <div
+            className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4 bg-gradient-to-b from-white/90 to-white"
+            style={{ scrollbarWidth: "thin" }}
+          >
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
               >
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm transition-transform duration-200 ${
