@@ -205,3 +205,26 @@ All colors MUST be HSL.
   background-size: 400% 400%;
   animation: gradient-flow 4s ease-in-out infinite;
 }
+@keyframes chatPulse {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    box-shadow: 0 10px 35px -10px rgba(59, 130, 246, 0.35);
+  }
+  90% {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 40px -10px rgba(59, 130, 246, 0.45);
+  }
+}
+
+@keyframes chatWidgetIn {
+  0% {
+    transform: translateY(16px) scale(0.98);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
