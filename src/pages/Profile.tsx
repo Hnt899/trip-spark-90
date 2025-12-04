@@ -10,7 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Phone, User, Plus, Trash2, Edit, ExternalLink, MessageCircle, Send, Calendar } from "lucide-react";
+import { Mail, Phone, User, Plus, Trash2, Edit, ExternalLink, MessageCircle, Send, Calendar, Shield } from "lucide-react";
+import { twoFactorAuth } from "@/lib/2fa";
+import { check2FARateLimit, resetRateLimit } from "@/lib/rateLimit";
 import {
   Dialog,
   DialogContent,
@@ -70,6 +72,11 @@ const Profile = () => {
     birth_date: "",
   });
 
+  // Состояния для 2FA
+  const [twoFactorData, setTwoFactorData] = useState<{ enabled: boolean } | null>(null);
+  const [show2FASetup, setShow2FASetup] = useState(false);
+  const [twoFactorToken, setTwoFactorToken] = useState("");
+
   // Форма для нового пассажира
   const [formData, setFormData] = useState({
     display_name: "",
@@ -91,6 +98,7 @@ const Profile = () => {
     if (user) {
       loadPassengers();
       loadUserProfile();
+      load2FAData();
     }
   }, [user]);
 
@@ -432,6 +440,180 @@ const Profile = () => {
     }
   };
 
+  const load2FAData = async () => {
+    if (!user) return;
+    
+    const data = await twoFactorAuth.get2FAData(user.id);
+    setTwoFactorData(data);
+  };
+
+  const handleSetup2FA = async () => {
+    if (!user) return;
+    
+    // Проверяем, есть ли у пользователя привязанная почта
+    const userEmail = user.email;
+    const profileEmail = userProfile?.email;
+    
+    // Определяем email для отправки кода
+    const emailFor2FA = (userEmail && !userEmail.includes('@temp.com')) 
+      ? userEmail 
+      : (profileEmail && profileEmail.trim() !== '' ? profileEmail : null);
+    
+    if (!emailFor2FA) {
+      toast({
+        title: "Требуется привязать email",
+        description: "Для включения двухфакторной аутентификации необходимо привязать email к аккаунту. Пожалуйста, добавьте email в личных данных.",
+        variant: "destructive",
+      });
+      setShowProfileDialog(true);
+      return;
+    }
+    
+    // Проверяем rate limit для включения 2FA
+    const rateLimitCheck = await check2FARateLimit(user.id);
+    if (!rateLimitCheck.allowed) {
+      toast({
+        title: "Превышен лимит",
+        description: rateLimitCheck.error || "Превышен лимит попыток включения 2FA",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Отправляем код на email для подтверждения включения 2FA
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: emailFor2FA,
+        options: {
+          shouldCreateUser: false
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Ошибка",
+          description: error.message || "Не удалось отправить код на email",
+          variant: "destructive",
+        });
+      } else {
+        setShow2FASetup(true);
+        toast({
+          title: "Код отправлен",
+          description: `Мы отправили код подтверждения на ${emailFor2FA}`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось отправить код",
+        variant: "destructive",
+      });
+    }
+    setLoading(false);
+  };
+
+  const handleEnable2FA = async () => {
+    if (!user || twoFactorToken.length !== 8) return;
+    
+    // Определяем email для проверки кода
+    const userEmail = user.email;
+    const profileEmail = userProfile?.email;
+    const emailFor2FA = (userEmail && !userEmail.includes('@temp.com')) 
+      ? userEmail 
+      : (profileEmail && profileEmail.trim() !== '' ? profileEmail : null);
+    
+    if (!emailFor2FA) {
+      toast({
+        title: "Ошибка",
+        description: "Email не найден",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      // Проверяем код через Supabase
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: emailFor2FA,
+        token: twoFactorToken,
+        type: 'email',
+      });
+
+      if (error) {
+        toast({
+          title: "Ошибка",
+          description: error.message || "Неверный код",
+          variant: "destructive",
+        });
+      } else {
+        // Код верный - включаем 2FA в базе данных
+        const result = await twoFactorAuth.enable(user.id);
+        
+        if (result.success) {
+          // Сбрасываем rate limit при успешном включении
+          resetRateLimit(`2fa_toggle:${user.id}`);
+          
+          toast({
+            title: "Успешно",
+            description: "Двухфакторная аутентификация включена",
+          });
+          setShow2FASetup(false);
+          setTwoFactorToken("");
+          await load2FAData();
+        } else {
+          toast({
+            title: "Ошибка",
+            description: result.error || "Не удалось включить 2FA",
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось включить 2FA",
+        variant: "destructive",
+      });
+    }
+    setLoading(false);
+  };
+
+  const handleDisable2FA = async () => {
+    if (!user) return;
+    
+    if (!confirm("Вы уверены, что хотите отключить двухфакторную аутентификацию? Это снизит безопасность вашего аккаунта.")) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const result = await twoFactorAuth.disable(user.id);
+      
+      if (result.success) {
+        toast({
+          title: "Успешно",
+          description: "Двухфакторная аутентификация отключена",
+        });
+        await load2FAData();
+      } else {
+        toast({
+          title: "Ошибка",
+          description: result.error || "Не удалось отключить 2FA",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось отключить 2FA",
+        variant: "destructive",
+      });
+    }
+    setLoading(false);
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -547,9 +729,10 @@ const Profile = () => {
         </div>
 
         <Tabs defaultValue="orders" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="orders">История заказов</TabsTrigger>
             <TabsTrigger value="passengers">Пассажиры</TabsTrigger>
+            <TabsTrigger value="security">Безопасность</TabsTrigger>
             <TabsTrigger value="useful">Пригодится в поездке</TabsTrigger>
             <TabsTrigger value="contact">Связаться с нами</TabsTrigger>
           </TabsList>
@@ -696,6 +879,133 @@ const Profile = () => {
                     </div>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="security" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
+                  Безопасность
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Двухфакторная аутентификация */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold">Двухфакторная аутентификация (2FA)</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Дополнительная защита вашего аккаунта. При входе по паролю потребуется дополнительный код с вашей почты.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {twoFactorData?.enabled ? (
+                        <span className="text-sm text-green-600 font-medium">Включена</span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Выключена</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {!twoFactorData?.enabled ? (
+                    <div className="space-y-4">
+                      {/* Проверяем наличие email */}
+                      {(() => {
+                        const userEmail = user?.email;
+                        const profileEmail = userProfile?.email;
+                        // Проверяем наличие email (если аккаунт создан по телефону, email может отсутствовать)
+                        const hasEmail = (userEmail && !userEmail.includes('@temp.com')) || 
+                                         (profileEmail && profileEmail.trim() !== '');
+                        
+                        if (!hasEmail) {
+                          return (
+                            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                              <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-2">
+                                <strong>Требуется привязать email</strong>
+                              </p>
+                              <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-3">
+                                Для включения двухфакторной аутентификации необходимо привязать email к аккаунту. 
+                                Коды подтверждения будут отправляться на вашу почту.
+                              </p>
+                              <Button 
+                                onClick={() => setShowProfileDialog(true)} 
+                                variant="outline"
+                                size="sm"
+                              >
+                                Привязать email
+                              </Button>
+                            </div>
+                          );
+                        }
+                        
+                        return (
+                          <Button onClick={handleSetup2FA} disabled={loading}>
+                            <Shield className="w-4 h-4 mr-2" />
+                            Настроить 2FA
+                          </Button>
+                        );
+                      })()}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <Button 
+                        onClick={handleDisable2FA} 
+                        variant="destructive" 
+                        disabled={loading}
+                      >
+                        Отключить 2FA
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Диалог настройки 2FA */}
+                <Dialog open={show2FASetup} onOpenChange={setShow2FASetup}>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle>Настройка двухфакторной аутентификации</DialogTitle>
+                      <DialogDescription>
+                        Мы отправили код подтверждения на вашу почту. Введите код для включения 2FA.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="2fa_token">Введите код с почты</Label>
+                        <Input
+                          id="2fa_token"
+                          placeholder="00000000"
+                          value={twoFactorToken}
+                          onChange={(e) => setTwoFactorToken(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                          maxLength={8}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Код отправлен на {userProfile?.email || user?.email}
+                        </p>
+                      </div>
+
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShow2FASetup(false);
+                            setTwoFactorToken("");
+                          }}
+                        >
+                          Отмена
+                        </Button>
+                        <Button 
+                          onClick={handleEnable2FA} 
+                          disabled={loading || twoFactorToken.length !== 8}
+                        >
+                          Включить 2FA
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
           </TabsContent>

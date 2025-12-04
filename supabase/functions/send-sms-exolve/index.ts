@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -78,6 +79,48 @@ serve(async (req) => {
     
     console.log('Original phone:', phone)
     console.log('Normalized phone (digits only):', normalizedPhone)
+
+    // ============================================
+    // RATE LIMITING: Проверка лимита отправки SMS
+    // ============================================
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    
+    if (supabaseUrl && supabaseServiceKey) {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey)
+      
+      // Проверяем количество отправленных SMS за последний час
+      // Номер в БД хранится в формате +7XXXXXXXXXX
+      const phoneWithPlus = '+' + normalizedPhone
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+      
+      // Проверяем в разных форматах (на случай разных вариантов нормализации)
+      const { data: recentCodes } = await supabase
+        .from('verification_codes')
+        .select('id')
+        .or(`phone.eq.${phoneWithPlus},phone.eq.${normalizedPhone},phone.like.%${normalizedPhone.slice(-10)}`)
+        .gte('created_at', oneHourAgo)
+      
+      const totalRecentCodes = recentCodes?.length || 0
+      const MAX_SMS_PER_HOUR = 3
+      
+      if (totalRecentCodes >= MAX_SMS_PER_HOUR) {
+        console.error(`Rate limit exceeded for phone ${normalizedPhone}: ${totalRecentCodes} SMS in last hour`)
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: `Превышен лимит отправки SMS (${MAX_SMS_PER_HOUR} в час). Попробуйте позже.`,
+            details: `Отправлено ${totalRecentCodes} SMS за последний час`
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 429 // Too Many Requests
+          }
+        )
+      }
+      
+      console.log(`Rate limit check passed: ${totalRecentCodes}/${MAX_SMS_PER_HOUR} SMS in last hour`)
+    }
 
     // API МТС Exolve для отправки SMS
     // Согласно документации: https://docs.exolve.ru/docs/ru/api-reference/sms-api/

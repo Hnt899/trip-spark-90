@@ -23,13 +23,14 @@ interface AuthModalProps {
 }
 
 const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
-  const [step, setStep] = useState<"input" | "otp" | "password">("input");
+  const [step, setStep] = useState<"input" | "otp" | "password" | "2fa">("input");
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [isRegistration, setIsRegistration] = useState(false);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, verifyOTP, signInWithPassword } = useAuth();
+  const [userEmailFor2FA, setUserEmailFor2FA] = useState("");
+  const { signIn, verifyOTP, signInWithPassword, verify2FACode } = useAuth();
   const { toast } = useToast();
 
   const handleSubmitEmailOrPhone = async () => {
@@ -112,7 +113,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     }
 
     setLoading(true);
-    const { error } = await signInWithPassword(emailOrPhone, password);
+    const { error, requires2FA, userEmail } = await signInWithPassword(emailOrPhone, password);
     setLoading(false);
 
     if (error) {
@@ -121,11 +122,53 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         description: error.message || "Неверный email/телефон или пароль",
         variant: "destructive",
       });
+    } else if (requires2FA && userEmail) {
+      // Требуется 2FA - переходим на шаг ввода кода
+      setUserEmailFor2FA(userEmail);
+      setStep("2fa");
+      toast({
+        title: "Код отправлен",
+        description: "Мы отправили код подтверждения на вашу почту",
+      });
     } else {
       onOpenChange(false);
       setStep("input");
       setEmailOrPhone("");
       setPassword("");
+      toast({
+        title: "Успешно",
+        description: "Вход выполнен",
+      });
+    }
+  };
+
+  const handleVerify2FA = async () => {
+    if (otp.length !== 8) {
+      toast({
+        title: "Ошибка",
+        description: "Введите полный код из 8 цифр",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await verify2FACode(userEmailFor2FA, otp);
+    setLoading(false);
+
+    if (error) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Неверный код",
+        variant: "destructive",
+      });
+    } else {
+      onOpenChange(false);
+      setStep("input");
+      setEmailOrPhone("");
+      setPassword("");
+      setOtp("");
+      setUserEmailFor2FA("");
       toast({
         title: "Успешно",
         description: "Вход выполнен",
@@ -140,12 +183,14 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
           <DialogTitle>
             {step === "input" && "Вход / Регистрация"}
             {step === "otp" && "Введите код"}
-            {step === "password" && "Установите пароль"}
+            {step === "password" && "Вход по паролю"}
+            {step === "2fa" && "Двухфакторная аутентификация"}
           </DialogTitle>
           <DialogDescription>
             {step === "input" && "Введите email или номер телефона для входа или регистрации"}
             {step === "otp" && "Мы отправили код на ваш email или телефон"}
-            {step === "password" && "Установите пароль для входа в будущем"}
+            {step === "password" && "Введите email/телефон и пароль для входа"}
+            {step === "2fa" && "Мы отправили код подтверждения на вашу почту"}
           </DialogDescription>
         </DialogHeader>
 
@@ -268,6 +313,46 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
               Подтвердить
             </Button>
             <Button onClick={handleBackToLogin} variant="ghost" className="w-full">
+              Назад
+            </Button>
+          </div>
+        )}
+
+        {step === "2fa" && (
+          <div className="space-y-4 py-4">
+            <div className="flex justify-center">
+              <InputOTP
+                maxLength={8}
+                value={otp}
+                onChange={(value) => setOtp(value)}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                  <InputOTPSlot index={6} />
+                  <InputOTPSlot index={7} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+            <Button
+              onClick={handleVerify2FA}
+              disabled={loading || otp.length !== 8}
+              className="w-full"
+            >
+              Подтвердить
+            </Button>
+            <Button 
+              onClick={() => {
+                setStep("password");
+                setOtp("");
+              }} 
+              variant="ghost" 
+              className="w-full"
+            >
               Назад
             </Button>
           </div>

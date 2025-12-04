@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import Cookies from 'js-cookie';
+import { logger } from '@/lib/logger';
+import { checkOTPRateLimit, checkLoginRateLimit, checkOTPVerifyRateLimit, checkPasswordUpdateRateLimit, resetRateLimit } from '@/lib/rateLimit';
 
 interface AuthContextType {
   user: User | null;
@@ -11,7 +13,8 @@ interface AuthContextType {
   verifyOTP: (emailOrPhone: string, token: string, isRegistration: boolean) => Promise<{ error: any; user?: User }>;
   signOut: () => Promise<void>;
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
-  signInWithPassword: (emailOrPhone: string, password: string) => Promise<{ error: any }>;
+  signInWithPassword: (emailOrPhone: string, password: string) => Promise<{ error: any; requires2FA?: boolean; userEmail?: string }>;
+  verify2FACode: (email: string, code: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.error('Error getting session:', error);
+        logger.logError(error, session?.user?.id, { action: 'get_session' });
       }
       setSession(session);
       setUser(session?.user ?? null);
@@ -42,6 +46,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Сохраняем токен в куки
         Cookies.set('sb_session', session.access_token, { expires: 30 }); // 30 дней
         Cookies.set('sb_refresh_token', session.refresh_token, { expires: 30 });
+        // Логируем успешное восстановление сессии
+        logger.logInfo('Session restored', session.user.id);
       }
       
       setLoading(false);
@@ -50,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Слушаем изменения авторизации
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -58,10 +64,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Сохраняем токен в куки
         Cookies.set('sb_session', session.access_token, { expires: 30 }); // 30 дней
         Cookies.set('sb_refresh_token', session.refresh_token, { expires: 30 });
+        // Логируем события авторизации
+        if (event === 'SIGNED_IN') {
+          logger.logSecurityEvent('User signed in', session.user.id, { event });
+        } else if (event === 'TOKEN_REFRESHED') {
+          logger.logInfo('Token refreshed', session.user.id);
+        }
       } else {
         // Удаляем токены из куки
         Cookies.remove('sb_session');
         Cookies.remove('sb_refresh_token');
+        // Логируем выход
+        if (event === 'SIGNED_OUT') {
+          logger.logSecurityEvent('User signed out', undefined, { event });
+        }
       }
     });
 
@@ -85,6 +101,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (emailOrPhone: string) => {
+    // Проверяем rate limit для отправки OTP
+    const rateLimitCheck = await checkOTPRateLimit(emailOrPhone);
+    if (!rateLimitCheck.allowed) {
+      return { error: { message: rateLimitCheck.error || 'Превышен лимит отправки кодов' } };
+    }
+    
     const isEmail = emailOrPhone.includes('@');
     
     if (isEmail) {
@@ -101,10 +123,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) {
         console.error('Email OTP sending error:', error);
+        await logger.logError(error, undefined, { 
+          action: 'send_email_otp', 
+          emailOrPhone: emailOrPhone.replace(/(.{2})(.*)(.{2})/, '$1***$3') 
+        });
         return { error };
       }
       
       console.log('Email OTP sent successfully to:', emailOrPhone);
+      await logger.logSecurityEvent('Email OTP sent', undefined, { 
+        emailOrPhone: emailOrPhone.replace(/(.{2})(.*)(.{2})/, '$1***$3') 
+      });
       return { error: null };
     } else {
       // Отправка SMS OTP на телефон через МТС Exolve
@@ -157,6 +186,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!response.ok || !result.success) {
           console.error('SMS sending error:', result);
           
+          // Логируем ошибку отправки SMS
+          await logger.logError(
+            new Error(result.error || 'SMS sending failed'), 
+            undefined, 
+            { 
+              action: 'send_sms_otp', 
+              phone: normalizedPhone.replace(/(.{3})(.*)(.{2})/, '$1***$3'),
+              error: result 
+            }
+          );
+          
           // Обрабатываем разные типы ошибок
           let errorMessage = 'Не удалось отправить SMS';
           
@@ -191,6 +231,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         console.log('SMS sent successfully via МТС Exolve, message_id:', result.message_id);
         
+        // Логируем успешную отправку SMS
+        await logger.logSecurityEvent('SMS OTP sent', undefined, { 
+          phone: normalizedPhone.replace(/(.{3})(.*)(.{2})/, '$1***$3'),
+          messageId: result.message_id 
+        });
+        
         // Сохраняем код в БД
         const expiresAt = new Date();
         expiresAt.setMinutes(expiresAt.getMinutes() + 10); // Код действителен 10 минут
@@ -206,13 +252,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (dbError) {
           console.error('Error saving verification code:', dbError);
+          await logger.logError(dbError, undefined, { action: 'save_verification_code' });
           return { error: { message: 'Не удалось сохранить код подтверждения' } };
         }
         
-        console.log('Verification code saved to database');
-        return { error: null };
+      console.log('Verification code saved to database');
+      
+      // Сбрасываем rate limit при успешной отправке (не сбрасываем, чтобы защитить от спама)
+      // resetRateLimit(`otp:${emailOrPhone}`);
+      
+      return { error: null };
       } catch (error: any) {
         console.error('Error calling SMS function:', error);
+        await logger.logError(error, undefined, { action: 'call_sms_function' });
         
         let errorMessage = 'Ошибка при отправке SMS';
         if (error.message) {
@@ -238,6 +290,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const verifyOTP = async (emailOrPhone: string, token: string, isRegistration: boolean) => {
+    // Проверяем rate limit для верификации OTP
+    const rateLimitCheck = await checkOTPVerifyRateLimit(emailOrPhone);
+    if (!rateLimitCheck.allowed) {
+      return { 
+        error: { message: rateLimitCheck.error || 'Превышен лимит попыток верификации' },
+        user: undefined 
+      };
+    }
+    
     const isEmail = emailOrPhone.includes('@');
     
     let data, error;
@@ -284,6 +345,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (codeError || !codeData) {
         console.error('Code verification error:', codeError);
+        await logger.logLoginAttempt(normalizedPhone, false, undefined);
         return { 
           error: { message: 'Неверный код подтверждения или код истек' },
           user: undefined 
@@ -377,9 +439,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (profileError) {
           console.error('Error saving phone to profile:', profileError);
+          await logger.logError(profileError, data.user.id, { action: 'save_phone_to_profile' });
         } else {
           console.log('Phone saved to profile:', normalizedPhone);
         }
+        
+        // Логируем успешную верификацию OTP
+        await logger.logLoginAttempt(normalizedPhone, true, data.user.id);
+        // Сбрасываем rate limit при успешной верификации
+        resetRateLimit(`otp_verify:${emailOrPhone}`);
+        resetRateLimit(`otp:${emailOrPhone}`);
+      } else {
+        // Логируем неудачную верификацию
+        await logger.logLoginAttempt(emailOrPhone, false, undefined);
       }
     }
 
@@ -425,15 +497,71 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInWithPassword = async (emailOrPhone: string, password: string) => {
+    // Проверяем rate limit для входа по паролю
+    const rateLimitCheck = await checkLoginRateLimit(emailOrPhone);
+    if (!rateLimitCheck.allowed) {
+      return { error: { message: rateLimitCheck.error || 'Превышен лимит попыток входа' } };
+    }
+    
     const isEmail = emailOrPhone.includes('@');
     
     if (isEmail) {
       // Вход по email
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({
         email: emailOrPhone,
         password,
       });
-      return { error };
+      
+      // Логируем попытку входа
+      await logger.logLoginAttempt(
+        emailOrPhone, 
+        !error, 
+        signInData?.user?.id,
+        undefined // IP можно получить на сервере
+      );
+      
+      if (error) {
+        await logger.logError(error, undefined, { action: 'sign_in_with_password', method: 'email' });
+        return { error };
+      }
+      
+      // Сбрасываем rate limit при успешном входе
+      resetRateLimit(`login:${emailOrPhone}`);
+
+      // Проверяем, включена ли 2FA
+      if (signInData?.user?.id) {
+        const { data: is2FAEnabled } = await supabase.rpc('is_2fa_enabled', {
+          p_user_id: signInData.user.id
+        });
+
+        if (is2FAEnabled) {
+          // 2FA включена - отправляем код на email и выходим из сессии
+          await supabase.auth.signOut();
+          
+          // Отправляем OTP код на email для 2FA
+          const { error: otpError } = await supabase.auth.signInWithOtp({
+            email: emailOrPhone,
+            options: {
+              shouldCreateUser: false
+            }
+          });
+
+          if (otpError) {
+            await logger.logError(otpError, signInData.user.id, { action: 'send_2fa_otp' });
+            return { error: otpError };
+          }
+
+          await logger.logSecurityEvent('2FA code sent for login', signInData.user.id, { email: emailOrPhone });
+          
+          return { 
+            error: null, 
+            requires2FA: true, 
+            userEmail: emailOrPhone 
+          };
+        }
+      }
+      
+      return { error: null };
     } else {
       // Вход по телефону - нормализуем номер и ищем в разных форматах
       const phoneVariants = normalizePhone(emailOrPhone);
@@ -544,18 +672,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Если нашли пользователя в профилях, входим по его email
       if (foundUser && foundUser.email) {
         console.log('Logging in with email from profile:', foundUser.email);
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({
           email: foundUser.email,
           password,
         });
+        
+        // Логируем попытку входа
+        await logger.logLoginAttempt(
+          emailOrPhone, 
+          !error, 
+          signInData?.user?.id || foundUser.user_id
+        );
+        
         if (error) {
           console.error('Login error with profile email:', error);
+          await logger.logError(error, foundUser.user_id, { action: 'sign_in_with_password', method: 'phone' });
+          return { error };
         }
-        return { error };
+        
+        // Сбрасываем rate limit при успешном входе
+        resetRateLimit(`login:${emailOrPhone}`);
+
+        // Проверяем, включена ли 2FA
+        if (signInData?.user?.id) {
+          const { data: is2FAEnabled } = await supabase.rpc('is_2fa_enabled', {
+            p_user_id: signInData.user.id
+          });
+
+          if (is2FAEnabled) {
+            // 2FA включена - отправляем код на email и выходим из сессии
+            await supabase.auth.signOut();
+            
+            // Отправляем OTP код на email для 2FA
+            const { error: otpError } = await supabase.auth.signInWithOtp({
+              email: foundUser.email,
+              options: {
+                shouldCreateUser: false
+              }
+            });
+
+            if (otpError) {
+              await logger.logError(otpError, signInData.user.id, { action: 'send_2fa_otp' });
+              return { error: otpError };
+            }
+
+            await logger.logSecurityEvent('2FA code sent for login', signInData.user.id, { email: foundUser.email });
+            
+            return { 
+              error: null, 
+              requires2FA: true, 
+              userEmail: foundUser.email 
+            };
+          }
+        }
+        
+        return { error: null };
       }
 
       // Если ничего не сработало, возвращаем ошибку с подсказкой
       console.error('All login attempts failed');
+      await logger.logLoginAttempt(emailOrPhone, false, undefined);
       return { 
         error: { 
           message: 'Неверный номер телефона или пароль. Если вы регистрировались через email, используйте email для входа. Если номер не привязан, добавьте его в личном кабинете.' 
@@ -565,17 +741,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updatePassword = async (newPassword: string) => {
-    const { error } = await supabase.auth.updateUser({
+    // Проверяем rate limit для смены пароля
+    if (user?.id) {
+      const rateLimitCheck = await checkPasswordUpdateRateLimit(user.id);
+      if (!rateLimitCheck.allowed) {
+        return { error: { message: rateLimitCheck.error || 'Превышен лимит попыток смены пароля' } };
+      }
+    }
+    
+    const { data, error } = await supabase.auth.updateUser({
       password: newPassword,
       data: { has_password: true }
     });
+    
+    if (error) {
+      await logger.logError(error, data?.user?.id, { action: 'update_password' });
+    } else {
+      await logger.logSecurityEvent('Password updated', data?.user?.id);
+      // Сбрасываем rate limit при успешной смене пароля
+      if (data?.user?.id) {
+        resetRateLimit(`password_update:${data.user.id}`);
+      }
+    }
+    
     return { error };
   };
 
+  const verify2FACode = async (email: string, code: string) => {
+    // Верифицируем OTP код
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: email,
+      token: code,
+      type: 'email',
+    });
+
+    if (error) {
+      await logger.logError(error, undefined, { action: 'verify_2fa_code' });
+      return { error };
+    }
+
+    if (data?.user) {
+      await logger.logSecurityEvent('2FA verified, login successful', data.user.id);
+    }
+
+    return { error: null };
+  };
+
   const signOut = async () => {
+    const userId = user?.id;
     await supabase.auth.signOut();
     Cookies.remove('sb_session');
     Cookies.remove('sb_refresh_token');
+    await logger.logSecurityEvent('User signed out', userId);
   };
 
   return (
@@ -589,6 +806,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signOut,
         updatePassword,
         signInWithPassword,
+        verify2FACode,
       }}
     >
       {children}

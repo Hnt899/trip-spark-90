@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
+import rateLimit from "express-rate-limit";
 
 dotenv.config();
 
@@ -17,7 +18,42 @@ const HF_API_TOKEN = process.env.HF_API_TOKEN;
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
-// Пинг
+// ============================================
+// RATE LIMITING - Ограничение частоты запросов
+// ============================================
+// Зачем это нужно:
+// - Защита от брутфорса паролей
+// - Защита от DDoS атак
+// - Снижение нагрузки на сервер
+// - Экономия ресурсов (например, SMS)
+// ============================================
+
+// Общий rate limit для всех API запросов
+const generalRateLimit = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 минута
+  max: 100, // максимум 100 запросов в минуту
+  message: {
+    error: "Слишком много запросов. Подождите немного и попробуйте снова.",
+  },
+  standardHeaders: true, // Возвращает информацию о лимитах в заголовках
+  legacyHeaders: false,
+});
+
+// Строгий rate limit для чата (AI запросы дорогие)
+const chatRateLimit = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 минута
+  max: 10, // максимум 10 запросов в минуту
+  message: {
+    error: "Слишком много запросов к чату. Подождите минуту и попробуйте снова.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Применяем общий rate limit ко всем запросам
+app.use("/api", generalRateLimit);
+
+// Пинг (без rate limit для мониторинга)
 app.get("/api/ping", (req, res) => {
   res.json({ ok: true, message: "server is alive" });
 });
@@ -53,7 +89,8 @@ const buildMessages = (history = [], userMessage) => {
   return messages;
 };
 
-app.post("/api/support/chat", async (req, res) => {
+// Чат с дополнительным rate limit
+app.post("/api/support/chat", chatRateLimit, async (req, res) => {
   const { message, history = [] } = req.body || {};
 
   if (!message || typeof message !== "string") {
