@@ -449,11 +449,20 @@ export async function generateRzdStyleTicket(epd: EpdData): Promise<string> {
     color: rgb(0, 0, 0),
   });
 
+  // Дата рождения (без РФ) - под именем
+  page.drawText(epd.birthDate || "", {
+    x: rightColX,
+    y: rightColY - 60,
+    size: 13.5, // Было 9, увеличено в 1.5 раза
+    font: font,
+    color: rgb(0.3, 0.3, 0.3),
+  });
+
   // Документ с типом
   const documentTypeText = epd.documentType ? `ДОКУМЕНТ (${epd.documentType})` : "ДОКУМЕНТ";
   page.drawText(documentTypeText, {
     x: rightColX,
-    y: rightColY - 60,
+    y: rightColY - 85,
     size: 13.5, // Было 9, увеличено в 1.5 раза
     font: font,
     color: rgb(0.5, 0.5, 0.5),
@@ -466,19 +475,10 @@ export async function generateRzdStyleTicket(epd: EpdData): Promise<string> {
   
   page.drawText(documentFull, {
     x: rightColX,
-    y: rightColY - 85,
+    y: rightColY - 110,
     size: 16.5, // Было 11, увеличено в 1.5 раза
     font: font,
     color: rgb(0, 0, 0),
-  });
-
-  // Дата рождения (без РФ)
-  page.drawText(epd.birthDate || "", {
-    x: rightColX,
-    y: rightColY - 110,
-    size: 13.5, // Было 9, увеличено в 1.5 раза
-    font: font,
-    color: rgb(0.3, 0.3, 0.3),
   });
 
   // QR код

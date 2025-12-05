@@ -416,29 +416,21 @@ const Checkout = () => {
       setIsProcessing(false);
       setIsCompleted(true);
 
-      // Генерация и скачивание PDF билета
+      // Генерация и скачивание PDF билетов для всех пассажиров
       try {
-        // Генерируем номер заказа
-        const orderNumber = `T${Date.now().toString().slice(-10)}`;
-        
-        // Получаем данные первого пассажира (для билета)
-        const firstPassenger = passengers[0];
-        if (!firstPassenger) {
-          throw new Error("Нет данных пассажира");
+        if (passengers.length === 0) {
+          throw new Error("Нет данных пассажиров");
         }
 
-        // Формируем полное имя пассажира
-        const passengerFullName = `${firstPassenger.surname} ${firstPassenger.name} ${firstPassenger.patronymic || ""}`.trim();
-        
-        // Получаем тип документа
-        const documentType = firstPassenger.documentType === "passport" ? "паспорт" : 
-                            firstPassenger.documentType === "license" ? "права" : 
-                            firstPassenger.documentType || "паспорт";
+        if (!user) {
+          throw new Error("Пользователь не авторизован");
+        }
 
-        // Форматируем дату рождения (без РФ)
-        const birthDateFormatted = firstPassenger.birthDate 
-          ? format(new Date(firstPassenger.birthDate), "dd.MM.yyyy", { locale: ru })
-          : "";
+        // Определяем тип транспорта из URL или используем train по умолчанию
+        const transportType = searchParams.get("travelType") || "train";
+
+        // Генерируем базовый номер заказа
+        const baseOrderNumber = `T${Date.now().toString().slice(-10)}`;
 
         // Получаем время отправления и прибытия (используем fallback значения)
         const depTime = "00:25"; // Можно получить из routeId, но пока используем fallback
@@ -454,58 +446,124 @@ const Checkout = () => {
         const depAddress = `г. ${fromCity}, вокзал`;
         const arrAddress = `г. ${toCity}, вокзал`;
 
-        // Собираем данные для билета
-        const epd: EpdData = {
-          orderNumber,
-          trainNumber: "022А", // Fallback, можно получить из routeId
-          trainName: "Ночной экспресс", // Fallback, можно получить из routeId
-          carriage: carNumber || "1",
-          seat: seatNumber || "1",
-          seatType: seatType === "upper" ? "Верхнее" : seatType === "lower" ? "Нижнее" : "Место",
-          depTime,
-          depDate: depDateFormatted,
-          depCity: fromCity,
-          depStation,
-          depAddress,
-          depTz: "+3",
-          arrTime,
-          arrDate: arrDateFormatted,
-          arrCity: toCity,
-          arrStation,
-          arrAddress,
-          arrTz: "+3",
-          passengerFullName,
-          documentType,
-          documentSeries: firstPassenger.documentSeries || "",
-          documentNumber: firstPassenger.documentNumber || "",
-          birthDate: birthDateFormatted,
-          routeShort: `${fromCity} — ${toCity}`,
-          infoText: "Вы зарегистрированы на рейс. Билет можно распечатать или показать на экране мобильного устройства. При посадке предъявите проводнику документ, удостоверяющий личность.",
+        // Функция для получения текста типа документа
+        const getDocumentTypeText = (docType: string): string => {
+          switch (docType) {
+            case "passport":
+              return "паспорт";
+            case "birth_certificate":
+              return "свидетельство о рождении";
+            case "foreign_passport":
+              return "загранпаспорт";
+            case "foreign_document":
+              return "иностранный документ";
+            default:
+              return "паспорт";
+          }
         };
 
-        // Генерируем PDF
-        console.log("Начинаем генерацию PDF билета...", epd);
-        const pdfUrl = await generateRzdStyleTicket(epd);
-        console.log("PDF сгенерирован, URL:", pdfUrl);
+        // Массив для хранения данных всех билетов
+        const ticketsData: EpdData[] = [];
 
-        // Автоматически скачиваем PDF
-        const link = document.createElement("a");
-        link.href = pdfUrl;
-        link.download = `ticket_${orderNumber}.pdf`;
-        link.style.display = "none";
-        document.body.appendChild(link);
-        
-        // Небольшая задержка перед кликом для надежности
-        setTimeout(() => {
-          link.click();
-          setTimeout(() => {
-            document.body.removeChild(link);
-            URL.revokeObjectURL(pdfUrl);
-          }, 100);
-        }, 100);
+        // Генерируем билеты для каждого пассажира
+        for (let i = 0; i < passengers.length; i++) {
+          const passenger = passengers[i];
+          
+          // Генерируем уникальный номер заказа для каждого пассажира
+          const orderNumber = `${baseOrderNumber}${i}`;
+          
+          // Формируем полное имя пассажира
+          const passengerFullName = `${passenger.surname} ${passenger.name} ${passenger.patronymic || ""}`.trim();
+          
+          // Получаем тип документа
+          const documentTypeDisplay = getDocumentTypeText(passenger.documentType);
+
+          // Форматируем дату рождения (без РФ)
+          const birthDateFormatted = passenger.birthDate 
+            ? format(new Date(passenger.birthDate), "dd.MM.yyyy", { locale: ru })
+            : "";
+
+          // Собираем данные для билета
+          const epd: EpdData = {
+            orderNumber,
+            trainNumber: "022А", // Fallback, можно получить из routeId
+            trainName: "Ночной экспресс", // Fallback, можно получить из routeId
+            carriage: carNumber || "1",
+            seat: seatNumber || "1",
+            seatType: seatType === "upper" ? "Верхнее" : seatType === "lower" ? "Нижнее" : "Место",
+            depTime,
+            depDate: depDateFormatted,
+            depCity: fromCity,
+            depStation,
+            depAddress,
+            depTz: "+3",
+            arrTime,
+            arrDate: arrDateFormatted,
+            arrCity: toCity,
+            arrStation,
+            arrAddress,
+            arrTz: "+3",
+            passengerFullName,
+            documentType: documentTypeDisplay,
+            documentSeries: passenger.documentSeries || "",
+            documentNumber: passenger.documentNumber || "",
+            birthDate: birthDateFormatted,
+            routeShort: `${fromCity} — ${toCity}`,
+            infoText: "Вы зарегистрированы на рейс. Билет можно распечатать или показать на экране мобильного устройства. При посадке предъявите проводнику документ, удостоверяющий личность.",
+          };
+
+          // Сохраняем данные билета
+          ticketsData.push(epd);
+
+          // Генерируем PDF
+          console.log(`Начинаем генерацию PDF билета для пассажира ${i + 1}...`, epd);
+          const pdfUrl = await generateRzdStyleTicket(epd);
+          console.log(`PDF сгенерирован для пассажира ${i + 1}, URL:`, pdfUrl);
+
+          // Автоматически скачиваем PDF
+          const link = document.createElement("a");
+          link.href = pdfUrl;
+          link.download = `ticket_${orderNumber}_${i + 1}.pdf`;
+          link.style.display = "none";
+          document.body.appendChild(link);
+          
+          // Добавляем задержку между скачиваниями, чтобы браузер не блокировал множественные скачивания
+          await new Promise((resolve) => {
+            setTimeout(() => {
+              link.click();
+              setTimeout(() => {
+                document.body.removeChild(link);
+                URL.revokeObjectURL(pdfUrl);
+                resolve(undefined);
+              }, 100);
+            }, i * 300); // Задержка 300мс между каждым скачиванием
+          });
+        }
+
+        // Сохраняем данные о покупке в БД
+        const { error: dbError } = await supabase
+          .from("tickets")
+          .insert({
+            user_id: user.id,
+            order_number: baseOrderNumber,
+            transport_type: transportType,
+            total_price: totalPrice,
+            tickets_data: ticketsData,
+            from_city: fromCity,
+            to_city: toCity,
+            departure_date: format(departureDate, "yyyy-MM-dd"),
+            electronic_registration_status: "pending",
+          });
+
+        if (dbError) {
+          console.error("Ошибка при сохранении билетов в БД:", dbError);
+          // Не блокируем процесс, если сохранение не удалось
+        } else {
+          console.log("Билеты успешно сохранены в БД");
+        }
       } catch (error) {
-        console.error("Ошибка при генерации билета:", error);
-        // Не блокируем редирект, даже если билет не сгенерировался
+        console.error("Ошибка при генерации билетов:", error);
+        // Не блокируем редирект, даже если билеты не сгенерировались
       }
       
       // Перенаправление на главную через 2 секунды

@@ -11,7 +11,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Phone, User, Plus, Trash2, Edit, ExternalLink, MessageCircle, Send, Calendar, Shield } from "lucide-react";
+import { Mail, Phone, User, Plus, Trash2, Edit, ExternalLink, MessageCircle, Send, Calendar, Shield, Download, CheckCircle2, Train, Plane, Bus } from "lucide-react";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
+import ConfirmRegistrationModal from "@/components/profile/ConfirmRegistrationModal";
+import DownloadTicketModal from "@/components/profile/DownloadTicketModal";
+import type { EpdData } from "@/types/epd";
 import { twoFactorAuth } from "@/lib/2fa";
 import { check2FARateLimit, resetRateLimit } from "@/lib/rateLimit";
 import {
@@ -78,6 +83,31 @@ const Profile = () => {
   const [show2FASetup, setShow2FASetup] = useState(false);
   const [twoFactorToken, setTwoFactorToken] = useState("");
 
+  // Состояния для истории заказов
+  interface TicketOrder {
+    id: string;
+    order_number: string;
+    transport_type: "train" | "flight" | "bus";
+    total_price: number;
+    tickets_data: EpdData[];
+    from_city: string;
+    to_city: string;
+    departure_date: string;
+    electronic_registration_status: "pending" | "confirmed";
+    created_at: string;
+  }
+  const [ticketOrders, setTicketOrders] = useState<TicketOrder[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [confirmRegistrationModal, setConfirmRegistrationModal] = useState<{
+    open: boolean;
+    orderId: string | null;
+    routeInfo: string;
+  }>({ open: false, orderId: null, routeInfo: "" });
+  const [downloadTicketModal, setDownloadTicketModal] = useState<{
+    open: boolean;
+    tickets: EpdData[];
+  }>({ open: false, tickets: [] });
+
   // Форма для нового пассажира
   const [formData, setFormData] = useState({
     display_name: "",
@@ -101,6 +131,7 @@ const Profile = () => {
       loadPassengers();
       loadUserProfile();
       load2FAData();
+      loadTicketOrders();
     }
   }, [user]);
 
@@ -125,6 +156,91 @@ const Profile = () => {
         email: data.email || "",
         birth_date: data.birth_date || "",
       });
+    }
+  };
+
+  const loadTicketOrders = async () => {
+    if (!user) return;
+    setLoadingOrders(true);
+    try {
+      const { data, error } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error loading ticket orders:", error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось загрузить историю заказов",
+          variant: "destructive",
+        });
+      } else {
+        setTicketOrders(data || []);
+      }
+    } catch (error) {
+      console.error("Error loading ticket orders:", error);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const handleConfirmRegistration = async (orderId: string) => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("tickets")
+        .update({ electronic_registration_status: "confirmed" })
+        .eq("id", orderId)
+        .eq("user_id", user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Успешно",
+        description: "Электронная регистрация подтверждена",
+      });
+      setConfirmRegistrationModal({ open: false, orderId: null, routeInfo: "" });
+      await loadTicketOrders();
+    } catch (error) {
+      console.error("Error confirming registration:", error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось подтвердить регистрацию",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTransportTypeLabel = (type: string) => {
+    switch (type) {
+      case "train":
+        return "Поезд";
+      case "flight":
+        return "Самолёт";
+      case "bus":
+        return "Автобус";
+      default:
+        return type;
+    }
+  };
+
+  const getTransportIcon = (type: string) => {
+    switch (type) {
+      case "train":
+        return <Train className="w-4 h-4" />;
+      case "flight":
+        return <Plane className="w-4 h-4" />;
+      case "bus":
+        return <Bus className="w-4 h-4" />;
+      default:
+        return null;
     }
   };
 
@@ -749,10 +865,84 @@ const Profile = () => {
                 <CardTitle>История заказов</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Здесь будет отображаться история ваших заказов билетов.
-                </p>
-                {/* TODO: Добавить загрузку заказов из базы данных */}
+                {loadingOrders ? (
+                  <p className="text-muted-foreground">Загрузка...</p>
+                ) : ticketOrders.length === 0 ? (
+                  <p className="text-muted-foreground">У вас пока нет заказов</p>
+                ) : (
+                  <div className="space-y-4">
+                    {ticketOrders.map((order) => {
+                      const routeInfo = `${order.from_city} — ${order.to_city}`;
+                      const orderDate = format(new Date(order.created_at), "dd.MM.yyyy", { locale: ru });
+                      const ticketsCount = order.tickets_data?.length || 0;
+                      
+                      return (
+                        <Card key={order.id}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{orderDate}</span>
+                                  <span className="text-muted-foreground">|</span>
+                                  <span>{ticketsCount} {ticketsCount === 1 ? "билет" : ticketsCount < 5 ? "билета" : "билетов"}</span>
+                                  <span className="text-muted-foreground">|</span>
+                                  <div className="flex items-center gap-1">
+                                    {getTransportIcon(order.transport_type)}
+                                    <span>{getTransportTypeLabel(order.transport_type)}</span>
+                                  </div>
+                                  <span className="text-muted-foreground">|</span>
+                                  <span className="font-semibold">{order.total_price.toLocaleString("ru-RU")} ₽</span>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {routeInfo}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  Заказ № {order.order_number}
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                {order.electronic_registration_status === "pending" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setConfirmRegistrationModal({
+                                        open: true,
+                                        orderId: order.id,
+                                        routeInfo,
+                                      });
+                                    }}
+                                  >
+                                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                                    Подтвердить электронную регистрацию
+                                  </Button>
+                                )}
+                                {order.electronic_registration_status === "confirmed" && (
+                                  <div className="flex items-center gap-1 text-sm text-green-600">
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    Электронная регистрация подтверждена
+                                  </div>
+                                )}
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    setDownloadTicketModal({
+                                      open: true,
+                                      tickets: order.tickets_data || [],
+                                    });
+                                  }}
+                                >
+                                  <Download className="w-4 h-4 mr-2" />
+                                  Скачать билет
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -1153,6 +1343,29 @@ const Profile = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Модалка подтверждения электронной регистрации */}
+        <ConfirmRegistrationModal
+          open={confirmRegistrationModal.open}
+          onClose={() => {
+            setConfirmRegistrationModal({ open: false, orderId: null, routeInfo: "" });
+          }}
+          onConfirm={() => {
+            if (confirmRegistrationModal.orderId) {
+              handleConfirmRegistration(confirmRegistrationModal.orderId);
+            }
+          }}
+          routeInfo={confirmRegistrationModal.routeInfo}
+        />
+
+        {/* Модалка скачивания билетов */}
+        <DownloadTicketModal
+          open={downloadTicketModal.open}
+          onClose={() => {
+            setDownloadTicketModal({ open: false, tickets: [] });
+          }}
+          tickets={downloadTicketModal.tickets}
+        />
       </main>
       <Footer />
     </div>
