@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Phone, User, Plus, Trash2, Edit, ExternalLink, MessageCircle, Send, Calendar, Shield } from "lucide-react";
@@ -83,6 +84,7 @@ const Profile = () => {
     name: "",
     surname: "",
     patronymic: "",
+    gender: "",
     passport_series: "",
     passport_number: "",
     birth_date: "",
@@ -172,6 +174,7 @@ const Profile = () => {
           name: formData.name,
           surname: formData.surname,
           patronymic: formData.patronymic || null,
+          gender: formData.gender || null,
           passport_series: formData.passport_series,
           passport_number: formData.passport_number,
           birth_date: formData.birth_date,
@@ -203,6 +206,7 @@ const Profile = () => {
           name: formData.name,
           surname: formData.surname,
           patronymic: formData.patronymic || null,
+          gender: formData.gender || null,
           passport_series: formData.passport_series,
           passport_number: formData.passport_number,
           birth_date: formData.birth_date,
@@ -258,6 +262,7 @@ const Profile = () => {
       name: passenger.name,
       surname: passenger.surname,
       patronymic: passenger.patronymic || "",
+      gender: (passenger as any).gender || "",
       passport_series: passenger.passport_series,
       passport_number: passenger.passport_number,
       birth_date: passenger.birth_date,
@@ -267,6 +272,7 @@ const Profile = () => {
   const resetForm = () => {
     setFormData({
       display_name: "",
+      gender: "",
       name: "",
       surname: "",
       patronymic: "",
@@ -791,6 +797,21 @@ const Profile = () => {
                         value={formData.patronymic}
                         onChange={(e) => setFormData({ ...formData, patronymic: e.target.value })}
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gender">Пол *</Label>
+                      <Select
+                        value={formData.gender}
+                        onValueChange={(value) => setFormData({ ...formData, gender: value })}
+                      >
+                        <SelectTrigger id="gender">
+                          <SelectValue placeholder="Выберите пол" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Мужской</SelectItem>
+                          <SelectItem value="female">Женский</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="passport_series">Серия паспорта *</Label>

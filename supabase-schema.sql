@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS passengers (
   name TEXT NOT NULL,
   surname TEXT NOT NULL,
   patronymic TEXT,
+  gender TEXT,
   passport_series TEXT NOT NULL,
   passport_number TEXT NOT NULL,
   birth_date DATE NOT NULL,
