@@ -15,10 +15,12 @@ import PassengerForm, { PassengerData } from "@/components/checkout/PassengerFor
 import SelectPassengerModal from "@/components/checkout/SelectPassengerModal";
 import BuyerForm, { BuyerData } from "@/components/checkout/BuyerForm";
 import AdditionalServices, { AdditionalServicesData } from "@/components/checkout/AdditionalServices";
+import CertificateInput from "@/components/checkout/CertificateInput";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { generateRzdStyleTicket } from "@/lib/generateRzdStyleTicket";
 import type { EpdData } from "@/types/epd";
+import { getStation } from "@/data/stations";
 
 const Checkout = () => {
   const [searchParams] = useSearchParams();
@@ -160,6 +162,15 @@ const Checkout = () => {
     insurance: "",
     refund: "",
   });
+
+  // Состояние для сертификата
+  const [certificateCode, setCertificateCode] = useState("");
+  const [selectedCertificate, setSelectedCertificate] = useState<{
+    id: string;
+    certificate_code: string;
+    amount: number;
+    transport_type: string;
+  } | null>(null);
 
   const [errors, setErrors] = useState<{
     passengers: Partial<Record<keyof PassengerData, string>>[];
@@ -441,8 +452,8 @@ const Checkout = () => {
         const arrDateFormatted = format(departureDate, "dd.MM.yyyy", { locale: ru });
 
         // Получаем названия станций (используем fallback)
-        const depStation = `${fromCity} (вокзал)`;
-        const arrStation = `${toCity} (вокзал)`;
+        const depStation = getStation(fromCity, 0);
+        const arrStation = getStation(toCity, 0);
         const depAddress = `г. ${fromCity}, вокзал`;
         const arrAddress = `г. ${toCity}, вокзал`;
 
@@ -540,6 +551,25 @@ const Checkout = () => {
           });
         }
 
+        // Помечаем сертификат как использованный, если он был применен
+        if (selectedCertificate && certificateCode) {
+          const { error: certError } = await supabase
+            .from("certificates")
+            .update({ 
+              status: "used",
+              used_at: new Date().toISOString()
+            })
+            .eq("id", selectedCertificate.id)
+            .eq("user_id", user.id);
+
+          if (certError) {
+            console.error("Ошибка при обновлении сертификата:", certError);
+            // Не блокируем процесс, если обновление сертификата не удалось
+          } else {
+            console.log("Сертификат помечен как использованный");
+          }
+        }
+
         // Сохраняем данные о покупке в БД
         const { error: dbError } = await supabase
           .from("tickets")
@@ -584,7 +614,10 @@ const Checkout = () => {
     (additionalServices.insurance === "yes" ? 299 : 0) +
     (additionalServices.refund === "yes" ? 550 : 0);
   
-  const totalPrice = basePrice + additionalServicesPrice;
+  // Применяем скидку по сертификату
+  const certificateDiscount = selectedCertificate?.amount || 0;
+  
+  const totalPrice = Math.max(0, basePrice + additionalServicesPrice - certificateDiscount);
 
   const isFormValid = () => {
     return checkFormValid() && consentChecked;
@@ -690,6 +723,42 @@ const Checkout = () => {
             <Card className="mb-6">
               <CardContent className="p-6">
                 <div className="space-y-4">
+                  {/* Поле ввода сертификата */}
+                  {user && (
+                    <CertificateInput
+                      value={certificateCode}
+                      onChange={(code) => {
+                        setCertificateCode(code);
+                        // Если код не найден в списке, очищаем выбранный сертификат
+                        if (!code || code.length !== 10) {
+                          setSelectedCertificate(null);
+                        }
+                      }}
+                      transportType={searchParams.get("travelType") || "train"}
+                      onCertificateSelect={(cert) => {
+                        setSelectedCertificate(cert);
+                        if (cert) {
+                          setCertificateCode(cert.certificate_code);
+                        }
+                      }}
+                      userId={user.id}
+                    />
+                  )}
+
+                  {/* Отображение скидки по сертификату */}
+                  {certificateDiscount > 0 && (
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-green-800 dark:text-green-200">
+                          Скидка по сертификату:
+                        </span>
+                        <span className="font-semibold text-green-700 dark:text-green-300">
+                          -{certificateDiscount.toLocaleString("ru-RU")} ₽
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="text-center">
                     <div className="text-4xl font-bold mb-2">
                       {totalPrice.toLocaleString("ru-RU")} ₽

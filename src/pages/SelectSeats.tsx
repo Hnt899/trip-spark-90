@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { getStation } from "@/data/stations";
 import { 
   Snowflake, 
   Utensils, 
@@ -779,7 +780,7 @@ const SelectSeats = () => {
                   </div>
                   <div className="text-sm text-muted-foreground">{formatDate(departureDate)}</div>
                   <div className="text-sm font-medium mt-1">
-                    {travelType === "train" && "Ленинградский вокзал"}
+                    {travelType === "train" && (fromCity ? getStation(fromCity, 0) : "Вокзал")}
                     {travelType === "flight" && "Аэропорт Шереметьево"}
                     {travelType === "bus" && "Автовокзал Центральный автовокзал"}
                   </div>
@@ -808,7 +809,7 @@ const SelectSeats = () => {
                   </div>
                   <div className="text-sm text-muted-foreground">{formatDate(departureDate)}</div>
                   <div className="text-sm font-medium mt-1">
-                    {travelType === "train" && "Московский вокзал"}
+                    {travelType === "train" && (toCity ? getStation(toCity, 0) : "Вокзал")}
                     {travelType === "flight" && "Аэропорт Пулково"}
                     {travelType === "bus" && "Автовокзал Центральный автовокзал"}
                   </div>

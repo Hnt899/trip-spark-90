@@ -38,11 +38,7 @@ VITE_SUPABASE_ANON_KEY=ваш_anon_key
 
 ## 📚 Документация
 
-- **[QUICK_DEPLOY.md](./QUICK_DEPLOY.md)** - Быстрый деплой на Vercel (5 минут)
-- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Подробное руководство по деплою
-- **[HOW_TO_GET_SUPABASE_KEYS.md](./HOW_TO_GET_SUPABASE_KEYS.md)** - Как получить ключи Supabase
 - **[EXOLVE_SETUP.md](./EXOLVE_SETUP.md)** - Настройка МТС Exolve для SMS
-- **[SUPABASE_EMAIL_SETUP.md](./SUPABASE_EMAIL_SETUP.md)** - Настройка Email OTP
 
 ## 🛠️ Команды
 

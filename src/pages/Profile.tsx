@@ -11,11 +11,19 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Phone, User, Plus, Trash2, Edit, ExternalLink, MessageCircle, Send, Calendar, Shield, Download, CheckCircle2, Train, Plane, Bus } from "lucide-react";
+import { Mail, Phone, User, Plus, Trash2, Edit, ExternalLink, MessageCircle, Send, Calendar, Shield, Download, CheckCircle2, Train, Plane, Bus, MoreHorizontal, RefreshCw, ArrowLeft, Gift, X } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import ConfirmRegistrationModal from "@/components/profile/ConfirmRegistrationModal";
 import DownloadTicketModal from "@/components/profile/DownloadTicketModal";
+import ExchangeTicketModal from "@/components/profile/ExchangeTicketModal";
+import RefundTicketModal from "@/components/profile/RefundTicketModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { EpdData } from "@/types/epd";
 import { twoFactorAuth } from "@/lib/2fa";
 import { check2FARateLimit, resetRateLimit } from "@/lib/rateLimit";
@@ -94,10 +102,28 @@ const Profile = () => {
     to_city: string;
     departure_date: string;
     electronic_registration_status: "pending" | "confirmed";
+    order_status: "active" | "refunded" | "exchanged";
     created_at: string;
   }
   const [ticketOrders, setTicketOrders] = useState<TicketOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  
+  // Состояния для сертификатов
+  interface Certificate {
+    id: string;
+    certificate_code: string;
+    transport_type: "train" | "flight" | "bus";
+    amount: number;
+    status: "active" | "used" | "expired";
+    used_at: string | null;
+    expires_at: string;
+    created_at: string;
+  }
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [displayedCertificates, setDisplayedCertificates] = useState<Certificate[]>([]);
+  const [loadingCertificates, setLoadingCertificates] = useState(false);
+  const [certificateFilter, setCertificateFilter] = useState<"all" | "train" | "flight" | "bus">("all");
+  
   const [confirmRegistrationModal, setConfirmRegistrationModal] = useState<{
     open: boolean;
     orderId: string | null;
@@ -107,6 +133,20 @@ const Profile = () => {
     open: boolean;
     tickets: EpdData[];
   }>({ open: false, tickets: [] });
+  const [exchangeTicketModal, setExchangeTicketModal] = useState<{
+    open: boolean;
+    orderId: string;
+    orderNumber: string;
+    totalPrice: number;
+    transportType: string;
+  }>({ open: false, orderId: "", orderNumber: "", totalPrice: 0, transportType: "" });
+  const [refundTicketModal, setRefundTicketModal] = useState<{
+    open: boolean;
+    orderId: string;
+    orderNumber: string;
+    totalPrice: number;
+    transportType: string;
+  }>({ open: false, orderId: "", orderNumber: "", totalPrice: 0, transportType: "" });
 
   // Форма для нового пассажира
   const [formData, setFormData] = useState({
@@ -132,6 +172,7 @@ const Profile = () => {
       loadUserProfile();
       load2FAData();
       loadTicketOrders();
+      loadCertificates();
     }
   }, [user]);
 
@@ -177,7 +218,12 @@ const Profile = () => {
           variant: "destructive",
         });
       } else {
-        setTicketOrders(data || []);
+        // Устанавливаем order_status в 'active' по умолчанию для существующих записей
+        const ordersWithStatus = (data || []).map(order => ({
+          ...order,
+          order_status: order.order_status || 'active',
+        }));
+        setTicketOrders(ordersWithStatus);
       }
     } catch (error) {
       console.error("Error loading ticket orders:", error);
@@ -185,6 +231,46 @@ const Profile = () => {
       setLoadingOrders(false);
     }
   };
+
+  const loadCertificates = async () => {
+    if (!user) return;
+    setLoadingCertificates(true);
+    try {
+      // Автоматически списываем истекшие сертификаты
+      await supabase.rpc('expire_old_certificates');
+
+      const { data, error } = await supabase
+        .from("certificates")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error loading certificates:", error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось загрузить сертификаты",
+          variant: "destructive",
+        });
+      } else {
+        setCertificates(data || []);
+        setDisplayedCertificates(data || []);
+      }
+    } catch (error) {
+      console.error("Error loading certificates:", error);
+    } finally {
+      setLoadingCertificates(false);
+    }
+  };
+
+  // Фильтрация сертификатов
+  useEffect(() => {
+    if (certificateFilter === "all") {
+      setDisplayedCertificates(certificates);
+    } else {
+      setDisplayedCertificates(certificates.filter(c => c.transport_type === certificateFilter));
+    }
+  }, [certificateFilter, certificates]);
 
   const handleConfirmRegistration = async (orderId: string) => {
     if (!user) return;
@@ -218,6 +304,152 @@ const Profile = () => {
     }
   };
 
+  const handleRefundTicket = async (orderId: string, orderNumber: string, totalPrice: number, transportType: string) => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      console.log("Updating ticket to refunded, orderId:", orderId);
+      
+      // Получаем данные билета
+      const { data: ticketData, error: ticketError } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("id", orderId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (ticketError || !ticketData) {
+        throw ticketError || new Error("Билет не найден");
+      }
+
+      // Рассчитываем сумму сертификата (с вычетом сервисного сбора)
+      const serviceFee = Math.round(totalPrice * 0.1); // 10% сервисный сбор
+      const certificateAmount = totalPrice - serviceFee;
+
+      // Создаем сертификат через RPC функцию
+      const { data: certificateData, error: certError } = await supabase.rpc('create_certificate', {
+        p_user_id: user.id,
+        p_transport_type: transportType,
+        p_amount: certificateAmount,
+        p_order_id: orderId
+      });
+
+      if (certError) {
+        console.error("Error creating certificate:", certError);
+        throw certError;
+      }
+
+      // certificateData может быть массивом, берем первый элемент
+      const certificate = Array.isArray(certificateData) ? certificateData[0] : certificateData;
+      console.log("Certificate created:", certificate);
+
+      // Обновляем статус билета
+      const { data, error } = await supabase
+        .from("tickets")
+        .update({ order_status: "refunded" })
+        .eq("id", orderId)
+        .eq("user_id", user.id)
+        .select();
+
+      if (error) {
+        console.error("Error updating ticket:", error);
+        throw error;
+      }
+
+      console.log("Ticket updated successfully:", data);
+
+      toast({
+        title: "Успешно",
+        description: `Сертификат добавлен на сумму ${certificateAmount.toLocaleString("ru-RU")} ₽. Посмотрите его в графе "Сертификаты".`,
+      });
+      setRefundTicketModal({ open: false, orderId: "", orderNumber: "", totalPrice: 0, transportType: "" });
+      await loadTicketOrders();
+      await loadCertificates(); // Обновляем список сертификатов
+    } catch (error: any) {
+      console.error("Error refunding ticket:", error);
+      toast({
+        title: "Ошибка",
+        description: error?.message || "Не удалось обработать возврат билета. Проверьте консоль браузера.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExchangeTicket = async (orderId: string, orderNumber: string, totalPrice: number, transportType: string) => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      console.log("Updating ticket to exchanged, orderId:", orderId);
+      
+      // Получаем данные билета
+      const { data: ticketData, error: ticketError } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("id", orderId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (ticketError || !ticketData) {
+        throw ticketError || new Error("Билет не найден");
+      }
+
+      // Рассчитываем сумму сертификата (с вычетом сервисного сбора)
+      const serviceFee = Math.round(totalPrice * 0.1); // 10% сервисный сбор
+      const certificateAmount = totalPrice - serviceFee;
+
+      // Создаем сертификат через RPC функцию
+      const { data: certificateData, error: certError } = await supabase.rpc('create_certificate', {
+        p_user_id: user.id,
+        p_transport_type: transportType,
+        p_amount: certificateAmount,
+        p_order_id: orderId
+      });
+
+      if (certError) {
+        console.error("Error creating certificate:", certError);
+        throw certError;
+      }
+
+      // certificateData может быть массивом, берем первый элемент
+      const certificate = Array.isArray(certificateData) ? certificateData[0] : certificateData;
+      console.log("Certificate created:", certificate);
+
+      // Обновляем статус билета
+      const { data, error } = await supabase
+        .from("tickets")
+        .update({ order_status: "exchanged" })
+        .eq("id", orderId)
+        .eq("user_id", user.id)
+        .select();
+
+      if (error) {
+        console.error("Error updating ticket:", error);
+        throw error;
+      }
+
+      console.log("Ticket updated successfully:", data);
+
+      toast({
+        title: "Успешно",
+        description: `Сертификат добавлен на сумму ${certificateAmount.toLocaleString("ru-RU")} ₽. Посмотрите его в графе "Сертификаты".`,
+      });
+      setExchangeTicketModal({ open: false, orderId: "", orderNumber: "", totalPrice: 0, transportType: "" });
+      await loadTicketOrders();
+      await loadCertificates(); // Обновляем список сертификатов
+    } catch (error: any) {
+      console.error("Error exchanging ticket:", error);
+      toast({
+        title: "Ошибка",
+        description: error?.message || "Не удалось обработать обмен билета. Проверьте консоль браузера.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getTransportTypeLabel = (type: string) => {
     switch (type) {
       case "train":
@@ -241,6 +473,55 @@ const Profile = () => {
         return <Bus className="w-4 h-4" />;
       default:
         return null;
+    }
+  };
+
+  const getOrderStatus = (order: TicketOrder): "active" | "confirmed" | "refunded" | "exchanged" => {
+    // Если есть явный статус возврата или обмена
+    if (order.order_status === "refunded") return "refunded";
+    if (order.order_status === "exchanged") return "exchanged";
+    
+    // Если электронная регистрация подтверждена
+    if (order.electronic_registration_status === "confirmed") return "confirmed";
+    
+    // По умолчанию - активный заказ
+    return "active";
+  };
+
+  const getStatusConfig = (status: "active" | "confirmed" | "refunded" | "exchanged") => {
+    switch (status) {
+      case "active":
+        return {
+          label: "Билет куплен",
+          borderColor: "border-gray-300 dark:border-gray-600",
+          bgColor: "bg-gray-50 dark:bg-gray-800/50",
+          textColor: "text-gray-700 dark:text-gray-300",
+          icon: null,
+        };
+      case "confirmed":
+        return {
+          label: "Электронная регистрация подтверждена",
+          borderColor: "border-green-500 dark:border-green-600",
+          bgColor: "bg-green-50 dark:bg-green-900/20",
+          textColor: "text-green-700 dark:text-green-400",
+          icon: <CheckCircle2 className="w-4 h-4" />,
+        };
+      case "refunded":
+        return {
+          label: "Возврат средств",
+          borderColor: "border-red-500 dark:border-red-600",
+          bgColor: "bg-red-50 dark:bg-red-900/20",
+          textColor: "text-red-700 dark:text-red-400",
+          icon: <ArrowLeft className="w-4 h-4" />,
+        };
+      case "exchanged":
+        return {
+          label: "Обмен билета",
+          borderColor: "border-red-500 dark:border-red-600",
+          bgColor: "bg-red-50 dark:bg-red-900/20",
+          textColor: "text-red-700 dark:text-red-400",
+          icon: <RefreshCw className="w-4 h-4" />,
+        };
     }
   };
 
@@ -851,9 +1132,10 @@ const Profile = () => {
         </div>
 
         <Tabs defaultValue="orders" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="orders">История заказов</TabsTrigger>
             <TabsTrigger value="passengers">Пассажиры</TabsTrigger>
+            <TabsTrigger value="certificates">Сертификаты</TabsTrigger>
             <TabsTrigger value="security">Безопасность</TabsTrigger>
             <TabsTrigger value="useful">Пригодится в поездке</TabsTrigger>
             <TabsTrigger value="contact">Связаться с нами</TabsTrigger>
@@ -875,70 +1157,124 @@ const Profile = () => {
                       const routeInfo = `${order.from_city} — ${order.to_city}`;
                       const orderDate = format(new Date(order.created_at), "dd.MM.yyyy", { locale: ru });
                       const ticketsCount = order.tickets_data?.length || 0;
+                      const status = getOrderStatus(order);
+                      const statusConfig = getStatusConfig(status);
                       
                       return (
-                        <Card key={order.id}>
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1 space-y-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium">{orderDate}</span>
-                                  <span className="text-muted-foreground">|</span>
-                                  <span>{ticketsCount} {ticketsCount === 1 ? "билет" : ticketsCount < 5 ? "билета" : "билетов"}</span>
-                                  <span className="text-muted-foreground">|</span>
-                                  <div className="flex items-center gap-1">
-                                    {getTransportIcon(order.transport_type)}
-                                    <span>{getTransportTypeLabel(order.transport_type)}</span>
-                                  </div>
-                                  <span className="text-muted-foreground">|</span>
-                                  <span className="font-semibold">{order.total_price.toLocaleString("ru-RU")} ₽</span>
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {routeInfo}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  Заказ № {order.order_number}
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
-                                {order.electronic_registration_status === "pending" && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                      setConfirmRegistrationModal({
-                                        open: true,
-                                        orderId: order.id,
-                                        routeInfo,
-                                      });
-                                    }}
-                                  >
-                                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                                    Подтвердить электронную регистрацию
-                                  </Button>
-                                )}
-                                {order.electronic_registration_status === "confirmed" && (
-                                  <div className="flex items-center gap-1 text-sm text-green-600">
-                                    <CheckCircle2 className="w-4 h-4" />
-                                    Электронная регистрация подтверждена
-                                  </div>
-                                )}
-                                <Button
-                                  size="sm"
-                                  onClick={() => {
-                                    setDownloadTicketModal({
-                                      open: true,
-                                      tickets: order.tickets_data || [],
-                                    });
-                                  }}
-                                >
-                                  <Download className="w-4 h-4 mr-2" />
-                                  Скачать билет
-                                </Button>
+                        <div
+                          key={order.id}
+                          className={`rounded-lg ${statusConfig.borderColor} border-2 overflow-hidden bg-card shadow-sm`}
+                        >
+                          <div className="overflow-hidden">
+                            {/* Статус билета */}
+                            <div className={`${statusConfig.bgColor} ${statusConfig.textColor} px-4 py-2 border-b ${statusConfig.borderColor} border-b-2`}>
+                              <div className="flex items-center gap-2 text-sm font-medium">
+                                {statusConfig.icon && statusConfig.icon}
+                                <span>{statusConfig.label}</span>
                               </div>
                             </div>
-                          </CardContent>
-                        </Card>
+                            
+                            {/* Основная информация о заказе */}
+                            <div className="p-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium">{orderDate}</span>
+                                    <span className="text-muted-foreground">|</span>
+                                    <span>{ticketsCount} {ticketsCount === 1 ? "билет" : ticketsCount < 5 ? "билета" : "билетов"}</span>
+                                    <span className="text-muted-foreground">|</span>
+                                    <div className="flex items-center gap-1">
+                                      {getTransportIcon(order.transport_type)}
+                                      <span>{getTransportTypeLabel(order.transport_type)}</span>
+                                    </div>
+                                    <span className="text-muted-foreground">|</span>
+                                    <span className="font-semibold">{order.total_price.toLocaleString("ru-RU")} ₽</span>
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {routeInfo}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    Заказ № {order.order_number}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {order.electronic_registration_status === "pending" && status !== "refunded" && status !== "exchanged" && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => {
+                                        setConfirmRegistrationModal({
+                                          open: true,
+                                          orderId: order.id,
+                                          routeInfo,
+                                        });
+                                      }}
+                                    >
+                                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                                      Подтвердить электронную регистрацию
+                                    </Button>
+                                  )}
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem
+                                        onClick={() => {
+                                          setDownloadTicketModal({
+                                            open: true,
+                                            tickets: order.tickets_data || [],
+                                          });
+                                        }}
+                                      >
+                                        <Download className="w-4 h-4 mr-2" />
+                                        Скачать билеты
+                                      </DropdownMenuItem>
+                                      {status !== "refunded" && status !== "exchanged" && (
+                                        <>
+                                          <DropdownMenuItem
+                                            onClick={() => {
+                                              setExchangeTicketModal({
+                                                open: true,
+                                                orderId: order.id,
+                                                orderNumber: order.order_number,
+                                                totalPrice: order.total_price,
+                                                transportType: order.transport_type,
+                                              });
+                                            }}
+                                          >
+                                            <RefreshCw className="w-4 h-4 mr-2" />
+                                            Обменять билет
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem
+                                            onClick={() => {
+                                              setRefundTicketModal({
+                                                open: true,
+                                                orderId: order.id,
+                                                orderNumber: order.order_number,
+                                                totalPrice: order.total_price,
+                                                transportType: order.transport_type,
+                                              });
+                                            }}
+                                          >
+                                            <ArrowLeft className="w-4 h-4 mr-2" />
+                                            Вернуть деньги за билет
+                                          </DropdownMenuItem>
+                                        </>
+                                      )}
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
@@ -1090,6 +1426,129 @@ const Profile = () => {
                     </div>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="certificates" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Gift className="w-5 h-5" />
+                  Сертификаты
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingCertificates ? (
+                  <p className="text-muted-foreground">Загрузка...</p>
+                ) : certificates.length === 0 ? (
+                  <p className="text-muted-foreground">У вас пока нет сертификатов</p>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Фильтр по категориям */}
+                    <div className="flex gap-2 flex-wrap">
+                      <Button
+                        variant={certificateFilter === "all" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCertificateFilter("all")}
+                      >
+                        Все
+                      </Button>
+                      <Button
+                        variant={certificateFilter === "train" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCertificateFilter("train")}
+                      >
+                        <Train className="w-4 h-4 mr-2" />
+                        Поезд
+                      </Button>
+                      <Button
+                        variant={certificateFilter === "flight" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCertificateFilter("flight")}
+                      >
+                        <Plane className="w-4 h-4 mr-2" />
+                        Самолёт
+                      </Button>
+                      <Button
+                        variant={certificateFilter === "bus" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCertificateFilter("bus")}
+                      >
+                        <Bus className="w-4 h-4 mr-2" />
+                        Автобус
+                      </Button>
+                    </div>
+
+                    {/* Список сертификатов */}
+                    <div className="space-y-3">
+                      {displayedCertificates.length === 0 ? (
+                        <p className="text-muted-foreground text-center py-4">
+                          Нет сертификатов в выбранной категории
+                        </p>
+                      ) : (
+                        displayedCertificates.map((cert) => {
+                        const isExpired = new Date(cert.expires_at) < new Date();
+                        const statusConfig = {
+                          active: { label: "Активен", color: "text-green-600", bg: "bg-green-50", border: "border-green-200" },
+                          used: { label: "Использован", color: "text-gray-600", bg: "bg-gray-50", border: "border-gray-200" },
+                          expired: { label: "Истёк", color: "text-red-600", bg: "bg-red-50", border: "border-red-200" },
+                        };
+                        const config = statusConfig[cert.status] || statusConfig.active;
+                        const transportIcon = cert.transport_type === "train" ? <Train className="w-4 h-4" /> :
+                                             cert.transport_type === "flight" ? <Plane className="w-4 h-4" /> :
+                                             <Bus className="w-4 h-4" />;
+                        const transportLabel = cert.transport_type === "train" ? "Поезд" :
+                                              cert.transport_type === "flight" ? "Самолёт" :
+                                              "Автобус";
+
+                        return (
+                          <Card key={cert.id} className={`${config.border} border-2`}>
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <Gift className="w-4 h-4 text-primary" />
+                                    <span className="font-mono font-semibold text-lg">{cert.certificate_code}</span>
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${config.bg} ${config.color}`}>
+                                      {config.label}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm">
+                                    {transportIcon}
+                                    <span className="text-muted-foreground">{transportLabel}</span>
+                                    <span className="text-muted-foreground">|</span>
+                                    <span className="font-semibold">{cert.amount.toLocaleString("ru-RU")} ₽</span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    Создан: {new Date(cert.created_at).toLocaleDateString('ru-RU')}
+                                    {cert.used_at && (
+                                      <> • Использован: {new Date(cert.used_at).toLocaleDateString('ru-RU')}</>
+                                    )}
+                                    {!cert.used_at && (
+                                      <> • Истекает: {new Date(cert.expires_at).toLocaleDateString('ru-RU')}</>
+                                    )}
+                                  </div>
+                                  {cert.status === "active" && isExpired && (
+                                    <div className="text-xs text-red-600">
+                                      Сертификат истёк и будет списан
+                                    </div>
+                                  )}
+                                  {cert.status === "used" && (
+                                    <div className="text-xs text-muted-foreground">
+                                      Сертификат будет списан через 24 часа после использования
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })
+                    )}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -1365,6 +1824,46 @@ const Profile = () => {
             setDownloadTicketModal({ open: false, tickets: [] });
           }}
           tickets={downloadTicketModal.tickets}
+        />
+
+        {/* Модалка обмена билета */}
+        <ExchangeTicketModal
+          open={exchangeTicketModal.open}
+          onClose={() => {
+            setExchangeTicketModal({ open: false, orderId: "", orderNumber: "", totalPrice: 0, transportType: "" });
+          }}
+          onConfirm={() => {
+            if (exchangeTicketModal.orderId) {
+              handleExchangeTicket(
+                exchangeTicketModal.orderId,
+                exchangeTicketModal.orderNumber,
+                exchangeTicketModal.totalPrice,
+                exchangeTicketModal.transportType
+              );
+            }
+          }}
+          orderNumber={exchangeTicketModal.orderNumber}
+          totalPrice={exchangeTicketModal.totalPrice}
+        />
+
+        {/* Модалка возврата денег */}
+        <RefundTicketModal
+          open={refundTicketModal.open}
+          onClose={() => {
+            setRefundTicketModal({ open: false, orderId: "", orderNumber: "", totalPrice: 0, transportType: "" });
+          }}
+          onConfirm={() => {
+            if (refundTicketModal.orderId) {
+              handleRefundTicket(
+                refundTicketModal.orderId,
+                refundTicketModal.orderNumber,
+                refundTicketModal.totalPrice,
+                refundTicketModal.transportType
+              );
+            }
+          }}
+          orderNumber={refundTicketModal.orderNumber}
+          totalPrice={refundTicketModal.totalPrice}
         />
       </main>
       <Footer />
