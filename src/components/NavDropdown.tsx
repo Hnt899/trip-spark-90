@@ -10,9 +10,10 @@ interface NavDropdownProps {
   items: NavLinkItem[];
   href: string;
   isActive?: boolean;
+  isHomePage?: boolean;
 }
 
-const NavDropdown = ({ label, items, href, isActive = false }: NavDropdownProps) => {
+const NavDropdown = ({ label, items, href, isActive = false, isHomePage = false }: NavDropdownProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
@@ -25,8 +26,14 @@ const NavDropdown = ({ label, items, href, isActive = false }: NavDropdownProps)
         <Link
           to={href}
           className={cn(
-            "text-lg font-medium transition-colors hover:text-primary",
-            isActive ? "text-primary" : "text-foreground"
+            "text-lg font-medium transition-colors px-3 py-2 rounded-md",
+            isActive 
+              ? isHomePage 
+                ? "text-white bg-white/20" 
+                : "text-primary bg-primary/10"
+              : isHomePage
+                ? "text-white/90 hover:text-white hover:bg-white/10"
+                : "text-foreground/80 hover:text-primary hover:bg-muted/50"
           )}
         >
           {label}
@@ -63,8 +70,14 @@ const NavDropdown = ({ label, items, href, isActive = false }: NavDropdownProps)
         <button
           type="button"
           className={cn(
-            "text-lg font-medium transition-colors hover:text-primary",
-            isActive ? "text-primary" : "text-foreground"
+            "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap",
+            isActive 
+              ? isHomePage 
+                ? "text-white bg-white/20" 
+                : "text-primary bg-primary/10"
+              : isHomePage
+                ? "text-white/90 hover:text-white hover:bg-white/10"
+                : "text-foreground/80 hover:text-primary"
           )}
         >
           {label}

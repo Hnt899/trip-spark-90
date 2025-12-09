@@ -67,7 +67,7 @@ interface UserProfile {
 }
 
 const Profile = () => {
-  const { user, updatePassword, loading: authLoading } = useAuth();
+  const { user, updatePassword, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [passengers, setPassengers] = useState<Passenger[]>([]);
@@ -1029,11 +1029,21 @@ const Profile = () => {
     return null;
   }
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container py-12 max-w-6xl">
-        <h1 className="text-4xl font-bold mb-8">Личный кабинет</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold">Личный кабинет</h1>
+          <Button onClick={handleSignOut} variant="outline" size="sm">
+            Выйти
+          </Button>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <Card>

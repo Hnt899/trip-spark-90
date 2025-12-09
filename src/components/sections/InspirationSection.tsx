@@ -262,7 +262,7 @@ const InspirationSection = () => {
     <section className="py-20">
       <div className="container">
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent">
             Вдохновение для следующей поездки
           </h2>
           <p className="text-muted-foreground text-lg">

@@ -231,3 +231,45 @@ All colors MUST be HSL.
   background-size: 400% 400%;
   animation: gradient-flow 4s ease-in-out infinite;
 }
+
+/* Скрытие скроллбара */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Анимация для букв заголовка - общая длительность для всех букв */
+@keyframes letterWave {
+  0% {
+    transform: translateY(0);
+    color: #ffffff;
+    background: transparent;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+  }
+  2.5% {
+    transform: translateY(-5px);
+    background: linear-gradient(90deg, #3B82F6, #A855F7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  5% {
+    transform: translateY(0);
+    color: #ffffff;
+    background: transparent;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+  }
+  100% {
+    transform: translateY(0);
+    color: #ffffff;
+    background: transparent;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+  }
+}

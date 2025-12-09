@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const EventsSection = () => {
+  const navigate = useNavigate();
+  
   const events = [
     {
       city: "Краснодар",
@@ -163,14 +166,18 @@ const EventsSection = () => {
       <div className="container">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent">
               Повод для путешествия
             </h2>
             <p className="text-muted-foreground">
               10 событий, ради которых стоит ровнуть в путь
             </p>
           </div>
-          <Button variant="ghost" className="hidden md:flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            className="hidden md:flex items-center gap-2"
+            onClick={() => navigate("/blog")}
+          >
             Ещё <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
