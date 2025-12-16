@@ -50,7 +50,7 @@ const Sapsan = () => {
               <p className="text-base leading-relaxed mb-4">
                 На TudaSuda вы можете узнать расписание поездов «Сапсан», уточнить цены в разных классах, проверить наличие мест и купить билет онлайн.
               </p>
-              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white">
+              <Button asChild size="lg">
                 <Link to="/routes/list">
                   Показать расписание
                   <ArrowRight className="ml-2 w-5 h-5" />

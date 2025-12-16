@@ -264,7 +264,7 @@ const HeroRoutes = () => {
                       <div>
                         <Button
                           size="lg"
-                          className="bg-primary hover:bg-primary/90 text-white px-10 py-8 text-xl md:text-2xl font-semibold rounded-3xl shadow-xl"
+                          className="px-10 py-8 text-xl md:text-2xl font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                         >
                           Узнать маршрут
                         </Button>

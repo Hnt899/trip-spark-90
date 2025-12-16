@@ -155,14 +155,14 @@ const Header = () => {
               <Link 
                 to="/" 
                 className={cn(
-                  "text-lg font-medium transition-colors px-3 py-2 rounded-md",
+                  "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
                   isActive("/") 
                     ? isHomePage && isHeroMode 
-                      ? "text-white bg-white/20" 
-                      : "text-primary bg-primary/10"
+                      ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
+                      : "text-primary bg-primary/10 border-transparent"
                     : isHomePage && isHeroMode
-                      ? "text-white/90 hover:text-white hover:bg-white/10"
-                      : "text-foreground/80 hover:text-primary hover:bg-muted/50"
+                      ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                      : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
                 )}
               >
                 Главная
@@ -184,14 +184,14 @@ const Header = () => {
               <Link 
                 to="/blog" 
                 className={cn(
-                  "text-lg font-medium transition-colors px-3 py-2 rounded-md",
+                  "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
                   isActive("/blog") 
                     ? isHomePage && isHeroMode 
-                      ? "text-white bg-white/20" 
-                      : "text-primary bg-primary/10"
+                      ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
+                      : "text-primary bg-primary/10 border-transparent"
                     : isHomePage && isHeroMode
-                      ? "text-white/90 hover:text-white hover:bg-white/10"
-                      : "text-foreground/80 hover:text-primary hover:bg-muted/50"
+                      ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                      : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
                 )}
               >
                 Блог
@@ -214,12 +214,15 @@ const Header = () => {
                   size="icon" 
                   title="Личный кабинет" 
                   className={cn(
-                    "h-14 w-14 [&_svg]:!h-8 [&_svg]:!w-8 transition-colors",
-                    isHomePage && isHeroMode && "text-white hover:bg-white/10 [&_svg]:text-white"
+                    "h-14 w-14 [&_svg]:!h-8 [&_svg]:!w-8 transition-colors rounded-lg",
+                    "[&_svg]:text-white [&_svg]:stroke-white [&_svg]:fill-none",
+                    isHomePage && isHeroMode
+                      ? "bg-black/40 backdrop-blur-md hover:bg-black/50 border-0"
+                      : "bg-[#2A2A2A] hover:bg-[#3A3A3A]"
                   )}
                 >
                   <Link to="/profile">
-                    <User className="h-8 w-8" />
+                    <User className="h-8 w-8" strokeWidth={2} />
                   </Link>
                 </Button>
               ) : (
@@ -228,12 +231,15 @@ const Header = () => {
                   variant="outline" 
                   size="icon"
                   className={cn(
-                    "relative h-14 w-14 [&_svg]:!h-10 [&_svg]:!w-10 transition-colors",
-                    isHomePage && isHeroMode && "border-white/30 text-white hover:bg-white/10 [&_svg]:text-white"
+                    "relative h-14 w-14 [&_svg]:!h-10 [&_svg]:!w-10 transition-colors rounded-lg",
+                    "[&_svg]:text-white [&_svg]:stroke-white [&_svg]:fill-none",
+                    isHomePage && isHeroMode
+                      ? "bg-black/40 backdrop-blur-md hover:bg-black/50 border-0"
+                      : "bg-[#2A2A2A] border-[#2A2A2A] hover:bg-[#3A3A3A]"
                   )}
                   title="Войти / Регистрация"
                 >
-                  <User className="h-10 w-10" />
+                  <User className="h-10 w-10" strokeWidth={2} />
                 </Button>
               )}
             </div>
@@ -392,14 +398,14 @@ const Header = () => {
             <Link 
               to="/" 
               className={cn(
-                "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap",
+                "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap border",
                 isActive("/") 
                   ? isHomePage && isHeroMode 
-                    ? "text-white bg-white/20" 
-                    : "text-primary bg-primary/10"
+                    ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
+                    : "text-primary bg-primary/10 border-transparent"
                   : isHomePage && isHeroMode
-                    ? "text-white/90 hover:text-white hover:bg-white/10"
-                    : "text-foreground/80 hover:text-primary"
+                    ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                    : "text-foreground/80 border-transparent hover:text-primary"
               )}
             >
               Главная
@@ -421,14 +427,14 @@ const Header = () => {
             <Link 
               to="/blog" 
               className={cn(
-                "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap",
+                "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap border",
                 isActive("/blog") 
                   ? isHomePage && isHeroMode 
-                    ? "text-white bg-white/20" 
-                    : "text-primary bg-primary/10"
+                    ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
+                    : "text-primary bg-primary/10 border-transparent"
                   : isHomePage && isHeroMode
-                    ? "text-white/90 hover:text-white hover:bg-white/10"
-                    : "text-foreground/80 hover:text-primary"
+                    ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                    : "text-foreground/80 border-transparent hover:text-primary"
               )}
             >
               Блог

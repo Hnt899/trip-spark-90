@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowLeft, Zap, Shield, Heart, Sparkles, MapPin, BookOpen, Clock, Ticket } from "lucide-react";
+import { Layers, Shield, Headphones, FileText, MapPin, BookOpen, Clock, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import {
@@ -12,7 +12,7 @@ import {
 const FeaturesSection = () => {
   const features = [
     {
-      icon: Zap,
+      icon: Layers,
       title: "Всё в одном месте",
       description: "Поиск, бронирование и оплата за минуты",
       fullDescription: "TudaSuda объединяет все необходимые функции для путешествий в одном удобном интерфейсе. Вы можете найти билеты, выбрать места, оплатить заказ и получить электронные билеты — всё это без перехода на другие сайты. Наш сервис работает с ж/д, авиа и автобусными перевозчиками, предоставляя единую точку доступа ко всем видам транспорта.",
@@ -30,7 +30,7 @@ const FeaturesSection = () => {
       iconBg: "bg-purple-500",
     },
     {
-      icon: Heart,
+      icon: Headphones,
       title: "Поддержка 24/7",
       description: "Помогаем в любое время, отвечаем за 2 минуты",
       fullDescription: "Наша служба поддержки работает круглосуточно, семь дней в неделю. Мы помогаем с бронированием, изменениями, возвратами и любыми вопросами. Среднее время ответа — менее 2 минут. С нами можно связаться через чат, телефон или email. Наши специалисты всегда готовы помочь вам с любыми вопросами, связанными с путешествиями.",
@@ -39,7 +39,7 @@ const FeaturesSection = () => {
       iconBg: "bg-orange-500",
     },
     {
-      icon: Sparkles,
+      icon: FileText,
       title: "Электронные билеты",
       description: "Мгновенная выдача и быстрая регистрация",
       fullDescription: "Получите электронные билеты мгновенно после оплаты. Не нужно ждать доставки или идти в кассу — билеты приходят на вашу почту и сохраняются в личном кабинете. Быстрая регистрация на рейс прямо через наш сервис. Все документы хранятся в безопасном облачном хранилище, доступ к которому у вас есть в любое время.",
@@ -75,7 +75,7 @@ const FeaturesSection = () => {
       iconBg: "bg-amber-500",
     },
     {
-      icon: Ticket,
+      icon: LayoutGrid,
       title: "Выбор мест",
       description: "Интерактивная схема и удобный выбор",
       fullDescription: "Выбирайте места на интерактивной схеме вагона или салона самолёта. Мы показываем все доступные места с подробной информацией о каждом: расположение относительно окна, прохода, туалета и других удобств. Вы можете увидеть схему до покупки билета и выбрать наиболее удобное для вас место. Система автоматически подскажет лучшие варианты в зависимости от ваших предпочтений.",
@@ -85,47 +85,28 @@ const FeaturesSection = () => {
     },
   ];
 
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedFeature, setSelectedFeature] = useState<typeof features[0] | null>(null);
-  const cardsPerView = 4;
-  const totalSlides = Math.ceil(features.length / cardsPerView);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % totalSlides);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
-  };
 
   return (
-    <section id="features-section" className="py-20 bg-background relative overflow-hidden">
+    <section id="features-section" className="py-16 md:py-24 bg-background relative overflow-hidden">
       {/* Декоративные элементы */}
       <div className="absolute top-0 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
       
       <div className="container relative z-10">
-        <div className="text-center mb-16 space-y-4">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground">
+        <div className="text-center mb-12 md:mb-16 space-y-3">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
             Почему выбирают <span className="text-[#0D0D6E]">Tuda</span><span className="text-[#867DFF]">Suda?</span>
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             Всё для комфортного путешествия туда и обратно
           </p>
         </div>
 
-        <div className="relative">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-2">
-            {features
-              .slice(
-                currentSlide * cardsPerView,
-                currentSlide * cardsPerView + cardsPerView
-              )
-              .map((feature, localIndex) => {
-                const globalIndex = currentSlide * cardsPerView + localIndex;
-                return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-2">
+          {features.map((feature, index) => (
             <div
-              key={globalIndex}
+              key={index}
               onClick={() => setSelectedFeature(feature)}
               className={cn(
                 "animate-in fade-in slide-in-from-bottom-4 duration-500",
@@ -181,48 +162,7 @@ const FeaturesSection = () => {
               {/* Декоративная линия внизу */}
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-b-3xl"></div>
             </div>
-                );
-              })}
-          </div>
-        </div>
-
-        {/* Навигация с стрелками */}
-        <div className="mt-12 text-center">
-          <div className="inline-flex items-center gap-4 px-6 py-3 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-full border border-primary/20">
-            <button
-              onClick={prevSlide}
-              className="p-2 hover:bg-primary/20 rounded-full transition-all duration-300 hover:scale-110"
-              aria-label="Предыдущие карточки"
-            >
-              <ArrowLeft className="w-5 h-5 text-primary" />
-            </button>
-            <span className="text-sm font-semibold text-foreground">
-              Откройте для себя все возможности
-            </span>
-            <button
-              onClick={nextSlide}
-              className="p-2 hover:bg-primary/20 rounded-full transition-all duration-300 hover:scale-110"
-              aria-label="Следующие карточки"
-            >
-              <ArrowRight className="w-5 h-5 text-primary" />
-            </button>
-          </div>
-          {/* Индикаторы слайдов */}
-          <div className="flex justify-center gap-2 mt-4">
-            {Array.from({ length: totalSlides }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={cn(
-                  "w-2 h-2 rounded-full transition-all duration-300",
-                  currentSlide === index
-                    ? "bg-primary w-8"
-                    : "bg-primary/30 hover:bg-primary/50"
-                )}
-                aria-label={`Перейти к слайду ${index + 1}`}
-              />
-            ))}
-          </div>
+          ))}
         </div>
       </div>
 

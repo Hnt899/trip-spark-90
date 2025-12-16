@@ -227,19 +227,39 @@ const EventsSection = () => {
           <Button
             variant="outline"
             size="icon"
-            className="absolute left-0 -translate-x-full top-1/2 -translate-y-1/2 hidden lg:flex bg-background/80 backdrop-blur-sm hover:bg-background/90 z-10"
+            className="absolute left-0 -translate-x-full top-1/2 -translate-y-1/2 hidden lg:flex bg-white shadow-md hover:bg-white rounded-full w-12 h-12 z-10 border-0"
             onClick={handlePrev}
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-5 h-5 text-primary" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            className="absolute right-0 translate-x-1/2 top-1/2 -translate-y-1/2 hidden lg:flex bg-background/80 backdrop-blur-sm hover:bg-background/90 z-10"
+            className="absolute right-0 translate-x-1/2 top-1/2 -translate-y-1/2 hidden lg:flex bg-white shadow-md hover:bg-white rounded-full w-12 h-12 z-10 border-0"
             onClick={handleNext}
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-5 h-5 text-primary" />
           </Button>
+          
+          {/* Мобильные стрелки */}
+          <div className="flex lg:hidden justify-center gap-2 mt-6">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handlePrev}
+              className="rounded-full bg-white shadow-md hover:bg-white w-12 h-12 border-0"
+            >
+              <ChevronLeft className="w-5 h-5 text-primary" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleNext}
+              className="rounded-full bg-white shadow-md hover:bg-white w-12 h-12 border-0"
+            >
+              <ChevronRight className="w-5 h-5 text-primary" />
+            </Button>
+          </div>
         </div>
       </div>
     </section>

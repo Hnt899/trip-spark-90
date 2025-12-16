@@ -222,7 +222,7 @@ const WhatNeededForBoarding = () => {
 
           {/* CTA кнопка */}
           <div className="flex justify-center pt-4">
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg font-semibold">
+            <Button asChild size="lg" className="px-8 py-6 text-lg font-semibold">
               <Link to="/routes/list">
                 Перейти к покупке ж/д билетов
                 <ArrowRight className="ml-2 w-5 h-5" />

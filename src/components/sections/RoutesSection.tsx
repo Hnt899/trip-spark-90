@@ -1,184 +1,172 @@
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, ArrowRight, MapPin, Sparkles } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { TrendingUp, ArrowRight, Plane, Train, Hotel, Bus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import stPetersburg from "@/assets/saint-petersburg.jpg";
-import moscow from "@/assets/moscow.jpg";
-import kazan from "@/assets/kazan.jpg";
-import novgorod from "@/assets/novgorod.jpg";
-import karelia from "@/assets/karelia.jpg";
-import baikal1 from "@/assets/байкал1.jpg";
-import vladivostok1 from "@/assets/владивосток 1.jpg";
-import kaliningrad1 from "@/assets/калиниград 1.jpg";
-import sochi from "@/assets/armenia.jpg";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { cities } from "@/data/cities";
+import { useState, useMemo } from "react";
+
+interface PopularRoute {
+  from: string;
+  to: string;
+  minPrice: number;
+  isPopular: boolean;
+  duration?: string; // Время в пути, например "3ч 55м"
+}
+
+interface TransportOption {
+  type: "flight" | "train" | "bus";
+  duration: string;
+  price: number;
+  available: boolean;
+  details?: string;
+  badge?: string;
+}
+
+interface RouteData {
+  [key: string]: {
+    flight?: TransportOption;
+    train?: TransportOption;
+    bus?: TransportOption;
+  };
+}
 
 const RoutesSection = () => {
   const navigate = useNavigate();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const isScrolling = useRef(false);
+  const [calcFrom, setCalcFrom] = useState("Москва");
+  const [calcTo, setCalcTo] = useState("Сочи");
+  const [selectedTransport, setSelectedTransport] = useState<"flight" | "train" | "bus" | null>(null);
 
-  const destinations = [
-    {
-      id: 1,
-      name: "Санкт-Петербург",
-      image: stPetersburg,
-      price: "от 2 800 ₽",
-      tag: "Популярно",
-      tagColor: "bg-blue-500",
-      from: "Москва",
+  // Данные для разных маршрутов
+  const routeData: RouteData = {
+    "Москва-Сочи": {
+      flight: {
+        type: "flight",
+        duration: "4,5ч",
+        price: 4500,
+        available: true,
+        details: "2,5ч + 2ч до аэропорта = 4,5ч",
+      },
+      train: {
+        type: "train",
+        duration: "24ч",
+        price: 3000,
+        available: true,
+        badge: "экономите ночь в отеле",
+      },
+      bus: {
+        type: "bus",
+        duration: "18ч",
+        price: 2500,
+        available: true,
+      },
     },
-    {
-      id: 2,
-      name: "Казань",
-      image: kazan,
-      price: "от 2 940 ₽",
-      tag: "Семейно",
-      tagColor: "bg-purple-500",
-      from: "Москва",
+    "Москва-Санкт-Петербург": {
+      flight: {
+        type: "flight",
+        duration: "3,5ч",
+        price: 3500,
+        available: true,
+        details: "1,5ч + 2ч до аэропорта = 3,5ч",
+      },
+      train: {
+        type: "train",
+        duration: "3ч 55м",
+        price: 2950,
+        available: true,
+      },
+      bus: {
+        type: "bus",
+        duration: "8ч",
+        price: 1800,
+        available: false, // Распродано
+      },
     },
-    {
-      id: 3,
-      name: "Байкал",
-      image: baikal1,
-      price: "от 3 500 ₽",
-      tag: "Природа",
-      tagColor: "bg-green-500",
-      from: "Иркутск",
+    "Москва-Казань": {
+      flight: {
+        type: "flight",
+        duration: "4ч",
+        price: 4200,
+        available: true,
+        details: "2ч + 2ч до аэропорта = 4ч",
+      },
+      train: {
+        type: "train",
+        duration: "11ч 30м",
+        price: 1850,
+        available: true,
+      },
+      bus: {
+        type: "bus",
+        duration: "12ч",
+        price: 1500,
+        available: true,
+      },
     },
-    {
-      id: 4,
-      name: "Великий Новгород",
-      image: novgorod,
-      price: "от 1 500 ₽",
-      tag: "Бюджетно",
-      tagColor: "bg-orange-500",
-      from: "Москва",
+    "Москва-Нижний Новгород": {
+      flight: {
+        type: "flight",
+        duration: "3,5ч",
+        price: 3800,
+        available: false, // Распродано
+        details: "1,5ч + 2ч до аэропорта = 3,5ч",
+      },
+      train: {
+        type: "train",
+        duration: "3ч 40м",
+        price: 650,
+        available: true,
+      },
+      bus: {
+        type: "bus",
+        duration: "6ч",
+        price: 800,
+        available: true,
+      },
     },
-    {
-      id: 5,
-      name: "Владивосток",
-      image: vladivostok1,
-      price: "от 12 000 ₽",
-      tag: "Экскурсии",
-      tagColor: "bg-purple-500",
-      from: "Москва",
-    },
-    {
-      id: 6,
-      name: "Калининград",
-      image: kaliningrad1,
-      price: "от 4 900 ₽",
-      tag: "Популярно",
-      tagColor: "bg-blue-500",
-      from: "Москва",
-    },
-    {
-      id: 7,
-      name: "Карелия",
-      image: karelia,
-      price: "от 2 240 ₽",
-      tag: "Природа",
-      tagColor: "bg-green-500",
-      from: "Санкт-Петербург",
-    },
-    {
-      id: 8,
-      name: "Сочи",
-      image: sochi,
-      price: "от 3 850 ₽",
-      tag: "Пляжи",
-      tagColor: "bg-cyan-500",
-      from: "Москва",
-    },
+  };
+
+  // Получаем данные для текущего маршрута
+  const currentRouteData = useMemo(() => {
+    const routeKey = `${calcFrom}-${calcTo}`;
+    return routeData[routeKey] || {
+      flight: {
+        type: "flight" as const,
+        duration: "—",
+        price: 0,
+        available: false,
+      },
+      train: {
+        type: "train" as const,
+        duration: "—",
+        price: 0,
+        available: false,
+      },
+      bus: {
+        type: "bus" as const,
+        duration: "—",
+        price: 0,
+        available: false,
+      },
+    };
+  }, [calcFrom, calcTo]);
+
+  // Сбрасываем выбор при изменении маршрута
+  const handleRouteChange = () => {
+    setSelectedTransport(null);
+  };
+
+  const popularRoutes: PopularRoute[] = [
+    { from: "Москва", to: "Санкт-Петербург", minPrice: 2950, isPopular: true, duration: "3ч 55м" },
+    { from: "Москва", to: "Казань", minPrice: 1850, isPopular: true, duration: "11ч 30м" },
+    { from: "Москва", to: "Нижний Новгород", minPrice: 650, isPopular: false, duration: "3ч 40м" },
+    { from: "Санкт-Петербург", to: "Москва", minPrice: 2950, isPopular: true, duration: "3ч 55м" },
+    { from: "Казань", to: "Москва", minPrice: 1850, isPopular: false, duration: "11ч 30м" },
+    { from: "Тверь", to: "Москва", minPrice: 550, isPopular: false, duration: "1ч 40м" },
   ];
 
-  // Дублируем для бесконечной карусели
-  const duplicatedDestinations = [...destinations, ...destinations, ...destinations];
 
-  useEffect(() => {
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer) return;
-
-    const getCardWidth = () => {
-      // Всегда 3 карточки в ряду (как в Горящие направления)
-      const gap = 24; // gap-6 = 24px
-      return (scrollContainer.clientWidth - gap * 2) / 3;
-    };
-
-    const initializeScroll = () => {
-      const cardWidth = getCardWidth();
-      const gap = 24;
-      const cardWithGap = cardWidth + gap;
-      const initialScroll = destinations.length * cardWithGap;
-      scrollContainer.scrollLeft = initialScroll;
-    };
-
-    initializeScroll();
-
-    const handleScroll = () => {
-      if (isScrolling.current) return;
-
-      const cardWidth = getCardWidth();
-      const gap = 24;
-      const cardWithGap = cardWidth + gap;
-      const singleSetWidth = destinations.length * cardWithGap;
-      const { scrollLeft, clientWidth } = scrollContainer;
-
-      if (scrollLeft >= singleSetWidth * 2 - clientWidth - 10) {
-        isScrolling.current = true;
-        const offset = scrollLeft - singleSetWidth * 2;
-        scrollContainer.scrollLeft = singleSetWidth + offset;
-        setTimeout(() => {
-          isScrolling.current = false;
-        }, 50);
-      } else if (scrollLeft <= 10) {
-        isScrolling.current = true;
-        scrollContainer.scrollLeft = singleSetWidth * 2 + scrollLeft;
-        setTimeout(() => {
-          isScrolling.current = false;
-        }, 50);
-      }
-    };
-
-    const handleResize = () => {
-      initializeScroll();
-    };
-
-    scrollContainer.addEventListener("scroll", handleScroll);
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      scrollContainer.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  const scrollLeft = () => {
-    if (scrollRef.current && !isScrolling.current) {
-      const gap = 24;
-      const cardWidth = (scrollRef.current.clientWidth - gap * 2) / 3;
-      const scrollAmount = cardWidth + gap;
-      scrollRef.current.scrollTo({
-        left: scrollRef.current.scrollLeft - scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollRef.current && !isScrolling.current) {
-      const gap = 24;
-      const cardWidth = (scrollRef.current.clientWidth - gap * 2) / 3;
-      const scrollAmount = cardWidth + gap;
-      scrollRef.current.scrollTo({
-        left: scrollRef.current.scrollLeft + scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  };
-
-  const handleSelectDestination = (from: string, to: string) => {
+  const handleRouteClick = (from: string, to: string, transportType?: "train" | "flight" | "bus") => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const params = new URLSearchParams({
@@ -188,113 +176,100 @@ const RoutesSection = () => {
       passengers: "1",
       ticketType: "all",
     });
-    navigate(`/train-search?${params.toString()}`);
+    
+    // Определяем страницу поиска в зависимости от типа транспорта
+    if (transportType === "flight") {
+      navigate(`/flight-search?${params.toString()}`);
+    } else if (transportType === "bus") {
+      navigate(`/bus-search?${params.toString()}`);
+    } else {
+      navigate(`/train-search?${params.toString()}`);
+    }
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("ru-RU").format(price);
   };
 
   return (
-    <section className="py-20 bg-gradient-to-b from-background via-background to-muted/20 relative overflow-hidden">
-      {/* Декоративные элементы */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
-      <div className="absolute bottom-0 left-0 w-72 h-72 bg-purple-500/5 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2"></div>
-
-      <div className="container relative z-10">
-        <div className="mb-12">
-          <div className="text-center mb-6">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent">
-              Популярные направления
-            </h2>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-2">
-              Эти направления выбирают чаще всего
-            </p>
-            <p className="text-sm text-muted-foreground/80">
-              Откройте для себя самые популярные маршруты России
-            </p>
-          </div>
+    <section className="py-16 md:py-24 bg-background">
+      <div className="container">
+        {/* Заголовок секции */}
+        <div className="mb-12 text-center">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent">
+            Популярные направления
+          </h2>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+            Самые востребованные маршруты с актуальными ценами
+          </p>
         </div>
 
-        <div className="relative flex items-center gap-4">
-          {/* Стрелка влево */}
-          <button
-            onClick={scrollLeft}
-            className="flex-shrink-0 z-20 bg-white/90 hover:bg-white shadow-xl rounded-full p-4 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center -ml-[10px] border border-border/20"
-            aria-label="Прокрутить влево"
-          >
-            <ChevronLeft className="h-6 w-6 text-primary" />
-          </button>
-
-          <div className="flex-1 relative overflow-visible">
-            <div
-              ref={scrollRef}
-              className="flex gap-6 overflow-x-hidden scrollbar-hide py-4"
-              style={{
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-                scrollBehavior: "smooth",
-              }}
-            >
-              {duplicatedDestinations.map((destination, index) => (
-                <div
-                  key={`${destination.id}-${index}`}
-                  className={cn(
-                    "group relative flex-shrink-0 rounded-3xl overflow-hidden",
-                    "bg-card border-2 border-transparent",
-                    "hover:border-primary/30 hover:shadow-2xl",
-                    "transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]",
-                    "hover:-translate-y-4 hover:scale-[1.03] cursor-pointer",
-                    "w-[calc((100%-3rem)/3)]",
-                    "will-change-transform"
-                  )}
-                  onClick={() => handleSelectDestination(destination.from, destination.name)}
-                >
-                  {/* Фото направления */}
-                  <div className="relative h-80 overflow-hidden">
-                    <img
-                      src={destination.image}
-                      alt={destination.name}
-                      className="w-full h-full object-cover transition-transform duration-1200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-110"
-                    />
-                    {/* Затемнение при hover */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20 transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:from-black/90 group-hover:via-black/60"></div>
-
-                    {/* Тег */}
-                    <div className="absolute top-4 left-4 z-10 transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-110">
-                      <span
-                        className={cn(
-                          "px-4 py-2 rounded-full text-white text-sm font-bold shadow-xl backdrop-blur-sm transition-all duration-1000",
-                          destination.tagColor
-                        )}
-                      >
-                        {destination.tag}
+        {/* Двухколоночный layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 lg:gap-8 items-start">
+          {/* Левая колонка: Таблица маршрутов */}
+          <div className="w-full">
+            <div className="space-y-3">
+              {popularRoutes.map((route, index) => (
+                <div key={index} className="relative">
+                  {/* Бейдж "Популярно" над карточкой, выровнен по правому краю */}
+                  {route.isPopular && (
+                    <div className="flex justify-end mb-1">
+                      <span className="flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary rounded text-xs font-medium border border-primary/20">
+                        <TrendingUp className="w-3 h-3" />
+                        Популярно
                       </span>
                     </div>
+                  )}
 
-                    {/* Название города */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6 z-10 transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]">
-                      <h3 className="text-3xl md:text-4xl font-extrabold text-white mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-transform duration-1000 group-hover:scale-105">
-                        {destination.name}
-                      </h3>
-                      <div className="flex items-center gap-2 text-white/90 text-sm mb-3 transition-all duration-1000 group-hover:text-white group-hover:gap-3">
-                        <MapPin className="w-4 h-4 transition-transform duration-1000 group-hover:scale-110" />
-                        <span>{destination.from} → {destination.name}</span>
+                  {/* Карточка маршрута */}
+                  <div
+                    onClick={() => handleRouteClick(route.from, route.to)}
+                    className={cn(
+                      "group relative rounded-lg p-4 md:p-5",
+                      "bg-card hover:bg-primary/5 hover:shadow-md",
+                      "transition-all duration-200 cursor-pointer",
+                      // Фиолетовая обводка для популярных маршрутов
+                      route.isPopular
+                        ? "border-2 border-purple-600 hover:border-purple-700"
+                        : "border border-border/60 hover:border-primary/40"
+                    )}
+                  >
+                    {/* Grid layout: левая колонка | центральная (фикс) | правая колонка | цена */}
+                    <div className="grid grid-cols-[1fr_200px_1fr_auto] gap-4 items-center">
+                      {/* Левая колонка: город отправления */}
+                      <div className="min-w-0">
+                        <span className="text-base md:text-lg font-semibold text-foreground">
+                          {route.from}
+                        </span>
                       </div>
-                      <div className="text-2xl font-bold text-white drop-shadow-lg transition-transform duration-1000 group-hover:scale-105">
-                        {destination.price}
-                      </div>
-                    </div>
 
-                    {/* CTA кнопка при hover */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-20">
-                      <Button
-                        size="lg"
-                        className="bg-white text-primary hover:bg-white/90 shadow-2xl font-bold text-base px-8 py-6 rounded-full transform transition-all duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-110 hover:scale-125"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSelectDestination(destination.from, destination.name);
-                        }}
-                      >
-                        Выбрать даты
-                        <ArrowRight className="w-5 h-5 ml-2 transition-transform duration-500 group-hover:translate-x-1" />
-                      </Button>
+                      {/* Центральная колонка (фиксированная ширина): линия/стрелка + время */}
+                      <div className="flex flex-col items-center justify-center relative w-full">
+                        {/* Время в пути над линией */}
+                        <div className="text-xs text-muted-foreground mb-1.5 whitespace-nowrap">
+                          В пути: {route.duration || "—"}
+                        </div>
+                        {/* Линия со стрелкой - растягивается на всю ширину */}
+                        <div className="w-full flex items-center gap-1.5">
+                          <div className="flex-1 h-0.5 bg-border group-hover:bg-primary/40 transition-colors duration-200"></div>
+                          <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0 transition-colors duration-200" />
+                          <div className="flex-1 h-0.5 bg-border group-hover:bg-primary/40 transition-colors duration-200"></div>
+                        </div>
+                      </div>
+
+                      {/* Правая колонка: город прибытия */}
+                      <div className="min-w-0 text-right">
+                        <span className="text-base md:text-lg font-semibold text-foreground">
+                          {route.to}
+                        </span>
+                      </div>
+
+                      {/* Цена (отдельная колонка справа) */}
+                      <div className="text-right flex-shrink-0 min-w-[120px]">
+                        <div className="text-lg md:text-xl font-bold text-foreground">
+                          от {formatPrice(route.minPrice)} ₽
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -302,53 +277,213 @@ const RoutesSection = () => {
             </div>
           </div>
 
-          {/* Стрелка вправо */}
-          <button
-            onClick={scrollRight}
-            className="flex-shrink-0 z-20 bg-white/90 hover:bg-white shadow-xl rounded-full p-4 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center border border-border/20"
-            aria-label="Прокрутить вправо"
-          >
-            <ChevronRight className="h-6 w-6 text-primary" />
-          </button>
-        </div>
+          {/* Правая колонка: Калькулятор */}
+          <div>
+            <div className="rounded-lg border border-border bg-card p-5 md:p-6 shadow-sm">
+              {/* Заголовок калькулятора */}
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-foreground mb-2">
+                  Сравнить поезд и самолёт
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Покажем время в пути и реальную выгоду логистики
+                </p>
+              </div>
 
-        {/* Кнопка "Ещё" */}
-        <div className="flex justify-center mt-12">
-          <Button
-            variant="default"
-            size="lg"
-            className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white font-bold px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-            onClick={() => {
-              navigate("/routes/list");
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            Ещё направлений
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
-        </div>
+              {/* Форма калькулятора */}
+              <div className="space-y-4 mb-6">
+                {/* Откуда */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Откуда</label>
+                  <Select 
+                    value={calcFrom} 
+                    onValueChange={(value) => {
+                      setCalcFrom(value);
+                      handleRouteChange();
+                    }}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cities.map((city) => (
+                        <SelectItem key={`calc-from-${city}`} value={city}>
+                          {city}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-        {/* Мобильные кнопки навигации */}
-        <div className="flex md:hidden justify-center gap-2 mt-6">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={scrollLeft}
-            className="h-12 w-12 rounded-full"
-            aria-label="Прокрутить влево"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={scrollRight}
-            className="h-12 w-12 rounded-full"
-            aria-label="Прокрутить вправо"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
+                {/* Куда */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Куда</label>
+                  <Select 
+                    value={calcTo} 
+                    onValueChange={(value) => {
+                      setCalcTo(value);
+                      handleRouteChange();
+                    }}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cities.filter(city => city !== calcFrom).map((city) => (
+                        <SelectItem key={`calc-to-${city}`} value={city}>
+                          {city}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Результаты сравнения */}
+              <div className="space-y-3 mb-6">
+                {/* Самолёт */}
+                {currentRouteData.flight && (
+                  <div
+                    onClick={() => currentRouteData.flight?.available && setSelectedTransport("flight")}
+                    className={cn(
+                      "rounded-lg border p-4 cursor-pointer transition-all",
+                      currentRouteData.flight.available
+                        ? selectedTransport === "flight"
+                          ? "border-primary bg-primary/5 shadow-md"
+                          : "border-border bg-muted/30 hover:border-primary/50 hover:bg-primary/5"
+                        : "border-border/50 bg-muted/20 opacity-60 cursor-not-allowed"
+                    )}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Plane className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-semibold text-foreground">Самолёт</span>
+                      </div>
+                      {!currentRouteData.flight.available && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-medium">
+                          <X className="w-3 h-3" />
+                          Распродано
+                        </span>
+                      )}
+                    </div>
+                    {currentRouteData.flight.available ? (
+                      <>
+                        <div className="text-xs text-muted-foreground mb-1">
+                          {currentRouteData.flight.details || (
+                            <span className="font-semibold text-foreground">{currentRouteData.flight.duration}</span>
+                          )}
+                        </div>
+                        <div className="text-sm font-bold text-foreground">
+                          от {formatPrice(currentRouteData.flight.price)} ₽
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-xs text-muted-foreground">Нет доступных рейсов</div>
+                    )}
+                  </div>
+                )}
+
+                {/* Поезд */}
+                {currentRouteData.train && (
+                  <div
+                    onClick={() => currentRouteData.train?.available && setSelectedTransport("train")}
+                    className={cn(
+                      "rounded-lg border p-4 cursor-pointer transition-all",
+                      currentRouteData.train.available
+                        ? selectedTransport === "train"
+                          ? "border-primary bg-primary/5 shadow-md"
+                          : "border-border bg-muted/30 hover:border-primary/50 hover:bg-primary/5"
+                        : "border-border/50 bg-muted/20 opacity-60 cursor-not-allowed"
+                    )}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Train className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-semibold text-foreground">Поезд</span>
+                      </div>
+                      {!currentRouteData.train.available && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-medium">
+                          <X className="w-3 h-3" />
+                          Распродано
+                        </span>
+                      )}
+                    </div>
+                    {currentRouteData.train.available ? (
+                      <>
+                        <div className="text-xs text-muted-foreground mb-1">
+                          <span className="font-semibold text-foreground">{currentRouteData.train.duration}</span>
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <div className="text-sm font-bold text-foreground">
+                            от {formatPrice(currentRouteData.train.price)} ₽
+                          </div>
+                          {currentRouteData.train.badge && (
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-medium w-fit">
+                              <Hotel className="w-3 h-3" />
+                              {currentRouteData.train.badge}
+                            </span>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-xs text-muted-foreground">Нет доступных рейсов</div>
+                    )}
+                  </div>
+                )}
+
+                {/* Автобус */}
+                {currentRouteData.bus && (
+                  <div
+                    onClick={() => currentRouteData.bus?.available && setSelectedTransport("bus")}
+                    className={cn(
+                      "rounded-lg border p-4 cursor-pointer transition-all",
+                      currentRouteData.bus.available
+                        ? selectedTransport === "bus"
+                          ? "border-primary bg-primary/5 shadow-md"
+                          : "border-border bg-muted/30 hover:border-primary/50 hover:bg-primary/5"
+                        : "border-border/50 bg-muted/20 opacity-60 cursor-not-allowed"
+                    )}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Bus className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-semibold text-foreground">Автобус</span>
+                      </div>
+                      {!currentRouteData.bus.available && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-medium">
+                          <X className="w-3 h-3" />
+                          Распродано
+                        </span>
+                      )}
+                    </div>
+                    {currentRouteData.bus.available ? (
+                      <>
+                        <div className="text-xs text-muted-foreground mb-1">
+                          <span className="font-semibold text-foreground">{currentRouteData.bus.duration}</span>
+                        </div>
+                        <div className="text-sm font-bold text-foreground">
+                          от {formatPrice(currentRouteData.bus.price)} ₽
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-xs text-muted-foreground">Нет доступных рейсов</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* CTA кнопка - показывается только после выбора транспорта */}
+              {selectedTransport && (
+                <Button
+                  className="w-full rounded-full"
+                  onClick={() => handleRouteClick(calcFrom, calcTo, selectedTransport)}
+                >
+                  Показать билеты
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </section>

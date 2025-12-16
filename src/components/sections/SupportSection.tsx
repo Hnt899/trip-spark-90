@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { MessageCircle, CheckCircle2, Headphones, Mail, Phone, Zap, Shield, Bot, Loader2, Send, Check } from "lucide-react";
+import { MessageCircle, Phone, Mail, Bot, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { Loader2, Send } from "lucide-react";
 
 interface ChatMessage {
   id: string;
@@ -138,151 +140,219 @@ const SupportSection = () => {
 
   return (
     <>
-      <section className="py-20 bg-gradient-to-b from-background via-muted/20 to-background relative overflow-hidden">
-        {/* Декоративные элементы */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-purple-500/5 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2"></div>
+      <section className="py-16 md:py-24 relative overflow-hidden">
+        {/* Общая подложка секции - легкий градиент */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5"></div>
+        
+        {/* Chat bubble паттерн на фоне (декоративный) */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 right-10 w-32 h-32 rounded-full bg-primary/5 blur-2xl"></div>
+          <div className="absolute top-40 left-20 w-24 h-24 rounded-full bg-purple-500/5 blur-2xl"></div>
+          <div className="absolute bottom-20 right-1/4 w-40 h-40 rounded-full bg-primary/5 blur-3xl"></div>
+          {/* Chat bubble формы */}
+          <div className="absolute top-1/4 left-1/4 w-20 h-16 rounded-2xl rounded-tl-none bg-primary/3 rotate-12 blur-sm"></div>
+          <div className="absolute bottom-1/3 right-1/3 w-16 h-12 rounded-2xl rounded-tr-none bg-purple-500/3 -rotate-12 blur-sm"></div>
+        </div>
 
         <div className="container relative z-10">
-          {/* Заголовок */}
-          <div className="mb-12 text-center">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent">
-              Нужна помощь с заказом?
-            </h2>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Наш умный бот поможет вам быстро и эффективно
-            </p>
-          </div>
+          {/* Общая карточка на всю ширину */}
+          <div className="rounded-3xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 md:p-8 lg:p-12 shadow-lg">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+              {/* Левая часть: Смысл + шаги */}
+              <div className="space-y-8">
+                {/* Заголовок */}
+                <div>
+                  <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent">
+                    Умный бот-помощник 24/7
+                  </h2>
+                  <p className="text-lg md:text-xl text-muted-foreground">
+                    Решаем вопросы быстро и эффективно, работаем круглосуточно
+                  </p>
+                </div>
 
-          {/* Основной контент */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            {/* Левая часть - Кнопки и информация */}
-            <div className="space-y-6">
-              {/* Главная CTA кнопка - Чат с ботом */}
-              <Button
-                size="lg"
-                onClick={() => setIsChatOpen(true)}
-                className="w-full h-20 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white font-bold text-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
-              >
-                <Bot className="w-7 h-7 mr-3" />
-                Открыть чат с ботом
-              </Button>
-
-              {/* Статус бота */}
-              <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-2xl p-6 border border-primary/20">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
-                    <Bot className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-extrabold text-foreground">Умный бот-помощник</p>
-                    <p className="text-sm text-muted-foreground">Работает круглосуточно</p>
+                {/* Какие вопросы решаем */}
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                    Помогаем с
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-foreground">Возвратами и изменениями билетов</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-foreground">Статусом бронирования и билетов</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-foreground">Любыми вопросами по путешествиям</span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-primary">
-                  <Zap className="w-5 h-5" />
-                  <span className="font-semibold">Помогает с любыми вопросами</span>
+
+                {/* Преимущества бота */}
+                <div className="rounded-lg border border-border/50 bg-muted/30 p-5">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                    Почему выбирают нас
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-2xl font-bold text-primary mb-1">24/7</div>
+                      <div className="text-xs text-muted-foreground">Работаем круглосуточно</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-primary mb-1">&lt;2 мин</div>
+                      <div className="text-xs text-muted-foreground">Среднее время ответа</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-primary mb-1">95%</div>
+                      <div className="text-xs text-muted-foreground">Вопросов решает бот</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-primary mb-1">100%</div>
+                      <div className="text-xs text-muted-foreground">Безопасность данных</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Описание бота */}
+                <div className="space-y-3">
+                  <p className="text-sm text-foreground leading-relaxed">
+                    Наш умный бот-помощник использует технологии искусственного интеллекта для быстрого решения ваших вопросов. Он понимает контекст, помнит историю диалога и может помочь с выбором билетов, маршрутов и планированием путешествий.
+                  </p>
+                  <p className="text-sm text-foreground leading-relaxed">
+                    Если бот не сможет решить вопрос самостоятельно, он мгновенно подключит живого оператора, который продолжит диалог без потери контекста. Все ваши данные защищены и обрабатываются в соответствии с требованиями безопасности.
+                  </p>
                 </div>
               </div>
 
-              {/* Способы связи */}
-              <div className="grid grid-cols-3 gap-4">
-                <div
-                  onClick={() => setIsChatOpen(true)}
-                  className="h-20 bg-card rounded-xl p-4 border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col items-center justify-center group"
-                >
-                  <div className="w-12 h-12 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mb-2 transition-colors">
-                    <MessageCircle className="w-6 h-6 text-primary" />
+              {/* Правая часть: Превью интерфейса (демонстрационное) */}
+              <div className="relative">
+                {/* Подпись "Превью" */}
+                <div className="text-xs text-muted-foreground mb-3 text-center lg:text-left font-medium">
+                  Пример диалога / Превью
+                </div>
+                
+                {/* Макет чата - демо-экран (увеличенный) */}
+                <div className="rounded-xl border-2 border-border bg-muted/30 p-6 md:p-8 shadow-md">
+                  {/* Заголовок демо-экрана */}
+                  <div className="flex items-center gap-3 mb-5 pb-4 border-b border-border/50">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Bot className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">Демо-чат</p>
+                      <p className="text-xs text-muted-foreground">Пример интерфейса</p>
+                    </div>
                   </div>
-                  <p className="font-semibold text-sm">Чат</p>
-                  <p className="text-xs text-muted-foreground mt-1">Быстро</p>
-                </div>
-                <div
-                  onClick={handleCopyPhone}
-                  className="h-20 bg-card rounded-xl p-4 border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col items-center justify-center group"
-                >
-                  <div className="w-12 h-12 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mb-2 transition-colors">
-                    {copiedPhone ? (
-                      <Check className="w-6 h-6 text-green-600" />
-                    ) : (
-                      <Phone className="w-6 h-6 text-primary" />
-                    )}
+                  
+                  <div className="space-y-4">
+                    {/* Сообщение бота */}
+                    <div className="flex justify-start">
+                      <div className="max-w-[85%] rounded-lg bg-card border border-border px-4 py-3 shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Bot className="w-5 h-5 text-primary" />
+                          <span className="text-sm font-semibold text-foreground">Бот-помощник</span>
+                        </div>
+                        <p className="text-sm text-foreground">Привет! Я помогу с маршрутом и заказом билетов. Напиши свой вопрос 🙂</p>
+                      </div>
+                    </div>
+                    
+                    {/* Вопрос пользователя */}
+                    <div className="flex justify-end">
+                      <div className="max-w-[85%] rounded-lg bg-primary text-primary-foreground px-4 py-3 shadow-sm">
+                        <p className="text-sm">Подскажи лучшие места для путешествий на юг России</p>
+                      </div>
+                    </div>
+                    
+                    {/* Ответ бота про юг России */}
+                    <div className="flex justify-start">
+                      <div className="max-w-[85%] rounded-lg bg-card border border-border px-4 py-3 shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Bot className="w-5 h-5 text-primary" />
+                          <span className="text-sm font-semibold text-foreground">Бот-помощник</span>
+                        </div>
+                        <p className="text-sm text-foreground mb-2">Отличный выбор! На юге России много красивых мест: Сочи, Анапа, Геленджик, Крым. Какое направление вас интересует?</p>
+                      </div>
+                    </div>
+                    
+                    {/* Выбор пользователя */}
+                    <div className="flex justify-end">
+                      <div className="max-w-[85%] rounded-lg bg-primary text-primary-foreground px-4 py-3 shadow-sm">
+                        <p className="text-sm">Сочи</p>
+                      </div>
+                    </div>
+                    
+                    {/* Ответ бота про Сочи и билеты */}
+                    <div className="flex justify-start">
+                      <div className="max-w-[85%] rounded-lg bg-card border border-border px-4 py-3 shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Bot className="w-5 h-5 text-primary" />
+                          <span className="text-sm font-semibold text-foreground">Бот-помощник</span>
+                        </div>
+                        <p className="text-sm text-foreground mb-2">Сочи — прекрасный выбор! Там отличные пляжи, горы и развлечения. Рекомендую взять билеты на поезд — комфортно и выгодно, особенно ночные рейсы. Могу подобрать лучшие варианты прямо сейчас!</p>
+                      </div>
+                    </div>
                   </div>
-                  <p className="font-semibold text-sm">Звонок</p>
-                  <p className="text-xs text-muted-foreground mt-1">{copiedPhone ? "Скопировано!" : "Скопировать"}</p>
-                </div>
-                <div
-                  onClick={handleCopyEmail}
-                  className="h-20 bg-card rounded-xl p-4 border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col items-center justify-center group"
-                >
-                  <div className="w-12 h-12 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mb-2 transition-colors">
-                    {copiedEmail ? (
-                      <Check className="w-6 h-6 text-green-600" />
-                    ) : (
-                      <Mail className="w-6 h-6 text-primary" />
-                    )}
-                  </div>
-                  <p className="font-semibold text-sm">Email</p>
-                  <p className="text-xs text-muted-foreground mt-1">{copiedEmail ? "Скопировано!" : "Скопировать"}</p>
-                </div>
-              </div>
-
-              {/* Преимущества */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-foreground">Решаем вопросы по возвратам и изменениям</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Shield className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">Помогаем со статусом билетов и бронированием</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Headphones className="w-5 h-5 text-purple-600 flex-shrink-0" />
-                  <span className="text-foreground">Консультируем по любым вопросам</span>
                 </div>
               </div>
             </div>
 
-            {/* Правая часть - Визуал с ботом */}
-            <div className="relative hidden lg:block">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-primary/10 via-purple-500/10 to-primary/10 p-8 border border-primary/20">
-                {/* Абстрактный tech-фон */}
-                <div className="absolute inset-0 opacity-20">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl"></div>
-                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl"></div>
+            {/* Разделительная линия */}
+            <div className="my-8 h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
+
+            {/* CTA-зона - акцентная панель */}
+            <div className="rounded-2xl bg-gradient-to-r from-primary/5 via-purple-500/5 to-primary/5 border border-primary/10 p-6 md:p-8 shadow-sm">
+              <div className="space-y-4">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    Выберите способ связи
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Мы поможем решить ваш вопрос быстро и эффективно
+                  </p>
                 </div>
-                
-                {/* Иконки бота */}
-                <div className="relative z-10 space-y-6">
-                  {/* Центральная иконка бота */}
-                  <div className="flex justify-center">
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-2xl animate-pulse">
-                      <Bot className="w-16 h-16 text-white" />
-                    </div>
-                  </div>
 
-                  {/* Вокруг иконки - элементы */}
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-lg">
-                      <MessageCircle className="w-8 h-8 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-semibold text-foreground">Чат</p>
-                    </div>
-                    <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-lg">
-                      <Zap className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                      <p className="text-xs font-semibold text-foreground">24/7</p>
-                    </div>
-                    <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-lg">
-                      <Shield className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                      <p className="text-xs font-semibold text-foreground">Надёжно</p>
-                    </div>
-                  </div>
+                {/* Кнопки CTA */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {/* Главный CTA - Чат */}
+                  <Button
+                    size="lg"
+                    onClick={() => setIsChatOpen(true)}
+                    className="flex-1 rounded-full font-semibold shadow-md hover:shadow-lg transition-shadow"
+                  >
+                    <MessageCircle className="w-5 h-5 mr-2" />
+                    Открыть чат с ботом
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
 
-                  {/* Текст */}
-                  <div className="text-center space-y-2">
-                    <p className="text-lg font-bold text-foreground">Умный бот-помощник</p>
-                    <p className="text-sm text-muted-foreground">Помогает с любыми вопросами</p>
-                  </div>
+                  {/* Вторичные CTA */}
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleCopyPhone}
+                    className="flex-1 rounded-full hover:bg-gradient-to-r hover:from-primary hover:to-purple-600 hover:text-white hover:border-transparent transition-all group"
+                  >
+                    <Phone className="w-5 h-5 mr-2 group-hover:text-white" />
+                    <span className={cn(copiedPhone && "font-semibold", "group-hover:text-white")}>
+                      {copiedPhone ? "Скопировано!" : "Позвонить"}
+                    </span>
+                    <span className="ml-2 text-xs text-muted-foreground group-hover:text-white/90">24/7</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleCopyEmail}
+                    className="flex-1 rounded-full hover:bg-gradient-to-r hover:from-primary hover:to-purple-600 hover:text-white hover:border-transparent transition-all group"
+                  >
+                    <Mail className="w-5 h-5 mr-2 group-hover:text-white" />
+                    <span className={cn(copiedEmail && "font-semibold", "group-hover:text-white")}>
+                      {copiedEmail ? "Скопировано!" : "Написать"}
+                    </span>
+                    <span className="ml-2 text-xs text-muted-foreground group-hover:text-white/90">ответ в течение дня</span>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -318,11 +388,12 @@ const SupportSection = () => {
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                  className={cn(
+                    "max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm",
                     message.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-md"
                       : "bg-white text-foreground border"
-                  }`}
+                  )}
                 >
                   {message.content}
                 </div>
@@ -373,3 +444,4 @@ const SupportSection = () => {
 };
 
 export default SupportSection;
+

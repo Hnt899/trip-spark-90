@@ -60,7 +60,7 @@ const NoTickets = () => {
                         <div className="text-sm text-muted-foreground">Скоро в продаже</div>
                       </div>
                     </div>
-                    <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                    <Button className="w-full">
                       Заказать уведомление
                     </Button>
                   </div>
@@ -172,10 +172,10 @@ const NoTickets = () => {
                   <div>
                     <h4 className="font-semibold mb-3">Выберите тип вагона</h4>
                     <div className="flex flex-wrap gap-3">
-                      <button className="px-4 py-2 bg-primary text-white rounded-lg font-medium">
+                      <button className="px-4 py-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white rounded-full font-medium">
                         Купе
                       </button>
-                      <button className="px-4 py-2 bg-white border-2 border-primary text-primary rounded-lg font-medium hover:bg-primary/5">
+                      <button className="px-4 py-2 bg-white border-2 border-primary text-primary rounded-full font-medium hover:bg-primary/5">
                         Плацкарт
                       </button>
                     </div>
@@ -269,7 +269,7 @@ const NoTickets = () => {
 
           {/* CTA кнопка */}
           <div className="flex justify-center pt-4">
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg font-semibold">
+            <Button asChild size="lg" className="px-8 py-6 text-lg font-semibold">
               <Link to="/routes/list">
                 Перейти к покупке ж/д билетов
                 <ArrowRight className="ml-2 w-5 h-5" />

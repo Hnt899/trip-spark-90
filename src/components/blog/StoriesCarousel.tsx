@@ -144,19 +144,19 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
         <Button
           variant="outline"
           size="icon"
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full -ml-4 w-10 h-10 rounded-full bg-white shadow-md z-10 hidden md:flex"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full -ml-4 w-12 h-12 rounded-full bg-white shadow-md hover:bg-white z-10 hidden md:flex"
           onClick={handlePrev}
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-5 h-5 text-primary" />
         </Button>
 
         <Button
           variant="outline"
           size="icon"
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full ml-4 w-10 h-10 rounded-full bg-white shadow-md z-10 hidden md:flex"
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full ml-4 w-12 h-12 rounded-full bg-white shadow-md hover:bg-white z-10 hidden md:flex"
           onClick={handleNext}
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-5 h-5 text-primary" />
         </Button>
       </div>
 

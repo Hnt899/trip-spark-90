@@ -26,21 +26,26 @@ const NavDropdown = ({ label, items, href, isActive = false, isHomePage = false 
         <Link
           to={href}
           className={cn(
-            "text-lg font-medium transition-colors px-3 py-2 rounded-md",
+            "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
             isActive 
               ? isHomePage 
-                ? "text-white bg-white/20" 
-                : "text-primary bg-primary/10"
+                ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
+                : "text-primary bg-primary/10 border-transparent"
               : isHomePage
-                ? "text-white/90 hover:text-white hover:bg-white/10"
-                : "text-foreground/80 hover:text-primary hover:bg-muted/50"
+                ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
           )}
         >
           {label}
         </Link>
       </HoverCardTrigger>
       <HoverCardContent
-        className="w-80 p-4 rounded-xl shadow-lg bg-background border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-3 data-[side=top]:slide-in-from-bottom-3 transition-all duration-200"
+        className={cn(
+          "w-80 p-4 rounded-xl shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-3 data-[side=top]:slide-in-from-bottom-3 transition-all duration-200",
+          isHomePage
+            ? "bg-white/95 supports-[backdrop-filter]:bg-white/90 backdrop-blur-lg border border-foreground/20"
+            : "bg-background border"
+        )}
         sideOffset={12}
         align="start"
       >
@@ -51,8 +56,14 @@ const NavDropdown = ({ label, items, href, isActive = false, isHomePage = false 
               to={item.href}
               className={cn(
                 "block px-3 py-2 rounded-lg text-base transition-colors",
-                "hover:bg-accent hover:text-accent-foreground",
-                isItemActive(item.href) && "bg-accent text-accent-foreground font-medium"
+                isHomePage
+                  ? "text-foreground hover:bg-muted/50 hover:text-primary"
+                  : "text-foreground/80 hover:bg-muted/50 hover:text-primary",
+                isItemActive(item.href) && (
+                  isHomePage
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "bg-primary/10 text-primary font-medium"
+                )
               )}
             >
               {item.label}
@@ -70,21 +81,26 @@ const NavDropdown = ({ label, items, href, isActive = false, isHomePage = false 
         <button
           type="button"
           className={cn(
-            "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap",
+            "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap border",
             isActive 
               ? isHomePage 
-                ? "text-white bg-white/20" 
-                : "text-primary bg-primary/10"
+                ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
+                : "text-primary bg-primary/10 border-transparent"
               : isHomePage
-                ? "text-white/90 hover:text-white hover:bg-white/10"
-                : "text-foreground/80 hover:text-primary"
+                ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                : "text-foreground/80 border-transparent hover:text-primary"
           )}
         >
           {label}
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-80 p-4 rounded-xl shadow-lg bg-background border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-3 data-[side=top]:slide-in-from-bottom-3 transition-all duration-200"
+        className={cn(
+          "w-80 p-4 rounded-xl shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-3 data-[side=top]:slide-in-from-bottom-3 transition-all duration-200",
+          isHomePage
+            ? "bg-white/95 supports-[backdrop-filter]:bg-white/90 backdrop-blur-lg border border-foreground/20"
+            : "bg-background border"
+        )}
         sideOffset={12}
         align="start"
       >
@@ -96,8 +112,14 @@ const NavDropdown = ({ label, items, href, isActive = false, isHomePage = false 
               onClick={() => setMobileOpen(false)}
               className={cn(
                 "block px-3 py-2 rounded-lg text-base transition-colors",
-                "hover:bg-accent hover:text-accent-foreground",
-                isItemActive(item.href) && "bg-accent text-accent-foreground font-medium"
+                isHomePage
+                  ? "text-foreground hover:bg-muted/50 hover:text-primary"
+                  : "text-foreground/80 hover:bg-muted/50 hover:text-primary",
+                isItemActive(item.href) && (
+                  isHomePage
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "bg-primary/10 text-primary font-medium"
+                )
               )}
             >
               {item.label}

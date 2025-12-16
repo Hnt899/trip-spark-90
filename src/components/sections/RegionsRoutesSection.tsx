@@ -123,17 +123,17 @@ const RegionsRoutesSection = () => {
               variant="outline"
               size="icon"
               onClick={scrollLeft}
-              className="rounded-full bg-background/80 backdrop-blur-sm hover:bg-background"
+              className="rounded-full bg-white shadow-md hover:bg-white w-12 h-12 border-0"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-5 h-5 text-primary" />
             </Button>
             <Button
               variant="outline"
               size="icon"
               onClick={scrollRight}
-              className="rounded-full bg-background/80 backdrop-blur-sm hover:bg-background"
+              className="rounded-full bg-white shadow-md hover:bg-white w-12 h-12 border-0"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-5 h-5 text-primary" />
             </Button>
           </div>
         </div>

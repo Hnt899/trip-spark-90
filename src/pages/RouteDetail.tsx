@@ -161,7 +161,7 @@ const RouteDetail = () => {
               </div>
 
               <div className="mt-8">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg">
+                <Button size="lg" className="px-8 py-6 text-lg">
                   Узнать маршрут
                 </Button>
               </div>

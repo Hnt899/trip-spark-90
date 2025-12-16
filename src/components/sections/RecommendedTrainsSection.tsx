@@ -257,10 +257,10 @@ const RecommendedTrainsSection = () => {
           {/* Стрелка влево */}
           <button
             onClick={scrollLeft}
-            className="flex-shrink-0 z-20 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center -ml-[10px]"
+            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-md rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center -ml-[10px]"
             aria-label="Прокрутить влево"
           >
-            <ArrowLeft className="h-6 w-6 text-primary" />
+            <ArrowLeft className="h-5 w-5 text-primary" />
           </button>
 
           <div className="flex-1 relative overflow-hidden">
@@ -368,10 +368,10 @@ const RecommendedTrainsSection = () => {
           {/* Стрелка вправо */}
           <button
             onClick={scrollRight}
-            className="flex-shrink-0 z-20 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center"
+            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-md rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center"
             aria-label="Прокрутить вправо"
           >
-            <ArrowRight className="h-6 w-6 text-primary" />
+            <ArrowRight className="h-5 w-5 text-primary" />
           </button>
         </div>
 
@@ -381,19 +381,19 @@ const RecommendedTrainsSection = () => {
             variant="outline"
             size="icon"
             onClick={scrollLeft}
-            className="h-12 w-12 rounded-full"
+            className="h-12 w-12 rounded-full bg-white shadow-md hover:bg-white"
             aria-label="Прокрутить влево"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5 text-primary" />
           </Button>
           <Button
             variant="outline"
             size="icon"
             onClick={scrollRight}
-            className="h-12 w-12 rounded-full"
+            className="h-12 w-12 rounded-full bg-white shadow-md hover:bg-white"
             aria-label="Прокрутить вправо"
           >
-            <ArrowRight className="h-5 w-5" />
+            <ArrowRight className="h-5 w-5 text-primary" />
           </Button>
         </div>
       </div>

@@ -133,60 +133,81 @@ const HeroSection = () => {
           </div>
 
           {/* Форма поиска */}
-          <div ref={formRef} className="bg-white rounded-2xl shadow-2xl border-2 border-primary/20 p-6 md:p-8 space-y-6">
-            {/* Табы для категорий */}
+          <div ref={formRef} className="bg-black/40 backdrop-blur-xl rounded-lg border border-white/10 p-4 md:p-5 space-y-4">
             <Tabs value={travelType} onValueChange={(value) => setTravelType(value as TravelType)} defaultValue="train" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1 h-14">
+              {/* Верхний уровень: Тип транспорта и маршрут */}
+              <div className="flex flex-col md:flex-row items-center justify-between gap-3 pb-3 border-b border-white/10">
+                {/* Табы для категорий транспорта */}
+                <TabsList className="grid w-full md:w-auto grid-cols-3 bg-white/10 p-1 h-10 gap-1">
                 <TabsTrigger 
                   value="train" 
-                  className="flex items-center gap-2 text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-white"
+                    className="flex items-center gap-1.5 text-sm font-medium data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=inactive]:text-white/70 px-3"
                 >
-                  <Train className="h-5 w-5" />
-                  <span className="hidden sm:inline">Ж/д билеты</span>
+                    <Train className="h-4 w-4" />
+                    <span className="hidden sm:inline">Ж/д</span>
                   <span className="sm:hidden">Ж/д</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="flight"
-                  className="flex items-center gap-2 text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-white"
+                    className="flex items-center gap-1.5 text-sm font-medium data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=inactive]:text-white/70 px-3"
                 >
-                  <Plane className="h-5 w-5" />
-                  <span className="hidden sm:inline">Авиабилеты</span>
+                    <Plane className="h-4 w-4" />
+                    <span className="hidden sm:inline">Авиа</span>
                   <span className="sm:hidden">Авиа</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="bus"
-                  className="flex items-center gap-2 text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-white"
+                    className="flex items-center gap-1.5 text-sm font-medium data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=inactive]:text-white/70 px-3"
                 >
-                  <Bus className="h-5 w-5" />
-                  <span>Автобусы</span>
+                    <Bus className="h-4 w-4" />
+                    <span>Автобус</span>
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="train" className="mt-6 space-y-4">
-                <div className="flex gap-2 flex-wrap">
-                  <Button 
-                    variant={tripType === "round" ? "default" : "outline"} 
-                    size="sm" 
+              {/* Сегментированный переключатель маршрута */}
+              {(travelType === "train" || travelType === "flight") && (
+                <div className="flex items-center gap-1 bg-white/10 rounded-md p-1">
+                  <button
                     onClick={() => setTripType("round")}
-                    className="font-semibold"
+                    className={cn(
+                      "px-4 py-1.5 text-sm font-medium rounded transition-colors",
+                      tripType === "round"
+                        ? "bg-white/20"
+                        : "text-white/70 hover:text-white"
+                    )}
                   >
-                    Туда-обратно
-                  </Button>
-                  <Button 
-                    variant={tripType === "one" ? "default" : "outline"} 
-                    size="sm" 
+                    <span className={cn(
+                      tripType === "round" ? "text-[#0D0D6E]" : "text-white/70"
+                    )}>Туда</span>
+                    <span className={cn(
+                      "mx-1",
+                      tripType === "round" ? "text-white/50" : "text-white/50"
+                    )}>-</span>
+                    <span className={cn(
+                      tripType === "round" ? "text-[#867DFF]" : "text-white/70"
+                    )}>сюда</span>
+                  </button>
+                  <button
                     onClick={() => setTripType("one")}
-                    className="font-semibold"
+                    className={cn(
+                      "px-4 py-1.5 text-sm font-medium rounded transition-colors",
+                      tripType === "one"
+                        ? "bg-white/20 text-white"
+                        : "text-white/70 hover:text-white"
+                    )}
                   >
                     В одну сторону
-                  </Button>
+                  </button>
+                </div>
+              )}
                 </div>
 
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col sm:flex-row gap-3">
+              {/* Нижний уровень: Поля ввода */}
+              <TabsContent value="train" className="mt-0 space-y-3">
+                <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1">
                       <Select value={fromCity} onValueChange={setFromCity}>
-                        <SelectTrigger className="h-14 text-base font-medium">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70">
                           <SelectValue placeholder="Откуда" />
                         </SelectTrigger>
                         <SelectContent>
@@ -201,7 +222,7 @@ const HeroSection = () => {
 
                     <div className="flex-1">
                       <Select value={toCity} onValueChange={setToCity}>
-                        <SelectTrigger className="h-14 text-base font-medium">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70">
                           <SelectValue placeholder="Куда" />
                         </SelectTrigger>
                         <SelectContent>
@@ -215,22 +236,22 @@ const HeroSection = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-2">
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           className={cn(
-                            "h-14 px-4 justify-start text-left font-medium flex-1 text-base",
-                            !dateRange?.from && "text-muted-foreground"
+                          "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white",
+                          !dateRange?.from && "text-white/50"
                           )}
                         >
-                          <CalendarIcon className="mr-2 h-5 w-5 shrink-0" />
+                        <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                           <span className="truncate">
                             {dateRange?.from ? (
-                              format(dateRange.from, "dd.MM.yyyy", { locale: ru })
+                            format(dateRange.from, "dd.MM", { locale: ru })
                             ) : (
-                              "Когда уезжаете?"
+                            "Дата туда"
                             )}
                           </span>
                         </Button>
@@ -264,16 +285,16 @@ const HeroSection = () => {
                           <Button
                             variant="outline"
                             className={cn(
-                              "h-14 px-4 justify-start text-left font-medium flex-1 text-base",
-                              !dateRange?.to && "text-muted-foreground"
+                            "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white",
+                            !dateRange?.to && "text-white/50"
                             )}
                           >
-                            <CalendarIcon className="mr-2 h-5 w-5 shrink-0" />
+                          <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                             <span className="truncate">
                               {dateRange?.to ? (
-                                format(dateRange.to, "dd.MM.yyyy", { locale: ru })
+                              format(dateRange.to, "dd.MM", { locale: ru })
                               ) : (
-                                "Когда приезжаете?"
+                              "Дата обратно"
                               )}
                             </span>
                           </Button>
@@ -290,12 +311,10 @@ const HeroSection = () => {
                         </PopoverContent>
                       </Popover>
                     )}
-                  </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="sm:flex-1">
+                  <div className="sm:w-32">
                       <Select value={ticketType} onValueChange={setTicketType}>
-                        <SelectTrigger className="h-14 text-base font-medium">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white text-sm [&>svg]:text-white/70">
                           <SelectValue placeholder="Класс" />
                         </SelectTrigger>
                         <SelectContent>
@@ -306,10 +325,10 @@ const HeroSection = () => {
                       </Select>
                     </div>
 
-                    <div className="sm:flex-1">
+                  <div className="sm:w-36">
                       <Select value={passengers} onValueChange={setPassengers}>
-                        <SelectTrigger className="h-14 text-base font-medium">
-                          <SelectValue placeholder="Кто едет" />
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white text-sm [&>svg]:text-white/70">
+                        <SelectValue placeholder="Пассажиры" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="1">1 пассажир</SelectItem>
@@ -322,41 +341,20 @@ const HeroSection = () => {
 
                     <Button
                       onClick={handleSearch}
-                      className="h-14 px-6 sm:px-8 bg-primary hover:bg-primary/90 text-base font-bold shadow-lg hover:shadow-xl transition-all w-full sm:w-auto"
+                    className="h-11 px-6 text-sm font-medium transition-all rounded-full"
                       disabled={!fromCity || !toCity || !dateRange?.from}
                     >
-                      <Search className="h-5 w-5 mr-2" />
-                      Найти поезда
+                    <Search className="h-4 w-4 mr-2" />
+                    Найти
                     </Button>
-                  </div>
                 </div>
               </TabsContent>
 
-              <TabsContent value="flight" className="mt-6 space-y-4">
-                <div className="flex gap-2 flex-wrap">
-                  <Button 
-                    variant={tripType === "round" ? "default" : "outline"} 
-                    size="sm" 
-                    onClick={() => setTripType("round")}
-                    className="font-semibold"
-                  >
-                    Туда-обратно
-                  </Button>
-                  <Button 
-                    variant={tripType === "one" ? "default" : "outline"} 
-                    size="sm" 
-                    onClick={() => setTripType("one")}
-                    className="font-semibold"
-                  >
-                    В одну сторону
-                  </Button>
-                </div>
-
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col sm:flex-row gap-3">
+              <TabsContent value="flight" className="mt-0 space-y-3">
+                <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1">
                       <Select value={fromCity} onValueChange={setFromCity}>
-                        <SelectTrigger className="h-14 text-base font-medium">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70">
                           <SelectValue placeholder="Откуда" />
                         </SelectTrigger>
                         <SelectContent>
@@ -371,7 +369,7 @@ const HeroSection = () => {
 
                     <div className="flex-1">
                       <Select value={toCity} onValueChange={setToCity}>
-                        <SelectTrigger className="h-14 text-base font-medium">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70">
                           <SelectValue placeholder="Куда" />
                         </SelectTrigger>
                         <SelectContent>
@@ -385,22 +383,22 @@ const HeroSection = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-2">
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           className={cn(
-                            "h-14 px-4 justify-start text-left font-medium flex-1 text-base",
-                            !dateRange?.from && "text-muted-foreground"
+                          "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white",
+                          !dateRange?.from && "text-white/50"
                           )}
                         >
-                          <CalendarIcon className="mr-2 h-5 w-5 shrink-0" />
+                        <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                           <span className="truncate">
                             {dateRange?.from ? (
-                              format(dateRange.from, "dd.MM.yyyy", { locale: ru })
+                            format(dateRange.from, "dd.MM", { locale: ru })
                             ) : (
-                              "Когда уезжаете?"
+                            "Дата туда"
                             )}
                           </span>
                         </Button>
@@ -434,16 +432,16 @@ const HeroSection = () => {
                           <Button
                             variant="outline"
                             className={cn(
-                              "h-14 px-4 justify-start text-left font-medium flex-1 text-base",
-                              !dateRange?.to && "text-muted-foreground"
+                            "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white",
+                            !dateRange?.to && "text-white/50"
                             )}
                           >
-                            <CalendarIcon className="mr-2 h-5 w-5 shrink-0" />
+                          <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                             <span className="truncate">
                               {dateRange?.to ? (
-                                format(dateRange.to, "dd.MM.yyyy", { locale: ru })
+                              format(dateRange.to, "dd.MM", { locale: ru })
                               ) : (
-                                "Когда приезжаете?"
+                              "Дата обратно"
                               )}
                             </span>
                           </Button>
@@ -460,12 +458,10 @@ const HeroSection = () => {
                         </PopoverContent>
                       </Popover>
                     )}
-                  </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="sm:flex-1">
+                  <div className="sm:w-32">
                       <Select value={flightClass} onValueChange={setFlightClass}>
-                        <SelectTrigger className="h-14 text-base font-medium">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white text-sm [&>svg]:text-white/70">
                           <SelectValue placeholder="Класс" />
                         </SelectTrigger>
                         <SelectContent>
@@ -477,10 +473,10 @@ const HeroSection = () => {
                       </Select>
                     </div>
 
-                    <div className="sm:flex-1">
+                  <div className="sm:w-36">
                       <Select value={passengers} onValueChange={setPassengers}>
-                        <SelectTrigger className="h-14 text-base font-medium">
-                          <SelectValue placeholder="Кто едет" />
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white text-sm [&>svg]:text-white/70">
+                        <SelectValue placeholder="Пассажиры" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="1">1 пассажир</SelectItem>
@@ -493,22 +489,20 @@ const HeroSection = () => {
 
                     <Button
                       onClick={handleSearch}
-                      className="h-14 px-6 sm:px-8 bg-primary hover:bg-primary/90 text-base font-bold shadow-lg hover:shadow-xl transition-all w-full sm:w-auto"
+                    className="h-11 px-6 text-sm font-medium transition-all rounded-full"
                       disabled={!fromCity || !toCity || !dateRange?.from}
                     >
-                      <Search className="h-5 w-5 mr-2" />
-                      Найти авиабилеты
+                    <Search className="h-4 w-4 mr-2" />
+                    Найти
                     </Button>
-                  </div>
                 </div>
               </TabsContent>
 
-              <TabsContent value="bus" className="mt-6 space-y-4">
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col sm:flex-row gap-3">
+              <TabsContent value="bus" className="mt-0 space-y-3">
+                <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1">
                       <Select value={fromCity} onValueChange={setFromCity}>
-                        <SelectTrigger className="h-14 text-base font-medium">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70">
                           <SelectValue placeholder="Откуда" />
                         </SelectTrigger>
                         <SelectContent>
@@ -523,7 +517,7 @@ const HeroSection = () => {
 
                     <div className="flex-1">
                       <Select value={toCity} onValueChange={setToCity}>
-                        <SelectTrigger className="h-14 text-base font-medium">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70">
                           <SelectValue placeholder="Куда" />
                         </SelectTrigger>
                         <SelectContent>
@@ -537,20 +531,20 @@ const HeroSection = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-2">
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           className={cn(
-                            "h-14 px-4 justify-start text-left font-medium flex-1 text-base",
-                            !dateRange?.from && "text-muted-foreground"
+                          "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white",
+                          !dateRange?.from && "text-white/50"
                           )}
                         >
-                          <CalendarIcon className="mr-2 h-5 w-5 shrink-0" />
+                        <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                           <span className="truncate">
                             {dateRange?.from ? (
-                              format(dateRange.from, "dd.MM.yyyy", { locale: ru })
+                            format(dateRange.from, "dd.MM", { locale: ru })
                             ) : (
                               "Дата поездки"
                             )}
@@ -568,10 +562,10 @@ const HeroSection = () => {
                       </PopoverContent>
                     </Popover>
 
-                    <div className="sm:flex-1">
+                  <div className="sm:w-36">
                       <Select value={passengers} onValueChange={setPassengers}>
-                        <SelectTrigger className="h-14 text-base font-medium">
-                          <SelectValue placeholder="Кто едет" />
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white text-sm [&>svg]:text-white/70">
+                        <SelectValue placeholder="Пассажиры" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="1">1 пассажир</SelectItem>
@@ -584,13 +578,12 @@ const HeroSection = () => {
 
                     <Button
                       onClick={handleSearch}
-                      className="h-14 px-6 sm:px-8 bg-primary hover:bg-primary/90 text-base font-bold shadow-lg hover:shadow-xl transition-all w-full sm:w-auto"
+                    className="h-11 px-6 text-sm font-medium transition-all rounded-full"
                       disabled={!fromCity || !toCity || !dateRange?.from}
                     >
-                      <Search className="h-5 w-5 mr-2" />
-                      Найти автобусы
+                    <Search className="h-4 w-4 mr-2" />
+                    Найти
                     </Button>
-                  </div>
                 </div>
               </TabsContent>
             </Tabs>

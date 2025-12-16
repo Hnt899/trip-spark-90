@@ -801,7 +801,7 @@ const FlightSearch = () => {
                       </div>
                       <div className="text-sm text-muted-foreground mb-4">за одного</div>
                       <Button
-                        className="w-full bg-purple-600 hover:bg-purple-700"
+                        className="w-full"
                         onClick={() => {
                           const params = new URLSearchParams({
                             routeId: route.id,
