@@ -166,7 +166,7 @@ const EventsSection = () => {
       <div className="container">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent leading-tight pb-2">
               Повод для путешествия
             </h2>
             <p className="text-muted-foreground">
@@ -227,7 +227,7 @@ const EventsSection = () => {
           <Button
             variant="outline"
             size="icon"
-            className="absolute left-0 -translate-x-full top-1/2 -translate-y-1/2 hidden lg:flex bg-white shadow-md hover:bg-white rounded-full w-12 h-12 z-10 border-0"
+            className="absolute left-0 -translate-x-full top-1/2 -translate-y-1/2 hidden lg:flex bg-white shadow-md hover:bg-white rounded-full w-12 h-12 z-10 border-0 -ml-[5px]"
             onClick={handlePrev}
           >
             <ChevronLeft className="w-5 h-5 text-primary" />
@@ -235,7 +235,7 @@ const EventsSection = () => {
           <Button
             variant="outline"
             size="icon"
-            className="absolute right-0 translate-x-1/2 top-1/2 -translate-y-1/2 hidden lg:flex bg-white shadow-md hover:bg-white rounded-full w-12 h-12 z-10 border-0"
+            className="absolute right-[-7px] translate-x-1/2 top-1/2 -translate-y-1/2 hidden lg:flex bg-white shadow-md hover:bg-white rounded-full w-12 h-12 z-10 border-0"
             onClick={handleNext}
           >
             <ChevronRight className="w-5 h-5 text-primary" />

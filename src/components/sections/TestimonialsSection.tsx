@@ -1,7 +1,8 @@
 import { useRef, useEffect } from "react";
-import { MapPin, Calendar, Heart, ArrowRight, ArrowLeft } from "lucide-react";
+import { MapPin, Calendar, Heart, ChevronRight, ChevronLeft, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import person1 from "@/assets/люди/просто сотрудник 1.jpg";
 import person2 from "@/assets/люди/просто сотрудник 2.jpg";
 import person3 from "@/assets/люди/просто сотрудник 3.jpg";
@@ -25,6 +26,7 @@ import trainInterior from "@/assets/train-interior.jpg";
 import sochi from "@/assets/armenia.jpg";
 
 const TestimonialsSection = () => {
+  const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const isScrolling = useRef(false);
 
@@ -138,9 +140,10 @@ const TestimonialsSection = () => {
     if (!scrollContainer) return;
 
     const getCardWidth = () => {
-      // Всегда 3 карточки в ряду
+      // Всегда 3 карточки в ряду, gap = 16px (1rem)
       const gap = 16;
-      return (scrollContainer.clientWidth - gap * 2) / 3;
+      const containerWidth = scrollContainer.clientWidth;
+      return (containerWidth - gap * 2) / 3;
     };
 
     const initializeScroll = () => {
@@ -193,25 +196,47 @@ const TestimonialsSection = () => {
 
   const scrollLeft = () => {
     if (scrollRef.current && !isScrolling.current) {
-      const gap = 16;
-      const cardWidth = (scrollRef.current.clientWidth - gap * 2) / 3;
+      isScrolling.current = true;
+      const gap = 16; // gap-4 = 16px = 1rem
+      const containerWidth = scrollRef.current.clientWidth;
+      // Ширина одной карточки: (containerWidth - 2*gap) / 3
+      const cardWidth = (containerWidth - gap * 2) / 3;
+      // Прокручиваем ровно на одну карточку + gap
       const scrollAmount = cardWidth + gap;
+      const currentScroll = scrollRef.current.scrollLeft;
+      const targetScroll = Math.round(currentScroll - scrollAmount);
+      
       scrollRef.current.scrollTo({ 
-        left: scrollRef.current.scrollLeft - scrollAmount, 
+        left: targetScroll, 
         behavior: "smooth" 
       });
+      
+      setTimeout(() => {
+        isScrolling.current = false;
+      }, 500);
     }
   };
 
   const scrollRight = () => {
     if (scrollRef.current && !isScrolling.current) {
-      const gap = 16;
-      const cardWidth = (scrollRef.current.clientWidth - gap * 2) / 3;
+      isScrolling.current = true;
+      const gap = 16; // gap-4 = 16px = 1rem
+      const containerWidth = scrollRef.current.clientWidth;
+      // Ширина одной карточки: (containerWidth - 2*gap) / 3
+      const cardWidth = (containerWidth - gap * 2) / 3;
+      // Прокручиваем ровно на одну карточку + gap
       const scrollAmount = cardWidth + gap;
+      const currentScroll = scrollRef.current.scrollLeft;
+      const targetScroll = Math.round(currentScroll + scrollAmount);
+      
       scrollRef.current.scrollTo({ 
-        left: scrollRef.current.scrollLeft + scrollAmount, 
+        left: targetScroll, 
         behavior: "smooth" 
       });
+      
+      setTimeout(() => {
+        isScrolling.current = false;
+      }, 500);
     }
   };
 
@@ -223,7 +248,7 @@ const TestimonialsSection = () => {
 
       <div className="container relative z-10">
         <div className="mb-12 text-center">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent animate-in fade-in slide-in-from-bottom-4 duration-700 leading-tight pb-2">
             Живые истории путешествий
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150">
@@ -235,16 +260,16 @@ const TestimonialsSection = () => {
           {/* Стрелка влево */}
           <button
             onClick={scrollLeft}
-            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-md rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center -ml-[10px]"
+            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center -ml-[10px]"
             aria-label="Прокрутить влево"
           >
-            <ArrowLeft className="h-5 w-5 text-primary" />
+            <ChevronLeft className="h-5 w-5 text-blue-600" />
           </button>
 
           <div className="flex-1 relative overflow-hidden">
             <div
               ref={scrollRef}
-              className="flex gap-4 overflow-x-hidden scrollbar-hide pb-4"
+              className="flex gap-4 overflow-x-hidden scrollbar-hide pb-4 snap-x snap-mandatory"
               style={{
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
@@ -257,10 +282,11 @@ const TestimonialsSection = () => {
                   className={cn(
                     "group relative flex-shrink-0 rounded-2xl overflow-hidden",
                     "bg-card border border-border/50",
-                    "hover:shadow-2xl hover:border-primary/30",
+                    "hover:border-primary/30",
                     "transition-all duration-[1200ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)]",
-                    "hover:-translate-y-3 hover:scale-[1.02] cursor-pointer",
-                    "w-[calc((100%-2rem)/3)]",
+                    "cursor-pointer",
+                    "w-[calc((100%-2rem)/3)] min-w-[calc((100%-2rem)/3)] max-w-[calc((100%-2rem)/3)]",
+                    "snap-start",
                     "animate-in fade-in slide-in-from-bottom-4",
                     "will-change-transform"
                   )}
@@ -272,37 +298,44 @@ const TestimonialsSection = () => {
                 >
                   {/* Фото в стиле Instagram Story */}
                   <div className="relative h-64 rounded-t-2xl overflow-hidden">
-                    <div 
-                      className="absolute transition-transform duration-[1500ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-110"
-                      style={{ 
-                        top: '-10%', 
-                        left: '-10%', 
-                        width: '120%', 
-                        height: '120%',
-                        transformOrigin: 'center center'
-                      }}
-                    >
-                      <img
-                        src={testimonial.photo}
-                        alt={testimonial.route}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                    <img
+                      src={testimonial.photo}
+                      alt={testimonial.route}
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    />
                     {/* Градиентный оверлей для читаемости текста */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-[1200ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:opacity-90 pointer-events-none"></div>
+                    {/* Затемнение при hover */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-500 pointer-events-none"></div>
 
                     {/* Аватар и имя пользователя в стиле Instagram */}
-                    <div className="absolute top-4 left-4 flex items-center gap-2 z-10 transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-105">
-                      <div className="w-12 h-12 rounded-full border-2 border-white/50 overflow-hidden shadow-lg transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:border-white/80 group-hover:shadow-xl">
+                    <div className="absolute top-4 left-4 flex items-center gap-2 z-10 transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:opacity-0 group-hover:pointer-events-none">
+                      <div className="w-12 h-12 rounded-full border-2 border-white/50 overflow-hidden shadow-lg transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)]">
                         <img
                           src={testimonial.avatar}
                           alt={testimonial.name}
-                          className="w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-110"
+                          className="w-full h-full object-cover"
                         />
                       </div>
-                      <span className="text-white font-semibold text-sm drop-shadow-lg bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:bg-black/50 group-hover:px-4">
+                      <span className="text-white font-semibold text-sm drop-shadow-lg bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)]">
                         {testimonial.name}
                       </span>
+                    </div>
+
+                    {/* Кнопка "Читать" при hover */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20">
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="bg-white text-[#8A70F8] hover:bg-white hover:text-[#8A70F8] border-white shadow-xl font-bold text-base px-6"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/testimonials/${testimonial.id}`);
+                        }}
+                      >
+                        <BookOpen className="h-5 w-5 mr-2 text-[#8A70F8]" />
+                        Читать
+                      </Button>
                     </div>
                   </div>
 
@@ -341,10 +374,10 @@ const TestimonialsSection = () => {
           {/* Стрелка вправо */}
           <button
             onClick={scrollRight}
-            className="flex-shrink-0 z-20 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center"
+            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center -ml-[7px]"
             aria-label="Прокрутить вправо"
           >
-            <ArrowRight className="h-5 w-5 text-primary" />
+            <ChevronRight className="h-5 w-5 text-blue-600" />
           </button>
         </div>
 
@@ -354,19 +387,19 @@ const TestimonialsSection = () => {
             variant="outline"
             size="icon"
             onClick={scrollLeft}
-            className="h-12 w-12 rounded-full bg-white shadow-md hover:bg-white"
+            className="h-12 w-12 rounded-full bg-white shadow-lg hover:bg-white"
             aria-label="Прокрутить влево"
           >
-            <ArrowLeft className="h-5 w-5 text-primary" />
+            <ChevronLeft className="h-5 w-5 text-blue-600" />
           </Button>
           <Button
             variant="outline"
             size="icon"
             onClick={scrollRight}
-            className="h-12 w-12 rounded-full bg-white shadow-md hover:bg-white"
+            className="h-12 w-12 rounded-full bg-white shadow-lg hover:bg-white"
             aria-label="Прокрутить вправо"
           >
-            <ArrowRight className="h-5 w-5 text-primary" />
+            <ChevronRight className="h-5 w-5 text-blue-600" />
           </Button>
         </div>
       </div>

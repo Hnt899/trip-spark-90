@@ -196,7 +196,7 @@ const RoutesSection = () => {
       <div className="container">
         {/* Заголовок секции */}
         <div className="mb-12 text-center">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent leading-tight pb-2">
             Популярные направления
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">

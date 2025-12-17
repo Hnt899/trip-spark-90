@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ArrowLeft, Calendar, MapPin, TrendingDown } from "lucide-react";
+import { ChevronRight, ChevronLeft, Calendar, MapPin, TrendingDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -126,19 +126,11 @@ const RecommendedTrainsSection = () => {
     const scrollContainer = scrollRef.current;
     if (!scrollContainer) return;
 
-    // Функция для получения ширины карточки в зависимости от размера экрана
+    // Функция для получения ширины карточки - всегда 3 карточки
     const getCardWidth = () => {
-      const width = window.innerWidth;
-      if (width >= 1024) {
-        // На десктопе: 3 карточки, учитываем gap между ними
-        return (scrollContainer.clientWidth - 48) / 3; // 48 = 2 * gap (gap-6 = 24px)
-      } else if (width >= 768) {
-        // На планшете: 2 карточки
-        return (scrollContainer.clientWidth - 24) / 2;
-      } else {
-        // На мобильных: 1 карточка
-        return scrollContainer.clientWidth;
-      }
+      // Всегда 3 карточки, gap = 24px (gap-6)
+      const gap = 24;
+      return (scrollContainer.clientWidth - gap * 2) / 3;
     };
 
     // Устанавливаем начальную позицию на вторую группу карточек (середина)
@@ -195,45 +187,47 @@ const RecommendedTrainsSection = () => {
 
   const scrollLeft = () => {
     if (scrollRef.current && !isScrolling.current) {
-      const width = window.innerWidth;
-      const gap = 24;
-      let cardWidth: number;
-      
-      if (width >= 1024) {
-        // На десктопе: 3 карточки
-        cardWidth = (scrollRef.current.clientWidth - 48) / 3;
-      } else if (width >= 768) {
-        // На планшете: 2 карточки
-        cardWidth = (scrollRef.current.clientWidth - 24) / 2;
-      } else {
-        // На мобильных: 1 карточка
-        cardWidth = scrollRef.current.clientWidth;
-      }
-      
+      isScrolling.current = true;
+      const gap = 24; // gap-6 = 24px
+      const containerWidth = scrollRef.current.clientWidth;
+      // Всегда 3 карточки
+      const cardWidth = (containerWidth - gap * 2) / 3;
+      // Прокручиваем ровно на одну карточку + gap
       const scrollAmount = cardWidth + gap;
-      scrollRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+      const currentScroll = scrollRef.current.scrollLeft;
+      const targetScroll = Math.round(currentScroll - scrollAmount);
+      
+      scrollRef.current.scrollTo({ 
+        left: targetScroll, 
+        behavior: "smooth" 
+      });
+      
+      setTimeout(() => {
+        isScrolling.current = false;
+      }, 500);
     }
   };
 
   const scrollRight = () => {
     if (scrollRef.current && !isScrolling.current) {
-      const width = window.innerWidth;
-      const gap = 24;
-      let cardWidth: number;
-      
-      if (width >= 1024) {
-        // На десктопе: 3 карточки
-        cardWidth = (scrollRef.current.clientWidth - 48) / 3;
-      } else if (width >= 768) {
-        // На планшете: 2 карточки
-        cardWidth = (scrollRef.current.clientWidth - 24) / 2;
-      } else {
-        // На мобильных: 1 карточка
-        cardWidth = scrollRef.current.clientWidth;
-      }
-      
+      isScrolling.current = true;
+      const gap = 24; // gap-6 = 24px
+      const containerWidth = scrollRef.current.clientWidth;
+      // Всегда 3 карточки
+      const cardWidth = (containerWidth - gap * 2) / 3;
+      // Прокручиваем ровно на одну карточку + gap
       const scrollAmount = cardWidth + gap;
-      scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      const currentScroll = scrollRef.current.scrollLeft;
+      const targetScroll = Math.round(currentScroll + scrollAmount);
+      
+      scrollRef.current.scrollTo({ 
+        left: targetScroll, 
+        behavior: "smooth" 
+      });
+      
+      setTimeout(() => {
+        isScrolling.current = false;
+      }, 500);
     }
   };
 
@@ -257,16 +251,16 @@ const RecommendedTrainsSection = () => {
           {/* Стрелка влево */}
           <button
             onClick={scrollLeft}
-            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-md rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center -ml-[10px]"
+            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center -ml-[10px]"
             aria-label="Прокрутить влево"
           >
-            <ArrowLeft className="h-5 w-5 text-primary" />
+            <ChevronLeft className="h-5 w-5 text-blue-600" />
           </button>
 
           <div className="flex-1 relative overflow-hidden">
             <div
               ref={scrollRef}
-              className="flex gap-6 overflow-x-hidden scrollbar-hide pb-4 scroll-smooth"
+              className="flex gap-6 overflow-x-hidden scrollbar-hide pb-4 scroll-smooth snap-x snap-mandatory"
               style={{
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
@@ -279,11 +273,11 @@ const RecommendedTrainsSection = () => {
                 className={cn(
                   "group relative flex-shrink-0 rounded-3xl overflow-hidden",
                   "bg-card border-2 border-transparent",
-                  "hover:border-primary/30 hover:shadow-2xl",
+                  "hover:border-primary/30",
                   "transition-all duration-500 ease-out",
-                  "hover:-translate-y-2 cursor-pointer",
-                  // На мобильных: 1 карточка, на планшете: 2, на десктопе: 3
-                  "w-full sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]"
+                  "cursor-pointer",
+                  // Всегда 3 карточки
+                  "w-[calc((100%-3rem)/3)] min-w-[calc((100%-3rem)/3)] max-w-[calc((100%-3rem)/3)] snap-start"
                 )}
                 onClick={() => handleSelectDates(destination.from, destination.to)}
               >
@@ -292,13 +286,10 @@ const RecommendedTrainsSection = () => {
                   <img
                     src={destination.image}
                     alt={`${destination.from} - ${destination.to}`}
-                    className={cn(
-                      "w-full h-full object-cover transition-transform duration-700",
-                      "group-hover:scale-110"
-                    )}
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                   />
                   {/* Затемнение при hover */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-500"></div>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-500"></div>
                   
                   {/* Тег */}
                   <div className={cn(
@@ -322,13 +313,14 @@ const RecommendedTrainsSection = () => {
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                     <Button
                       size="lg"
-                      className="bg-white text-primary hover:bg-white/90 shadow-xl font-bold text-base px-6"
+                      variant="outline"
+                      className="bg-white text-[#8A70F8] hover:bg-white hover:text-[#8A70F8] border-white shadow-xl font-bold text-base px-6"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleSelectDates(destination.from, destination.to);
                       }}
                     >
-                      <Calendar className="h-5 w-5 mr-2" />
+                      <Calendar className="h-5 w-5 mr-2 text-[#8A70F8]" />
                       Выбрать даты
                     </Button>
                   </div>
@@ -368,10 +360,10 @@ const RecommendedTrainsSection = () => {
           {/* Стрелка вправо */}
           <button
             onClick={scrollRight}
-            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-md rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center"
+            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center -mr-[10px]"
             aria-label="Прокрутить вправо"
           >
-            <ArrowRight className="h-5 w-5 text-primary" />
+            <ChevronRight className="h-5 w-5 text-blue-600" />
           </button>
         </div>
 
@@ -381,19 +373,19 @@ const RecommendedTrainsSection = () => {
             variant="outline"
             size="icon"
             onClick={scrollLeft}
-            className="h-12 w-12 rounded-full bg-white shadow-md hover:bg-white"
+            className="h-12 w-12 rounded-full bg-white shadow-lg hover:bg-white"
             aria-label="Прокрутить влево"
           >
-            <ArrowLeft className="h-5 w-5 text-primary" />
+            <ChevronLeft className="h-5 w-5 text-blue-600" />
           </Button>
           <Button
             variant="outline"
             size="icon"
             onClick={scrollRight}
-            className="h-12 w-12 rounded-full bg-white shadow-md hover:bg-white"
+            className="h-12 w-12 rounded-full bg-white shadow-lg hover:bg-white"
             aria-label="Прокрутить вправо"
           >
-            <ArrowRight className="h-5 w-5 text-primary" />
+            <ChevronRight className="h-5 w-5 text-blue-600" />
           </Button>
         </div>
       </div>

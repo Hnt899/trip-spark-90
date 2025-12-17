@@ -22,6 +22,7 @@ import Checkout from "./pages/Checkout";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import TestimonialDetail from "./pages/TestimonialDetail";
 import ChatWidget from "./components/ChatWidget";
 
 // Reference pages
@@ -161,6 +162,7 @@ const App = () => (
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/testimonials/:id" element={<TestimonialDetail />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
