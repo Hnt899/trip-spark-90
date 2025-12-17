@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Clock, CheckCircle2, Loader2, Bell } from "lucide-react";
+import { Clock, Loader2, Bell } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,7 +18,6 @@ import AdditionalServices, { AdditionalServicesData } from "@/components/checkou
 import CertificateInput from "@/components/checkout/CertificateInput";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { generateRzdStyleTicket } from "@/lib/generateRzdStyleTicket";
 import type { EpdData } from "@/types/epd";
 import { getStation } from "@/data/stations";
 
@@ -28,7 +27,6 @@ const Checkout = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
   const [showAdditionalServices, setShowAdditionalServices] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [selectPassengerModalOpen, setSelectPassengerModalOpen] = useState(false);
@@ -420,187 +418,213 @@ const Checkout = () => {
       return;
     }
 
+    if (!user) {
+      toast({
+        title: "Ошибка авторизации",
+        description: "Необходимо войти в аккаунт",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProcessing(true);
-    
-    // Симуляция обработки оплаты
-    setTimeout(async () => {
-      setIsProcessing(false);
-      setIsCompleted(true);
 
-      // Генерация и скачивание PDF билетов для всех пассажиров
-      try {
-        if (passengers.length === 0) {
-          throw new Error("Нет данных пассажиров");
+    try {
+      if (passengers.length === 0) {
+        throw new Error("Нет данных пассажиров");
+      }
+
+      // Определяем тип транспорта из URL или используем train по умолчанию
+      const transportType = searchParams.get("travelType") || "train";
+
+      // Генерируем базовый номер заказа
+      const baseOrderNumber = `T${Date.now().toString().slice(-10)}`;
+
+      // Получаем время отправления и прибытия (используем fallback значения)
+      const depTime = "00:25"; // Можно получить из routeId, но пока используем fallback
+      const arrTime = "09:26"; // Можно получить из routeId, но пока используем fallback
+      
+      // Форматируем даты
+      const depDateFormatted = format(departureDate, "dd.MM.yyyy", { locale: ru });
+      const arrDateFormatted = format(departureDate, "dd.MM.yyyy", { locale: ru });
+
+      // Получаем названия станций (используем fallback)
+      const depStation = getStation(fromCity, 0);
+      const arrStation = getStation(toCity, 0);
+      const depAddress = `г. ${fromCity}, вокзал`;
+      const arrAddress = `г. ${toCity}, вокзал`;
+
+      // Функция для получения текста типа документа
+      const getDocumentTypeText = (docType: string): string => {
+        switch (docType) {
+          case "passport":
+            return "паспорт";
+          case "birth_certificate":
+            return "свидетельство о рождении";
+          case "foreign_passport":
+            return "загранпаспорт";
+          case "foreign_document":
+            return "иностранный документ";
+          default:
+            return "паспорт";
         }
+      };
 
-        if (!user) {
-          throw new Error("Пользователь не авторизован");
-        }
+      // Массив для хранения данных всех билетов
+      const ticketsData: EpdData[] = [];
 
-        // Определяем тип транспорта из URL или используем train по умолчанию
-        const transportType = searchParams.get("travelType") || "train";
-
-        // Генерируем базовый номер заказа
-        const baseOrderNumber = `T${Date.now().toString().slice(-10)}`;
-
-        // Получаем время отправления и прибытия (используем fallback значения)
-        const depTime = "00:25"; // Можно получить из routeId, но пока используем fallback
-        const arrTime = "09:26"; // Можно получить из routeId, но пока используем fallback
+      // Генерируем данные билетов для каждого пассажира (без генерации PDF)
+      for (let i = 0; i < passengers.length; i++) {
+        const passenger = passengers[i];
         
-        // Форматируем даты
-        const depDateFormatted = format(departureDate, "dd.MM.yyyy", { locale: ru });
-        const arrDateFormatted = format(departureDate, "dd.MM.yyyy", { locale: ru });
+        // Генерируем уникальный номер заказа для каждого пассажира
+        const orderNumber = `${baseOrderNumber}${i}`;
+        
+        // Формируем полное имя пассажира
+        const passengerFullName = `${passenger.surname} ${passenger.name} ${passenger.patronymic || ""}`.trim();
+        
+        // Получаем тип документа
+        const documentTypeDisplay = getDocumentTypeText(passenger.documentType);
 
-        // Получаем названия станций (используем fallback)
-        const depStation = getStation(fromCity, 0);
-        const arrStation = getStation(toCity, 0);
-        const depAddress = `г. ${fromCity}, вокзал`;
-        const arrAddress = `г. ${toCity}, вокзал`;
+        // Форматируем дату рождения (без РФ)
+        const birthDateFormatted = passenger.birthDate 
+          ? format(new Date(passenger.birthDate), "dd.MM.yyyy", { locale: ru })
+          : "";
 
-        // Функция для получения текста типа документа
-        const getDocumentTypeText = (docType: string): string => {
-          switch (docType) {
-            case "passport":
-              return "паспорт";
-            case "birth_certificate":
-              return "свидетельство о рождении";
-            case "foreign_passport":
-              return "загранпаспорт";
-            case "foreign_document":
-              return "иностранный документ";
-            default:
-              return "паспорт";
-          }
+        // Собираем данные для билета
+        const epd: EpdData = {
+          orderNumber,
+          trainNumber: "022А", // Fallback, можно получить из routeId
+          trainName: "Ночной экспресс", // Fallback, можно получить из routeId
+          carriage: carNumber || "1",
+          seat: seatNumber || "1",
+          seatType: seatType === "upper" ? "Верхнее" : seatType === "lower" ? "Нижнее" : "Место",
+          depTime,
+          depDate: depDateFormatted,
+          depCity: fromCity,
+          depStation,
+          depAddress,
+          depTz: "+3",
+          arrTime,
+          arrDate: arrDateFormatted,
+          arrCity: toCity,
+          arrStation,
+          arrAddress,
+          arrTz: "+3",
+          passengerFullName,
+          documentType: documentTypeDisplay,
+          documentSeries: passenger.documentSeries || "",
+          documentNumber: passenger.documentNumber || "",
+          birthDate: birthDateFormatted,
+          routeShort: `${fromCity} — ${toCity}`,
+          infoText: "Вы зарегистрированы на рейс. Билет можно распечатать или показать на экране мобильного устройства. При посадке предъявите проводнику документ, удостоверяющий личность.",
         };
 
-        // Массив для хранения данных всех билетов
-        const ticketsData: EpdData[] = [];
-
-        // Генерируем билеты для каждого пассажира
-        for (let i = 0; i < passengers.length; i++) {
-          const passenger = passengers[i];
-          
-          // Генерируем уникальный номер заказа для каждого пассажира
-          const orderNumber = `${baseOrderNumber}${i}`;
-          
-          // Формируем полное имя пассажира
-          const passengerFullName = `${passenger.surname} ${passenger.name} ${passenger.patronymic || ""}`.trim();
-          
-          // Получаем тип документа
-          const documentTypeDisplay = getDocumentTypeText(passenger.documentType);
-
-          // Форматируем дату рождения (без РФ)
-          const birthDateFormatted = passenger.birthDate 
-            ? format(new Date(passenger.birthDate), "dd.MM.yyyy", { locale: ru })
-            : "";
-
-          // Собираем данные для билета
-          const epd: EpdData = {
-            orderNumber,
-            trainNumber: "022А", // Fallback, можно получить из routeId
-            trainName: "Ночной экспресс", // Fallback, можно получить из routeId
-            carriage: carNumber || "1",
-            seat: seatNumber || "1",
-            seatType: seatType === "upper" ? "Верхнее" : seatType === "lower" ? "Нижнее" : "Место",
-            depTime,
-            depDate: depDateFormatted,
-            depCity: fromCity,
-            depStation,
-            depAddress,
-            depTz: "+3",
-            arrTime,
-            arrDate: arrDateFormatted,
-            arrCity: toCity,
-            arrStation,
-            arrAddress,
-            arrTz: "+3",
-            passengerFullName,
-            documentType: documentTypeDisplay,
-            documentSeries: passenger.documentSeries || "",
-            documentNumber: passenger.documentNumber || "",
-            birthDate: birthDateFormatted,
-            routeShort: `${fromCity} — ${toCity}`,
-            infoText: "Вы зарегистрированы на рейс. Билет можно распечатать или показать на экране мобильного устройства. При посадке предъявите проводнику документ, удостоверяющий личность.",
-          };
-
-          // Сохраняем данные билета
-          ticketsData.push(epd);
-
-          // Генерируем PDF
-          console.log(`Начинаем генерацию PDF билета для пассажира ${i + 1}...`, epd);
-          const pdfUrl = await generateRzdStyleTicket(epd);
-          console.log(`PDF сгенерирован для пассажира ${i + 1}, URL:`, pdfUrl);
-
-          // Автоматически скачиваем PDF
-          const link = document.createElement("a");
-          link.href = pdfUrl;
-          link.download = `ticket_${orderNumber}_${i + 1}.pdf`;
-          link.style.display = "none";
-          document.body.appendChild(link);
-          
-          // Добавляем задержку между скачиваниями, чтобы браузер не блокировал множественные скачивания
-          await new Promise((resolve) => {
-            setTimeout(() => {
-              link.click();
-              setTimeout(() => {
-                document.body.removeChild(link);
-                URL.revokeObjectURL(pdfUrl);
-                resolve(undefined);
-              }, 100);
-            }, i * 300); // Задержка 300мс между каждым скачиванием
-          });
-        }
-
-        // Помечаем сертификат как использованный, если он был применен
-        if (selectedCertificate && certificateCode) {
-          const { error: certError } = await supabase
-            .from("certificates")
-            .update({ 
-              status: "used",
-              used_at: new Date().toISOString()
-            })
-            .eq("id", selectedCertificate.id)
-            .eq("user_id", user.id);
-
-          if (certError) {
-            console.error("Ошибка при обновлении сертификата:", certError);
-            // Не блокируем процесс, если обновление сертификата не удалось
-          } else {
-            console.log("Сертификат помечен как использованный");
-          }
-        }
-
-        // Сохраняем данные о покупке в БД
-        const { error: dbError } = await supabase
-          .from("tickets")
-          .insert({
-            user_id: user.id,
-            order_number: baseOrderNumber,
-            transport_type: transportType,
-            total_price: totalPrice,
-            tickets_data: ticketsData,
-            from_city: fromCity,
-            to_city: toCity,
-            departure_date: format(departureDate, "yyyy-MM-dd"),
-            electronic_registration_status: "pending",
-          });
-
-        if (dbError) {
-          console.error("Ошибка при сохранении билетов в БД:", dbError);
-          // Не блокируем процесс, если сохранение не удалось
-        } else {
-          console.log("Билеты успешно сохранены в БД");
-        }
-      } catch (error) {
-        console.error("Ошибка при генерации билетов:", error);
-        // Не блокируем редирект, даже если билеты не сгенерировались
+        // Сохраняем данные билета
+        ticketsData.push(epd);
       }
-      
-      // Перенаправление на главную через 2 секунды
-      setTimeout(() => {
-        navigate("/");
-      }, 2000);
-    }, 2000);
+
+      // Создаём заказ в БД ДО оплаты
+      const { data: insertedTicket, error: dbError } = await supabase
+        .from("tickets")
+        .insert({
+          user_id: user.id,
+          order_number: baseOrderNumber,
+          transport_type: transportType,
+          total_price: totalPrice,
+          tickets_data: ticketsData,
+          from_city: fromCity,
+          to_city: toCity,
+          departure_date: format(departureDate, "yyyy-MM-dd"),
+          electronic_registration_status: "pending",
+          payment_status: "pending", // Статус ожидания оплаты
+        })
+        .select()
+        .single();
+
+      if (dbError || !insertedTicket) {
+        throw new Error(dbError?.message || "Ошибка при создании заказа");
+      }
+
+      // Помечаем сертификат как использованный, если он был применен
+      if (selectedCertificate && certificateCode) {
+        const { error: certError } = await supabase
+          .from("certificates")
+          .update({ 
+            status: "used",
+            used_at: new Date().toISOString()
+          })
+          .eq("id", selectedCertificate.id)
+          .eq("user_id", user.id);
+
+        if (certError) {
+          console.error("Ошибка при обновлении сертификата:", certError);
+          // Не блокируем процесс, если обновление сертификата не удалось
+        }
+      }
+
+      // Вызываем Edge Function webpay-create
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error("Не настроены переменные окружения Supabase");
+      }
+
+      const createPaymentResponse = await fetch(
+        `${supabaseUrl}/functions/v1/webpay-create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseAnonKey}`,
+            "apikey": supabaseAnonKey,
+          },
+          body: JSON.stringify({
+            ticket_id: insertedTicket.id,
+            order_number: baseOrderNumber,
+            total_price: totalPrice,
+            base_url: window.location.origin,
+          }),
+        }
+      );
+
+      if (!createPaymentResponse.ok) {
+        const errorData = await createPaymentResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || "Ошибка при создании платежа");
+      }
+
+      const { action, fields } = await createPaymentResponse.json();
+
+      // Создаём POST-форму для редиректа на WebPay
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = action;
+      form.style.display = "none";
+
+      // Добавляем все поля как hidden inputs
+      Object.entries(fields).forEach(([key, value]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = String(value);
+        form.appendChild(input);
+      });
+
+      // Добавляем форму в body и отправляем
+      document.body.appendChild(form);
+      form.submit();
+
+      // setIsProcessing(false) не нужен, так как происходит редирект
+    } catch (error) {
+      console.error("Ошибка при создании платежа:", error);
+      setIsProcessing(false);
+      toast({
+        title: "Ошибка",
+        description: error instanceof Error ? error.message : "Не удалось создать платеж. Попробуйте ещё раз.",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -664,28 +688,6 @@ const Checkout = () => {
       });
     }
   };
-
-  if (isCompleted) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container py-12">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="mb-6">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-10 h-10 text-green-600" />
-              </div>
-              <h1 className="text-3xl font-bold mb-2">Заказ успешно оформлен!</h1>
-              <p className="text-muted-foreground">
-                Вы будете перенаправлены на главную страницу...
-              </p>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   if (showAdditionalServices) {
     return (

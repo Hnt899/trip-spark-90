@@ -19,6 +19,8 @@ import BusSearch from "./pages/BusSearch";
 import HotelSearch from "./pages/HotelSearch";
 import SelectSeats from "./pages/SelectSeats";
 import Checkout from "./pages/Checkout";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -160,6 +162,8 @@ const App = () => (
           <Route path="/hotel-search" element={<HotelSearch />} />
           <Route path="/select-seats" element={<SelectSeats />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/payment/success" element={<PaymentSuccess />} />
+          <Route path="/payment/cancel" element={<PaymentCancel />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/testimonials/:id" element={<TestimonialDetail />} />
