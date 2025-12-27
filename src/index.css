@@ -232,6 +232,13 @@ All colors MUST be HSL.
   animation: gradient-flow 4s ease-in-out infinite;
 }
 
+/* Анимированный градиент для табов транспорта */
+.travel-tab-gradient {
+  background: linear-gradient(90deg, #0D0D6E, #867DFF, #0D0D6E, #867DFF, #0D0D6E);
+  background-size: 300% 100%;
+  animation: gradient-flow 12s ease-in-out infinite;
+}
+
 /* Скрытие скроллбара */
 .scrollbar-hide {
   -ms-overflow-style: none;

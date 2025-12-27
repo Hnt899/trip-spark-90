@@ -34,10 +34,11 @@ const Header = () => {
 
   const isActive = (path: string) => location.pathname === path;
   const isHomePage = location.pathname === "/";
+  const isRoutesPage = location.pathname === "/routes";
 
   // Отслеживание скролла для показа формы поиска и изменения стиля шапки
   useEffect(() => {
-    if (!isHomePage) {
+    if (!isHomePage && !isRoutesPage) {
       setShowStickySearch(false);
       setIsAnimatingOut(false);
       setIsHeroMode(false);
@@ -46,7 +47,8 @@ const Header = () => {
 
     const handleScroll = () => {
       const heroSection = document.getElementById("hero-section");
-      const featuresSection = document.getElementById("features-section");
+      const featuresSection = isHomePage ? document.getElementById("features-section") : null;
+      const routesHeroSection = isRoutesPage ? document.getElementById("routes-hero-section") : null;
       
       if (heroSection) {
         const heroRect = heroSection.getBoundingClientRect();
@@ -57,8 +59,8 @@ const Header = () => {
           // Показываем форму
           setIsAnimatingOut(false);
           setShowStickySearch(true);
-        } else if (!shouldShow && showStickySearch) {
-          // Начинаем анимацию исчезновения
+        } else if (!shouldShow && showStickySearch && isHomePage) {
+          // Начинаем анимацию исчезновения только на главной
           setIsAnimatingOut(true);
           // Убираем форму после завершения анимации
           setTimeout(() => {
@@ -68,22 +70,29 @@ const Header = () => {
         }
       }
 
-      // Проверяем, находимся ли мы на hero секции или уже перешли к FeaturesSection
-      if (heroSection && featuresSection) {
+      // На routes форма всегда видна
+      if (isRoutesPage) {
+        setShowStickySearch(true);
+        setIsAnimatingOut(false);
+      }
+
+      // Проверяем hero режим для обеих страниц
+      if (heroSection && (featuresSection || routesHeroSection)) {
         const heroRect = heroSection.getBoundingClientRect();
-        const featuresRect = featuresSection.getBoundingClientRect();
+        const nextSection = featuresSection || routesHeroSection;
+        const nextSectionRect = nextSection!.getBoundingClientRect();
         const headerHeight = 96; // h-24 = 96px
         
         // Белое лого показываем, если:
         // 1. Hero секция еще видна (нижняя граница hero > 0)
-        // 2. И FeaturesSection еще не достигнут (верх FeaturesSection > headerHeight)
+        // 2. И следующая секция еще не достигнута (верх следующей секции > headerHeight)
         const isHeroVisible = heroRect.bottom > 0;
-        const isFeaturesReached = featuresRect.top <= headerHeight;
+        const isNextSectionReached = nextSectionRect.top <= headerHeight;
         
-        // Белое лого пока hero виден и FeaturesSection еще не достигнут
-        setIsHeroMode(isHeroVisible && !isFeaturesReached);
+        // Белое лого пока hero виден и следующая секция еще не достигнута
+        setIsHeroMode(isHeroVisible && !isNextSectionReached);
       } else if (heroSection) {
-        // Если FeaturesSection не найден, проверяем только Hero
+        // Если следующая секция не найдена, проверяем только Hero
         const heroRect = heroSection.getBoundingClientRect();
         setIsHeroMode(heroRect.bottom > 0);
       } else {
@@ -130,20 +139,20 @@ const Header = () => {
     <>
       <header className={cn(
         "sticky top-0 z-50 w-full transition-all duration-300",
-        isHomePage && isHeroMode
+        (isHomePage || isRoutesPage) && isHeroMode
           ? "bg-transparent border-b border-white/20 backdrop-blur-md" 
-          : "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b"
+          : "bg-[#E8ECF7]/60 backdrop-blur-md border-b"
       )}>
         <div className="container">
           {/* Верхняя часть шапки: лого, навигация, вход */}
           <div className="flex h-24 items-center justify-between gap-4">
             <Link to="/" className="flex items-center hover:opacity-80 transition-opacity shrink-0">
               <img 
-                src={isHomePage && isHeroMode ? logoWhiteImage : logoImage} 
+                src={(isHomePage || isRoutesPage) && isHeroMode ? logoWhiteImage : logoImage} 
                 alt="TudaSuda" 
                 className={cn(
                   "h-[84px] w-auto object-contain transition-all duration-300",
-                  isHomePage && isHeroMode 
+                  (isHomePage || isRoutesPage) && isHeroMode 
                     ? "drop-shadow-lg brightness-110" 
                     : "drop-shadow-sm brightness-110"
                 )}
@@ -157,10 +166,10 @@ const Header = () => {
                 className={cn(
                   "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
                   isActive("/") 
-                    ? isHomePage && isHeroMode 
+                    ? (isHomePage || isRoutesPage) && isHeroMode 
                       ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
                       : "text-primary bg-primary/10 border-transparent"
-                    : isHomePage && isHeroMode
+                    : (isHomePage || isRoutesPage) && isHeroMode
                       ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
                       : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
                 )}
@@ -172,24 +181,24 @@ const Header = () => {
                 items={popularRoutes}
                 href="/routes"
                 isActive={isActive("/routes") || location.pathname.startsWith("/routes/")}
-                isHomePage={isHomePage && isHeroMode}
+                isHomePage={(isHomePage || isRoutesPage) && isHeroMode}
               />
               <NavDropdown 
                 label="Справочная" 
                 items={faqTopics}
                 href="/reference"
                 isActive={isActive("/reference") || location.pathname.startsWith("/reference/")}
-                isHomePage={isHomePage && isHeroMode}
+                isHomePage={(isHomePage || isRoutesPage) && isHeroMode}
               />
               <Link 
                 to="/blog" 
                 className={cn(
                   "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
                   isActive("/blog") 
-                    ? isHomePage && isHeroMode 
+                    ? (isHomePage || isRoutesPage) && isHeroMode 
                       ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
                       : "text-primary bg-primary/10 border-transparent"
-                    : isHomePage && isHeroMode
+                    : (isHomePage || isRoutesPage) && isHeroMode
                       ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
                       : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
                 )}
@@ -201,7 +210,7 @@ const Header = () => {
                 items={guidesList}
                 href="/guide"
                 isActive={isActive("/guide") || location.pathname.startsWith("/guide/")}
-                isHomePage={isHomePage && isHeroMode}
+                isHomePage={(isHomePage || isRoutesPage) && isHeroMode}
               />
             </nav>
 
@@ -215,10 +224,9 @@ const Header = () => {
                   title="Личный кабинет" 
                   className={cn(
                     "h-14 w-14 [&_svg]:!h-8 [&_svg]:!w-8 transition-colors rounded-lg",
-                    "[&_svg]:text-white [&_svg]:stroke-white [&_svg]:fill-none",
-                    isHomePage && isHeroMode
-                      ? "bg-black/40 backdrop-blur-md hover:bg-black/50 border-0"
-                      : "bg-[#2A2A2A] hover:bg-[#3A3A3A]"
+                    (isHomePage || isRoutesPage) && isHeroMode
+                      ? "bg-black/40 backdrop-blur-md hover:bg-black/50 border-0 [&_svg]:text-white [&_svg]:stroke-white [&_svg]:fill-none"
+                      : "bg-transparent hover:bg-white/50 border-0 [&_svg]:text-primary [&_svg]:stroke-primary [&_svg]:fill-none"
                   )}
                 >
                   <Link to="/profile">
@@ -229,24 +237,21 @@ const Header = () => {
                 <Button 
                   onClick={() => setAuthModalOpen(true)} 
                   variant="outline" 
-                  size="icon"
                   className={cn(
-                    "relative h-14 w-14 [&_svg]:!h-10 [&_svg]:!w-10 transition-colors rounded-lg",
-                    "[&_svg]:text-white [&_svg]:stroke-white [&_svg]:fill-none",
-                    isHomePage && isHeroMode
-                      ? "bg-black/40 backdrop-blur-md hover:bg-black/50 border-0"
-                      : "bg-[#2A2A2A] border-[#2A2A2A] hover:bg-[#3A3A3A]"
+                    "text-lg font-medium transition-colors px-4 py-2 rounded-md border h-auto",
+                    (isHomePage || isRoutesPage) && isHeroMode
+                      ? "text-white/90 border-white/30 bg-white/10 hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
+                      : "text-foreground/80 border-border bg-background/50 hover:bg-muted/50 hover:text-foreground"
                   )}
-                  title="Войти / Регистрация"
                 >
-                  <User className="h-10 w-10" strokeWidth={2} />
+                  Войти
                 </Button>
               )}
             </div>
           </div>
 
-          {/* Компактная форма поиска в шапке (только на главной странице и после прокрутки Hero) */}
-          {isHomePage && (showStickySearch || isAnimatingOut) && (
+          {/* Компактная форма поиска в шапке (только на главной странице и routes, после прокрутки Hero) */}
+          {(isHomePage || isRoutesPage) && (showStickySearch || isAnimatingOut) && (
             <div className={cn(
               "pb-4 transition-all duration-300",
               showStickySearch && !isAnimatingOut 
@@ -334,7 +339,7 @@ const Header = () => {
                         <Button
                           variant="outline"
                           className={cn(
-                            "h-10 px-3 justify-start text-left font-normal text-sm min-w-[200px]",
+                            "h-10 px-3 justify-start text-left font-normal text-sm min-w-[200px] rounded-md",
                             !dateRange?.from && "text-muted-foreground"
                           )}
                         >
@@ -380,7 +385,7 @@ const Header = () => {
 
                     <Button
                       onClick={handleSearch}
-                      className="h-10 px-4 bg-primary hover:bg-primary/90 shrink-0"
+                      className="h-10 px-4 bg-primary hover:bg-primary/90 shrink-0 rounded-md"
                       disabled={!fromCity || !toCity || !dateRange?.from}
                       title={!fromCity || !toCity || !dateRange?.from ? "Заполните все поля" : ""}
                     >

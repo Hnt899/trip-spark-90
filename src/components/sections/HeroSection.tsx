@@ -133,7 +133,7 @@ const HeroSection = () => {
           </div>
 
           {/* Форма поиска */}
-          <div ref={formRef} className="bg-black/40 backdrop-blur-xl rounded-lg border border-white/10 p-4 md:p-5 space-y-4">
+          <div ref={formRef} className="bg-black/40 backdrop-blur-xl rounded-lg ring-1 ring-white/10 ring-offset-0 p-4 md:p-5 space-y-4">
             <Tabs value={travelType} onValueChange={(value) => setTravelType(value as TravelType)} defaultValue="train" className="w-full">
               {/* Верхний уровень: Тип транспорта и маршрут */}
               <div className="flex flex-col md:flex-row items-center justify-between gap-3 pb-3 border-b border-white/10">
@@ -141,7 +141,13 @@ const HeroSection = () => {
                 <TabsList className="grid w-full md:w-auto grid-cols-3 bg-white/10 p-1 h-10 gap-1">
                 <TabsTrigger 
                   value="train" 
-                    className="flex items-center gap-1.5 text-sm font-medium data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=inactive]:text-white/70 px-3"
+                    className={cn(
+                      "flex items-center gap-1.5 text-sm font-medium px-3 transition-all rounded-md",
+                      "data-[state=active]:!text-white",
+                      travelType === "train"
+                        ? "travel-tab-gradient text-white"
+                        : "text-white/70 hover:text-white"
+                    )}
                 >
                     <Train className="h-4 w-4" />
                     <span className="hidden sm:inline">Ж/д</span>
@@ -149,7 +155,13 @@ const HeroSection = () => {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="flight"
-                    className="flex items-center gap-1.5 text-sm font-medium data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=inactive]:text-white/70 px-3"
+                    className={cn(
+                      "flex items-center gap-1.5 text-sm font-medium px-3 transition-all rounded-md",
+                      "data-[state=active]:!text-white",
+                      travelType === "flight"
+                        ? "travel-tab-gradient text-white"
+                        : "text-white/70 hover:text-white"
+                    )}
                 >
                     <Plane className="h-4 w-4" />
                     <span className="hidden sm:inline">Авиа</span>
@@ -157,7 +169,13 @@ const HeroSection = () => {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="bus"
-                    className="flex items-center gap-1.5 text-sm font-medium data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=inactive]:text-white/70 px-3"
+                    className={cn(
+                      "flex items-center gap-1.5 text-sm font-medium px-3 transition-all rounded-md",
+                      "data-[state=active]:!text-white",
+                      travelType === "bus"
+                        ? "travel-tab-gradient text-white"
+                        : "text-white/70 hover:text-white"
+                    )}
                 >
                     <Bus className="h-4 w-4" />
                     <span>Автобус</span>
@@ -170,9 +188,9 @@ const HeroSection = () => {
                   <button
                     onClick={() => setTripType("round")}
                     className={cn(
-                      "px-4 py-1.5 text-sm font-medium rounded transition-colors",
+                      "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
                       tripType === "round"
-                        ? "bg-white/20"
+                        ? "bg-white/20 text-white"
                         : "text-white/70 hover:text-white"
                     )}
                   >
@@ -190,7 +208,7 @@ const HeroSection = () => {
                   <button
                     onClick={() => setTripType("one")}
                     className={cn(
-                      "px-4 py-1.5 text-sm font-medium rounded transition-colors",
+                      "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
                       tripType === "one"
                         ? "bg-white/20 text-white"
                         : "text-white/70 hover:text-white"
@@ -207,7 +225,7 @@ const HeroSection = () => {
                 <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1">
                       <Select value={fromCity} onValueChange={setFromCity}>
-                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70 rounded-md">
                           <SelectValue placeholder="Откуда" />
                         </SelectTrigger>
                         <SelectContent>
@@ -222,7 +240,7 @@ const HeroSection = () => {
 
                     <div className="flex-1">
                       <Select value={toCity} onValueChange={setToCity}>
-                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70 rounded-md">
                           <SelectValue placeholder="Куда" />
                         </SelectTrigger>
                         <SelectContent>
@@ -242,7 +260,7 @@ const HeroSection = () => {
                         <Button
                           variant="outline"
                           className={cn(
-                          "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white",
+                          "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white rounded-md",
                           !dateRange?.from && "text-white/50"
                           )}
                         >
@@ -285,7 +303,7 @@ const HeroSection = () => {
                           <Button
                             variant="outline"
                             className={cn(
-                            "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white",
+                            "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white rounded-md",
                             !dateRange?.to && "text-white/50"
                             )}
                           >
@@ -341,7 +359,7 @@ const HeroSection = () => {
 
                     <Button
                       onClick={handleSearch}
-                    className="h-11 px-6 text-sm font-medium transition-all rounded-full"
+                      className="h-11 px-6 text-sm font-medium transition-all rounded-md"
                       disabled={!fromCity || !toCity || !dateRange?.from}
                     >
                     <Search className="h-4 w-4 mr-2" />
@@ -354,7 +372,7 @@ const HeroSection = () => {
                 <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1">
                       <Select value={fromCity} onValueChange={setFromCity}>
-                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70 rounded-md">
                           <SelectValue placeholder="Откуда" />
                         </SelectTrigger>
                         <SelectContent>
@@ -369,7 +387,7 @@ const HeroSection = () => {
 
                     <div className="flex-1">
                       <Select value={toCity} onValueChange={setToCity}>
-                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70 rounded-md">
                           <SelectValue placeholder="Куда" />
                         </SelectTrigger>
                         <SelectContent>
@@ -389,7 +407,7 @@ const HeroSection = () => {
                         <Button
                           variant="outline"
                           className={cn(
-                          "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white",
+                          "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white rounded-md",
                           !dateRange?.from && "text-white/50"
                           )}
                         >
@@ -432,7 +450,7 @@ const HeroSection = () => {
                           <Button
                             variant="outline"
                             className={cn(
-                            "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white",
+                            "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white rounded-md",
                             !dateRange?.to && "text-white/50"
                             )}
                           >
@@ -489,7 +507,7 @@ const HeroSection = () => {
 
                     <Button
                       onClick={handleSearch}
-                    className="h-11 px-6 text-sm font-medium transition-all rounded-full"
+                      className="h-11 px-6 text-sm font-medium transition-all rounded-md"
                       disabled={!fromCity || !toCity || !dateRange?.from}
                     >
                     <Search className="h-4 w-4 mr-2" />
@@ -502,7 +520,7 @@ const HeroSection = () => {
                 <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1">
                       <Select value={fromCity} onValueChange={setFromCity}>
-                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70 rounded-md">
                           <SelectValue placeholder="Откуда" />
                         </SelectTrigger>
                         <SelectContent>
@@ -517,7 +535,7 @@ const HeroSection = () => {
 
                     <div className="flex-1">
                       <Select value={toCity} onValueChange={setToCity}>
-                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70">
+                      <SelectTrigger className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm [&>svg]:text-white/70 rounded-md">
                           <SelectValue placeholder="Куда" />
                         </SelectTrigger>
                         <SelectContent>
@@ -537,7 +555,7 @@ const HeroSection = () => {
                         <Button
                           variant="outline"
                           className={cn(
-                          "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white",
+                          "h-11 px-3 justify-start text-left font-normal flex-1 text-sm bg-white/10 border-white/20 text-white rounded-md",
                           !dateRange?.from && "text-white/50"
                           )}
                         >
@@ -578,7 +596,7 @@ const HeroSection = () => {
 
                     <Button
                       onClick={handleSearch}
-                    className="h-11 px-6 text-sm font-medium transition-all rounded-full"
+                      className="h-11 px-6 text-sm font-medium transition-all rounded-md"
                       disabled={!fromCity || !toCity || !dateRange?.from}
                     >
                     <Search className="h-4 w-4 mr-2" />

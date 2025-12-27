@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 const RoutesHeroSection = () => {
   return (
-    <section className="py-20 bg-[#eef0f8]">
+    <section id="routes-hero-section" className="py-20 bg-[#eef0f8]">
       <div className="container">
         <Card className="mb-12 shadow-lg">
           <CardContent className="p-8 md:p-12 text-center">

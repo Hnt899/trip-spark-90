@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import logoImage from "@/assets/logo.png";
+import logoWhiteImage from "@/assets/logo w.png";
 import { MessageCircle, Mail, Phone, ArrowRight } from "lucide-react";
 import { useState } from "react";
 
@@ -49,26 +49,9 @@ const Footer = () => {
               className="inline-block relative hover:opacity-90 transition-opacity"
             >
               <img 
-                src={logoImage} 
+                src={logoWhiteImage} 
                 alt="TudaSuda" 
                 className="h-20 md:h-24 w-auto object-contain relative z-10"
-                style={{
-                  filter: `
-                    drop-shadow(-0.5px -0.5px 0 rgba(99, 102, 241, 0.25))
-                    drop-shadow(0.5px -0.5px 0 rgba(99, 102, 241, 0.25))
-                    drop-shadow(-0.5px 0.5px 0 rgba(99, 102, 241, 0.25))
-                    drop-shadow(0.5px 0.5px 0 rgba(99, 102, 241, 0.25))
-                    drop-shadow(-0.3px 0 0 rgba(139, 92, 246, 0.2))
-                    drop-shadow(0.3px 0 0 rgba(139, 92, 246, 0.2))
-                    drop-shadow(0 -0.3px 0 rgba(139, 92, 246, 0.2))
-                    drop-shadow(0 0.3px 0 rgba(139, 92, 246, 0.2))
-                    drop-shadow(0 0 2px rgba(99, 102, 241, 0.15))
-                    drop-shadow(0 0 4px rgba(139, 92, 246, 0.12))
-                    drop-shadow(0 0 8px rgba(99, 102, 241, 0.15))
-                    drop-shadow(0 0 6px rgba(139, 92, 246, 0.12))
-                    drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15))
-                  `,
-                }}
               />
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">

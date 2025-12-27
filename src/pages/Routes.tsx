@@ -1,4 +1,4 @@
-import RoutesHeader from "@/components/RoutesHeader";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HeroRoutes from "@/components/sections/HeroRoutes";
 import RoutesHeroSection from "@/components/sections/RoutesHeroSection";
@@ -10,6 +10,7 @@ import PhotographersSection from "@/components/sections/PhotographersSection";
 const Routes = () => {
   return (
     <div className="min-h-screen">
+      <Header />
       <main>
         <HeroRoutes />
         <RoutesHeroSection />

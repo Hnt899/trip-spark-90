@@ -1,4 +1,4 @@
-import { Layers, Shield, Headphones, FileText, MapPin, BookOpen, Clock, LayoutGrid } from "lucide-react";
+import { Layers, Shield, Headphones, FileText, MapPin, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import {
@@ -65,24 +65,6 @@ const FeaturesSection = () => {
       bgGradient: "from-pink-50 to-rose-50",
       iconBg: "bg-pink-500",
     },
-    {
-      icon: Clock,
-      title: "Быстрое бронирование",
-      description: "Оформление билетов за несколько минут",
-      fullDescription: "Оформление билетов занимает всего несколько минут благодаря простому и интуитивно понятному интерфейсу. Автоматическое заполнение данных, выбор мест на интерактивной схеме, безопасная оплата — всё необходимое для комфортной поездки в одном месте. Мы оптимизировали каждый шаг процесса бронирования, чтобы сделать его максимально быстрым и удобным.",
-      gradient: "from-amber-500 to-yellow-400",
-      bgGradient: "from-amber-50 to-yellow-50",
-      iconBg: "bg-amber-500",
-    },
-    {
-      icon: LayoutGrid,
-      title: "Выбор мест",
-      description: "Интерактивная схема и удобный выбор",
-      fullDescription: "Выбирайте места на интерактивной схеме вагона или салона самолёта. Мы показываем все доступные места с подробной информацией о каждом: расположение относительно окна, прохода, туалета и других удобств. Вы можете увидеть схему до покупки билета и выбрать наиболее удобное для вас место. Система автоматически подскажет лучшие варианты в зависимости от ваших предпочтений.",
-      gradient: "from-teal-500 to-cyan-400",
-      bgGradient: "from-teal-50 to-cyan-50",
-      iconBg: "bg-teal-500",
-    },
   ];
 
   const [selectedFeature, setSelectedFeature] = useState<typeof features[0] | null>(null);
@@ -103,14 +85,14 @@ const FeaturesSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 px-2">
           {features.map((feature, index) => (
             <div
               key={index}
               onClick={() => setSelectedFeature(feature)}
               className={cn(
                 "animate-in fade-in slide-in-from-bottom-4 duration-500",
-                "group relative rounded-3xl p-6 md:p-8",
+                "group relative rounded-3xl p-8 md:p-10",
                 "border-2 border-transparent",
                 "hover:border-primary/20 hover:shadow-2xl",
                 "transition-all duration-500 ease-out",
@@ -129,16 +111,16 @@ const FeaturesSection = () => {
               )}></div>
 
               {/* Иконка */}
-              <div className="mb-6 relative">
+              <div className="mb-8 relative">
                 <div className={cn(
-                  "w-16 h-16 rounded-2xl flex items-center justify-center",
+                  "w-20 h-20 rounded-2xl flex items-center justify-center",
                   "shadow-lg group-hover:shadow-xl",
                   "transition-all duration-300",
                   "group-hover:scale-110 group-hover:rotate-3",
                   feature.iconBg,
                   "relative z-10"
                 )}>
-                  <feature.icon className="w-8 h-8 text-white" strokeWidth={2.5} />
+                  <feature.icon className="w-10 h-10 text-white" strokeWidth={2.5} />
                 </div>
                 {/* Свечение вокруг иконки - растянуто вниз */}
                 <div className={cn(
@@ -150,12 +132,12 @@ const FeaturesSection = () => {
               </div>
 
               {/* Заголовок */}
-              <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors duration-300">
+              <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors duration-300">
                 {feature.title}
               </h3>
 
               {/* Описание */}
-              <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
+              <p className="text-muted-foreground text-base md:text-lg leading-relaxed">
                 {feature.description}
               </p>
 
