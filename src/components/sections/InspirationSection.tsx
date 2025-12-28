@@ -1,6 +1,6 @@
-import armenia from "@/assets/armenia.jpg";
-import china from "@/assets/china.jpg";
-import karelia from "@/assets/karelia.jpg";
+import armenia from "@/assets/images/cities/armenia.jpg";
+import china from "@/assets/images/cities/china.jpg";
+import karelia from "@/assets/images/cities/karelia.jpg";
 import { useEffect, useRef, useState } from "react";
 
 const InspirationSection = () => {

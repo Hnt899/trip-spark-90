@@ -65,9 +65,9 @@ const HeroSection = () => {
   };
 
   return (
-    <section id="hero-section" className="relative min-h-screen flex items-center overflow-hidden" style={{ marginTop: '-96px', paddingTop: '96px' }}>
+    <section id="hero-section" className="relative min-h-screen flex items-center overflow-hidden">
       {/* Фон с видео и затемнением под формой */}
-      <div className="absolute inset-0 z-0 overflow-hidden" style={{ top: '-96px', height: 'calc(100% + 96px)' }}>
+      <div className="absolute inset-0 z-0 overflow-hidden">
         <video
           key={travelType}
           autoPlay

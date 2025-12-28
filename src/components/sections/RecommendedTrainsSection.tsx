@@ -3,12 +3,12 @@ import { ChevronRight, ChevronLeft, Calendar, MapPin, TrendingDown } from "lucid
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import moscow from "@/assets/moscow.jpg";
-import stPetersburg from "@/assets/saint-petersburg.jpg";
-import kazan from "@/assets/kazan.jpg";
-import novgorod from "@/assets/novgorod.jpg";
-import karelia from "@/assets/karelia.jpg";
-import armenia from "@/assets/armenia.jpg";
+import moscow from "@/assets/images/cities/moscow.jpg";
+import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
+import kazan from "@/assets/images/cities/kazan.jpg";
+import novgorod from "@/assets/images/cities/novgorod.jpg";
+import karelia from "@/assets/images/cities/karelia.jpg";
+import armenia from "@/assets/images/cities/armenia.jpg";
 
 const RecommendedTrainsSection = () => {
   const navigate = useNavigate();

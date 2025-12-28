@@ -84,10 +84,12 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
   }
   
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 }
 
@@ -249,6 +251,15 @@ All colors MUST be HSL.
   display: none;
 }
 
+/* Анимация заливки сверху вниз для карточек маршрутов */
+.clip-path-top {
+  clip-path: inset(100% 0 0 0);
+}
+
+.clip-path-full {
+  clip-path: inset(0 0 0 0);
+}
+
 /* Анимация для букв заголовка - общая длительность для всех букв */
 @keyframes letterWave {
   0% {
@@ -279,4 +290,41 @@ All colors MUST be HSL.
     -webkit-background-clip: unset;
     background-clip: unset;
   }
+}
+
+/* Анимация tinLeftOut - уезжает влево и исчезает */
+@keyframes tinLeftOut {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  100% {
+    transform: translateX(-120%);
+    opacity: 0;
+    filter: brightness(1);
+  }
+}
+
+/* Анимация slideInFromRight - приезжает справа */
+@keyframes slideInFromRight {
+  0% {
+    transform: translateX(120%);
+    opacity: 0;
+    filter: brightness(1);
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+/* Классы для применения анимаций */
+.anim-tinLeftOut {
+  animation: tinLeftOut 600ms ease-in-out forwards;
+}
+
+.anim-slideInRight {
+  animation: slideInFromRight 600ms ease-in-out forwards;
 }

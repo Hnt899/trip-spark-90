@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import turist from "@/assets/turist.png";
+import turist from "@/assets/images/transport/turist.png";
 
 const ProcessSection = () => {
   return (

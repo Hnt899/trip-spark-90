@@ -3,14 +3,14 @@ import RoutesHeader from "@/components/RoutesHeader";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import karelia from "@/assets/karelia.jpg";
-import moscow from "@/assets/moscow.jpg";
-import stPetersburg from "@/assets/saint-petersburg.jpg";
-import kazan from "@/assets/kazan.jpg";
-import novgorod from "@/assets/novgorod.jpg";
-import armenia from "@/assets/armenia.jpg";
-import china from "@/assets/china.jpg";
-import heroTrain from "@/assets/hero-train.jpg";
+import karelia from "@/assets/images/cities/karelia.jpg";
+import moscow from "@/assets/images/cities/moscow.jpg";
+import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
+import kazan from "@/assets/images/cities/kazan.jpg";
+import novgorod from "@/assets/images/cities/novgorod.jpg";
+import armenia from "@/assets/images/cities/armenia.jpg";
+import china from "@/assets/images/cities/china.jpg";
+import heroTrain from "@/assets/images/hero/hero-train.jpg";
 
 interface Route {
   id: string;

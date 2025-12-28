@@ -14,8 +14,8 @@ import { ru } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
 import { cities } from "@/data/cities";
 import { cn } from "@/lib/utils";
-import logoImage from "@/assets/logo.png";
-import logoWhiteImage from "@/assets/logo w.png";
+import logoImage from "@/assets/images/logo/logo.png";
+import logoWhiteImage from "@/assets/images/logo/logo w.png";
 
 type TravelType = "train" | "flight" | "bus";
 
@@ -48,7 +48,6 @@ const Header = () => {
     const handleScroll = () => {
       const heroSection = document.getElementById("hero-section");
       const featuresSection = isHomePage ? document.getElementById("features-section") : null;
-      const routesHeroSection = isRoutesPage ? document.getElementById("routes-hero-section") : null;
       
       if (heroSection) {
         const heroRect = heroSection.getBoundingClientRect();
@@ -70,17 +69,18 @@ const Header = () => {
         }
       }
 
-      // На routes форма всегда видна
+      // На routes форма всегда видна и шапка всегда в hero режиме
       if (isRoutesPage) {
         setShowStickySearch(true);
         setIsAnimatingOut(false);
+        setIsHeroMode(true);
+        return;
       }
 
-      // Проверяем hero режим для обеих страниц
-      if (heroSection && (featuresSection || routesHeroSection)) {
+      // Проверяем hero режим только для главной страницы
+      if (heroSection && featuresSection) {
         const heroRect = heroSection.getBoundingClientRect();
-        const nextSection = featuresSection || routesHeroSection;
-        const nextSectionRect = nextSection!.getBoundingClientRect();
+        const nextSectionRect = featuresSection.getBoundingClientRect();
         const headerHeight = 96; // h-24 = 96px
         
         // Белое лого показываем, если:
@@ -138,7 +138,7 @@ const Header = () => {
   return (
     <>
       <header className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300",
         (isHomePage || isRoutesPage) && isHeroMode
           ? "bg-transparent border-b border-white/20 backdrop-blur-md" 
           : "bg-[#E8ECF7]/60 backdrop-blur-md border-b"
@@ -403,7 +403,7 @@ const Header = () => {
             <Link 
               to="/" 
               className={cn(
-                "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap border",
+                "text-2xl font-medium transition-colors px-2 py-1 rounded whitespace-nowrap border",
                 isActive("/") 
                   ? isHomePage && isHeroMode 
                     ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 

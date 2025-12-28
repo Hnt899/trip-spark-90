@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import logoImage from "@/assets/logo.png";
+import logoImage from "@/assets/images/logo/logo.png";
 
 const RoutesHeader = () => {
   const location = useLocation();

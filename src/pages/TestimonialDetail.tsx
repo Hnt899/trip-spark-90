@@ -4,31 +4,31 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MapPin, Calendar } from "lucide-react";
-import person1 from "@/assets/люди/просто сотрудник 1.jpg";
-import person2 from "@/assets/люди/просто сотрудник 2.jpg";
-import person3 from "@/assets/люди/просто сотрудник 3.jpg";
-import person4 from "@/assets/люди/просто сотрудник 4.jpg";
-import person5 from "@/assets/люди/просто сотрудник 5.jpg";
-import person6 from "@/assets/люди/просто сотрудник 6.jpg";
-import person7 from "@/assets/люди/просто сотрудник 7.jpg";
-import person8 from "@/assets/люди/просто сотрудник 8.jpg";
-import person9 from "@/assets/люди/просто сотрудник 9.jpg";
-import person10 from "@/assets/люди/просто сотрудник 10.jpg";
-import person11 from "@/assets/люди/просто сотрудник 11.jpg";
-import stPetersburg from "@/assets/saint-petersburg.jpg";
-import kazan from "@/assets/kazan.jpg";
-import trainInterior from "@/assets/train-interior.jpg";
-import baikal1 from "@/assets/байкал1.jpg";
-import baikal2 from "@/assets/байкал 2.jpg";
-import novgorod from "@/assets/novgorod.jpg";
-import vladivostok1 from "@/assets/владивосток 1.jpg";
-import vladivostok2 from "@/assets/владивосток 2.jpg";
-import kaliningrad1 from "@/assets/калиниград 1.jpg";
-import kaliningrad2 from "@/assets/калиниград 2.jpg";
-import karelia from "@/assets/karelia.jpg";
-import moscow from "@/assets/moscow.jpg";
-import sochi from "@/assets/armenia.jpg";
-import белыеНочи from "@/assets/белые ночи.jpg";
+import person1 from "@/assets/images/people/просто сотрудник 1.jpg";
+import person2 from "@/assets/images/people/просто сотрудник 2.jpg";
+import person3 from "@/assets/images/people/просто сотрудник 3.jpg";
+import person4 from "@/assets/images/people/просто сотрудник 4.jpg";
+import person5 from "@/assets/images/people/просто сотрудник 5.jpg";
+import person6 from "@/assets/images/people/просто сотрудник 6.jpg";
+import person7 from "@/assets/images/people/просто сотрудник 7.jpg";
+import person8 from "@/assets/images/people/просто сотрудник 8.jpg";
+import person9 from "@/assets/images/people/просто сотрудник 9.jpg";
+import person10 from "@/assets/images/people/просто сотрудник 10.jpg";
+import person11 from "@/assets/images/people/просто сотрудник 11.jpg";
+import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
+import kazan from "@/assets/images/cities/kazan.jpg";
+import trainInterior from "@/assets/images/transport/train-interior.jpg";
+import baikal1 from "@/assets/images/routes/байкал1.jpg";
+import baikal2 from "@/assets/images/routes/байкал 2.jpg";
+import novgorod from "@/assets/images/cities/novgorod.jpg";
+import vladivostok1 from "@/assets/images/routes/владивосток 1.jpg";
+import vladivostok2 from "@/assets/images/routes/владивосток 2.jpg";
+import kaliningrad1 from "@/assets/images/routes/калиниград 1.jpg";
+import kaliningrad2 from "@/assets/images/routes/калиниград 2.jpg";
+import karelia from "@/assets/images/cities/karelia.jpg";
+import moscow from "@/assets/images/cities/moscow.jpg";
+import sochi from "@/assets/images/cities/armenia.jpg";
+import белыеНочи from "@/assets/images/events/белые ночи.jpg";
 
 const testimonialsData = [
   {
@@ -269,7 +269,7 @@ const TestimonialDetail = () => {
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold mb-2">
                   {testimonial.name}
-                </h1>
+            </h1>
                 <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4" />
@@ -279,10 +279,10 @@ const TestimonialDetail = () => {
                     <Calendar className="w-4 h-4" />
                     <span>{testimonial.date}</span>
                   </div>
+          </div>
                 </div>
               </div>
             </div>
-          </div>
 
           {/* Фотографии */}
           {testimonial.photos && testimonial.photos.length > 0 && (
