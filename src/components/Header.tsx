@@ -35,14 +35,43 @@ const Header = () => {
   const isActive = (path: string) => location.pathname === path;
   const isHomePage = location.pathname === "/";
   const isRoutesPage = location.pathname === "/routes";
+  const isBlogPage = location.pathname === "/blog";
 
   // Отслеживание скролла для показа формы поиска и изменения стиля шапки
   useEffect(() => {
-    if (!isHomePage && !isRoutesPage) {
+    if (!isHomePage && !isRoutesPage && !isBlogPage) {
       setShowStickySearch(false);
       setIsAnimatingOut(false);
       setIsHeroMode(false);
       return;
+    }
+
+    // На blog странице форма всегда видна после небольшой прокрутки
+    if (isBlogPage) {
+      const handleScroll = () => {
+        const scrollY = window.scrollY;
+        const shouldShow = scrollY > 50; // Показываем после прокрутки на 50px
+        
+        if (shouldShow && !showStickySearch) {
+          setIsAnimatingOut(false);
+          setShowStickySearch(true);
+        } else if (!shouldShow && showStickySearch) {
+          setIsAnimatingOut(true);
+          setTimeout(() => {
+            setShowStickySearch(false);
+            setIsAnimatingOut(false);
+          }, 300);
+        }
+        setIsHeroMode(false);
+      };
+
+      handleScroll();
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      window.addEventListener("resize", handleScroll, { passive: true });
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+        window.removeEventListener("resize", handleScroll);
+      };
     }
 
     const handleScroll = () => {
@@ -109,7 +138,7 @@ const Header = () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
-  }, [isHomePage, showStickySearch]);
+  }, [isHomePage, isRoutesPage, isBlogPage, showStickySearch]);
 
   const handleSearch = () => {
     if (!fromCity || !toCity || !dateRange?.from) {
@@ -141,7 +170,7 @@ const Header = () => {
         "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300",
         (isHomePage || isRoutesPage) && isHeroMode
           ? "bg-transparent border-b border-white/20 backdrop-blur-md" 
-          : "bg-[#E8ECF7]/60 backdrop-blur-md border-b"
+            : "bg-[#E8ECF7]/60 backdrop-blur-md border-b"
       )}>
         <div className="container">
           {/* Верхняя часть шапки: лого, навигация, вход */}
@@ -168,10 +197,10 @@ const Header = () => {
                   isActive("/") 
                     ? (isHomePage || isRoutesPage) && isHeroMode 
                       ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
-                      : "text-primary bg-primary/10 border-transparent"
+                        : "text-primary bg-primary/10 border-transparent"
                     : (isHomePage || isRoutesPage) && isHeroMode
                       ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
-                      : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
+                        : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
                 )}
               >
                 Главная
@@ -197,10 +226,10 @@ const Header = () => {
                   isActive("/blog") 
                     ? (isHomePage || isRoutesPage) && isHeroMode 
                       ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
-                      : "text-primary bg-primary/10 border-transparent"
+                        : "text-primary bg-primary/10 border-transparent"
                     : (isHomePage || isRoutesPage) && isHeroMode
                       ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
-                      : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
+                        : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
                 )}
               >
                 Блог
@@ -226,7 +255,7 @@ const Header = () => {
                     "h-14 w-14 [&_svg]:!h-8 [&_svg]:!w-8 transition-colors rounded-lg",
                     (isHomePage || isRoutesPage) && isHeroMode
                       ? "bg-black/40 backdrop-blur-md hover:bg-black/50 border-0 [&_svg]:text-white [&_svg]:stroke-white [&_svg]:fill-none"
-                      : "bg-transparent hover:bg-white/50 border-0 [&_svg]:text-primary [&_svg]:stroke-primary [&_svg]:fill-none"
+                        : "bg-transparent hover:bg-white/50 border-0 [&_svg]:text-primary [&_svg]:stroke-primary [&_svg]:fill-none"
                   )}
                 >
                   <Link to="/profile">
@@ -240,8 +269,8 @@ const Header = () => {
                   className={cn(
                     "text-lg font-medium transition-colors px-4 py-2 rounded-md border h-auto",
                     (isHomePage || isRoutesPage) && isHeroMode
-                      ? "text-white/90 border-white/30 bg-white/10 hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
-                      : "text-foreground/80 border-border bg-background/50 hover:bg-muted/50 hover:text-foreground"
+                        ? "text-white/90 border-white/30 bg-white/10 hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
+                        : "text-foreground/80 border-border bg-background/50 hover:bg-muted/50 hover:text-foreground"
                   )}
                 >
                   Войти
@@ -250,8 +279,8 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Компактная форма поиска в шапке (только на главной странице и routes, после прокрутки Hero) */}
-          {(isHomePage || isRoutesPage) && (showStickySearch || isAnimatingOut) && (
+          {/* Компактная форма поиска в шапке (на главной странице, routes и blog, после прокрутки) */}
+          {(isHomePage || isRoutesPage || isBlogPage) && (showStickySearch || isAnimatingOut) && (
             <div className={cn(
               "pb-4 transition-all duration-300",
               showStickySearch && !isAnimatingOut 
@@ -407,10 +436,10 @@ const Header = () => {
                 isActive("/") 
                   ? isHomePage && isHeroMode 
                     ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
-                    : "text-primary bg-primary/10 border-transparent"
+                      : "text-primary bg-primary/10 border-transparent"
                   : isHomePage && isHeroMode
                     ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
-                    : "text-foreground/80 border-transparent hover:text-primary"
+                      : "text-foreground/80 border-transparent hover:text-primary"
               )}
             >
               Главная
@@ -436,10 +465,10 @@ const Header = () => {
                 isActive("/blog") 
                   ? isHomePage && isHeroMode 
                     ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
-                    : "text-primary bg-primary/10 border-transparent"
+                      : "text-primary bg-primary/10 border-transparent"
                   : isHomePage && isHeroMode
                     ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
-                    : "text-foreground/80 border-transparent hover:text-primary"
+                      : "text-foreground/80 border-transparent hover:text-primary"
               )}
             >
               Блог

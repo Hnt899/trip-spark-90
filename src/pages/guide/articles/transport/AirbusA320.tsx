@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import VerifiedSection from "@/components/sections/VerifiedSection";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plane, Users, Zap, Info } from "lucide-react";
 
@@ -201,6 +202,7 @@ const AirbusA320 = () => {
           </Card>
         </div>
       </main>
+      <VerifiedSection />
       <Footer />
     </div>
   );

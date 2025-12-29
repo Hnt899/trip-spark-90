@@ -328,3 +328,39 @@ All colors MUST be HSL.
 .anim-slideInRight {
   animation: slideInFromRight 600ms ease-in-out forwards;
 }
+
+/* Анимации для бегущих лент фотографов */
+/* Для seamless loop: двигаем на 33.333% (1/3 от 3 копий) */
+@keyframes marqueeRight {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.333%);
+  }
+}
+
+@keyframes marqueeLeft {
+  0% {
+    transform: translateX(-33.333%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.marquee-right {
+  animation: marqueeRight 30s linear infinite;
+}
+
+.marquee-left {
+  animation: marqueeLeft 30s linear infinite;
+}
+
+/* Отключение анимации для пользователей с prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-right,
+  .marquee-left {
+    animation: none;
+  }
+}

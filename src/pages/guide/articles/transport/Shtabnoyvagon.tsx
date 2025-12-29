@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import VerifiedSection from "@/components/sections/VerifiedSection";
 import { Card, CardContent } from "@/components/ui/card";
 import { Train, Building2, Users, Info, Settings } from "lucide-react";
 
@@ -166,6 +167,7 @@ const Shtabnoyvagon = () => {
           </Card>
         </div>
       </main>
+      <VerifiedSection />
       <Footer />
     </div>
   );

@@ -1,5 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import karelia from "@/assets/images/cities/karelia.jpg";
 import moscow from "@/assets/images/cities/moscow.jpg";
 import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
@@ -53,48 +51,136 @@ const photographers: Photographer[] = [
   },
 ];
 
+// Константы для настройки анимации
+const ANIMATION_DURATION = 30; // секунды на полный цикл
+const CARD_WIDTH = 240; // ширина карточки в пикселях
+const CARD_GAP = 24; // отступ между карточками в пикселях
+
 const PhotographersSection = () => {
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  // Дублируем массив для seamless loop (3 раза для плавности)
+  const duplicatedPhotographers = [...photographers, ...photographers, ...photographers];
 
   return (
-    <section className="py-20 bg-[#eef0f8]">
-      <div className="container">
-        <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-12">
-          Наши фотографы
-        </h2>
+    <section className="relative py-20 bg-[#100A6F]/80 backdrop-blur-sm overflow-hidden">
+      {/* Декоративные желтые пятна */}
+      <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
+        {/* Левое пятно - от центра поднимаемся вверх на 30px */}
+        <div
+          className="absolute rounded-full blur-3xl"
+          style={{
+            width: "400px",
+            height: "400px",
+            left: "-150px",
+            top: "calc(50% - 30px)",
+            transform: "translateY(-50%)",
+            background: "#F9B84F",
+            opacity: 0.3,
+          }}
+        />
+        {/* Правое пятно - от центра опускаемся вниз на 30px */}
+        <div
+          className="absolute rounded-full blur-3xl"
+          style={{
+            width: "400px",
+            height: "400px",
+            right: "-100px",
+            top: "calc(50% + 30px)",
+            transform: "translateY(-50%)",
+            background: "#F9B84F",
+            opacity: 0.3,
+          }}
+        />
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {photographers.map((photographer, index) => (
-            <Card key={index} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-              <div className="relative h-64 overflow-hidden">
+      <div className="container relative z-10">
+        {/* Заголовок */}
+        <div className="mb-12">
+          <div className="text-white/60 tracking-[0.28em] text-xs md:text-sm uppercase">
+            Photographers
+          </div>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mt-2">
+            Наши фотографы
+          </h2>
+          <p className="text-white/75 mt-3 max-w-2xl">
+            Живые кадры, реальная Россия и авторские точки зрения — выбирай, чьи фото вдохновляют.
+          </p>
+        </div>
+      </div>
+
+      {/* Верхний ряд - движется вправо */}
+      <div className="relative overflow-hidden mb-6">
+        <div
+          className="flex marquee-right"
+          style={{
+            width: "fit-content",
+            animationDuration: `${ANIMATION_DURATION}s`,
+          }}
+        >
+          {duplicatedPhotographers.map((photographer, index) => (
+            <div
+              key={`top-${index}`}
+              className="flex-shrink-0 group cursor-pointer"
+              style={{
+                width: `${CARD_WIDTH}px`,
+                marginRight: `${CARD_GAP}px`,
+              }}
+            >
+              <div className="relative h-64 rounded-xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105">
                 <img
                   src={photographer.image}
                   alt={photographer.name}
                   className="w-full h-full object-cover"
                 />
-              </div>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={photographer.avatar} alt={photographer.name} />
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      {getInitials(photographer.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-semibold text-foreground">{photographer.name}</div>
-                    <div className="text-sm text-muted-foreground">{photographer.handle}</div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3">
+                  <div className="text-white text-sm font-semibold truncate">
+                    {photographer.name}
+                  </div>
+                  <div className="text-white/70 text-xs truncate">
+                    {photographer.handle}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Нижний ряд - движется влево */}
+      <div className="relative overflow-hidden">
+        <div
+          className="flex marquee-left"
+          style={{
+            width: "fit-content",
+            animationDuration: `${ANIMATION_DURATION}s`,
+          }}
+        >
+          {duplicatedPhotographers.map((photographer, index) => (
+            <div
+              key={`bottom-${index}`}
+              className="flex-shrink-0 group cursor-pointer"
+              style={{
+                width: `${CARD_WIDTH}px`,
+                marginRight: `${CARD_GAP}px`,
+              }}
+            >
+              <div className="relative h-64 rounded-xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                <img
+                  src={photographer.image}
+                  alt={photographer.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3">
+                  <div className="text-white text-sm font-semibold truncate">
+                    {photographer.name}
+                  </div>
+                  <div className="text-white/70 text-xs truncate">
+                    {photographer.handle}
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>

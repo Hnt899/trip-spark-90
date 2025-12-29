@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import VerifiedSection from "@/components/sections/VerifiedSection";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Plane, AlertCircle, CheckCircle, Eye } from "lucide-react";
 
@@ -188,6 +189,7 @@ const Chtonadoznatpro = () => {
           </Card>
         </div>
       </main>
+      <VerifiedSection />
       <Footer />
     </div>
   );

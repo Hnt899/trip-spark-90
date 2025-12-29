@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { StoryData } from "@/data/blogData";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CarouselNavButton } from "@/components/ui/carousel-nav-button";
 import StoryModal from "./StoryModal";
 
 interface StoriesCarouselProps {
@@ -141,23 +140,8 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
         </div>
 
         {/* Навигационные кнопки */}
-        <Button
-          variant="outline"
-          size="icon"
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full -ml-4 w-12 h-12 rounded-full bg-white shadow-md hover:bg-white z-10 hidden md:flex"
-          onClick={handlePrev}
-        >
-          <ChevronLeft className="w-5 h-5 text-primary" />
-        </Button>
-
-        <Button
-          variant="outline"
-          size="icon"
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full ml-4 w-12 h-12 rounded-full bg-white shadow-md hover:bg-white z-10 hidden md:flex"
-          onClick={handleNext}
-        >
-          <ChevronRight className="w-5 h-5 text-primary" />
-        </Button>
+        <CarouselNavButton direction="prev" onClick={handlePrev} />
+        <CarouselNavButton direction="next" onClick={handleNext} />
       </div>
 
       {/* Модальное окно сториса */}

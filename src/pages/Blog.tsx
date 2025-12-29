@@ -6,7 +6,7 @@ import WideHighlightCard from "@/components/blog/WideHighlightCard";
 import EventTile from "@/components/blog/EventTile";
 import StoriesCarousel from "@/components/blog/StoriesCarousel";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CarouselNavButton } from "@/components/ui/carousel-nav-button";
 import {
   infoCards,
   siteNews,
@@ -20,9 +20,10 @@ const Blog = () => {
   // Состояния для слайдеров
   const [siteNewsIndex, setSiteNewsIndex] = useState(1); // Начинаем с 1, так как 0 - это клон последнего
   const [rzdNewsIndex, setRzdNewsIndex] = useState(1); // Начинаем с 1, так как 0 - это клон последнего
-  const [tipsIndex, setTipsIndex] = useState(0);
+  const [tipsIndex, setTipsIndex] = useState(1); // Начинаем с 1, так как 0 - это клон последнего
   const sliderRef = useRef<HTMLDivElement>(null);
   const rzdSliderRef = useRef<HTMLDivElement>(null);
+  const tipsSliderRef = useRef<HTMLDivElement>(null);
 
   // Создаем массив с клонами для бесконечного цикла: [последний, ...оригиналы, первый]
   const infiniteSiteNews = [
@@ -115,6 +116,43 @@ const Blog = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Создаем массив с клонами для tips: [последний, ...оригиналы, первый]
+  const infiniteTips = [
+    tips[tips.length - 1], // Клон последнего в начале
+    ...tips,
+    tips[0], // Клон первого в конце
+  ];
+
+  // Обработка перехода после завершения анимации для tips
+  const handleTipsTransitionEnd = () => {
+    if (!tipsSliderRef.current) return;
+    
+    // Если дошли до клона первого (последний индекс), переключаемся на первый оригинал без анимации
+    if (tipsIndex >= infiniteTips.length - 1) {
+      tipsSliderRef.current.style.transition = 'none';
+      tipsSliderRef.current.style.transform = `translateX(-100%)`;
+      setTipsIndex(1);
+      // Восстанавливаем transition после небольшой задержки
+      setTimeout(() => {
+        if (tipsSliderRef.current) {
+          tipsSliderRef.current.style.transition = 'transform 500ms ease-in-out';
+        }
+      }, 50);
+    }
+    // Если дошли до клона последнего (индекс 0), переключаемся на последний оригинал без анимации
+    else if (tipsIndex === 0) {
+      tipsSliderRef.current.style.transition = 'none';
+      tipsSliderRef.current.style.transform = `translateX(-${tips.length * 100}%)`;
+      setTipsIndex(tips.length);
+      // Восстанавливаем transition после небольшой задержки
+      setTimeout(() => {
+        if (tipsSliderRef.current) {
+          tipsSliderRef.current.style.transition = 'transform 500ms ease-in-out';
+        }
+      }, 50);
+    }
+  };
+
   // Функции для слайдеров
   const nextSlide = (current: number, total: number, setter: (val: number) => void) => {
     setter((current + 1) % total);
@@ -124,10 +162,19 @@ const Blog = () => {
     setter((current - 1 + total) % total);
   };
 
+  // Функции для tips слайдера с бесконечным циклом
+  const nextTipsSlide = () => {
+    setTipsIndex((prev) => prev + 1);
+  };
+
+  const prevTipsSlide = () => {
+    setTipsIndex((prev) => prev - 1);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8 py-10 md:py-14">
+      <main className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8 pt-32 pb-10 md:pb-14">
         {/* БЛОК 1: 3 информационные карточки */}
         <section className="mb-16 md:mb-20">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
@@ -247,25 +294,26 @@ const Blog = () => {
             Советы опытных путешественников
           </h2>
           <div className="relative">
-            <div className="overflow-hidden">
-              <WideHighlightCard data={tips[tipsIndex]} buttonText="Читать совет" />
+            <div className="overflow-hidden rounded-3xl">
+              <div 
+                ref={tipsSliderRef}
+                className="flex transition-transform duration-500 ease-in-out will-change-transform"
+                style={{ transform: `translateX(-${tipsIndex * 100}%)` }}
+                onTransitionEnd={handleTipsTransitionEnd}
+              >
+                {infiniteTips.map((tip, index) => (
+                  <div key={`${tip.id}-${index}`} className="min-w-full flex-shrink-0 w-full">
+                    <WideHighlightCard data={tip} buttonText="Читать совет" />
+                  </div>
+                ))}
+              </div>
             </div>
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 md:-translate-x-1/2 w-10 h-10 rounded-full bg-white shadow-md z-10 hidden md:flex"
-              onClick={() => prevSlide(tipsIndex, tips.length, setTipsIndex)}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 md:translate-x-1/2 w-10 h-10 rounded-full bg-white shadow-md z-10 hidden md:flex"
-              onClick={() => nextSlide(tipsIndex, tips.length, setTipsIndex)}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+            <CarouselNavButton direction="prev" onClick={prevTipsSlide} />
+            <CarouselNavButton 
+              direction="next" 
+              onClick={nextTipsSlide} 
+              className="right-[-62px] translate-x-0"
+            />
           </div>
         </section>
       </main>

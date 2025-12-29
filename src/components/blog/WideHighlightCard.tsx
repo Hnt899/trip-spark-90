@@ -36,7 +36,8 @@ const WideHighlightCard = ({ data, buttonText, noRounded = false, hideButton = f
         {!hideButton && (
           hasUrl ? (
             <Button 
-              className="w-fit bg-white hover:bg-white/90 text-primary"
+              variant="outline"
+              className="w-fit !bg-white hover:!bg-white/90 !text-primary border-white/20"
               size="sm"
               asChild
             >
@@ -47,7 +48,8 @@ const WideHighlightCard = ({ data, buttonText, noRounded = false, hideButton = f
             </Button>
           ) : (
             <Button 
-              className="w-fit bg-white hover:bg-white/90 text-primary"
+              variant="outline"
+              className="w-fit !bg-white hover:!bg-white/90 !text-primary border-white/20"
               size="sm"
             >
               {displayButtonText}

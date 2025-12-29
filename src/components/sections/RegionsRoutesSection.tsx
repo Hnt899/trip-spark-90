@@ -90,8 +90,38 @@ const RegionsRoutesSection = () => {
   }, [cardWidth]);
 
   return (
-    <section className="py-20 bg-[#100A6F]/80 backdrop-blur-sm">
-      <div className="container">
+    <section className="py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+      {/* Декоративные желтые пятна */}
+      <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
+        {/* Левое пятно - от центра поднимаемся вверх на 30px */}
+        <div 
+          className="absolute rounded-full blur-3xl"
+          style={{
+            width: '400px',
+            height: '400px',
+            left: '-150px',
+            top: 'calc(50% - 30px)',
+            transform: 'translateY(-50%)',
+            background: '#F9B84F',
+            opacity: 0.3,
+          }}
+        />
+        {/* Правое пятно - от центра опускаемся вниз на 30px */}
+        <div 
+          className="absolute rounded-full blur-3xl"
+          style={{
+            width: '400px',
+            height: '400px',
+            right: '-100px',
+            top: 'calc(50% + 30px)',
+            transform: 'translateY(-50%)',
+            background: '#F9B84F',
+            opacity: 0.3,
+          }}
+        />
+      </div>
+
+      <div className="container relative z-10">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ marginLeft: '60px' }}>
             <span className="text-white">Make Your </span>
@@ -99,9 +129,6 @@ const RegionsRoutesSection = () => {
               DAY
             </span>
           </h2>
-          <Button variant="outline" className="bg-white/15 backdrop-blur-lg border-white/30 text-white hover:bg-white/25" style={{ marginRight: '75px' }}>
-            Все маршруты 
-          </Button>
         </div>
       </div>
 

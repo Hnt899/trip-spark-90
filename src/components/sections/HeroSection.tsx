@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { CalendarIcon, Train, Plane, Bus, Search, ArrowDown } from "lucide-react";
+import { CalendarIcon, Train, Plane, Bus, Search } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -35,10 +35,6 @@ const HeroSection = () => {
       setDateRange({ from: dateRange.from, to: undefined });
     }
   }, [travelType]);
-
-  const scrollToForm = () => {
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
 
   const handleSearch = () => {
     if (!fromCity || !toCity || !dateRange?.from) {
@@ -608,15 +604,6 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-
-      {/* Кнопка прокрутки к форме (если форма не видна) */}
-      <button
-        onClick={scrollToForm}
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 bg-white/90 hover:bg-white text-primary rounded-full p-3 shadow-lg hover:shadow-xl transition-all animate-bounce"
-        aria-label="Перейти к форме поиска"
-      >
-        <ArrowDown className="h-6 w-6" />
-      </button>
     </section>
   );
 };

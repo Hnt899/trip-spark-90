@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import VerifiedSection from "@/components/sections/VerifiedSection";
 
 export interface GuideArticleProps {
   title: string;
@@ -32,6 +33,7 @@ const GuideArticleTemplate = ({ title, category, categoryName }: GuideArticlePro
           </p>
         </div>
       </main>
+      <VerifiedSection />
       <Footer />
     </div>
   );

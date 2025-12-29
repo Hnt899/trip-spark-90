@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import VerifiedSection from "@/components/sections/VerifiedSection";
 import { Card, CardContent } from "@/components/ui/card";
 import { Home, Book, Heart, Info, Building2, Eye } from "lucide-react";
 
@@ -186,6 +187,7 @@ const Kakchitatnalichniki = () => {
           </Card>
         </div>
       </main>
+      <VerifiedSection />
       <Footer />
     </div>
   );

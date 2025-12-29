@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import VerifiedSection from "@/components/sections/VerifiedSection";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, Building2, Plane, Train, Bus, MapPin, CheckCircle, AlertCircle, Info } from "lucide-react";
 
@@ -391,6 +392,7 @@ const Poezdkilyudeysogranicheniyami = () => {
           </Card>
         </div>
       </main>
+      <VerifiedSection />
       <Footer />
     </div>
   );

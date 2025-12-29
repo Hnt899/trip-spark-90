@@ -140,18 +140,35 @@ const SupportSection = () => {
 
   return (
     <>
-      <section className="py-16 md:py-24 relative overflow-hidden">
-        {/* Общая подложка секции - легкий градиент */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5"></div>
-        
-        {/* Chat bubble паттерн на фоне (декоративный) */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 right-10 w-32 h-32 rounded-full bg-primary/5 blur-2xl"></div>
-          <div className="absolute top-40 left-20 w-24 h-24 rounded-full bg-purple-500/5 blur-2xl"></div>
-          <div className="absolute bottom-20 right-1/4 w-40 h-40 rounded-full bg-primary/5 blur-3xl"></div>
-          {/* Chat bubble формы */}
-          <div className="absolute top-1/4 left-1/4 w-20 h-16 rounded-2xl rounded-tl-none bg-primary/3 rotate-12 blur-sm"></div>
-          <div className="absolute bottom-1/3 right-1/3 w-16 h-12 rounded-2xl rounded-tr-none bg-purple-500/3 -rotate-12 blur-sm"></div>
+      <section className="py-16 md:py-24 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+        {/* Декоративные желтые пятна */}
+        <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
+          {/* Левое пятно - от центра поднимаемся вверх на 30px */}
+          <div 
+            className="absolute rounded-full blur-3xl"
+            style={{
+              width: '600px',
+              height: '600px',
+              left: '-150px',
+              top: 'calc(50% - 30px)',
+              transform: 'translateY(-50%)',
+              background: '#F9B84F',
+              opacity: 0.3,
+            }}
+          />
+          {/* Правое пятно - от центра опускаемся вниз на 30px */}
+          <div 
+            className="absolute rounded-full blur-3xl"
+            style={{
+              width: '600px',
+              height: '600px',
+              right: '-100px',
+              top: 'calc(50% + 30px)',
+              transform: 'translateY(-50%)',
+              background: '#F9B84F',
+              opacity: 0.3,
+            }}
+          />
         </div>
 
         <div className="container relative z-10">

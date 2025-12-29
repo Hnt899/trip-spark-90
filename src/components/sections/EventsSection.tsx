@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { CarouselNavButton, CarouselNavButtonsMobile } from "@/components/ui/carousel-nav-button";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -162,14 +163,43 @@ const EventsSection = () => {
   };
 
   return (
-    <section className="py-20">
-      <div className="container">
+    <section className="py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+      {/* Декоративные желтые пятна */}
+      <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
+        {/* Левое пятно - от центра поднимаемся вверх на 30px */}
+        <div 
+          className="absolute rounded-full blur-3xl"
+          style={{
+            width: '400px',
+            height: '400px',
+            left: '-150px',
+            top: 'calc(50% - 30px)',
+            transform: 'translateY(-50%)',
+            background: '#F9B84F',
+            opacity: 0.3,
+          }}
+        />
+        {/* Правое пятно - от центра опускаемся вниз на 30px */}
+        <div 
+          className="absolute rounded-full blur-3xl"
+          style={{
+            width: '400px',
+            height: '400px',
+            right: '-100px',
+            top: 'calc(50% + 30px)',
+            transform: 'translateY(-50%)',
+            background: '#F9B84F',
+            opacity: 0.3,
+          }}
+        />
+      </div>
+      <div className="container relative z-10">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent leading-tight pb-2">
-              Повод для путешествия
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-2 leading-tight pb-2">
+              Повод для <span className="text-[#FFD700]" style={{ textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4)' }}>путешествия</span>
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-white">
               10 событий, ради которых стоит ровнуть в путь
             </p>
           </div>
@@ -224,42 +254,9 @@ const EventsSection = () => {
             </div>
           </div>
 
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute left-0 -translate-x-full top-1/2 -translate-y-1/2 hidden lg:flex bg-white shadow-md hover:bg-white rounded-full w-12 h-12 z-10 border-0 -ml-[5px]"
-            onClick={handlePrev}
-          >
-            <ChevronLeft className="w-5 h-5 text-primary" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute right-[-7px] translate-x-1/2 top-1/2 -translate-y-1/2 hidden lg:flex bg-white shadow-md hover:bg-white rounded-full w-12 h-12 z-10 border-0"
-            onClick={handleNext}
-          >
-            <ChevronRight className="w-5 h-5 text-primary" />
-          </Button>
-          
-          {/* Мобильные стрелки */}
-          <div className="flex lg:hidden justify-center gap-2 mt-6">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handlePrev}
-              className="rounded-full bg-white shadow-md hover:bg-white w-12 h-12 border-0"
-            >
-              <ChevronLeft className="w-5 h-5 text-primary" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleNext}
-              className="rounded-full bg-white shadow-md hover:bg-white w-12 h-12 border-0"
-            >
-              <ChevronRight className="w-5 h-5 text-primary" />
-            </Button>
-          </div>
+          <CarouselNavButton direction="prev" onClick={handlePrev} />
+          <CarouselNavButton direction="next" onClick={handleNext} />
+          <CarouselNavButtonsMobile onPrev={handlePrev} onNext={handleNext} />
         </div>
       </div>
     </section>

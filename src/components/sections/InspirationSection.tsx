@@ -259,13 +259,45 @@ const InspirationSection = () => {
   };
 
   return (
-    <section className="py-20">
-      <div className="container">
+    <section className="py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+      {/* Декоративные желтые пятна */}
+      <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
+        {/* Левое пятно - от центра поднимаемся вверх на 30px */}
+        <div 
+          className="absolute rounded-full blur-3xl"
+          style={{
+            width: '400px',
+            height: '400px',
+            left: '-150px',
+            top: 'calc(50% - 30px)',
+            transform: 'translateY(-50%)',
+            background: '#F9B84F',
+            opacity: 0.3,
+          }}
+        />
+        {/* Правое пятно - от центра опускаемся вниз на 30px */}
+        <div 
+          className="absolute rounded-full blur-3xl"
+          style={{
+            width: '400px',
+            height: '400px',
+            right: '-100px',
+            top: 'calc(50% + 30px)',
+            transform: 'translateY(-50%)',
+            background: '#F9B84F',
+            opacity: 0.3,
+          }}
+        />
+      </div>
+      <div className="container relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent leading-tight pb-2">
-            Вдохновение для следующей поездки
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-2 leading-tight pb-2">
+            <span className="text-[#FFD700]" style={{ textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4)' }}>
+              Вдохновение
+            </span>{" "}
+            <span className="text-white">для следующей поездки</span>
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-white text-lg">
             Найдите идеи и направления
           </p>
         </div>
@@ -291,10 +323,10 @@ const InspirationSection = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
-                <h3 className="text-2xl font-semibold text-foreground mb-1">
+                <h3 className="text-2xl font-semibold text-white mb-1">
                   {destination.name}
                 </h3>
-                <p className="text-muted-foreground text-base">
+                <p className="text-white text-base">
                   {destination.description}
                 </p>
               </div>

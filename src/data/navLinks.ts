@@ -14,18 +14,11 @@ export const popularRoutes: NavLinkItem[] = [
   { label: "Сочи и окрестности", href: "/routes/17" },
 ];
 
-// Популярные темы из справочной (топ-10)
+// Популярные темы из справочной (3 основных раздела)
 export const faqTopics: NavLinkItem[] = [
-  { label: "Как купить ж/д билет", href: "/reference/trains/how-to-buy" },
-  { label: "Как оплатить ж/д билет", href: "/reference/trains/how-to-pay" },
-  { label: "Электронная регистрация", href: "/reference/trains/electronic-registration" },
-  { label: "Как вернуть билет на поезд", href: "/reference/trains/how-to-return-ticket" },
-  { label: "Что нужно для посадки в поезд", href: "/reference/trains/what-needed-for-boarding" },
-  { label: "Документы для покупки билетов", href: "/reference/trains/documents-for-purchase" },
-  { label: "Как узнать расписание поезда", href: "/reference/trains/train-schedule" },
-  { label: "Как получить ж/д билет", href: "/reference/trains/how-to-get-ticket" },
-  { label: "Что делать, если билетов нет", href: "/reference/trains/no-tickets" },
-  { label: "Для чего нужен профиль TudaSuda", href: "/reference/trains/profile-purpose" },
+  { label: "ЖД", href: "/reference#trains" },
+  { label: "Авиа", href: "/reference#flights" },
+  { label: "Автобус", href: "/reference#buses" },
 ];
 
 // Популярные темы из путеводителя (топ-10)

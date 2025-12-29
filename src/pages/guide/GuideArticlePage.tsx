@@ -3,6 +3,7 @@ import React from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import VerifiedSection from "@/components/sections/VerifiedSection";
 import { createSlug } from "@/utils/slugify";
 import ChtodelatEsliya from "./articles/passenger/ChtodelatEsliya";
 import ChtodelatEsliukrali from "./articles/passenger/ChtodelatEsliukrali";
@@ -944,6 +945,7 @@ const GuideArticlePage = () => {
           </p>
         </div>
       </main>
+      <VerifiedSection />
       <Footer />
     </div>
   );
