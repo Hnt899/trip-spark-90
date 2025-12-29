@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Train, Plane, Bus, Search, CalendarIcon } from "lucide-react";
@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
 import { cities } from "@/data/cities";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type TransportType = "trains" | "flights" | "buses";
 type TravelType = "train" | "flight" | "bus";
@@ -20,13 +21,8 @@ type TravelType = "train" | "flight" | "bus";
 const Reference = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<TransportType>("trains");
-  const sidebarRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const sidebarLeftRef = useRef<number>(0);
-  const sidebarInitialTopRef = useRef<number>(0);
-  const [isSidebarFixed, setIsSidebarFixed] = useState(false);
-  const [sidebarLeft, setSidebarLeft] = useState<number>(0);
 
   // Определяем активный таб из URL параметров или hash
   useEffect(() => {
@@ -84,87 +80,66 @@ const Reference = () => {
     return grouped;
   }, []);
 
-  // Отслеживание скролла для фиксации левого меню
-  useEffect(() => {
-    let rafId: number | null = null;
-
-    // Инициализация: сохраняем начальную позицию меню и контейнера
-    if (sidebarRef.current && containerRef.current && sidebarInitialTopRef.current === 0) {
-      const sidebarRect = sidebarRef.current.getBoundingClientRect();
-      const containerRect = containerRef.current.getBoundingClientRect();
-      sidebarInitialTopRef.current = sidebarRect.top + window.scrollY;
-      sidebarLeftRef.current = containerRect.left;
-      setSidebarLeft(containerRect.left);
-    }
-
-    const handleScroll = () => {
-      if (rafId) return; // Пропускаем, если уже запланирован кадр
-
-      rafId = requestAnimationFrame(() => {
-        if (!sidebarRef.current || !containerRef.current) {
-          rafId = null;
-          return;
-        }
-
-        const headerHeight = 96; // h-24 = 96px
-        const scrollY = window.scrollY;
-        
-        // Проверяем, достиг ли скролл точки, когда меню должно стать fixed
-        // Меню становится fixed, когда его начальная позиция достигает шапки
-        const shouldBeFixed = scrollY + headerHeight >= sidebarInitialTopRef.current;
-
-        // Обновляем состояние только при изменении
-        if (shouldBeFixed !== isSidebarFixed) {
-          setIsSidebarFixed(shouldBeFixed);
-          
-          // При фиксации обновляем позицию контейнера (на случай изменения размера)
-          if (shouldBeFixed) {
-            const containerRect = containerRef.current.getBoundingClientRect();
-            sidebarLeftRef.current = containerRect.left;
-            setSidebarLeft(containerRect.left);
-          }
-        }
-        
-        rafId = null;
-      });
-    };
-
-    const handleResize = () => {
-      if (!containerRef.current || !sidebarRef.current) return;
-      // При изменении размера окна пересчитываем позиции
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const sidebarRect = sidebarRef.current.getBoundingClientRect();
-      sidebarLeftRef.current = containerRect.left;
-      setSidebarLeft(containerRect.left);
-      
-      // Пересчитываем начальную позицию меню (если оно еще не fixed)
-      if (!isSidebarFixed) {
-        sidebarInitialTopRef.current = sidebarRect.top + window.scrollY;
-      }
-      
-      handleScroll();
-    };
-
-    // Проверяем при монтировании
-    handleScroll();
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleResize, { passive: true });
-    
-    return () => {
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [isSidebarFixed]);
-
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container pt-32 pb-12">
+      
+      {/* Фильтры - прикреплены к header только на мобилке */}
+      <div className="md:hidden sticky top-[56px] z-40 bg-background border-b">
+        <div className="container">
+          <div className="flex items-center justify-center gap-2 py-3">
+            <button
+              onClick={() => {
+                setActiveTab("trains");
+                navigate("/reference#trains");
+              }}
+              className={cn(
+                "flex items-center justify-center px-3 py-2 rounded-lg transition-all",
+                activeTab === "trains"
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "bg-muted/50 text-foreground hover:bg-muted"
+              )}
+              title="Поезда"
+            >
+              <Train className="w-5 h-5 shrink-0" />
+            </button>
+            
+            <button
+              onClick={() => {
+                setActiveTab("flights");
+                navigate("/reference#flights");
+              }}
+              className={cn(
+                "flex items-center justify-center px-3 py-2 rounded-lg transition-all",
+                activeTab === "flights"
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "bg-muted/50 text-foreground hover:bg-muted"
+              )}
+              title="Самолёты"
+            >
+              <Plane className="w-5 h-5 shrink-0" />
+            </button>
+            
+            <button
+              onClick={() => {
+                setActiveTab("buses");
+                navigate("/reference#buses");
+              }}
+              className={cn(
+                "flex items-center justify-center px-3 py-2 rounded-lg transition-all",
+                activeTab === "buses"
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "bg-muted/50 text-foreground hover:bg-muted"
+              )}
+              title="Автобусы"
+            >
+              <Bus className="w-5 h-5 shrink-0" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <main className="container pt-28 md:pt-32 pb-12">
         {/* Быстрый заказ */}
         <div className="mb-12 hidden">
           <div className="bg-card/80 backdrop-blur-sm rounded-xl border shadow-lg p-4">
@@ -305,32 +280,16 @@ const Reference = () => {
           </div>
         </div>
 
-        <div ref={containerRef} className="flex gap-8 items-start relative">
-          {/* Spacer для предотвращения скачков разметки */}
-          {isSidebarFixed && <div className="w-64 shrink-0" />}
-          
+        {/* Десктопная версия - с боковой панелью */}
+        <div className="hidden md:flex gap-8 items-start">
           {/* Левая панель с табами */}
-          <aside
-            ref={sidebarRef}
-            className={cn(
-              "w-64 shrink-0 transition-all duration-300 ease-in-out will-change-transform",
-              isSidebarFixed && "fixed z-40 pt-4 pb-4 bg-background/95 backdrop-blur-sm"
-            )}
-            style={
-              isSidebarFixed && sidebarLeft > 0
-                ? {
-                    top: "112px", // h-24 (96px) + отступ (16px)
-                    left: `${sidebarLeft}px`,
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  }
-                : {
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  }
-            }
-          >
+          <aside className="w-64 shrink-0">
             <div className="space-y-2">
               <button
-                onClick={() => setActiveTab("trains")}
+                onClick={() => {
+                  setActiveTab("trains");
+                  navigate("/reference#trains");
+                }}
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left",
                   activeTab === "trains"
@@ -343,7 +302,10 @@ const Reference = () => {
               </button>
               
               <button
-                onClick={() => setActiveTab("flights")}
+                onClick={() => {
+                  setActiveTab("flights");
+                  navigate("/reference#flights");
+                }}
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left",
                   activeTab === "flights"
@@ -356,7 +318,10 @@ const Reference = () => {
               </button>
               
               <button
-                onClick={() => setActiveTab("buses")}
+                onClick={() => {
+                  setActiveTab("buses");
+                  navigate("/reference#buses");
+                }}
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left",
                   activeTab === "buses"
@@ -408,6 +373,45 @@ const Reference = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Мобильная версия - без боковой панели */}
+        <div className="md:hidden w-full">
+            {activeTab === "trains" && (
+              <div className="space-y-8">
+                {Object.entries(groupedArticles).map(([category, articles]) => (
+                  <section key={category}>
+                    <h2 className="text-2xl font-bold text-foreground mb-4">
+                      {category}
+                    </h2>
+                    <ul className="space-y-2">
+                      {articles.map((article, index) => (
+                        <li key={index}>
+                          <Link
+                            to={article.path}
+                            className="text-primary hover:underline text-lg"
+                          >
+                            {article.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            )}
+
+            {activeTab === "flights" && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Раздел в разработке</p>
+              </div>
+            )}
+
+            {activeTab === "buses" && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Раздел в разработке</p>
+              </div>
+            )}
         </div>
       </main>
       <Footer />

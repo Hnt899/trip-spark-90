@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import RoutesHeader from "@/components/RoutesHeader";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Star } from "lucide-react";
 import { Plane, BedDouble } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 import karelia from "@/assets/images/cities/karelia.jpg";
 import moscow from "@/assets/images/cities/moscow.jpg";
 import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
@@ -91,6 +93,7 @@ const RouteList = () => {
   const [activeRegion, setActiveRegion] = useState("Все регионы");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   // Автоматический поиск региона при вводе, если запрос точно совпадает с регионом
   useEffect(() => {
@@ -128,54 +131,57 @@ const RouteList = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F5FA]">
-      <RoutesHeader />
-      <main className="pt-40">
+      <Header />
+      <main className="pt-20 md:pt-32">
         {/* Header Section */}
-        <div className="bg-[#F5F5FA] py-8">
-          <div className="container">
-            <div className="flex items-start justify-between mb-6">
+        <div className="bg-[#F5F5FA] py-6 md:py-8">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-5xl md:text-6xl font-bold text-[#3F3F7F] mb-2">
+                <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-[#3F3F7F] mb-2">
                   Маршруты
                 </h1>
-                <p className="text-lg text-[#3F3F7F]/70">
+                <p className="text-base md:text-lg text-[#3F3F7F]/70">
                   50 готовых маршрутов для путешествий
                 </p>
               </div>
-              <div className="relative">
+              <div className="relative w-full md:w-auto">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8A70F8]" />
                 <Input
                   type="text"
                   placeholder="Поиск региона..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 w-64 rounded-full border-[#8A70F8] focus:border-[#8A70F8] focus:ring-[#8A70F8]"
+                  className="pl-10 pr-4 w-full md:w-64 rounded-full border-[#8A70F8] focus:border-[#8A70F8] focus:ring-[#8A70F8]"
                 />
               </div>
             </div>
 
             {/* Filter Bar */}
-            <div className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-4 flex-wrap">
-              {regions.map((region) => (
-                <button
-                  key={region}
-                  onClick={() => setActiveRegion(region)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeRegion === region
-                      ? "bg-[#8A70F8] text-white"
-                      : "text-[#8A70F8] hover:text-[#8A70F8]/80"
-                  }`}
-                >
-                  {region}
-                </button>
-              ))}
+            <div className="bg-white rounded-lg shadow-sm p-3 md:p-4">
+              <div className="flex items-center gap-2 md:gap-4 flex-wrap">
+                {regions.map((region) => (
+                  <button
+                    key={region}
+                    onClick={() => setActiveRegion(region)}
+                    className={cn(
+                      "px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors",
+                      activeRegion === region
+                        ? "bg-[#8A70F8] text-white"
+                        : "text-[#8A70F8] hover:text-[#8A70F8]/80"
+                    )}
+                  >
+                    {region}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Routes Grid */}
-        <div className="container py-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="container px-4 md:px-6 py-6 md:py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
             {filteredRoutes.map((route) => (
               <Card 
                 key={route.id} 
@@ -189,35 +195,16 @@ const RouteList = () => {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <p className="text-lg font-semibold text-foreground line-clamp-2 flex-1">
+                <CardContent className="p-4 md:p-5">
+                  <div className="flex items-start justify-between gap-3 md:gap-4">
+                    <p className="text-base md:text-lg font-semibold text-foreground line-clamp-2 flex-1">
                       {route.name}
                     </p>
-                    <div className="flex-shrink-0">
-                      <svg
-                        width="50"
-                        height="50"
-                        viewBox="0 0 50 50"
-                        className="drop-shadow-md"
-                      >
-                        <path
-                          d="M25 0 L30 17.5 L50 17.5 L32.5 27.5 L37.5 45 L25 35 L12.5 45 L17.5 27.5 L0 17.5 L20 17.5 Z"
-                          fill="#22C55E"
-                          stroke="white"
-                          strokeWidth="0.5"
-                        />
-                        <text
-                          x="25"
-                          y="31"
-                          textAnchor="middle"
-                          fill="white"
-                          fontSize="16"
-                          fontWeight="bold"
-                        >
-                          {route.rating}
-                        </text>
-                      </svg>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <Star className="w-4 h-4 md:w-5 md:h-5 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm md:text-base font-semibold text-foreground">
+                        {route.rating}
+                      </span>
                     </div>
                   </div>
                 </CardContent>
@@ -227,35 +214,35 @@ const RouteList = () => {
         </div>
 
         {/* Booking Banner */}
-        <div className="container py-12">
-          <div className="bg-gradient-to-r from-[#8A70F8] to-[#9B82F8] rounded-3xl overflow-hidden relative">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8 lg:p-12">
-              <div className="flex flex-col justify-center space-y-6">
-                <div className="text-white space-y-2">
-                  <h2 className="text-3xl md:text-4xl font-bold">
+        <div className="container px-4 md:px-6 py-8 md:py-12">
+          <div className="bg-gradient-to-r from-[#8A70F8] to-[#9B82F8] rounded-2xl md:rounded-3xl overflow-hidden relative">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 p-6 md:p-8 lg:p-12">
+              <div className="flex flex-col justify-center space-y-4 md:space-y-6">
+                <div className="text-white space-y-1 md:space-y-2">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold">
                     Забронировать жильё
                   </h2>
-                  <h2 className="text-3xl md:text-4xl font-bold">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold">
                     и купить билеты можно
                   </h2>
-                  <h2 className="text-3xl md:text-4xl font-bold">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold">
                     на TudaSuda
                   </h2>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                   <Button
                     size="lg"
-                    className="bg-white text-[#8A70F8] hover:bg-white/90 rounded-full px-6 py-6 text-lg font-semibold"
+                    className="bg-white text-[#8A70F8] hover:bg-white/90 rounded-full px-4 md:px-6 py-4 md:py-6 text-base md:text-lg font-semibold w-full sm:w-auto"
                   >
-                    <Plane className="w-5 h-5 mr-2" />
+                    <Plane className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                     Найти билеты
                   </Button>
                   <Button
                     size="lg"
                     variant="outline"
-                    className="bg-white/10 border-white text-white hover:bg-white/20 rounded-full px-6 py-6 text-lg font-semibold"
+                    className="bg-white/10 border-white text-white hover:bg-white/20 rounded-full px-4 md:px-6 py-4 md:py-6 text-base md:text-lg font-semibold w-full sm:w-auto"
                   >
-                    <BedDouble className="w-5 h-5 mr-2" />
+                    <BedDouble className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                     Выбрать отель
                   </Button>
                 </div>

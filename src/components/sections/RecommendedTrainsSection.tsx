@@ -3,6 +3,7 @@ import { ChevronRight, ChevronLeft, Calendar, MapPin, TrendingDown } from "lucid
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 import moscow from "@/assets/images/cities/moscow.jpg";
 import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
 import kazan from "@/assets/images/cities/kazan.jpg";
@@ -14,6 +15,9 @@ const RecommendedTrainsSection = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const isScrolling = useRef(false);
+  const isMobile = useIsMobile();
+  const [currentMobileIndex, setCurrentMobileIndex] = useState(0);
+  const mobileIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const destinations = [
     {
@@ -119,8 +123,23 @@ const RecommendedTrainsSection = () => {
     navigate(`/train-search?${params.toString()}`);
   };
 
-  // Дублируем карточки для бесконечной карусели
+  // Дублируем карточки для бесконечной карусели (только для десктопа)
   const duplicatedDestinations = [...destinations, ...destinations, ...destinations];
+
+  // Автоматическая смена карточек для мобильной версии
+  useEffect(() => {
+    if (!isMobile) return;
+
+    mobileIntervalRef.current = setInterval(() => {
+      setCurrentMobileIndex((prevIndex) => (prevIndex + 1) % destinations.length);
+    }, 3000); // Смена каждые 3 секунды
+
+    return () => {
+      if (mobileIntervalRef.current) {
+        clearInterval(mobileIntervalRef.current);
+      }
+    };
+  }, [isMobile, destinations.length]);
 
   useEffect(() => {
     const scrollContainer = scrollRef.current;
@@ -232,7 +251,7 @@ const RecommendedTrainsSection = () => {
   };
 
   return (
-    <section className="py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+    <section className="pt-20 pb-8 md:py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
       {/* Декоративные желтые пятна */}
       <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
         {/* Левое пятно - от центра поднимаемся вверх на 30px */}
@@ -276,11 +295,11 @@ const RecommendedTrainsSection = () => {
           </p>
         </div>
 
-        <div className="relative flex items-center gap-4">
+        <div className="relative flex items-center gap-4 hidden md:flex">
           {/* Стрелка влево */}
           <button
             onClick={scrollLeft}
-            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center -ml-[10px]"
+            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -ml-[10px]"
             aria-label="Прокрутить влево"
           >
             <ChevronLeft className="h-5 w-5 text-blue-600" />
@@ -389,33 +408,135 @@ const RecommendedTrainsSection = () => {
           {/* Стрелка вправо */}
           <button
             onClick={scrollRight}
-            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center -mr-[10px]"
+            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -mr-[10px]"
             aria-label="Прокрутить вправо"
           >
             <ChevronRight className="h-5 w-5 text-blue-600" />
           </button>
         </div>
 
-        {/* Мобильные кнопки навигации */}
-        <div className="flex lg:hidden justify-center gap-2 mt-6">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={scrollLeft}
-            className="h-12 w-12 rounded-full bg-white shadow-lg hover:bg-white"
-            aria-label="Прокрутить влево"
-          >
-            <ChevronLeft className="h-5 w-5 text-blue-600" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={scrollRight}
-            className="h-12 w-12 rounded-full bg-white shadow-lg hover:bg-white"
-            aria-label="Прокрутить вправо"
-          >
-            <ChevronRight className="h-5 w-5 text-blue-600" />
-          </Button>
+        {/* Мобильная версия - карусель ТОЛЬКО для мобильных (одна карточка) */}
+        <div className="md:hidden relative overflow-hidden px-2">
+          <div className="relative w-full overflow-hidden">
+            <div 
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{
+                transform: `translateX(-${currentMobileIndex * 100}%)`,
+              }}
+            >
+              {destinations.map((destination, index) => (
+                <div
+                  key={index}
+                  onClick={() => handleSelectDates(destination.from, destination.to)}
+                  className={cn(
+                    "flex-shrink-0 w-full",
+                    "group relative rounded-3xl overflow-hidden",
+                    "bg-card border-2 border-transparent",
+                    "hover:border-primary/30",
+                    "transition-all duration-500 ease-out",
+                    "cursor-pointer"
+                  )}
+                >
+                  {/* Изображение */}
+                  <div className="relative h-64 overflow-hidden">
+                    <img
+                      src={destination.image}
+                      alt={`${destination.from} - ${destination.to}`}
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    />
+                    {/* Затемнение при hover */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-500"></div>
+                    
+                    {/* Тег */}
+                    <div className={cn(
+                      "absolute top-4 left-4 px-3 py-1.5 rounded-full text-white text-sm font-bold shadow-lg",
+                      destination.tagColor
+                    )}>
+                      {destination.tag}
+                    </div>
+
+                    {/* Скидка */}
+                    <div className="absolute top-4 right-4 bg-white rounded-full px-4 py-2 shadow-xl">
+                      <div className="flex items-center gap-1">
+                        <TrendingDown className="h-5 w-5 text-red-500" />
+                        <span className="text-2xl font-extrabold text-red-500">
+                          -{destination.discount}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Кнопка при hover */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="bg-white text-[#8A70F8] hover:bg-white hover:text-[#8A70F8] border-white shadow-xl font-bold text-base px-6"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelectDates(destination.from, destination.to);
+                        }}
+                      >
+                        <Calendar className="h-5 w-5 mr-2 text-[#8A70F8]" />
+                        Выбрать даты
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Контент */}
+                  <div className="p-6">
+                    {/* Маршрут */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        {destination.from} → {destination.to}
+                      </span>
+                    </div>
+
+                    {/* Описание */}
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {destination.description}
+                    </p>
+
+                    {/* Цены */}
+                    <div className="flex items-baseline gap-3">
+                      <span className="text-2xl font-extrabold text-foreground">
+                        {destination.newPrice}
+                      </span>
+                      <span className="text-lg text-muted-foreground line-through">
+                        {destination.oldPrice}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Индикаторы для мобильной версии */}
+          <div className="flex justify-center gap-2 mt-4 mb-4">
+            {destinations.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setCurrentMobileIndex(index);
+                  // Перезапускаем интервал при ручном переключении
+                  if (mobileIntervalRef.current) {
+                    clearInterval(mobileIntervalRef.current);
+                  }
+                  mobileIntervalRef.current = setInterval(() => {
+                    setCurrentMobileIndex((prevIndex) => (prevIndex + 1) % destinations.length);
+                  }, 3000);
+                }}
+                className={cn(
+                  "h-2 rounded-full transition-all duration-300",
+                  index === currentMobileIndex
+                    ? "bg-white w-8"
+                    : "bg-white/50 w-2"
+                )}
+                aria-label={`Перейти к карточке ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
 

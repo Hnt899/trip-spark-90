@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { StoryData } from "@/data/blogData";
 import { CarouselNavButton } from "@/components/ui/carousel-nav-button";
 import StoryModal from "./StoryModal";
+import { cn } from "@/lib/utils";
 
 interface StoriesCarouselProps {
   stories: StoryData[];
@@ -13,6 +14,8 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
   const [slideWidthPx, setSlideWidthPx] = useState(0);
   const [current, setCurrent] = useState(visibleCount); // Начинаем с visibleCount (первый оригинальный элемент)
   const [isAnimating, setIsAnimating] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -67,6 +70,50 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
   const handlePrev = () => goTo(current - 1);
   const handleNext = () => goTo(current + 1);
 
+  // Вычисляем текущий индекс для отображения точек (нормализованный)
+  const getCurrentIndex = () => {
+    if (current < visibleCount) {
+      return current + stories.length;
+    } else if (current >= stories.length + visibleCount) {
+      return current - stories.length;
+    }
+    return current - visibleCount;
+  };
+
+  const currentIndex = getCurrentIndex();
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance) {
+      // Swipe left - следующая карточка
+      handleNext();
+    }
+    
+    if (distance < -minSwipeDistance) {
+      // Swipe right - предыдущая карточка
+      handlePrev();
+    }
+    
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
+  const goToIndex = (index: number) => {
+    goTo(index + visibleCount);
+  };
+
   const handleTransitionEnd = () => {
     setIsAnimating(false);
     if (current < visibleCount) {
@@ -97,7 +144,14 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
   return (
     <>
       <div className="relative">
-        <div className="overflow-hidden" ref={containerRef} style={{ padding: '4px 0' }}>
+        <div 
+          className="overflow-hidden" 
+          ref={containerRef} 
+          style={{ padding: '4px 0' }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <div
             ref={trackRef}
             className="flex"
@@ -142,6 +196,23 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
         {/* Навигационные кнопки */}
         <CarouselNavButton direction="prev" onClick={handlePrev} />
         <CarouselNavButton direction="next" onClick={handleNext} />
+
+        {/* Индикаторы для сторис */}
+        <div className="flex justify-center gap-2 mt-4 mb-4">
+          {stories.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToIndex(index)}
+              className={cn(
+                "h-2 rounded-full transition-all duration-300",
+                index === currentIndex
+                  ? "bg-primary w-8"
+                  : "bg-primary/50 w-2"
+              )}
+              aria-label={`Перейти к истории ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Модальное окно сториса */}

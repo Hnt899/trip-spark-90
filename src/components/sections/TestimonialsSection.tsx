@@ -1,8 +1,9 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { MapPin, Calendar, Heart, ChevronRight, ChevronLeft, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 import person1 from "@/assets/images/people/просто сотрудник 1.jpg";
 import person2 from "@/assets/images/people/просто сотрудник 2.jpg";
 import person3 from "@/assets/images/people/просто сотрудник 3.jpg";
@@ -29,6 +30,11 @@ const TestimonialsSection = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const isScrolling = useRef(false);
+  const isMobile = useIsMobile();
+  const [mobileCurrent, setMobileCurrent] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const mobileTrackRef = useRef<HTMLDivElement | null>(null);
 
   const testimonials = [
     {
@@ -285,11 +291,12 @@ const TestimonialsSection = () => {
           </p>
         </div>
 
-        <div className="relative flex items-center gap-4">
+        {/* Десктоп версия */}
+        <div className="hidden md:flex relative items-center gap-4">
           {/* Стрелка влево */}
           <button
             onClick={scrollLeft}
-            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center -ml-[10px]"
+            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -ml-[10px]"
             aria-label="Прокрутить влево"
           >
             <ChevronLeft className="h-5 w-5 text-blue-600" />
@@ -403,33 +410,127 @@ const TestimonialsSection = () => {
           {/* Стрелка вправо */}
           <button
             onClick={scrollRight}
-            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 hidden md:flex items-center justify-center -ml-[7px]"
+            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -ml-[7px]"
             aria-label="Прокрутить вправо"
           >
             <ChevronRight className="h-5 w-5 text-blue-600" />
           </button>
         </div>
 
-        {/* Мобильные кнопки навигации */}
-        <div className="flex md:hidden justify-center gap-2 mt-6">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={scrollLeft}
-            className="h-12 w-12 rounded-full bg-white shadow-lg hover:bg-white"
-            aria-label="Прокрутить влево"
+        {/* Мобильная версия - карусель ТОЛЬКО для мобильных (одна карточка) */}
+        <div className="md:hidden relative overflow-hidden px-2">
+          <div 
+            className="relative w-full overflow-hidden"
+            onTouchStart={(e) => setTouchStart(e.targetTouches[0].clientX)}
+            onTouchMove={(e) => setTouchEnd(e.targetTouches[0].clientX)}
+            onTouchEnd={() => {
+              if (!touchStart || !touchEnd) return;
+              
+              const distance = touchStart - touchEnd;
+              const minSwipeDistance = 50;
+
+              if (distance > minSwipeDistance) {
+                setMobileCurrent((prev) => Math.min(testimonials.length - 1, prev + 1));
+              }
+              
+              if (distance < -minSwipeDistance) {
+                setMobileCurrent((prev) => Math.max(0, prev - 1));
+              }
+              
+              setTouchStart(0);
+              setTouchEnd(0);
+            }}
           >
-            <ChevronLeft className="h-5 w-5 text-blue-600" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={scrollRight}
-            className="h-12 w-12 rounded-full bg-white shadow-lg hover:bg-white"
-            aria-label="Прокрутить вправо"
-          >
-            <ChevronRight className="h-5 w-5 text-blue-600" />
-          </Button>
+            <div 
+              ref={mobileTrackRef}
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{
+                transform: `translateX(-${mobileCurrent * 100}%)`,
+              }}
+            >
+              {testimonials.map((testimonial, index) => (
+                <div
+                  key={`${testimonial.id}-${index}`}
+                  onClick={() => navigate(`/testimonials/${testimonial.id}`)}
+                  className={cn(
+                    "flex-shrink-0 w-full",
+                    "group relative rounded-3xl overflow-hidden",
+                    "bg-card border-2 border-transparent",
+                    "transition-all duration-500 ease-out",
+                    "cursor-pointer"
+                  )}
+                >
+                  {/* Изображение */}
+                  <div className="relative h-64 overflow-hidden">
+                    <img
+                      src={testimonial.photo}
+                      alt={testimonial.route}
+                      className="w-full h-full object-cover"
+                    />
+                    
+                    {/* Аватар и имя пользователя */}
+                    <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
+                      <div className="w-10 h-10 rounded-full border-2 border-white/50 overflow-hidden shadow-lg">
+                        <img
+                          src={testimonial.avatar}
+                          alt={testimonial.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <span className="text-white font-semibold text-sm drop-shadow-lg bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
+                        {testimonial.name}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Контент */}
+                  <div className="p-6">
+                    {/* Текст отзыва */}
+                    <p className="text-foreground text-sm leading-relaxed font-medium mb-4">
+                      {testimonial.text}
+                    </p>
+
+                    {/* Маршрут и дата */}
+                    <div className="flex flex-col gap-2 pt-2 border-t border-border/30 mb-4">
+                      <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>{testimonial.route}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>{testimonial.date}</span>
+                      </div>
+                    </div>
+
+                    {/* Лайк */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Heart className="w-4 h-4" />
+                        <span className="text-xs font-medium">Нравится</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Индикаторы для мобильной версии */}
+          <div className="flex justify-center gap-2 mt-4 mb-4">
+            {testimonials.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setMobileCurrent(index)}
+                className={cn(
+                  "h-2 rounded-full transition-all duration-300",
+                  index === mobileCurrent
+                    ? "bg-white w-8"
+                    : "bg-white/50 w-2"
+                )}
+                aria-label={`Перейти к карточке ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>

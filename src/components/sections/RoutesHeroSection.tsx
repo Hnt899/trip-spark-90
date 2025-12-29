@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import video from "@/assets/video/video.mp4";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const advantages = [
   {
@@ -20,6 +21,7 @@ const advantages = [
 ];
 
 const RoutesHeroSection = () => {
+  const isMobile = useIsMobile();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [nextCardReady, setNextCardReady] = useState(false);
@@ -46,7 +48,7 @@ const RoutesHeroSection = () => {
   }, []);
 
   return (
-    <section id="routes-hero-section" className="relative py-20 bg-[#100A6F]/80 backdrop-blur-sm overflow-hidden">
+    <section id="routes-hero-section" className="relative py-20 pb-2 md:pb-20 bg-[#100A6F]/80 backdrop-blur-sm overflow-hidden">
       {/* Декоративные желтые пятна */}
       <div className="absolute inset-0 pointer-events-none hidden lg:block z-0 overflow-hidden">
         {/* Левое пятно - от центра поднимаемся вверх на 30px */}
@@ -80,15 +82,15 @@ const RoutesHeroSection = () => {
       <div className="container relative z-10">
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-            <span className="block text-white/90 mb-2">Создавайте свои</span>
+            <span className="block text-white/90 mb-1 md:mb-2">Создавайте свои</span>
             <span className="block bg-gradient-to-r from-[#F9B84F] via-[#FFD700] to-[#F9B84F] bg-clip-text text-transparent drop-shadow-lg">
               истории с TudaSuda
             </span>
           </h1>
         </div>
 
-        <div className="flex flex-col items-center relative" style={{ paddingBottom: '100px' }}>
-          <div className="w-full max-w-6xl rounded-2xl overflow-hidden shadow-2xl ring-4 ring-white/10 relative z-10">
+        <div className="flex flex-col items-center relative" style={{ paddingBottom: isMobile ? 0 : '100px' }}>
+          <div className={`w-full max-w-6xl rounded-2xl overflow-hidden shadow-2xl ring-4 ring-white/10 relative z-10 ${isMobile ? 'mb-8' : ''}`}>
             <video
               autoPlay
               loop
@@ -100,80 +102,159 @@ const RoutesHeroSection = () => {
             </video>
           </div>
 
-          {/* Плашки с преимуществами - накладываются на видео, выходят за пределы */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-6xl flex justify-center items-end pointer-events-none z-20 px-4" style={{ bottom: '-60px' }}>
-            <div className="w-full max-w-4xl relative" style={{ minHeight: '320px' }}>
-              {advantages.map((advantage, index) => {
-                const isActive = index === currentIndex;
-                const isNext = index === (currentIndex + 1) % advantages.length;
-                
-                // Рендерим только активную карточку или следующую во время анимации
-                if (!isActive && !(isNext && isAnimating)) {
-                  return null;
-                }
-
-                // Определяем класс анимации и начальное состояние
-                let animationClass = '';
-                let initialStyle: React.CSSProperties = {
-                  transform: 'translateX(0)',
-                  opacity: 1,
-                  filter: 'brightness(1)',
-                  willChange: 'auto',
-                };
-                
-                if (isActive && isAnimating) {
-                  // Активная карточка уезжает влево
-                  animationClass = 'anim-tinLeftOut';
-                  initialStyle.willChange = 'transform, opacity';
-                } else if (isNext && isAnimating) {
-                  // Следующая карточка начинается справа, затем анимируется
-                  initialStyle = { 
-                    transform: 'translateX(120%)', 
-                    opacity: 0,
-                    filter: 'brightness(1)',
-                    willChange: 'transform, opacity',
-                  };
-                  if (nextCardReady) {
-                    animationClass = 'anim-slideInRight';
+          {/* Плашки с преимуществами - накладываются на видео для десктопа */}
+          {!isMobile && (
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-6xl flex justify-center items-end pointer-events-none z-20 px-4" style={{ bottom: '-60px' }}>
+              <div className="w-full max-w-4xl relative" style={{ minHeight: '320px' }}>
+                {advantages.map((advantage, index) => {
+                  const isActive = index === currentIndex;
+                  const isNext = index === (currentIndex + 1) % advantages.length;
+                  
+                  // Рендерим только активную карточку или следующую во время анимации
+                  if (!isActive && !(isNext && isAnimating)) {
+                    return null;
                   }
-                } else if (isActive) {
-                  // Активная карточка на месте - видима
-                  initialStyle.willChange = 'auto';
-                }
 
-                return (
-                  <div
-                    key={index}
-                    className={`absolute bottom-0 left-0 right-0 flex items-end justify-center ${animationClass}`}
-                    style={{
-                      zIndex: isActive ? 10 : 9,
-                      ...initialStyle,
-                    }}
-                  >
-                    <div className="bg-white/15 backdrop-blur-lg border border-white/30 rounded-3xl px-6 py-6 md:px-12 md:py-10 shadow-2xl w-full" style={{ filter: 'brightness(1)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
-                      <div className="text-center">
-                        <div 
-                          className="text-5xl md:text-7xl lg:text-8xl font-bold mb-2 md:mb-4"
-                          style={{
-                            color: '#867DFF',
-                            textShadow: '0 0 20px rgba(134, 125, 255, 0.6), 0 0 40px rgba(134, 125, 255, 0.4), 0 0 60px rgba(134, 125, 255, 0.2)',
-                          }}
-                        >
-                          {advantage.number}
-                        </div>
-                        <div className="text-white text-lg md:text-2xl lg:text-3xl font-semibold mb-2 md:mb-4 drop-shadow-md">
-                          {advantage.title}
-                        </div>
-                        <div className="text-white/90 text-sm md:text-base lg:text-lg leading-relaxed max-w-3xl mx-auto">
-                          {advantage.description}
+                  // Определяем класс анимации и начальное состояние
+                  let animationClass = '';
+                  let initialStyle: React.CSSProperties = {
+                    transform: 'translateX(0)',
+                    opacity: 1,
+                    filter: 'brightness(1)',
+                    willChange: 'auto',
+                  };
+                  
+                  if (isActive && isAnimating) {
+                    // Активная карточка уезжает влево
+                    animationClass = 'anim-tinLeftOut';
+                    initialStyle.willChange = 'transform, opacity';
+                  } else if (isNext && isAnimating) {
+                    // Следующая карточка начинается справа, затем анимируется
+                    initialStyle = { 
+                      transform: 'translateX(120%)', 
+                      opacity: 0,
+                      filter: 'brightness(1)',
+                      willChange: 'transform, opacity',
+                    };
+                    if (nextCardReady) {
+                      animationClass = 'anim-slideInRight';
+                    }
+                  } else if (isActive) {
+                    // Активная карточка на месте - видима
+                    initialStyle.willChange = 'auto';
+                  }
+
+                  return (
+                    <div
+                      key={index}
+                      className={`absolute bottom-0 left-0 right-0 flex items-end justify-center ${animationClass}`}
+                      style={{
+                        zIndex: isActive ? 10 : 9,
+                        ...initialStyle,
+                      }}
+                    >
+                      <div className="bg-white/15 backdrop-blur-lg border border-white/30 rounded-3xl px-6 py-6 md:px-12 md:py-10 shadow-2xl w-full" style={{ filter: 'brightness(1)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+                        <div className="text-center">
+                          <div 
+                            className="text-5xl md:text-7xl lg:text-8xl font-bold mb-2 md:mb-4"
+                            style={{
+                              color: '#867DFF',
+                              textShadow: '0 0 20px rgba(134, 125, 255, 0.6), 0 0 40px rgba(134, 125, 255, 0.4), 0 0 60px rgba(134, 125, 255, 0.2)',
+                            }}
+                          >
+                            {advantage.number}
+                          </div>
+                          <div className="text-white text-lg md:text-2xl lg:text-3xl font-semibold mb-2 md:mb-4 drop-shadow-md">
+                            {advantage.title}
+                          </div>
+                          <div className="text-white/90 text-sm md:text-base lg:text-lg leading-relaxed max-w-3xl mx-auto">
+                            {advantage.description}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Плашки с преимуществами - ниже видео для мобильной версии */}
+          {isMobile && (
+            <div className="w-full max-w-4xl mx-auto px-4">
+              <div className="w-full relative" style={{ minHeight: '320px' }}>
+                {advantages.map((advantage, index) => {
+                  const isActive = index === currentIndex;
+                  const isNext = index === (currentIndex + 1) % advantages.length;
+                  
+                  // Рендерим только активную карточку или следующую во время анимации
+                  if (!isActive && !(isNext && isAnimating)) {
+                    return null;
+                  }
+
+                  // Определяем класс анимации и начальное состояние
+                  let animationClass = '';
+                  let initialStyle: React.CSSProperties = {
+                    transform: 'translateX(0)',
+                    opacity: 1,
+                    filter: 'brightness(1)',
+                    willChange: 'auto',
+                  };
+                  
+                  if (isActive && isAnimating) {
+                    // Активная карточка уезжает влево
+                    animationClass = 'anim-tinLeftOut';
+                    initialStyle.willChange = 'transform, opacity';
+                  } else if (isNext && isAnimating) {
+                    // Следующая карточка начинается справа, затем анимируется
+                    initialStyle = { 
+                      transform: 'translateX(120%)', 
+                      opacity: 0,
+                      filter: 'brightness(1)',
+                      willChange: 'transform, opacity',
+                    };
+                    if (nextCardReady) {
+                      animationClass = 'anim-slideInRight';
+                    }
+                  } else if (isActive) {
+                    // Активная карточка на месте - видима
+                    initialStyle.willChange = 'auto';
+                  }
+
+                  return (
+                    <div
+                      key={index}
+                      className={`absolute top-0 left-0 right-0 flex items-start justify-center ${animationClass}`}
+                      style={{
+                        zIndex: isActive ? 10 : 9,
+                        ...initialStyle,
+                      }}
+                    >
+                      <div className="bg-white/15 backdrop-blur-lg border border-white/30 rounded-3xl px-6 py-6 md:px-12 md:py-10 shadow-2xl w-full" style={{ filter: 'brightness(1)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+                        <div className="text-center">
+                          <div 
+                            className="text-5xl md:text-7xl lg:text-8xl font-bold mb-2 md:mb-4"
+                            style={{
+                              color: '#867DFF',
+                              textShadow: '0 0 20px rgba(134, 125, 255, 0.6), 0 0 40px rgba(134, 125, 255, 0.4), 0 0 60px rgba(134, 125, 255, 0.2)',
+                            }}
+                          >
+                            {advantage.number}
+                          </div>
+                          <div className="text-white text-lg md:text-2xl lg:text-3xl font-semibold mb-2 md:mb-4 drop-shadow-md">
+                            {advantage.title}
+                          </div>
+                          <div className="text-white/90 text-sm md:text-base lg:text-lg leading-relaxed max-w-3xl mx-auto">
+                            {advantage.description}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>

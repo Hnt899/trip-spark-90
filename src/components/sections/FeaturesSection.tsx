@@ -1,6 +1,7 @@
 import { Layers, Shield, Headphones, FileText, MapPin, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Dialog,
   DialogContent,
@@ -68,9 +69,27 @@ const FeaturesSection = () => {
   ];
 
   const [selectedFeature, setSelectedFeature] = useState<typeof features[0] | null>(null);
+  const isMobile = useIsMobile();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Автоматическая смена карточек для мобильной версии
+  useEffect(() => {
+    if (!isMobile) return;
+
+    intervalRef.current = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % features.length);
+    }, 3000); // Смена каждые 3 секунды
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [isMobile, features.length]);
 
   return (
-    <section id="features-section" className="py-16 md:py-24 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+    <section id="features-section" className="pt-16 pb-0 md:py-24 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
       {/* Декоративные желтые пятна */}
       <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
         {/* Левое пятно - от центра поднимаемся вверх на 30px */}
@@ -114,7 +133,8 @@ const FeaturesSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 px-2">
+        {/* Десктоп версия - grid (НЕ ТРОГАЕМ) */}
+        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 px-2">
           {features.map((feature, index) => (
             <div
               key={index}
@@ -174,6 +194,99 @@ const FeaturesSection = () => {
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-b-3xl"></div>
             </div>
           ))}
+        </div>
+
+        {/* Мобильная версия - карусель ТОЛЬКО для мобильных */}
+        <div className="sm:hidden relative overflow-hidden px-2">
+          <div className="relative w-full overflow-hidden">
+            <div 
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{
+                transform: `translateX(-${currentIndex * 100}%)`,
+              }}
+            >
+              {features.map((feature, index) => (
+                <div
+                  key={index}
+                  onClick={() => setSelectedFeature(feature)}
+                  className={cn(
+                    "flex-shrink-0 w-full",
+                    "group relative rounded-3xl p-8",
+                    "border-2 border-transparent",
+                    "cursor-pointer",
+                    `bg-gradient-to-br ${feature.bgGradient}`
+                  )}
+                >
+                  {/* Матовый задник при hover */}
+                  <div className={cn(
+                    "absolute inset-0 rounded-3xl opacity-0",
+                    "group-active:opacity-100 transition-opacity duration-500",
+                    "bg-white/60 backdrop-blur-sm",
+                    "-top-6 -bottom-6 -left-6 -right-6",
+                    "z-[-1]"
+                  )}></div>
+
+                  {/* Иконка */}
+                  <div className="mb-8 relative">
+                    <div className={cn(
+                      "w-20 h-20 rounded-2xl flex items-center justify-center",
+                      "shadow-lg",
+                      "transition-all duration-300",
+                      feature.iconBg,
+                      "relative z-10"
+                    )}>
+                      <feature.icon className="w-10 h-10 text-white" strokeWidth={2.5} />
+                    </div>
+                    {/* Свечение вокруг иконки */}
+                    <div className={cn(
+                      "absolute top-0 left-0 right-0 bottom-0 rounded-2xl blur-xl opacity-30",
+                      `bg-gradient-to-br ${feature.gradient}`,
+                      "-top-2 -left-2 -right-2 -bottom-36"
+                    )}></div>
+                  </div>
+
+                  {/* Заголовок */}
+                  <h3 className="text-2xl font-bold text-foreground mb-4">
+                    {feature.title}
+                  </h3>
+
+                  {/* Описание */}
+                  <p className="text-muted-foreground text-base leading-relaxed">
+                    {feature.description}
+                  </p>
+
+                  {/* Декоративная линия внизу */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-b-3xl"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Индикаторы для мобильной версии */}
+          <div className="flex justify-center gap-2 mt-4 mb-4">
+            {features.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setCurrentIndex(index);
+                  // Перезапускаем интервал при ручном переключении
+                  if (intervalRef.current) {
+                    clearInterval(intervalRef.current);
+                  }
+                  intervalRef.current = setInterval(() => {
+                    setCurrentIndex((prevIndex) => (prevIndex + 1) % features.length);
+                  }, 3000);
+                }}
+                className={cn(
+                  "h-2 rounded-full transition-all duration-300",
+                  index === currentIndex
+                    ? "bg-white w-8"
+                    : "bg-white/50 w-2"
+                )}
+                aria-label={`Перейти к карточке ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
 

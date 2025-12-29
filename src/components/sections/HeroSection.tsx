@@ -14,12 +14,14 @@ import flightVideo from "@/assets/video/самолёт новый.mp4";
 import busVideo from "@/assets/video/автобус.mp4";
 import { cn } from "@/lib/utils";
 import { cities } from "@/data/cities";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type TravelType = "train" | "flight" | "bus";
 
 const HeroSection = () => {
   const navigate = useNavigate();
   const formRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   const [travelType, setTravelType] = useState<TravelType>("train");
   const [tripType, setTripType] = useState<"round" | "one">("round");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -108,22 +110,44 @@ const HeroSection = () => {
                 const letters = text.split("");
                 const animationDuration = 0.23;
                 const totalCycleDuration = letters.length * animationDuration;
+                const firstWordEnd = "Путешествие".length;
                 
-                return letters.map((letter, index) => {
-                  const delay = index * animationDuration;
-                  return (
-                    <span
-                      key={index}
-                      className="inline-block"
-                      style={{
-                        animation: `letterWave ${totalCycleDuration}s ease-in-out ${delay}s infinite`,
-                        animationFillMode: "both",
-                      }}
-                    >
-                      {letter === " " ? "\u00A0" : letter}
+                return (
+                  <>
+                    <span className="whitespace-nowrap inline-block">
+                      {letters.slice(0, firstWordEnd).map((letter, index) => {
+                        const delay = index * animationDuration;
+                        return (
+                          <span
+                            key={index}
+                            className="inline-block"
+                            style={{
+                              animation: `letterWave ${totalCycleDuration}s ease-in-out ${delay}s infinite`,
+                              animationFillMode: "both",
+                            }}
+                          >
+                            {letter === " " ? "\u00A0" : letter}
+                          </span>
+                        );
+                      })}
                     </span>
-                  );
-                });
+                    {letters.slice(firstWordEnd).map((letter, index) => {
+                      const delay = (firstWordEnd + index) * animationDuration;
+                      return (
+                        <span
+                          key={firstWordEnd + index}
+                          className="inline-block"
+                          style={{
+                            animation: `letterWave ${totalCycleDuration}s ease-in-out ${delay}s infinite`,
+                            animationFillMode: "both",
+                          }}
+                        >
+                          {letter === " " ? "\u00A0" : letter}
+                        </span>
+                      );
+                    })}
+                  </>
+                );
               })()}
             </h1>
           </div>
@@ -138,43 +162,38 @@ const HeroSection = () => {
                 <TabsTrigger 
                   value="train" 
                     className={cn(
-                      "flex items-center gap-1.5 text-sm font-medium px-3 transition-all rounded-md",
+                      "flex items-center justify-center text-sm font-medium px-3 transition-all rounded-md",
                       "data-[state=active]:!text-white",
                       travelType === "train"
                         ? "travel-tab-gradient text-white"
                         : "text-white/70 hover:text-white"
                     )}
                 >
-                    <Train className="h-4 w-4" />
-                    <span className="hidden sm:inline">Ж/д</span>
-                  <span className="sm:hidden">Ж/д</span>
+                    <Train className="h-5 w-5" />
                 </TabsTrigger>
                 <TabsTrigger 
                   value="flight"
                     className={cn(
-                      "flex items-center gap-1.5 text-sm font-medium px-3 transition-all rounded-md",
+                      "flex items-center justify-center text-sm font-medium px-3 transition-all rounded-md",
                       "data-[state=active]:!text-white",
                       travelType === "flight"
                         ? "travel-tab-gradient text-white"
                         : "text-white/70 hover:text-white"
                     )}
                 >
-                    <Plane className="h-4 w-4" />
-                    <span className="hidden sm:inline">Авиа</span>
-                  <span className="sm:hidden">Авиа</span>
+                    <Plane className="h-5 w-5" />
                 </TabsTrigger>
                 <TabsTrigger 
                   value="bus"
                     className={cn(
-                      "flex items-center gap-1.5 text-sm font-medium px-3 transition-all rounded-md",
+                      "flex items-center justify-center text-sm font-medium px-3 transition-all rounded-md",
                       "data-[state=active]:!text-white",
                       travelType === "bus"
                         ? "travel-tab-gradient text-white"
                         : "text-white/70 hover:text-white"
                     )}
                 >
-                    <Bus className="h-4 w-4" />
-                    <span>Автобус</span>
+                    <Bus className="h-5 w-5" />
                 </TabsTrigger>
               </TabsList>
 
@@ -262,23 +281,32 @@ const HeroSection = () => {
                         >
                         <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                           <span className="truncate">
-                            {dateRange?.from ? (
-                            format(dateRange.from, "dd.MM", { locale: ru })
+                            {isMobile && tripType === "round" ? (
+                              dateRange?.from && dateRange?.to ? (
+                                `${format(dateRange.from, "dd.MM", { locale: ru })} – ${format(dateRange.to, "dd.MM", { locale: ru })}`
+                              ) : dateRange?.from ? (
+                                format(dateRange.from, "dd.MM", { locale: ru })
+                              ) : (
+                                "Даты поездки"
+                              )
+                            ) : dateRange?.from ? (
+                              format(dateRange.from, "dd.MM", { locale: ru })
                             ) : (
-                            "Дата туда"
+                              "Дата туда"
                             )}
                           </span>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className={cn("w-auto p-0", isMobile && "p-1")} align="start">
                         {tripType === "round" ? (
                           <Calendar
                             mode="range"
                             selected={dateRange}
                             onSelect={setDateRange}
                             initialFocus
-                            numberOfMonths={2}
+                            numberOfMonths={isMobile ? 1 : 2}
                             disabled={(date) => date < new Date()}
+                            className={isMobile ? "p-1 [&_.rdp-month]:space-y-2 [&_.rdp-caption]:mb-1 [&_.rdp-cell]:h-8 [&_.rdp-cell]:w-8 [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-head_cell]:w-8" : ""}
                           />
                         ) : (
                           <Calendar
@@ -286,14 +314,15 @@ const HeroSection = () => {
                             selected={dateRange?.from}
                             onSelect={(date) => setDateRange(date ? { from: date, to: undefined } : undefined)}
                             initialFocus
-                            numberOfMonths={2}
+                            numberOfMonths={isMobile ? 1 : 2}
                             disabled={(date) => date < new Date()}
+                            className={isMobile ? "p-1 [&_.rdp-month]:space-y-2 [&_.rdp-caption]:mb-1 [&_.rdp-cell]:h-8 [&_.rdp-cell]:w-8 [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-head_cell]:w-8" : ""}
                           />
                         )}
                       </PopoverContent>
                     </Popover>
 
-                    {tripType === "round" && (
+                    {tripType === "round" && !isMobile && (
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -313,14 +342,15 @@ const HeroSection = () => {
                             </span>
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className={cn("w-auto p-0", isMobile && "p-1")} align="start">
                           <Calendar
                             mode="range"
                             selected={dateRange}
                             onSelect={setDateRange}
                             initialFocus
-                            numberOfMonths={2}
+                            numberOfMonths={isMobile ? 1 : 2}
                             disabled={(date) => date < new Date()}
+                            className={isMobile ? "p-1 [&_.rdp-month]:space-y-2 [&_.rdp-caption]:mb-1 [&_.rdp-cell]:h-8 [&_.rdp-cell]:w-8 [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-head_cell]:w-8" : ""}
                           />
                         </PopoverContent>
                       </Popover>
@@ -409,23 +439,32 @@ const HeroSection = () => {
                         >
                         <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                           <span className="truncate">
-                            {dateRange?.from ? (
-                            format(dateRange.from, "dd.MM", { locale: ru })
+                            {isMobile && tripType === "round" ? (
+                              dateRange?.from && dateRange?.to ? (
+                                `${format(dateRange.from, "dd.MM", { locale: ru })} – ${format(dateRange.to, "dd.MM", { locale: ru })}`
+                              ) : dateRange?.from ? (
+                                format(dateRange.from, "dd.MM", { locale: ru })
+                              ) : (
+                                "Даты поездки"
+                              )
+                            ) : dateRange?.from ? (
+                              format(dateRange.from, "dd.MM", { locale: ru })
                             ) : (
-                            "Дата туда"
+                              "Дата туда"
                             )}
                           </span>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className={cn("w-auto p-0", isMobile && "p-1")} align="start">
                         {tripType === "round" ? (
                           <Calendar
                             mode="range"
                             selected={dateRange}
                             onSelect={setDateRange}
                             initialFocus
-                            numberOfMonths={2}
+                            numberOfMonths={isMobile ? 1 : 2}
                             disabled={(date) => date < new Date()}
+                            className={isMobile ? "p-1 [&_.rdp-month]:space-y-2 [&_.rdp-caption]:mb-1 [&_.rdp-cell]:h-8 [&_.rdp-cell]:w-8 [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-head_cell]:w-8" : ""}
                           />
                         ) : (
                           <Calendar
@@ -433,14 +472,15 @@ const HeroSection = () => {
                             selected={dateRange?.from}
                             onSelect={(date) => setDateRange(date ? { from: date, to: undefined } : undefined)}
                             initialFocus
-                            numberOfMonths={2}
+                            numberOfMonths={isMobile ? 1 : 2}
                             disabled={(date) => date < new Date()}
+                            className={isMobile ? "p-1 [&_.rdp-month]:space-y-2 [&_.rdp-caption]:mb-1 [&_.rdp-cell]:h-8 [&_.rdp-cell]:w-8 [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-head_cell]:w-8" : ""}
                           />
                         )}
                       </PopoverContent>
                     </Popover>
 
-                    {tripType === "round" && (
+                    {tripType === "round" && !isMobile && (
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -460,14 +500,15 @@ const HeroSection = () => {
                             </span>
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className={cn("w-auto p-0", isMobile && "p-1")} align="start">
                           <Calendar
                             mode="range"
                             selected={dateRange}
                             onSelect={setDateRange}
                             initialFocus
-                            numberOfMonths={2}
+                            numberOfMonths={isMobile ? 1 : 2}
                             disabled={(date) => date < new Date()}
+                            className={isMobile ? "p-1 [&_.rdp-month]:space-y-2 [&_.rdp-caption]:mb-1 [&_.rdp-cell]:h-8 [&_.rdp-cell]:w-8 [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-head_cell]:w-8" : ""}
                           />
                         </PopoverContent>
                       </Popover>

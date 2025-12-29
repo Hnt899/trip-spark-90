@@ -174,7 +174,46 @@ const SupportSection = () => {
         <div className="container relative z-10">
           {/* Общая карточка на всю ширину */}
           <div className="rounded-3xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 md:p-8 lg:p-12 shadow-lg">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+            {/* Мобильная версия - упрощенная */}
+            <div className="md:hidden space-y-6">
+              {/* Заголовок */}
+              <div className="text-center">
+                <h2 className="text-4xl font-extrabold text-foreground mb-4 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent">
+                  Умный бот-помощник 24/7
+                </h2>
+                <p className="text-lg text-muted-foreground">
+                  Решаем вопросы быстро и эффективно, работаем круглосуточно
+                </p>
+              </div>
+
+              {/* Преимущества бота */}
+              <div className="rounded-lg border border-border/50 bg-muted/30 p-5">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                  Почему выбирают нас
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-2xl font-bold text-primary mb-1">24/7</div>
+                    <div className="text-xs text-muted-foreground">Работаем круглосуточно</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-primary mb-1">&lt;2 мин</div>
+                    <div className="text-xs text-muted-foreground">Среднее время ответа</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-primary mb-1">95%</div>
+                    <div className="text-xs text-muted-foreground">Вопросов решает бот</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-primary mb-1">100%</div>
+                    <div className="text-xs text-muted-foreground">Безопасность данных</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Десктопная версия - полная */}
+            <div className="hidden md:grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
               {/* Левая часть: Смысл + шаги */}
               <div className="space-y-8">
                 {/* Заголовок */}
@@ -316,11 +355,20 @@ const SupportSection = () => {
               </div>
             </div>
 
-            {/* Разделительная линия */}
-            <div className="my-8 h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
+            {/* Мобильная версия - кнопка чата */}
+            <div className="md:hidden mt-6">
+              <Button
+                size="lg"
+                onClick={() => setIsChatOpen(true)}
+                className="w-full rounded-xl font-semibold shadow-md hover:shadow-xl transition-all h-14 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white border-0"
+              >
+                <MessageCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                <span className="text-base">Написать в чат</span>
+              </Button>
+            </div>
 
-            {/* CTA-зона - акцентная панель */}
-            <div className="rounded-2xl bg-gradient-to-r from-primary/5 via-purple-500/5 to-primary/5 border border-primary/10 p-6 md:p-8 shadow-sm">
+            {/* Десктопная версия */}
+            <div className="hidden md:block rounded-2xl bg-gradient-to-r from-primary/5 via-purple-500/5 to-primary/5 border border-primary/10 p-6 lg:p-8 shadow-sm">
               <div className="space-y-4">
                 <div className="text-center">
                   <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -331,8 +379,8 @@ const SupportSection = () => {
                   </p>
                 </div>
 
-                {/* Кнопки CTA */}
-                <div className="flex flex-col sm:flex-row gap-3">
+                {/* Кнопки CTA - горизонтально на десктопе */}
+                <div className="flex flex-row gap-3">
                   {/* Главный CTA - Чат */}
                   <Button
                     size="lg"

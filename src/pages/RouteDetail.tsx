@@ -1,8 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
-import RoutesHeader from "@/components/RoutesHeader";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Star, ArrowLeft } from "lucide-react";
 import karelia from "@/assets/images/cities/karelia.jpg";
 import moscow from "@/assets/images/cities/moscow.jpg";
 import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
@@ -80,9 +81,9 @@ const RouteDetail = () => {
   if (!route) {
     return (
       <div className="min-h-screen bg-[#F5F5FA]">
-        <RoutesHeader />
-        <main className="container py-20 pt-32">
-          <h1 className="text-4xl font-bold mb-6">Маршрут не найден</h1>
+        <Header />
+        <main className="container px-4 md:px-6 py-12 md:py-20 pt-20 md:pt-32">
+          <h1 className="text-2xl md:text-4xl font-bold mb-6">Маршрут не найден</h1>
           <Button onClick={() => navigate("/routes/list")}>
             Вернуться к списку маршрутов
           </Button>
@@ -94,74 +95,56 @@ const RouteDetail = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F5FA]">
-      <RoutesHeader />
-      <main className="pt-16">
-        <div className="container py-12">
+      <Header />
+      <main className="pt-20 md:pt-16">
+        <div className="container px-4 md:px-6 py-6 md:py-12">
           <Button
             variant="ghost"
             onClick={() => navigate("/routes/list")}
-            className="mb-6"
+            className="mb-4 md:mb-6 text-sm md:text-base"
           >
-            ← Назад к маршрутам
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Назад к маршрутам
           </Button>
 
           <Card className="overflow-hidden shadow-lg">
-            <div className="relative h-96 md:h-[500px] overflow-hidden">
+            <div className="relative h-64 md:h-96 lg:h-[500px] overflow-hidden">
               <img
                 src={route.image}
                 alt={route.name}
                 className="w-full h-full object-cover"
               />
             </div>
-            <CardContent className="p-8">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
+            <CardContent className="p-4 md:p-6 lg:p-8">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4 md:mb-6">
+                <div className="flex-1">
+                  <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-foreground mb-2">
                     {route.name}
                   </h1>
-                  <p className="text-lg text-muted-foreground">
+                  <p className="text-base md:text-lg text-muted-foreground">
                     {route.region}
                   </p>
                 </div>
-                <div className="flex-shrink-0">
-                  <svg
-                    width="70"
-                    height="70"
-                    viewBox="0 0 70 70"
-                    className="drop-shadow-lg"
-                  >
-                    <path
-                      d="M35 0 L42 24.5 L70 24.5 L45.5 38.5 L52.5 63 L35 49 L17.5 63 L24.5 38.5 L0 24.5 L28 24.5 Z"
-                      fill="#22C55E"
-                      stroke="white"
-                      strokeWidth="1"
-                    />
-                    <text
-                      x="35"
-                      y="43"
-                      textAnchor="middle"
-                      fill="white"
-                      fontSize="22"
-                      fontWeight="bold"
-                    >
-                      {route.rating}
-                    </text>
-                  </svg>
+                <div className="flex items-center gap-2 md:flex-shrink-0">
+                  <Star className="w-5 h-5 md:w-6 md:h-6 fill-yellow-400 text-yellow-400" />
+                  <span className="text-lg md:text-xl font-semibold text-foreground">
+                    {route.rating}
+                  </span>
                 </div>
               </div>
 
               <div className="prose max-w-none">
-                <p className="text-lg text-muted-foreground mb-6">
+                <p className="text-base md:text-lg text-muted-foreground mb-4 md:mb-6">
                   Детальная информация о маршруте находится в разработке.
                 </p>
-                <p className="text-lg text-muted-foreground">
+                <p className="text-base md:text-lg text-muted-foreground">
                   Здесь будет размещена подробная информация о маршруте, включая описание достопримечательностей, 
                   рекомендации по посещению, карту маршрута и другую полезную информацию для путешественников.
                 </p>
               </div>
 
-              <div className="mt-8">
-                <Button size="lg" className="px-8 py-6 text-lg">
+              <div className="mt-6 md:mt-8">
+                <Button size="lg" className="w-full md:w-auto px-6 md:px-8 py-4 md:py-6 text-base md:text-lg">
                   Узнать маршрут
                 </Button>
               </div>

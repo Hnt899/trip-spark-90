@@ -259,7 +259,7 @@ const InspirationSection = () => {
   };
 
   return (
-    <section className="py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+    <section className="pt-20 pb-12 md:py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
       {/* Декоративные желтые пятна */}
       <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
         {/* Левое пятно - от центра поднимаемся вверх на 30px */}

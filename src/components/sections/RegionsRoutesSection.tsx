@@ -2,6 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 import karelia from "@/assets/images/cities/karelia.jpg";
 import moscow from "@/assets/images/cities/moscow.jpg";
 import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
@@ -27,9 +29,14 @@ const regions: RegionRoute[] = [
 ];
 
 const RegionsRoutesSection = () => {
+  const isMobile = useIsMobile();
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [cardWidth, setCardWidth] = useState(450);
+  const [mobileCurrent, setMobileCurrent] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const mobileTrackRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const updateCardWidth = () => {
@@ -90,7 +97,7 @@ const RegionsRoutesSection = () => {
   }, [cardWidth]);
 
   return (
-    <section className="py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+    <section className="pt-2 pb-20 md:py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
       {/* Декоративные желтые пятна */}
       <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
         {/* Левое пятно - от центра поднимаемся вверх на 30px */}
@@ -122,18 +129,22 @@ const RegionsRoutesSection = () => {
       </div>
 
       <div className="container relative z-10">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ marginLeft: '60px' }}>
+        <div className="flex flex-col items-center text-center mb-8 md:mb-12">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">
             <span className="text-white">Make Your </span>
             <span className="text-[#FFD700]" style={{ textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4)' }}>
               DAY
             </span>
           </h2>
+          <p className="text-base md:text-lg text-white/80 max-w-2xl mx-auto px-4">
+            Откройте для себя уникальные регионы России и создайте незабываемое путешествие
+          </p>
         </div>
       </div>
 
       <div className="relative">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 relative">
+        {/* Десктопная версия - горизонтальный скролл */}
+        <div className="hidden md:block max-w-7xl mx-auto px-4 md:px-6 lg:px-8 relative">
           {/* Кнопка влево */}
           <Button
             variant="outline"
@@ -185,24 +196,77 @@ const RegionsRoutesSection = () => {
           </Button>
         </div>
 
-        {/* Кнопки для мобильных устройств */}
-        <div className="flex justify-center gap-2 mt-6 lg:hidden">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={scrollLeft}
-            className="rounded-full bg-white shadow-md hover:bg-white w-12 h-12 border-0"
+        {/* Мобильная версия - карусель с точками */}
+        <div className="md:hidden relative overflow-hidden px-2">
+          <div 
+            className="relative w-full overflow-hidden"
+            onTouchStart={(e) => setTouchStart(e.targetTouches[0].clientX)}
+            onTouchMove={(e) => setTouchEnd(e.targetTouches[0].clientX)}
+            onTouchEnd={() => {
+              if (!touchStart || !touchEnd) return;
+              
+              const distance = touchStart - touchEnd;
+              const minSwipeDistance = 50;
+
+              if (distance > minSwipeDistance) {
+                setMobileCurrent((prev) => Math.min(regions.length - 1, prev + 1));
+              }
+              
+              if (distance < -minSwipeDistance) {
+                setMobileCurrent((prev) => Math.max(0, prev - 1));
+              }
+              
+              setTouchStart(0);
+              setTouchEnd(0);
+            }}
           >
-            <ChevronLeft className="w-5 h-5 text-primary" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={scrollRight}
-            className="rounded-full bg-white shadow-md hover:bg-white w-12 h-12 border-0"
-          >
-            <ChevronRight className="w-5 h-5 text-primary" />
-          </Button>
+            <div 
+              ref={mobileTrackRef}
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{
+                transform: `translateX(-${mobileCurrent * 100}%)`,
+              }}
+            >
+              {regions.map((region, index) => (
+                <Card
+                  key={index}
+                  className="flex-shrink-0 w-full overflow-hidden shadow-lg cursor-pointer"
+                >
+                  <div className="relative">
+                    <img
+                      src={region.image}
+                      alt={region.name}
+                      className="w-full h-64 object-cover rounded-t-lg"
+                    />
+                    <div className="absolute bottom-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full flex items-center gap-1 font-semibold">
+                      <span>★</span>
+                      <span>{region.rating}</span>
+                    </div>
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="text-lg font-semibold text-foreground">{region.name}</h3>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Индикаторы для мобильной версии */}
+          <div className="flex justify-center gap-2 mt-4 mb-4">
+            {regions.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setMobileCurrent(index)}
+                className={cn(
+                  "h-2 rounded-full transition-all duration-300",
+                  index === mobileCurrent
+                    ? "bg-white w-8"
+                    : "bg-white/50 w-2"
+                )}
+                aria-label={`Перейти к карточке ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>

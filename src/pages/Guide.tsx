@@ -7,8 +7,16 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { createSlug } from "@/utils/slugify";
-import { Search, X } from "lucide-react";
+import { Search, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Структура данных по разделам
 const guideSections = {
@@ -289,14 +297,19 @@ const Guide = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchResultsRef = useRef<HTMLDivElement>(null);
   const tabsRef = useRef<HTMLDivElement>(null);
+  const tabsListRef = useRef<HTMLDivElement>(null);
   const [isSticky, setIsSticky] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Обработка sticky навигации
+  // Обработка sticky навигации (только для десктопа)
   useEffect(() => {
+    if (isMobile) return; // Не делаем sticky на мобилке
+    
     const handleScroll = () => {
       if (tabsRef.current) {
         const rect = tabsRef.current.getBoundingClientRect();
@@ -308,7 +321,7 @@ const Guide = () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll(); // Проверяем начальное состояние
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isMobile]);
 
   // Фильтрация статей по поисковому запросу
   const filterArticles = (articles: string[]) => {
@@ -409,36 +422,46 @@ const Guide = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container pt-32 pb-12 max-w-6xl">
-        {/* Закреплённая навигация с табами */}
-        <div 
-          ref={tabsRef}
-          className={`mb-6 transition-all fixed left-0 right-0 z-50 flex justify-center items-center ${isSticky ? 'bg-background/95 backdrop-blur-sm py-3 px-4 border-b shadow-sm' : 'bg-transparent py-0'}`}
-          style={{ top: '105px' }}
-        >
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="inline-flex flex-nowrap h-auto p-3 rounded-lg gap-3 backdrop-blur-md" style={{ backgroundColor: 'rgba(32, 8, 255, 0.4)' }}>
-              {Object.values(guideSections).map((section) => (
-                <TabsTrigger 
-                  key={section.id} 
-                  value={section.id}
-                  className="text-lg px-5 py-3 rounded-full font-medium hover:opacity-100 transition-colors whitespace-nowrap flex-shrink-0"
-                  style={{
-                    backgroundColor: activeTab === section.id ? '#897CFF' : 'transparent',
-                    color: activeTab === section.id ? '#F9C850' : 'white',
-                    fontSize: '1.5rem'
-                  }}
-                >
-                  {section.title}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </div>
+      <main className="container pt-20 md:pt-32 pb-12 max-w-6xl">
+
+        {/* Десктопная версия - закреплённая навигация с табами */}
+        {!isMobile && (
+          <div 
+            ref={tabsRef}
+            className={cn(
+              "mb-6 transition-all fixed left-0 right-0 z-50 flex justify-center items-center",
+              isSticky ? 'bg-background/95 backdrop-blur-sm py-3 px-4 border-b shadow-sm' : 'bg-transparent py-0',
+              'top-[105px]'
+            )}
+          >
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-full">
+              <TabsList className={cn(
+                "inline-flex flex-nowrap h-auto p-3 rounded-lg gap-3 backdrop-blur-md"
+              )} style={{ backgroundColor: 'rgba(32, 8, 255, 0.4)' }}>
+                {Object.values(guideSections).map((section) => (
+                  <TabsTrigger 
+                    key={section.id} 
+                    value={section.id}
+                    className={cn(
+                      "px-5 py-3 rounded-full font-medium hover:opacity-100 transition-colors whitespace-nowrap flex-shrink-0",
+                      "text-lg"
+                    )}
+                    style={{
+                      backgroundColor: activeTab === section.id ? '#897CFF' : 'transparent',
+                      color: activeTab === section.id ? '#F9C850' : 'white',
+                    }}
+                  >
+                    {section.title}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
 
         {/* Заголовок */}
-        <div className="mb-8 mt-24">
-          <h1 className="text-5xl font-bold mb-4">Путеводитель TudaSuda</h1>
+        <div className="mb-8 mt-8 md:mt-24">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4">Путеводитель TudaSuda</h1>
         </div>
 
         {/* Поиск */}
@@ -520,15 +543,15 @@ const Guide = () => {
 
         {/* Популярные статьи */}
         <section className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">Популярные темы</h2>
-          <div className="flex flex-wrap gap-3">
+          <h2 className="text-xl md:text-2xl font-bold mb-4 text-center md:text-left">Популярные темы</h2>
+          <div className="flex flex-wrap gap-2 md:gap-3 justify-center md:justify-start">
             {popularArticles.map((article, idx) => {
               const section = guideSections[article.section as keyof typeof guideSections];
               return (
-                <Link
+                  <Link
                   key={idx}
                   to={getArticleUrl(article.title, section.category)}
-                  className="px-4 py-2 bg-purple-100 text-purple-900 rounded-lg hover:bg-purple-200 transition-colors font-medium"
+                  className="px-3 md:px-4 py-2 bg-purple-100 text-purple-900 rounded-lg hover:bg-purple-200 transition-colors font-medium text-sm md:text-base"
                 >
                   {article.title}
                 </Link>
@@ -548,9 +571,54 @@ const Guide = () => {
             return (
               <Card key={section.id} className="mb-6">
                 <CardContent className="p-6">
+                  {/* Мобильная версия - выпадающее меню над описанием */}
+                  {isMobile && (
+                    <div className="mb-4">
+                      <DropdownMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-between px-4 py-3 h-auto text-base font-medium"
+                            style={{
+                              backgroundColor: 'rgba(32, 8, 255, 0.4)',
+                              borderColor: 'rgba(32, 8, 255, 0.3)',
+                              color: 'white'
+                            }}
+                          >
+                            <span>{guideSections[activeTab as keyof typeof guideSections]?.title || "Все"}</span>
+                            <ChevronDown 
+                              className={cn(
+                                "h-5 w-5 text-primary transition-transform",
+                                mobileMenuOpen && "rotate-180"
+                              )}
+                              style={{ color: '#897CFF' }}
+                            />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-[calc(100vw-2rem)] max-w-none">
+                          {Object.values(guideSections).map((sectionItem) => (
+                            <DropdownMenuItem
+                              key={sectionItem.id}
+                              onClick={() => {
+                                setActiveTab(sectionItem.id);
+                                setMobileMenuOpen(false);
+                              }}
+                              className={cn(
+                                "px-4 py-3 text-base cursor-pointer",
+                                activeTab === sectionItem.id && "bg-primary/10 font-medium"
+                              )}
+                            >
+                              {sectionItem.title}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )}
+
                   <div className="mb-4">
-                    <h2 className="text-2xl font-bold mb-2">{section.title}</h2>
-                    <p className="text-muted-foreground">{section.description}</p>
+                    <h2 className="text-2xl font-bold mb-2 hidden md:block">{section.title}</h2>
+                    <p className="text-muted-foreground text-center md:text-left">{section.description}</p>
                   </div>
 
                   {/* Accordion для статей - всегда раскрыт для активной вкладки */}
@@ -566,12 +634,12 @@ const Guide = () => {
                         </span>
                       </AccordionTrigger>
                       <AccordionContent>
-                        <div className="flex flex-wrap gap-3 pt-4">
+                        <div className="flex flex-wrap gap-2 md:gap-3 pt-4">
                           {filteredArticles.map((article, idx) => (
                             <Link
                               key={idx}
                               to={getArticleUrl(article, section.category)}
-                              className="px-4 py-2 bg-purple-100 text-purple-900 rounded-lg hover:bg-purple-200 transition-colors"
+                              className="px-3 md:px-4 py-2 bg-purple-100 text-purple-900 rounded-lg hover:bg-purple-200 transition-colors text-sm md:text-base"
                             >
                               {article}
                             </Link>
