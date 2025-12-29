@@ -34,11 +34,11 @@ const VerifiedSection = () => {
         <div className="max-w-4xl mx-auto">
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 md:p-10 lg:p-12 text-center shadow-2xl">
             {/* Бейдж "Проверено TudaSuda" */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 border border-primary/30 rounded-full mb-6">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary/20 border border-primary/40 rounded-full mb-6 backdrop-blur-sm">
               <span className="text-sm md:text-base text-white/90 font-medium">
                 Проверено
               </span>
-              <span className="text-sm md:text-base text-primary font-bold">
+              <span className="text-base md:text-lg font-bold bg-gradient-to-r from-[#F9B84F] via-[#FFD700] to-[#F9B84F] bg-clip-text text-transparent drop-shadow-lg">
                 TudaSuda
               </span>
             </div>
