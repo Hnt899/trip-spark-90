@@ -140,7 +140,7 @@ const InspirationSection = ({ surface = "brand" }: InspirationSectionProps) => {
           
           // Вычисляем новую позицию скролла
           const distance = animState.targetScroll - animState.startScroll;
-          let newScroll = animState.startScroll + distance * ease;
+          const newScroll = animState.startScroll + distance * ease;
           
           // Проверяем переходы через границы (точно так же, как в автоскролле)
           // Если дошли до конца второй копии, мгновенно переключаемся на первую

@@ -689,7 +689,7 @@ const Profile = () => {
     // Нормализуем номер телефона перед сохранением
     let normalizedPhone = profileForm.phone;
     if (profileForm.phone) {
-      let phoneDigits = profileForm.phone.replace(/\D/g, ''); // Убираем все кроме цифр
+      const phoneDigits = profileForm.phone.replace(/\D/g, ''); // Убираем все кроме цифр
       
       // Если номер начинается с 8, заменяем на +7
       if (phoneDigits.startsWith('8')) {
