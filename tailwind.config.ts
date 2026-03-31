@@ -140,6 +140,11 @@ export default {
             opacity: "1"
           }
         },
+        /** Яркость свечения: opacity 1% → 100% → 1%, linear = ровное нарастание и спад */
+        "search-pill-glow-opacity": {
+          "0%, 100%": { opacity: "0.01" },
+          "50%": { opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -150,6 +155,7 @@ export default {
         "train-enter": "train-enter 1.08s cubic-bezier(0.4, 0, 0.2, 1) 0.6s both",
         "plane-enter": "plane-enter 1.08s cubic-bezier(0.4, 0, 0.2, 1) 0.6s both",
         "bus-enter": "bus-enter 1.08s cubic-bezier(0.4, 0, 0.2, 1) 0.6s both",
+        "search-pill-glow-opacity": "search-pill-glow-opacity 5.5s linear infinite",
       },
     },
   },

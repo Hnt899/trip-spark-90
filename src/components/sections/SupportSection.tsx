@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Loader2, Send } from "lucide-react";
+import type { SectionSurface } from "@/lib/sectionSurface";
+import { sectionShellClass } from "@/lib/sectionSurface";
 
 interface ChatMessage {
   id: string;
@@ -23,7 +25,11 @@ const API_URL =
     ? "http://localhost:4000/api/support/chat"
     : "/api/support/chat";
 
-const SupportSection = () => {
+interface SupportSectionProps {
+  surface?: SectionSurface;
+}
+
+const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
   const { toast } = useToast();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
@@ -140,8 +146,9 @@ const SupportSection = () => {
 
   return (
     <>
-      <section className="py-16 md:py-24 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+      <section className={sectionShellClass(surface, "py-16 md:py-24")}>
         {/* Декоративные желтые пятна */}
+        {surface === "brand" && (
         <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
           {/* Левое пятно - от центра поднимаемся вверх на 30px */}
           <div 
@@ -170,10 +177,16 @@ const SupportSection = () => {
             }}
           />
         </div>
+        )}
 
         <div className="container relative z-10">
           {/* Общая карточка на всю ширину */}
-          <div className="rounded-3xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 md:p-8 lg:p-12 shadow-lg">
+          <div
+            className={cn(
+              "rounded-3xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 md:p-8 lg:p-12 shadow-lg",
+              surface === "light" && "bg-white border-slate-200/90 shadow-[0_12px_48px_rgba(16,10,111,0.1)]"
+            )}
+          >
             {/* Мобильная версия - упрощенная */}
             <div className="md:hidden space-y-6">
               {/* Заголовок */}

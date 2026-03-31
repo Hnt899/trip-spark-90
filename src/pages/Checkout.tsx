@@ -693,7 +693,7 @@ const Checkout = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container py-8">
+        <main className="container pt-24 pb-8 md:pt-32">
           <div className="max-w-5xl mx-auto">
             <h1 className="text-3xl font-bold mb-8">Оформление заказа</h1>
 
@@ -820,7 +820,7 @@ const Checkout = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container py-8">
+        <main className="container pt-24 pb-8 md:pt-32">
           <div className="max-w-5xl mx-auto">
             <h1 className="text-3xl font-bold mb-8">Ошибка</h1>
             <Card>
@@ -843,7 +843,7 @@ const Checkout = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container py-8">
+      <main className="container pt-24 pb-8 md:pt-32">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Заполните данные</h1>
 

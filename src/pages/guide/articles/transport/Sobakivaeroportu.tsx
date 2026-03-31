@@ -14,7 +14,7 @@ const Sobakivaeroportu = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container py-12 max-w-5xl">
+      <main className="container py-12">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
           <Link to="/guide" className="hover:text-primary">Путеводитель</Link>
           <span>/</span>

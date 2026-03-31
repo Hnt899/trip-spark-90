@@ -25,8 +25,22 @@ import vladivostok1 from "@/assets/images/routes/владивосток 1.jpg";
 import kaliningrad1 from "@/assets/images/routes/калиниград 1.jpg";
 import trainInterior from "@/assets/images/transport/train-interior.jpg";
 import sochi from "@/assets/images/cities/armenia.jpg";
+import type { SectionSurface } from "@/lib/sectionSurface";
+import {
+  carouselDotClass,
+  sectionCardLiftClass,
+  sectionHeadingAccentClass,
+  sectionHeadingBaseClass,
+  sectionLeadClass,
+  sectionShellClass,
+  sectionYellowGlow,
+} from "@/lib/sectionSurface";
 
-const TestimonialsSection = () => {
+interface TestimonialsSectionProps {
+  surface?: SectionSurface;
+}
+
+const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const isScrolling = useRef(false);
@@ -247,8 +261,9 @@ const TestimonialsSection = () => {
   };
 
   return (
-    <section className="py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+    <section className={sectionShellClass(surface, "py-20")}>
       {/* Декоративные желтые пятна */}
+      {surface === "brand" && (
       <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
         {/* Левое пятно - от центра поднимаемся вверх на 30px */}
         <div 
@@ -277,16 +292,20 @@ const TestimonialsSection = () => {
           }}
         />
       </div>
+      )}
 
       <div className="container relative z-10">
         <div className="mb-12 text-center">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700 leading-tight pb-2">
-            <span className="text-[#FFD700]" style={{ textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4)' }}>
+          <h2 className={cn("text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700 leading-tight pb-2", sectionHeadingBaseClass(surface))}>
+            <span
+              className={sectionHeadingAccentClass(surface)}
+              style={surface === "brand" ? sectionYellowGlow : undefined}
+            >
               Живые
             </span>{" "}
-            <span className="text-white">истории путешествий</span>
+            <span className={sectionHeadingBaseClass(surface)}>истории путешествий</span>
           </h2>
-          <p className="text-lg md:text-xl text-white max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150">
+          <p className={cn("text-lg md:text-xl max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150", sectionLeadClass(surface))}>
             Реальные люди, реальные эмоции, реальные путешествия
           </p>
         </div>
@@ -321,6 +340,7 @@ const TestimonialsSection = () => {
                     "hover:border-primary/30",
                     "transition-all duration-[1200ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)]",
                     "cursor-pointer",
+                    sectionCardLiftClass(surface),
                     "w-[calc((100%-2rem)/3)] min-w-[calc((100%-2rem)/3)] max-w-[calc((100%-2rem)/3)]",
                     "snap-start",
                     "animate-in fade-in slide-in-from-bottom-4",
@@ -457,7 +477,8 @@ const TestimonialsSection = () => {
                     "group relative rounded-3xl overflow-hidden",
                     "bg-card border-2 border-transparent",
                     "transition-all duration-500 ease-out",
-                    "cursor-pointer"
+                    "cursor-pointer",
+                    sectionCardLiftClass(surface)
                   )}
                 >
                   {/* Изображение */}
@@ -521,12 +542,7 @@ const TestimonialsSection = () => {
               <button
                 key={index}
                 onClick={() => setMobileCurrent(index)}
-                className={cn(
-                  "h-2 rounded-full transition-all duration-300",
-                  index === mobileCurrent
-                    ? "bg-white w-8"
-                    : "bg-white/50 w-2"
-                )}
+                className={carouselDotClass(surface, index === mobileCurrent)}
                 aria-label={`Перейти к карточке ${index + 1}`}
               />
             ))}

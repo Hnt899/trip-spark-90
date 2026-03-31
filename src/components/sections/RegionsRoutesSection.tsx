@@ -2,7 +2,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import karelia from "@/assets/images/cities/karelia.jpg";
 import moscow from "@/assets/images/cities/moscow.jpg";
@@ -28,8 +27,19 @@ const regions: RegionRoute[] = [
   { name: "Великий Новгород", image: novgorod, rating: 9.2 },
 ];
 
+/** Как рейтинг в первом блоке «Маршруты» (HeroRoutes): стекло, без зелёного */
+function RegionRatingBadge({ rating }: { rating: number }) {
+  return (
+    <div className="absolute bottom-4 left-4 z-10">
+      <span className="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/25 px-3 py-1.5 backdrop-blur-sm drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] text-white">
+        <span className="text-base font-bold tabular-nums leading-none">{rating}</span>
+        <span className="text-white/70 text-xs leading-none">/10</span>
+      </span>
+    </div>
+  );
+}
+
 const RegionsRoutesSection = () => {
-  const isMobile = useIsMobile();
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [cardWidth, setCardWidth] = useState(450);
@@ -172,10 +182,7 @@ const RegionsRoutesSection = () => {
                     alt={region.name}
                     className="w-full h-96 object-cover rounded-t-lg"
                   />
-                  <div className="absolute bottom-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full flex items-center gap-1 font-semibold">
-                    <span>★</span>
-                    <span>{region.rating}</span>
-                  </div>
+                  <RegionRatingBadge rating={region.rating} />
                 </div>
                 <CardContent className="p-4">
                   <h3 className="text-lg font-semibold text-foreground">{region.name}</h3>
@@ -238,10 +245,7 @@ const RegionsRoutesSection = () => {
                       alt={region.name}
                       className="w-full h-64 object-cover rounded-t-lg"
                     />
-                    <div className="absolute bottom-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full flex items-center gap-1 font-semibold">
-                      <span>★</span>
-                      <span>{region.rating}</span>
-                    </div>
+                    <RegionRatingBadge rating={region.rating} />
                   </div>
                   <CardContent className="p-4">
                     <h3 className="text-lg font-semibold text-foreground">{region.name}</h3>

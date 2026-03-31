@@ -464,7 +464,7 @@ const FlightSearch = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container py-8">
+      <main className="container pt-24 pb-8 md:pt-32">
         {/* Форма поиска */}
         <Card className="mb-6">
           <CardContent className="p-6">

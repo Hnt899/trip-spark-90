@@ -26,6 +26,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import TestimonialDetail from "./pages/TestimonialDetail";
 import ChatWidget from "./components/ChatWidget";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Reference pages
 import Trains from "./pages/reference/Trains";
@@ -92,6 +93,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/routes" element={<RoutesPage />} />

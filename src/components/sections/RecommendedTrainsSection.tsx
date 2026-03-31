@@ -10,8 +10,36 @@ import kazan from "@/assets/images/cities/kazan.jpg";
 import novgorod from "@/assets/images/cities/novgorod.jpg";
 import karelia from "@/assets/images/cities/karelia.jpg";
 import armenia from "@/assets/images/cities/armenia.jpg";
+import type { SectionSurface } from "@/lib/sectionSurface";
+import {
+  carouselDotClass,
+  sectionCardLiftClass,
+  sectionHeadingAccentClass,
+  sectionHeadingBaseClass,
+  sectionLeadClass,
+  sectionShellClass,
+  sectionYellowGlow,
+} from "@/lib/sectionSurface";
 
-const RecommendedTrainsSection = () => {
+interface RecommendedTrainsSectionProps {
+  surface?: SectionSurface;
+}
+
+/** Единая палитра карточки (лого): #100A6F → #8A70F8 — без конкурирующих голубого/красного */
+const destinationTagClass =
+  "bg-[#100A6F] shadow-md ring-1 ring-white/25";
+
+const destinationDiscountClass =
+  "bg-white/95 backdrop-blur-sm border border-[#8A70F8]/35 shadow-lg";
+
+const destinationCtaClass = cn(
+  "rounded-full border-0 font-bold text-base px-8",
+  "bg-gradient-to-r from-[#100A6F] to-[#8A70F8] text-white shadow-xl",
+  "hover:from-[#15107a] hover:to-[#9a82ff] hover:text-white hover:shadow-2xl",
+  "transition-all duration-300"
+);
+
+const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectionProps) => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const isScrolling = useRef(false);
@@ -28,7 +56,6 @@ const RecommendedTrainsSection = () => {
       newPrice: "2 800 ₽",
       discount: 20,
       tag: "Популярно",
-      tagColor: "bg-blue-500",
       description: "Быстрое и комфортное путешествие",
     },
     {
@@ -39,7 +66,6 @@ const RecommendedTrainsSection = () => {
       newPrice: "2 940 ₽",
       discount: 30,
       tag: "Горящее",
-      tagColor: "bg-red-500",
       description: "Скидка на билеты до конца месяца",
     },
     {
@@ -50,7 +76,6 @@ const RecommendedTrainsSection = () => {
       newPrice: "3 040 ₽",
       discount: 20,
       tag: "Популярно",
-      tagColor: "bg-blue-500",
       description: "Ежедневные рейсы",
     },
     {
@@ -61,7 +86,6 @@ const RecommendedTrainsSection = () => {
       newPrice: "1 500 ₽",
       discount: 40,
       tag: "Бюджетно",
-      tagColor: "bg-green-500",
       description: "Отличная цена для путешествия",
     },
     {
@@ -72,7 +96,6 @@ const RecommendedTrainsSection = () => {
       newPrice: "2 240 ₽",
       discount: 30,
       tag: "Экскурсии",
-      tagColor: "bg-purple-500",
       description: "Красивые пейзажи и природа",
     },
     {
@@ -83,7 +106,6 @@ const RecommendedTrainsSection = () => {
       newPrice: "3 850 ₽",
       discount: 30,
       tag: "Горящее",
-      tagColor: "bg-red-500",
       description: "Отдых у моря по выгодной цене",
     },
     {
@@ -94,7 +116,6 @@ const RecommendedTrainsSection = () => {
       newPrice: "2 800 ₽",
       discount: 30,
       tag: "Популярно",
-      tagColor: "bg-blue-500",
       description: "Комфортные поезда",
     },
     {
@@ -105,7 +126,6 @@ const RecommendedTrainsSection = () => {
       newPrice: "1 680 ₽",
       discount: 40,
       tag: "Бюджетно",
-      tagColor: "bg-green-500",
       description: "Экономия до 40%",
     },
   ];
@@ -251,8 +271,9 @@ const RecommendedTrainsSection = () => {
   };
 
   return (
-    <section className="pt-20 pb-8 md:py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+    <section className={sectionShellClass(surface, "pt-20 pb-8 md:py-20")}>
       {/* Декоративные желтые пятна */}
+      {surface === "brand" && (
       <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
         {/* Левое пятно - от центра поднимаемся вверх на 30px */}
         <div 
@@ -281,16 +302,20 @@ const RecommendedTrainsSection = () => {
           }}
         />
       </div>
+      )}
 
       <div className="container relative z-10">
         <div className="mb-12 text-center">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4">
-            <span className="text-white">Горящие</span>{" "}
-            <span className="text-[#FFD700]" style={{ textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4)' }}>
+          <h2 className={cn("text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4", sectionHeadingBaseClass(surface))}>
+            <span className={sectionHeadingBaseClass(surface)}>Горящие</span>{" "}
+            <span
+              className={sectionHeadingAccentClass(surface)}
+              style={surface === "brand" ? sectionYellowGlow : undefined}
+            >
               направления
             </span>
           </h2>
-          <p className="text-lg md:text-xl text-white max-w-2xl mx-auto">
+          <p className={cn("text-lg md:text-xl max-w-2xl mx-auto", sectionLeadClass(surface))}>
             Специальные предложения и скидки на популярные маршруты
           </p>
         </div>
@@ -302,7 +327,7 @@ const RecommendedTrainsSection = () => {
             className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -ml-[10px]"
             aria-label="Прокрутить влево"
           >
-            <ChevronLeft className="h-5 w-5 text-blue-600" />
+            <ChevronLeft className="h-5 w-5 text-[#100A6F]" />
           </button>
 
           <div className="flex-1 relative overflow-hidden">
@@ -324,6 +349,7 @@ const RecommendedTrainsSection = () => {
                   "hover:border-primary/30",
                   "transition-all duration-500 ease-out",
                   "cursor-pointer",
+                  sectionCardLiftClass(surface),
                   // Всегда 3 карточки
                   "w-[calc((100%-3rem)/3)] min-w-[calc((100%-3rem)/3)] max-w-[calc((100%-3rem)/3)] snap-start"
                 )}
@@ -340,35 +366,41 @@ const RecommendedTrainsSection = () => {
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-500"></div>
                   
                   {/* Тег */}
-                  <div className={cn(
-                    "absolute top-4 left-4 px-3 py-1.5 rounded-full text-white text-sm font-bold shadow-lg",
-                    destination.tagColor
-                  )}>
+                  <div
+                    className={cn(
+                      "absolute top-4 left-4 px-3 py-1.5 rounded-full text-white text-sm font-bold",
+                      destinationTagClass
+                    )}
+                  >
                     {destination.tag}
                   </div>
 
-                  {/* Скидка */}
-                  <div className="absolute top-4 right-4 bg-white rounded-full px-4 py-2 shadow-xl">
+                  {/* Скидка — та же гамма, что и тег */}
+                  <div
+                    className={cn(
+                      "absolute top-4 right-4 rounded-full px-4 py-2",
+                      destinationDiscountClass
+                    )}
+                  >
                     <div className="flex items-center gap-1">
-                      <TrendingDown className="h-5 w-5 text-red-500" />
-                      <span className="text-2xl font-extrabold text-red-500">
+                      <TrendingDown className="h-5 w-5 text-[#8A70F8]" strokeWidth={2.25} />
+                      <span className="text-2xl font-extrabold tabular-nums text-[#100A6F]">
                         -{destination.discount}%
                       </span>
                     </div>
                   </div>
 
-                  {/* Кнопка при hover */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  {/* Кнопка при hover — главный акцент */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none group-hover:pointer-events-auto">
                     <Button
                       size="lg"
-                      variant="outline"
-                      className="bg-white text-[#8A70F8] hover:bg-white hover:text-[#8A70F8] border-white shadow-xl font-bold text-base px-6"
+                      className={destinationCtaClass}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleSelectDates(destination.from, destination.to);
                       }}
                     >
-                      <Calendar className="h-5 w-5 mr-2 text-[#8A70F8]" />
+                      <Calendar className="h-5 w-5 mr-2 text-white" strokeWidth={2.25} />
                       Выбрать даты
                     </Button>
                   </div>
@@ -411,7 +443,7 @@ const RecommendedTrainsSection = () => {
             className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -mr-[10px]"
             aria-label="Прокрутить вправо"
           >
-            <ChevronRight className="h-5 w-5 text-blue-600" />
+            <ChevronRight className="h-5 w-5 text-[#100A6F]" />
           </button>
         </div>
 
@@ -434,7 +466,8 @@ const RecommendedTrainsSection = () => {
                     "bg-card border-2 border-transparent",
                     "hover:border-primary/30",
                     "transition-all duration-500 ease-out",
-                    "cursor-pointer"
+                    "cursor-pointer",
+                    sectionCardLiftClass(surface)
                   )}
                 >
                   {/* Изображение */}
@@ -448,35 +481,39 @@ const RecommendedTrainsSection = () => {
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-500"></div>
                     
                     {/* Тег */}
-                    <div className={cn(
-                      "absolute top-4 left-4 px-3 py-1.5 rounded-full text-white text-sm font-bold shadow-lg",
-                      destination.tagColor
-                    )}>
+                    <div
+                      className={cn(
+                        "absolute top-4 left-4 px-3 py-1.5 rounded-full text-white text-sm font-bold",
+                        destinationTagClass
+                      )}
+                    >
                       {destination.tag}
                     </div>
 
-                    {/* Скидка */}
-                    <div className="absolute top-4 right-4 bg-white rounded-full px-4 py-2 shadow-xl">
+                    <div
+                      className={cn(
+                        "absolute top-4 right-4 rounded-full px-4 py-2",
+                        destinationDiscountClass
+                      )}
+                    >
                       <div className="flex items-center gap-1">
-                        <TrendingDown className="h-5 w-5 text-red-500" />
-                        <span className="text-2xl font-extrabold text-red-500">
+                        <TrendingDown className="h-5 w-5 text-[#8A70F8]" strokeWidth={2.25} />
+                        <span className="text-2xl font-extrabold tabular-nums text-[#100A6F]">
                           -{destination.discount}%
                         </span>
                       </div>
                     </div>
 
-                    {/* Кнопка при hover */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none group-hover:pointer-events-auto">
                       <Button
                         size="lg"
-                        variant="outline"
-                        className="bg-white text-[#8A70F8] hover:bg-white hover:text-[#8A70F8] border-white shadow-xl font-bold text-base px-6"
+                        className={destinationCtaClass}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleSelectDates(destination.from, destination.to);
                         }}
                       >
-                        <Calendar className="h-5 w-5 mr-2 text-[#8A70F8]" />
+                        <Calendar className="h-5 w-5 mr-2 text-white" strokeWidth={2.25} />
                         Выбрать даты
                       </Button>
                     </div>
@@ -527,12 +564,7 @@ const RecommendedTrainsSection = () => {
                     setCurrentMobileIndex((prevIndex) => (prevIndex + 1) % destinations.length);
                   }, 3000);
                 }}
-                className={cn(
-                  "h-2 rounded-full transition-all duration-300",
-                  index === currentMobileIndex
-                    ? "bg-white w-8"
-                    : "bg-white/50 w-2"
-                )}
+                className={carouselDotClass(surface, index === currentMobileIndex)}
                 aria-label={`Перейти к карточке ${index + 1}`}
               />
             ))}

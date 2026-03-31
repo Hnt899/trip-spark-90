@@ -5,8 +5,22 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import type { SectionSurface } from "@/lib/sectionSurface";
+import {
+  carouselDotClass,
+  sectionCardLiftClass,
+  sectionHeadingAccentClass,
+  sectionHeadingBaseClass,
+  sectionLeadClass,
+  sectionShellClass,
+  sectionYellowGlow,
+} from "@/lib/sectionSurface";
 
-const EventsSection = () => {
+interface EventsSectionProps {
+  surface?: SectionSurface;
+}
+
+const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   
@@ -220,8 +234,9 @@ const EventsSection = () => {
   };
 
   return (
-    <section className="pt-20 pb-12 md:py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+    <section className={sectionShellClass(surface, "pt-20 pb-12 md:py-20")}>
       {/* Декоративные желтые пятна */}
+      {surface === "brand" && (
       <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
         {/* Левое пятно - от центра поднимаемся вверх на 30px */}
         <div 
@@ -250,19 +265,29 @@ const EventsSection = () => {
           }}
         />
       </div>
+      )}
       <div className="container relative z-10">
         <div className="text-center md:flex md:justify-between md:items-center mb-8">
           <div className="md:text-left">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-2 leading-tight pb-2">
-              Повод для <span className="text-[#FFD700]" style={{ textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4)' }}>путешествия</span>
+            <h2 className={cn("text-3xl md:text-4xl lg:text-5xl font-extrabold mb-2 leading-tight pb-2", sectionHeadingBaseClass(surface))}>
+              Повод для{" "}
+              <span
+                className={sectionHeadingAccentClass(surface)}
+                style={surface === "brand" ? sectionYellowGlow : undefined}
+              >
+                путешествия
+              </span>
             </h2>
-            <p className="text-white">
+            <p className={sectionLeadClass(surface)}>
               10 событий, ради которых стоит ровнуть в путь
             </p>
           </div>
           <Button 
             variant="ghost" 
-            className="hidden md:flex items-center gap-2"
+            className={cn(
+              "hidden md:flex items-center gap-2",
+              surface === "light" && "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+            )}
             onClick={() => navigate("/blog")}
           >
             Ещё <ArrowRight className="w-4 h-4" />
@@ -339,7 +364,8 @@ const EventsSection = () => {
                     "group relative rounded-3xl overflow-hidden",
                     "bg-card border-2 border-transparent",
                     "transition-all duration-500 ease-out",
-                    "cursor-pointer"
+                    "cursor-pointer",
+                    sectionCardLiftClass(surface)
                   )}
                 >
                   {/* Изображение/градиент */}
@@ -391,12 +417,7 @@ const EventsSection = () => {
               <button
                 key={index}
                 onClick={() => setMobileCurrent(index)}
-                className={cn(
-                  "h-2 rounded-full transition-all duration-300",
-                  index === mobileCurrent
-                    ? "bg-white w-8"
-                    : "bg-white/50 w-2"
-                )}
+                className={carouselDotClass(surface, index === mobileCurrent)}
                 aria-label={`Перейти к карточке ${index + 1}`}
               />
             ))}

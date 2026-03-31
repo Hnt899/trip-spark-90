@@ -34,6 +34,8 @@ const Header = () => {
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [isHeroMode, setIsHeroMode] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  /** Верхняя панель только с формой заказа — открывается с капсулы «откуда куда», не с бургера */
+  const [mobileBookingOpen, setMobileBookingOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
   const isHomePage = location.pathname === "/";
@@ -50,18 +52,17 @@ const Header = () => {
       return;
     }
 
-    // На мобильных форма поиска не показывается при прокрутке (она в бургер-меню)
+    // Мобильные: hero-режим лого + компактная строка поиска в шапке (как у Aviasales)
     if (isMobile) {
-      // Только логика hero режима для мобильных
       const handleScroll = () => {
         const heroSection = document.getElementById("hero-section");
         const featuresSection = isHomePage ? document.getElementById("features-section") : null;
-        
+
         if (heroSection && featuresSection) {
           const heroRect = heroSection.getBoundingClientRect();
           const nextSectionRect = featuresSection.getBoundingClientRect();
-          const headerHeight = 56; // h-14 = 56px для мобильных
-          
+          const headerHeight = 56;
+
           const isHeroVisible = heroRect.bottom > 0;
           const isNextSectionReached = nextSectionRect.top <= headerHeight;
           setIsHeroMode(isHeroVisible && !isNextSectionReached);
@@ -70,6 +71,21 @@ const Header = () => {
           setIsHeroMode(heroRect.bottom > 0);
         } else {
           setIsHeroMode(false);
+        }
+
+        if (isRoutesPage) {
+          setShowStickySearch(true);
+          setIsAnimatingOut(false);
+        } else if (isBlogPage) {
+          setShowStickySearch(window.scrollY > 50);
+          setIsAnimatingOut(false);
+        } else if (isHomePage && heroSection) {
+          const heroBottom = heroSection.getBoundingClientRect().bottom;
+          const showCompact = heroBottom < 72;
+          setShowStickySearch(showCompact);
+          setIsAnimatingOut(false);
+        } else if (!isHomePage && !isRoutesPage && !isBlogPage) {
+          setShowStickySearch(false);
         }
       };
 
@@ -198,70 +214,99 @@ const Header = () => {
     } else if (travelType === "bus") {
       navigate(`/bus-search?${params.toString()}`);
     }
-    // Закрываем бургер-меню после поиска на мобильных
     if (isMobile) {
       setMobileMenuOpen(false);
+      setMobileBookingOpen(false);
     }
   };
 
-  // Функция для рендеринга формы поиска
-  const renderSearchForm = (isMobileVersion = false) => {
-    const keyPrefix = isMobileVersion ? "mobile" : "desktop";
+  type SearchFormVariant = "headerDesktop" | "headerMobileSheet";
+
+  const renderSearchForm = (variant: SearchFormVariant) => {
+    const isSheet = variant === "headerMobileSheet";
+    const isDesktop = variant === "headerDesktop";
+    const keyPrefix = isSheet ? "mobile" : "desktop";
     return (
-      <div className={cn(
-        isMobileVersion ? "bg-card/80 backdrop-blur-sm rounded-xl border shadow-lg p-4 mb-4" : ""
-      )}>
-        <div className={cn("flex flex-col gap-3", isMobileVersion ? "" : "lg:flex-row")}>
-          {/* Быстрые категории */}
-          <div className={cn("flex gap-2", isMobileVersion ? "w-full" : "shrink-0")}>
+      <div
+        className={cn(
+          "rounded-xl border border-border/80 bg-card/95 backdrop-blur-sm shadow-sm space-y-3",
+          isSheet ? "p-4 rounded-2xl shadow-md" : "p-3"
+        )}
+      >
+        {isSheet && (
+          <p className="text-sm font-semibold text-foreground">Поиск билетов</p>
+        )}
+        <div
+          className={cn(
+            "flex flex-col gap-3",
+            isDesktop ? "lg:flex-row lg:items-stretch" : ""
+          )}
+        >
+          {/* Табы транспорта — как TabsList в HeroSection */}
+          <div
+            className={cn(
+              "grid grid-cols-3 gap-1.5 shrink-0",
+              isSheet ? "h-11 w-full" : isDesktop ? "h-10 w-full lg:w-auto lg:min-w-[156px]" : "h-10 w-full"
+            )}
+          >
             <button
+              type="button"
               onClick={() => setTravelType("train")}
               className={cn(
-                "flex items-center justify-center rounded-lg transition-all",
-                isMobileVersion ? "flex-1 py-3" : "px-3 py-2",
+                "flex items-center justify-center rounded-md transition-all text-sm font-medium border",
                 travelType === "train"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "travel-tab-gradient border-transparent text-white"
+                  : "border-border bg-background text-muted-foreground hover:bg-muted/40 hover:text-foreground"
               )}
             >
-              <Train className={cn(isMobileVersion ? "h-6 w-6" : "h-4 w-4")} />
+              <Train className={cn(isSheet ? "h-6 w-6" : "h-5 w-5")} />
             </button>
             <button
+              type="button"
               onClick={() => setTravelType("flight")}
               className={cn(
-                "flex items-center justify-center rounded-lg transition-all",
-                isMobileVersion ? "flex-1 py-3" : "px-3 py-2",
+                "flex items-center justify-center rounded-md transition-all text-sm font-medium border",
                 travelType === "flight"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "travel-tab-gradient border-transparent text-white"
+                  : "border-border bg-background text-muted-foreground hover:bg-muted/40 hover:text-foreground"
               )}
             >
-              <Plane className={cn(isMobileVersion ? "h-6 w-6" : "h-4 w-4")} />
+              <Plane className={cn(isSheet ? "h-6 w-6" : "h-5 w-5")} />
             </button>
             <button
+              type="button"
               onClick={() => {
                 setTravelType("bus");
-                // Сбрасываем дату возврата при переключении на автобусы
                 if (dateRange?.to) {
                   setDateRange({ from: dateRange.from, to: undefined });
                 }
               }}
               className={cn(
-                "flex items-center justify-center rounded-lg transition-all",
-                isMobileVersion ? "flex-1 py-3" : "px-3 py-2",
+                "flex items-center justify-center rounded-md transition-all text-sm font-medium border",
                 travelType === "bus"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "travel-tab-gradient border-transparent text-white"
+                  : "border-border bg-background text-muted-foreground hover:bg-muted/40 hover:text-foreground"
               )}
             >
-              <Bus className={cn(isMobileVersion ? "h-6 w-6" : "h-4 w-4")} />
+              <Bus className={cn(isSheet ? "h-6 w-6" : "h-5 w-5")} />
             </button>
           </div>
 
           {/* Поля формы поиска */}
-          <div className={cn("flex gap-2 flex-1", isMobileVersion ? "flex-col" : "flex-col sm:flex-row")}>
+          <div
+            className={cn(
+              "flex gap-2 flex-1",
+              isSheet ? "flex-col" : "flex-col sm:flex-row sm:items-stretch"
+            )}
+          >
             <Select value={fromCity} onValueChange={setFromCity}>
-              <SelectTrigger className={cn("h-10 text-sm flex-1", !isMobileVersion && "min-w-[140px]")}>
+              <SelectTrigger
+                className={cn(
+                  "text-sm flex-1 w-full",
+                  isSheet ? "h-12 text-base" : "h-10",
+                  isDesktop && "min-w-[140px]"
+                )}
+              >
                 <SelectValue placeholder="Откуда" />
               </SelectTrigger>
               <SelectContent>
@@ -274,7 +319,13 @@ const Header = () => {
             </Select>
 
             <Select value={toCity} onValueChange={setToCity}>
-              <SelectTrigger className={cn("h-10 text-sm flex-1", !isMobileVersion && "min-w-[140px]")}>
+              <SelectTrigger
+                className={cn(
+                  "text-sm flex-1 w-full",
+                  isSheet ? "h-12 text-base" : "h-10",
+                  isDesktop && "min-w-[140px]"
+                )}
+              >
                 <SelectValue placeholder="Куда" />
               </SelectTrigger>
               <SelectContent>
@@ -291,9 +342,10 @@ const Header = () => {
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-10 px-3 justify-start text-left font-normal text-sm rounded-md",
+                    "px-3 justify-start text-left font-normal rounded-md w-full",
+                    isSheet ? "h-12 text-base" : "h-10 text-sm",
                     !dateRange?.from && "text-muted-foreground",
-                    !isMobileVersion && "min-w-[200px]"
+                    isDesktop && "min-w-[200px]"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
@@ -314,7 +366,7 @@ const Header = () => {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className={cn("w-auto p-0", isMobileVersion && "p-1")} align="start">
+              <PopoverContent className={cn("w-auto p-0", isSheet && "p-1 z-[200]")} align="start">
                 {travelType === "bus" ? (
                   <Calendar
                     mode="single"
@@ -322,7 +374,7 @@ const Header = () => {
                     onSelect={(date) => setDateRange(date ? { from: date, to: undefined } : undefined)}
                     initialFocus
                     disabled={(date) => date < new Date()}
-                    className={isMobileVersion ? "p-1 [&_.rdp-month]:space-y-2 [&_.rdp-caption]:mb-1 [&_.rdp-cell]:h-8 [&_.rdp-cell]:w-8 [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-head_cell]:w-8" : ""}
+                    className={isSheet ? "p-1 [&_.rdp-month]:space-y-2 [&_.rdp-caption]:mb-1 [&_.rdp-cell]:h-8 [&_.rdp-cell]:w-8 [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-head_cell]:w-8" : ""}
                   />
                 ) : (
                   <Calendar
@@ -330,9 +382,9 @@ const Header = () => {
                     selected={dateRange}
                     onSelect={setDateRange}
                     initialFocus
-                    numberOfMonths={isMobileVersion ? 1 : 2}
+                    numberOfMonths={isSheet ? 1 : 2}
                     disabled={(date) => date < new Date()}
-                    className={isMobileVersion ? "p-1 [&_.rdp-month]:space-y-2 [&_.rdp-caption]:mb-1 [&_.rdp-cell]:h-8 [&_.rdp-cell]:w-8 [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-head_cell]:w-8" : ""}
+                    className={isSheet ? "p-1 [&_.rdp-month]:space-y-2 [&_.rdp-caption]:mb-1 [&_.rdp-cell]:h-8 [&_.rdp-cell]:w-8 [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-head_cell]:w-8" : ""}
                   />
                 )}
               </PopoverContent>
@@ -340,12 +392,23 @@ const Header = () => {
 
             <Button
               onClick={handleSearch}
-              className="h-10 px-4 bg-primary hover:bg-primary/90 shrink-0 rounded-md"
+              className={cn(
+                "shrink-0 border-0 shadow-sm font-semibold",
+                isSheet
+                  ? "w-full h-12 rounded-xl text-base"
+                  : "h-10 px-4 rounded-md"
+              )}
               disabled={!fromCity || !toCity || !dateRange?.from}
               title={!fromCity || !toCity || !dateRange?.from ? "Заполните все поля" : ""}
             >
-              <Search className="h-4 w-4 mr-2" />
-              <span className={isMobileVersion ? "" : "hidden sm:inline"}>Найти</span>
+              <Search className={cn("mr-2", isSheet ? "h-5 w-5" : "h-4 w-4")} />
+              {isSheet ? (
+                "Найти билеты"
+              ) : (
+                <>
+                  <span className="hidden sm:inline">Найти</span>
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -376,6 +439,58 @@ const Header = () => {
                 )}
               />
             </Link>
+
+            {/* Мобилка: капсула — только верхняя панель заказа билетов */}
+            {(isHomePage || isRoutesPage || isBlogPage) && isMobile && showStickySearch && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setMobileBookingOpen(true);
+                }}
+                className={cn(
+                  "relative md:hidden flex-1 min-w-0 flex items-center gap-2 h-10 pl-3 pr-3 rounded-full",
+                  "bg-white border border-slate-200/90 text-left shadow-sm",
+                  "transition-transform duration-500 ease-out",
+                  "active:scale-[0.99] hover:brightness-[1.015] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-2"
+                )}
+                aria-label="Открыть поиск"
+              >
+                <span
+                  className={cn(
+                    "pointer-events-none absolute inset-0 z-0 rounded-full opacity-[0.01]",
+                    "shadow-[0_2px_20px_-2px_rgba(138,112,248,0.42),0_0_0_1px_rgba(186,198,245,0.82)]",
+                    "animate-search-pill-glow-opacity motion-reduce:animate-none motion-reduce:opacity-0"
+                  )}
+                  aria-hidden
+                />
+                <Search
+                  className="relative z-[1] h-4 w-4 shrink-0 text-foreground"
+                  strokeWidth={2.25}
+                />
+                <span className="relative z-[1] flex min-w-0 flex-1 items-center gap-2 text-sm leading-tight font-semibold">
+                  {fromCity && toCity ? (
+                    <>
+                      <span className="max-w-[42%] min-w-0 shrink truncate text-foreground">{fromCity}</span>
+                      <span
+                        className="h-[3px] min-h-[3px] min-w-6 flex-1 shrink-0 rounded-full bg-muted-foreground/45 self-center"
+                        aria-hidden
+                      />
+                      <span className="max-w-[42%] min-w-0 shrink truncate text-foreground">{toCity}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="shrink-0 text-muted-foreground font-normal">откуда</span>
+                      <span
+                        className="h-[3px] min-h-[3px] min-w-6 flex-1 shrink-0 rounded-full bg-muted-foreground/45 self-center"
+                        aria-hidden
+                      />
+                      <span className="shrink-0 text-muted-foreground font-normal">куда</span>
+                    </>
+                  )}
+                </span>
+              </button>
+            )}
 
             {/* Десктоп навигация */}
             <nav className="hidden lg:flex items-center gap-4 flex-1 justify-center">
@@ -456,7 +571,7 @@ const Header = () => {
                   onClick={() => setAuthModalOpen(true)} 
                   variant="outline" 
                   className={cn(
-                    "text-sm md:text-lg font-medium transition-colors px-3 md:px-4 py-1.5 md:py-2 rounded-md border h-auto",
+                    "hidden md:inline-flex text-sm md:text-lg font-medium transition-colors px-3 md:px-4 py-1.5 md:py-2 rounded-md border h-auto",
                     (isHomePage || isRoutesPage) && isHeroMode
                         ? "text-white/90 border-white/30 bg-white/10 hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
                         : "text-foreground/80 border-border bg-background/50 hover:bg-muted/50 hover:text-foreground"
@@ -466,8 +581,37 @@ const Header = () => {
                 </Button>
               )}
 
-              {/* Бургер-меню для мобильных */}
-              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              {/* Верхняя панель: только форма заказа (капсула «откуда куда») */}
+              <Sheet
+                open={mobileBookingOpen}
+                onOpenChange={(open) => {
+                  setMobileBookingOpen(open);
+                  if (open) setMobileMenuOpen(false);
+                }}
+              >
+                <SheetContent
+                  side="top"
+                  hideClose
+                  className={cn(
+                    "w-full max-h-[min(92vh,920px)] overflow-y-auto rounded-b-2xl border-b shadow-xl",
+                    "!px-4 !pb-8 !pt-4 sm:!pt-5 gap-0"
+                  )}
+                >
+                  <SheetHeader className="sr-only">
+                    <SheetTitle>Поиск билетов</SheetTitle>
+                  </SheetHeader>
+                  {renderSearchForm("headerMobileSheet")}
+                </SheetContent>
+              </Sheet>
+
+              {/* Бургер: классическое меню справа — Войти, разделы, форма */}
+              <Sheet
+                open={mobileMenuOpen}
+                onOpenChange={(open) => {
+                  setMobileMenuOpen(open);
+                  if (open) setMobileBookingOpen(false);
+                }}
+              >
                 <SheetTrigger asChild>
                   <Button
                     variant="ghost"
@@ -482,75 +626,102 @@ const Header = () => {
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[280px] sm:w-[340px] overflow-y-auto">
-                  <SheetHeader>
-                    <SheetTitle>Меню</SheetTitle>
+                <SheetContent
+                  side="right"
+                  closeClassName="top-3 right-3 sm:top-4 sm:right-4"
+                  className="w-[min(100vw-1rem,320px)] sm:w-[360px] overflow-y-auto !pt-14 !px-4 !pb-8"
+                >
+                  <SheetHeader className="sr-only">
+                    <SheetTitle>Навигация и поиск</SheetTitle>
                   </SheetHeader>
-                  {/* Навигация */}
-                  <nav className="flex flex-col gap-1 mt-6 mb-4">
-                    <Link
-                      to="/"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={cn(
-                        "px-4 py-3 rounded-lg text-base font-medium transition-colors",
-                        isActive("/")
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
-                      )}
+                  {!user && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full mt-1 h-11 text-base font-medium rounded-xl border-border"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setAuthModalOpen(true);
+                      }}
                     >
-                      Главная
-                    </Link>
-                    <Link
-                      to="/routes"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={cn(
-                        "px-4 py-3 rounded-lg text-base font-medium transition-colors",
-                        isActive("/routes") || location.pathname.startsWith("/routes/")
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
-                      )}
-                    >
-                      Маршруты
-                    </Link>
-                    <Link
-                      to="/reference"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={cn(
-                        "px-4 py-3 rounded-lg text-base font-medium transition-colors",
-                        isActive("/reference") || location.pathname.startsWith("/reference/")
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
-                      )}
-                    >
-                      Справочная
-                    </Link>
-                    <Link
-                      to="/blog"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={cn(
-                        "px-4 py-3 rounded-lg text-base font-medium transition-colors",
-                        isActive("/blog")
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
-                      )}
-                    >
-                      Блог
-                    </Link>
-                    <Link
-                      to="/guide"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={cn(
-                        "px-4 py-3 rounded-lg text-base font-medium transition-colors",
-                        isActive("/guide") || location.pathname.startsWith("/guide/")
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
-                      )}
-                    >
-                      Путеводитель
-                    </Link>
-                  </nav>
-                  {/* Форма поиска в бургер-меню */}
-                  {renderSearchForm(true)}
+                      Войти
+                    </Button>
+                  )}
+                  <div
+                    className={cn(
+                      "border-t border-border/60 pt-5",
+                      user ? "mt-2" : "mt-5"
+                    )}
+                  >
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 px-1">
+                      Разделы сайта
+                    </p>
+                    <nav className="flex flex-col gap-1">
+                      <Link
+                        to="/"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "px-4 py-3 rounded-xl text-base font-medium transition-colors",
+                          isActive("/")
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
+                        )}
+                      >
+                        Главная
+                      </Link>
+                      <Link
+                        to="/routes"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "px-4 py-3 rounded-xl text-base font-medium transition-colors",
+                          isActive("/routes") || location.pathname.startsWith("/routes/")
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
+                        )}
+                      >
+                        Маршруты
+                      </Link>
+                      <Link
+                        to="/reference"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "px-4 py-3 rounded-xl text-base font-medium transition-colors",
+                          isActive("/reference") || location.pathname.startsWith("/reference/")
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
+                        )}
+                      >
+                        Справочная
+                      </Link>
+                      <Link
+                        to="/blog"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "px-4 py-3 rounded-xl text-base font-medium transition-colors",
+                          isActive("/blog")
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
+                        )}
+                      >
+                        Блог
+                      </Link>
+                      <Link
+                        to="/guide"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "px-4 py-3 rounded-xl text-base font-medium transition-colors",
+                          isActive("/guide") || location.pathname.startsWith("/guide/")
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
+                        )}
+                      >
+                        Путеводитель
+                      </Link>
+                    </nav>
+                  </div>
+                  <div className="mt-6">
+                    {renderSearchForm("headerMobileSheet")}
+                  </div>
                 </SheetContent>
               </Sheet>
             </div>
@@ -564,9 +735,7 @@ const Header = () => {
                 ? "animate-in slide-in-from-top-2 fade-in" 
                 : "animate-out slide-out-to-top-2 fade-out"
             )}>
-              <div className="bg-card/80 backdrop-blur-sm rounded-xl border shadow-lg p-3">
-                {renderSearchForm(false)}
-              </div>
+              {renderSearchForm("headerDesktop")}
             </div>
           )}
 

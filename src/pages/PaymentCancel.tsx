@@ -101,7 +101,7 @@ const PaymentCancel = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container py-12">
+        <main className="container pt-24 pb-12 md:pt-32">
           <div className="max-w-2xl mx-auto text-center">
             <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
             <p className="text-muted-foreground">Загрузка данных заказа...</p>
@@ -116,7 +116,7 @@ const PaymentCancel = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container py-12">
+        <main className="container pt-24 pb-12 md:pt-32">
           <div className="max-w-2xl mx-auto text-center">
             <h1 className="text-2xl font-bold mb-2">Ошибка</h1>
             <p className="text-muted-foreground mb-6">{error}</p>
@@ -131,7 +131,7 @@ const PaymentCancel = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container py-12">
+      <main className="container pt-24 pb-12 md:pt-32">
         <div className="max-w-2xl mx-auto text-center">
           <Card>
             <CardContent className="p-8">

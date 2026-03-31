@@ -233,7 +233,7 @@ const TestimonialDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container py-12 max-w-4xl">
+        <main className="container max-w-4xl pt-24 pb-12 md:pt-32">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Отзыв не найден</h1>
             <Button onClick={() => navigate(-1)}>Назад</Button>
@@ -247,7 +247,7 @@ const TestimonialDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container py-12 max-w-4xl">
+      <main className="container max-w-4xl pt-24 pb-12 md:pt-32">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}

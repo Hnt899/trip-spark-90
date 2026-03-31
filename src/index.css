@@ -43,6 +43,15 @@ All colors MUST be HSL.
     --navy-light: 215 50% 35%;
     --blue-bright: 222 72% 40%;
     --gray-light: 220 13% 96%;
+
+    /* Фиксированная шапка: соответствует h-14 md:h-24 в Header */
+    --site-header-height: 3.5rem;
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --site-header-height: 6rem;
+    }
   }
 
   .dark {
@@ -90,6 +99,8 @@ All colors MUST be HSL.
   html {
     scroll-behavior: smooth;
     overflow-x: hidden;
+    /* Якоря и scrollIntoView не уходят под fixed-шапку */
+    scroll-padding-top: var(--site-header-height);
   }
 }
 

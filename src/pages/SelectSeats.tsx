@@ -650,7 +650,7 @@ const SelectSeats = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container py-8">
+      <main className="container pt-24 pb-8 md:pt-32">
         {/* Заголовок с информацией о маршруте */}
         <div className="mb-6 flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">

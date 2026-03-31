@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -11,14 +10,10 @@ export interface GuideArticleProps {
 }
 
 const GuideArticleTemplate = ({ title, category, categoryName }: GuideArticleProps) => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container py-12 max-w-5xl">
+      <main className="container max-w-5xl pt-24 pb-12 md:pt-32">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
           <Link to="/guide" className="hover:text-primary">Путеводитель</Link>
           <span>/</span>

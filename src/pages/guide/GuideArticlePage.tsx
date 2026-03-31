@@ -930,7 +930,7 @@ const GuideArticlePage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container py-12 max-w-5xl">
+      <main className="container max-w-5xl pt-24 pb-12 md:pt-32">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
           <Link to="/guide" className="hover:text-primary">Путеводитель</Link>
           <span>/</span>

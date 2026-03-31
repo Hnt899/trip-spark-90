@@ -9,8 +9,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { SectionSurface } from "@/lib/sectionSurface";
+import {
+  carouselDotClass,
+  sectionHeadingAccentClass,
+  sectionHeadingBaseClass,
+  sectionLeadClass,
+  sectionShellClass,
+  sectionYellowGlow,
+} from "@/lib/sectionSurface";
 
-const FeaturesSection = () => {
+interface FeaturesSectionProps {
+  surface?: SectionSurface;
+}
+
+const FeaturesSection = ({ surface = "brand" }: FeaturesSectionProps) => {
   const features = [
     {
       icon: Layers,
@@ -89,8 +102,9 @@ const FeaturesSection = () => {
   }, [isMobile, features.length]);
 
   return (
-    <section id="features-section" className="pt-16 pb-0 md:py-24 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+    <section id="features-section" className={sectionShellClass(surface, "pt-16 pb-0 md:py-24")}>
       {/* Декоративные желтые пятна */}
+      {surface === "brand" && (
       <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
         {/* Левое пятно - от центра поднимаемся вверх на 30px */}
         <div 
@@ -119,16 +133,20 @@ const FeaturesSection = () => {
           }}
         />
       </div>
+      )}
       
       <div className="container relative z-10">
         <div className="text-center mb-12 md:mb-16 space-y-3">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">
+          <h2 className={cn("text-3xl md:text-4xl lg:text-5xl font-bold", sectionHeadingBaseClass(surface))}>
             Почему выбирают{" "}
-            <span className="text-[#FFD700]" style={{ textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4)' }}>
+            <span
+              className={sectionHeadingAccentClass(surface)}
+              style={surface === "brand" ? sectionYellowGlow : undefined}
+            >
               TudaSuda?
             </span>
           </h2>
-          <p className="text-base md:text-lg text-white max-w-2xl mx-auto">
+          <p className={cn("text-base md:text-lg max-w-2xl mx-auto", sectionLeadClass(surface))}>
             Всё для комфортного путешествия туда и обратно
           </p>
         </div>
@@ -277,12 +295,7 @@ const FeaturesSection = () => {
                     setCurrentIndex((prevIndex) => (prevIndex + 1) % features.length);
                   }, 3000);
                 }}
-                className={cn(
-                  "h-2 rounded-full transition-all duration-300",
-                  index === currentIndex
-                    ? "bg-white w-8"
-                    : "bg-white/50 w-2"
-                )}
+                className={carouselDotClass(surface, index === currentIndex)}
                 aria-label={`Перейти к карточке ${index + 1}`}
               />
             ))}

@@ -429,22 +429,33 @@ const Guide = () => {
           <div 
             ref={tabsRef}
             className={cn(
-              "mb-6 transition-all fixed left-0 right-0 z-50 flex justify-center items-center",
-              isSticky ? 'bg-background/95 backdrop-blur-sm py-3 px-4 border-b shadow-sm' : 'bg-transparent py-0',
+              "mb-6 transition-all fixed left-0 right-0 z-50",
+              isSticky ? 'bg-background/95 backdrop-blur-sm py-3 border-b shadow-sm' : 'bg-transparent py-0',
               'top-[105px]'
             )}
           >
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-full">
-              <TabsList className={cn(
-                "inline-flex flex-nowrap h-auto p-3 rounded-lg gap-3 backdrop-blur-md"
-              )} style={{ backgroundColor: 'rgba(32, 8, 255, 0.4)' }}>
+            {/* Внешний скролл на всю ширину окна; фиолетовый блок w-max — не режет подписи */}
+            <div className="w-full overflow-x-auto overflow-y-visible overscroll-x-contain px-3 sm:px-4 md:px-6 lg:px-10 pb-1 scroll-smooth [scrollbar-width:thin] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/25">
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="mx-auto block w-max max-w-none"
+              >
+                <TabsList
+                  ref={tabsListRef}
+                  className={cn(
+                    "inline-flex h-auto flex-nowrap items-center justify-center rounded-2xl p-2.5 md:p-3.5 gap-2 md:gap-2.5 lg:gap-3 backdrop-blur-md",
+                    "w-max shrink-0 overflow-visible"
+                  )}
+                  style={{ backgroundColor: "rgba(32, 8, 255, 0.4)" }}
+                >
                 {Object.values(guideSections).map((section) => (
                   <TabsTrigger 
                     key={section.id} 
                     value={section.id}
                     className={cn(
-                      "px-5 py-3 rounded-full font-medium hover:opacity-100 transition-colors whitespace-nowrap flex-shrink-0",
-                      "text-lg"
+                      "rounded-full font-semibold hover:opacity-100 transition-colors whitespace-nowrap shrink-0 overflow-visible",
+                      "px-3.5 py-2.5 text-sm md:px-4 md:py-3 md:text-base lg:px-5 lg:py-3.5 lg:text-lg"
                     )}
                     style={{
                       backgroundColor: activeTab === section.id ? '#897CFF' : 'transparent',
@@ -454,8 +465,9 @@ const Guide = () => {
                     {section.title}
                   </TabsTrigger>
                 ))}
-              </TabsList>
-            </Tabs>
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
         )}
 

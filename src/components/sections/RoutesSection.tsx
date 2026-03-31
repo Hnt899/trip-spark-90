@@ -5,6 +5,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { cities } from "@/data/cities";
 import { useState, useMemo } from "react";
+import type { SectionSurface } from "@/lib/sectionSurface";
+import {
+  sectionCardLiftClass,
+  sectionHeadingAccentClass,
+  sectionHeadingBaseClass,
+  sectionLeadClass,
+  sectionShellClass,
+  sectionYellowGlow,
+} from "@/lib/sectionSurface";
 
 interface PopularRoute {
   from: string;
@@ -31,7 +40,11 @@ interface RouteData {
   };
 }
 
-const RoutesSection = () => {
+interface RoutesSectionProps {
+  surface?: SectionSurface;
+}
+
+const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
   const navigate = useNavigate();
   const [calcFrom, setCalcFrom] = useState("Москва");
   const [calcTo, setCalcTo] = useState("Сочи");
@@ -163,6 +176,7 @@ const RoutesSection = () => {
     { from: "Санкт-Петербург", to: "Москва", minPrice: 2950, isPopular: true, duration: "3ч 55м" },
     { from: "Казань", to: "Москва", minPrice: 1850, isPopular: false, duration: "11ч 30м" },
     { from: "Тверь", to: "Москва", minPrice: 550, isPopular: false, duration: "1ч 40м" },
+    { from: "Москва", to: "Сочи", minPrice: 2500, isPopular: true, duration: "24ч" },
   ];
 
 
@@ -192,8 +206,9 @@ const RoutesSection = () => {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+    <section className={sectionShellClass(surface, "py-16 md:py-24")}>
       {/* Декоративные желтые пятна */}
+      {surface === "brand" && (
       <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
         {/* Левое пятно - от центра поднимаемся вверх на 30px */}
         <div 
@@ -222,27 +237,31 @@ const RoutesSection = () => {
           }}
         />
       </div>
+      )}
       <div className="container relative z-10">
         {/* Заголовок секции */}
         <div className="mb-12 text-center">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight pb-2">
-            <span className="text-[#FFD700]" style={{ textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4)' }}>
+          <h2 className={cn("text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight pb-2", sectionHeadingBaseClass(surface))}>
+            <span
+              className={sectionHeadingAccentClass(surface)}
+              style={surface === "brand" ? sectionYellowGlow : undefined}
+            >
               Популярные
             </span>{" "}
-            <span className="text-white">направления</span>
+            <span className={sectionHeadingBaseClass(surface)}>направления</span>
           </h2>
-          <p className="text-lg md:text-xl text-white max-w-2xl mx-auto">
+          <p className={cn("text-lg md:text-xl max-w-2xl mx-auto", sectionLeadClass(surface))}>
             Самые востребованные маршруты с актуальными ценами
           </p>
         </div>
 
         {/* Двухколоночный layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 lg:gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 lg:gap-8 lg:items-stretch">
           {/* Левая колонка: Таблица маршрутов */}
-          <div className="w-full">
-            <div className="space-y-1 md:space-y-3">
+          <div className="w-full lg:h-full lg:min-h-0 lg:flex lg:flex-col">
+            <div className="flex flex-col gap-1 md:gap-3 lg:flex-1 lg:min-h-0">
               {popularRoutes.map((route, index) => (
-                <div key={index} className="relative">
+                <div key={index} className="relative lg:flex-1 lg:min-h-0 lg:flex lg:flex-col">
                   {/* Карточка маршрута */}
                   <div
                     onClick={() => handleRouteClick(route.from, route.to)}
@@ -250,6 +269,8 @@ const RoutesSection = () => {
                       "relative rounded-lg p-3 md:p-5",
                       "bg-card",
                       "cursor-pointer",
+                      "lg:flex-1 lg:flex lg:flex-col lg:justify-center",
+                      sectionCardLiftClass(surface),
                       // Фиолетовая обводка для популярных маршрутов
                       route.isPopular
                         ? "border-2 border-purple-600"
@@ -333,10 +354,15 @@ const RoutesSection = () => {
           </div>
 
           {/* Правая колонка: Калькулятор */}
-          <div>
-            <div className="rounded-lg border border-border bg-card p-5 md:p-6 shadow-sm">
+          <div className="lg:h-full lg:min-h-0 lg:flex lg:flex-col">
+            <div
+              className={cn(
+                "rounded-lg border border-border bg-card p-5 md:p-6 shadow-sm lg:flex-1 lg:flex lg:flex-col lg:min-h-0",
+                sectionCardLiftClass(surface)
+              )}
+            >
               {/* Заголовок калькулятора */}
-              <div className="mb-6">
+              <div className="mb-6 shrink-0">
                 <h3 className="text-xl font-bold text-foreground mb-2">
                   Сравнить поезд и самолёт
                 </h3>
@@ -346,7 +372,7 @@ const RoutesSection = () => {
               </div>
 
               {/* Форма калькулятора */}
-              <div className="space-y-4 mb-6">
+              <div className="space-y-4 mb-6 shrink-0">
                 {/* Откуда */}
                 <div>
                   <label className="text-xs text-muted-foreground mb-1.5 block">Откуда</label>
@@ -395,7 +421,7 @@ const RoutesSection = () => {
               </div>
 
               {/* Результаты сравнения */}
-              <div className="space-y-3 mb-6">
+              <div className="space-y-3 mb-6 min-h-0 lg:mb-0 lg:flex-1 lg:flex lg:flex-col">
                 {/* Самолёт */}
                 {currentRouteData.flight && (
                   <div
@@ -529,13 +555,15 @@ const RoutesSection = () => {
 
               {/* CTA кнопка - показывается только после выбора транспорта */}
               {selectedTransport && (
-                <Button
-                  className="w-full rounded-full"
-                  onClick={() => handleRouteClick(calcFrom, calcTo, selectedTransport)}
-                >
-                  Показать билеты
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+                <div className="mt-4 shrink-0 lg:mt-auto lg:pt-4">
+                  <Button
+                    className="w-full rounded-full"
+                    onClick={() => handleRouteClick(calcFrom, calcTo, selectedTransport)}
+                  >
+                    Показать билеты
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
               )}
             </div>
           </div>

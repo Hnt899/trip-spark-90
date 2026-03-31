@@ -2,8 +2,21 @@ import armenia from "@/assets/images/cities/armenia.jpg";
 import china from "@/assets/images/cities/china.jpg";
 import karelia from "@/assets/images/cities/karelia.jpg";
 import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
+import type { SectionSurface } from "@/lib/sectionSurface";
+import {
+  sectionHeadingAccentClass,
+  sectionHeadingBaseClass,
+  sectionLeadClass,
+  sectionShellClass,
+  sectionYellowGlow,
+} from "@/lib/sectionSurface";
 
-const InspirationSection = () => {
+interface InspirationSectionProps {
+  surface?: SectionSurface;
+}
+
+const InspirationSection = ({ surface = "brand" }: InspirationSectionProps) => {
   const destinations = [
     {
       name: "Душевная Армения",
@@ -259,8 +272,9 @@ const InspirationSection = () => {
   };
 
   return (
-    <section className="pt-20 pb-12 md:py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
+    <section className={sectionShellClass(surface, "pt-20 pb-12 md:py-20")}>
       {/* Декоративные желтые пятна */}
+      {surface === "brand" && (
       <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
         {/* Левое пятно - от центра поднимаемся вверх на 30px */}
         <div 
@@ -289,15 +303,19 @@ const InspirationSection = () => {
           }}
         />
       </div>
+      )}
       <div className="container relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-2 leading-tight pb-2">
-            <span className="text-[#FFD700]" style={{ textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4)' }}>
+          <h2 className={cn("text-4xl md:text-5xl lg:text-6xl font-extrabold mb-2 leading-tight pb-2", sectionHeadingBaseClass(surface))}>
+            <span
+              className={sectionHeadingAccentClass(surface)}
+              style={surface === "brand" ? sectionYellowGlow : undefined}
+            >
               Вдохновение
             </span>{" "}
-            <span className="text-white">для следующей поездки</span>
+            <span className={sectionHeadingBaseClass(surface)}>для следующей поездки</span>
           </h2>
-          <p className="text-white text-lg">
+          <p className={cn("text-lg", sectionLeadClass(surface))}>
             Найдите идеи и направления
           </p>
         </div>
@@ -315,7 +333,12 @@ const InspirationSection = () => {
                 key={index}
                 className="group cursor-pointer snap-start flex-shrink-0 w-[380px]"
               >
-                <div className="relative overflow-hidden rounded-xl aspect-[4/3] mb-4">
+                <div
+                  className={cn(
+                    "relative overflow-hidden rounded-xl aspect-[4/3] mb-4",
+                    surface === "light" && "shadow-[0_8px_28px_rgba(16,10,111,0.1)] ring-1 ring-slate-200/80"
+                  )}
+                >
                   <img 
                     src={destination.image} 
                     alt={destination.name}
@@ -323,10 +346,20 @@ const InspirationSection = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
-                <h3 className="text-2xl font-semibold text-white mb-1">
+                <h3
+                  className={cn(
+                    "text-2xl font-semibold mb-1",
+                    surface === "light" ? "text-slate-900" : "text-white"
+                  )}
+                >
                   {destination.name}
                 </h3>
-                <p className="text-white text-base">
+                <p
+                  className={cn(
+                    "text-base",
+                    surface === "light" ? "text-slate-600" : "text-white"
+                  )}
+                >
                   {destination.description}
                 </p>
               </div>

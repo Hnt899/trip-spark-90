@@ -1037,7 +1037,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container py-12 max-w-6xl">
+      <main className="container max-w-6xl pt-24 pb-12 md:pt-32">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl font-bold">Личный кабинет</h1>
           <Button onClick={handleSignOut} variant="outline" size="sm">

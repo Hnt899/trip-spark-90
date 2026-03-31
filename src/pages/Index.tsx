@@ -12,18 +12,18 @@ import VerifiedSection from "@/components/sections/VerifiedSection";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       <Header />
-      <main>
+      <main className="hero-under-header">
         <HeroSection />
-        <FeaturesSection />
-        <RecommendedTrainsSection />
-        <RoutesSection />
-        <EventsSection />
-        <InspirationSection />
-        <TestimonialsSection />
-        <SupportSection />
-        <VerifiedSection />
+        <FeaturesSection surface="light" />
+        <RecommendedTrainsSection surface="light" />
+        <RoutesSection surface="light" />
+        <EventsSection surface="light" />
+        <InspirationSection surface="light" />
+        <TestimonialsSection surface="light" />
+        <SupportSection surface="light" />
+        <VerifiedSection surface="light" />
       </main>
       <Footer />
     </div>

@@ -134,7 +134,7 @@ const PaymentSuccess = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container py-12">
+        <main className="container pt-24 pb-12 md:pt-32">
           <div className="max-w-2xl mx-auto text-center">
             <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
             <p className="text-muted-foreground">Загрузка данных заказа...</p>
@@ -149,7 +149,7 @@ const PaymentSuccess = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container py-12">
+        <main className="container pt-24 pb-12 md:pt-32">
           <div className="max-w-2xl mx-auto text-center">
             <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
             <h1 className="text-2xl font-bold mb-2">Ошибка</h1>
@@ -171,7 +171,7 @@ const PaymentSuccess = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container py-12">
+        <main className="container pt-24 pb-12 md:pt-32">
           <div className="max-w-2xl mx-auto text-center">
             <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
             <h1 className="text-2xl font-bold mb-2">Ожидаем подтверждение оплаты</h1>
@@ -200,7 +200,7 @@ const PaymentSuccess = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container py-12">
+      <main className="container pt-24 pb-12 md:pt-32">
         <div className="max-w-2xl mx-auto text-center">
           <Card>
             <CardContent className="p-8">

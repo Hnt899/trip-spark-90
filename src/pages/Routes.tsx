@@ -11,7 +11,7 @@ const Routes = () => {
   return (
     <div className="min-h-screen">
       <Header />
-      <main>
+      <main className="hero-under-header">
         <HeroRoutes />
         <RoutesHeroSection />
         <RegionsRoutesSection />

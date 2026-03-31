@@ -13,7 +13,7 @@ const HotelSearch = () => {
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="container py-20">
+      <main className="container pt-24 pb-20 md:pt-32">
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
           <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
             <BedDouble className="w-10 h-10 text-primary" />
