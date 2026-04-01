@@ -31,7 +31,9 @@ import ScrollToTop from "./components/ScrollToTop";
 // Reference pages
 import Trains from "./pages/reference/Trains";
 import Flights from "./pages/reference/Flights";
+import FlightArticle from "./pages/reference/FlightArticle";
 import Buses from "./pages/reference/Buses";
+import BusArticle from "./pages/reference/BusArticle";
 import DocumentsForPurchase from "./pages/reference/articles/DocumentsForPurchase";
 import HowToBuy from "./pages/reference/articles/HowToBuy";
 import HowToPay from "./pages/reference/articles/HowToPay";
@@ -102,7 +104,9 @@ const App = () => (
           <Route path="/reference" element={<Reference />} />
           <Route path="/reference/trains" element={<Trains />} />
           <Route path="/reference/flights" element={<Flights />} />
+          <Route path="/reference/flights/:slug" element={<FlightArticle />} />
           <Route path="/reference/buses" element={<Buses />} />
+          <Route path="/reference/buses/:slug" element={<BusArticle />} />
           <Route path="/reference/trains/documents-for-purchase" element={<DocumentsForPurchase />} />
           <Route path="/reference/trains/how-to-buy" element={<HowToBuy />} />
           <Route path="/reference/trains/how-to-pay" element={<HowToPay />} />

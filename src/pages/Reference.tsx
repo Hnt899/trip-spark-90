@@ -4,6 +4,8 @@ import Footer from "@/components/Footer";
 import { Train, Plane, Bus, Search, CalendarIcon } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { trainsArticles } from "@/data/referenceSearch";
+import { flightsArticles } from "@/data/flightsArticles";
+import { busesArticles } from "@/data/busesArticles";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -72,6 +74,28 @@ const Reference = () => {
   const groupedArticles = useMemo(() => {
     const grouped: Record<string, typeof trainsArticles> = {};
     trainsArticles.forEach(article => {
+      if (!grouped[article.category]) {
+        grouped[article.category] = [];
+      }
+      grouped[article.category].push(article);
+    });
+    return grouped;
+  }, []);
+
+  const groupedFlightsArticles = useMemo(() => {
+    const grouped: Record<string, typeof flightsArticles> = {};
+    flightsArticles.forEach((article) => {
+      if (!grouped[article.category]) {
+        grouped[article.category] = [];
+      }
+      grouped[article.category].push(article);
+    });
+    return grouped;
+  }, []);
+
+  const groupedBusesArticles = useMemo(() => {
+    const grouped: Record<string, typeof busesArticles> = {};
+    busesArticles.forEach((article) => {
       if (!grouped[article.category]) {
         grouped[article.category] = [];
       }
@@ -362,14 +386,40 @@ const Reference = () => {
             )}
 
             {activeTab === "flights" && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Раздел в разработке</p>
+              <div className="space-y-8">
+                {Object.entries(groupedFlightsArticles).map(([category, articles]) => (
+                  <section key={category}>
+                    <h2 className="text-2xl font-bold text-foreground mb-4">{category}</h2>
+                    <ul className="space-y-2">
+                      {articles.map((article) => (
+                        <li key={article.path}>
+                          <Link to={article.path} className="text-primary hover:underline text-lg">
+                            {article.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
               </div>
             )}
 
             {activeTab === "buses" && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Раздел в разработке</p>
+              <div className="space-y-8">
+                {Object.entries(groupedBusesArticles).map(([category, articles]) => (
+                  <section key={category}>
+                    <h2 className="text-2xl font-bold text-foreground mb-4">{category}</h2>
+                    <ul className="space-y-2">
+                      {articles.map((article) => (
+                        <li key={article.path}>
+                          <Link to={article.path} className="text-primary hover:underline text-lg">
+                            {article.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
               </div>
             )}
           </div>
@@ -402,14 +452,40 @@ const Reference = () => {
             )}
 
             {activeTab === "flights" && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Раздел в разработке</p>
+              <div className="space-y-8">
+                {Object.entries(groupedFlightsArticles).map(([category, articles]) => (
+                  <section key={category}>
+                    <h2 className="text-2xl font-bold text-foreground mb-4">{category}</h2>
+                    <ul className="space-y-2">
+                      {articles.map((article) => (
+                        <li key={article.path}>
+                          <Link to={article.path} className="text-primary hover:underline text-lg">
+                            {article.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
               </div>
             )}
 
             {activeTab === "buses" && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Раздел в разработке</p>
+              <div className="space-y-8">
+                {Object.entries(groupedBusesArticles).map(([category, articles]) => (
+                  <section key={category}>
+                    <h2 className="text-2xl font-bold text-foreground mb-4">{category}</h2>
+                    <ul className="space-y-2">
+                      {articles.map((article) => (
+                        <li key={article.path}>
+                          <Link to={article.path} className="text-primary hover:underline text-lg">
+                            {article.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
               </div>
             )}
         </div>
