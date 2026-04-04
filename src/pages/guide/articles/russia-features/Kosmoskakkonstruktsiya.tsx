@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -22,7 +22,7 @@ const Kosmoskakkonstruktsiya = () => {
           <span>/</span>
           <span>Космос как конструкция</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Космос как конструкция: как устроена космическая техника</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Космос как конструкция: как устроена космическая техника</h1>
 
         <div className="space-y-8">
           {/* Введение */}

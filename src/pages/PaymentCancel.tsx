@@ -118,7 +118,7 @@ const PaymentCancel = () => {
         <Header />
         <main className="container pt-24 pb-12 md:pt-32">
           <div className="max-w-2xl mx-auto text-center">
-            <h1 className="text-2xl font-bold mb-2">Ошибка</h1>
+            <h1 className="heading-gradient text-2xl md:text-3xl font-bold tracking-tight mb-2">Ошибка</h1>
             <p className="text-muted-foreground mb-6">{error}</p>
             <Button onClick={() => navigate("/")}>На главную</Button>
           </div>
@@ -139,7 +139,7 @@ const PaymentCancel = () => {
                 <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <XCircle className="w-10 h-10 text-orange-600" />
                 </div>
-                <h1 className="text-3xl font-bold mb-2">Оплата отменена</h1>
+                <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-2">Оплата отменена</h1>
                 <p className="text-muted-foreground mb-4">
                   {orderNumber && (
                     <>

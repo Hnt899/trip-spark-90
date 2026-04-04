@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -22,7 +22,7 @@ const GdeposadkaEslipassazhiru = () => {
           <span>/</span>
           <span>Где посадка, если пассажиру плохо?</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Если кому-то стало плохо, где посадят в конечном аэропорту или по дороге?</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Если кому-то стало плохо, где посадят в конечном аэропорту или по дороге?</h1>
 
         <div className="space-y-8">
           {/* На борту */}

@@ -135,35 +135,7 @@ const HeroRoutes = () => {
   }, []);
 
   return (
-    <section id="hero-section" className="relative w-full pt-24 pb-8 md:pt-52 md:pb-12 bg-[#100A6F]/80 backdrop-blur-sm overflow-hidden">
-      {/* Декоративные цветные пятна */}
-      <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
-        {/* Левое пятно */}
-        <div 
-          className="absolute rounded-full blur-3xl"
-          style={{
-            width: '500px',
-            height: '500px',
-            left: '-150px',
-            top: '200px',
-            background: '#F9B84F',
-            opacity: 0.3,
-          }}
-        />
-        {/* Правое пятно */}
-        <div 
-          className="absolute rounded-full blur-3xl"
-          style={{
-            width: '450px',
-            height: '450px',
-            right: '-120px',
-            top: '600px',
-            background: '#F9B84F',
-            opacity: 0.3,
-          }}
-        />
-      </div>
-
+    <section id="hero-section" className="relative w-full pt-24 pb-8 md:pt-52 md:pb-12 overflow-hidden">
       <div className="container px-4 md:px-6 relative z-10">
         {/* Заголовок только на мобилке */}
         <div className="md:hidden text-center mb-6">

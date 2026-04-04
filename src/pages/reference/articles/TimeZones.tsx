@@ -21,7 +21,7 @@ const TimeZones = () => {
           <span>/</span>
           <span>Часовые пояса и ЖД</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Часовые пояса и ЖД</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Часовые пояса и ЖД</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -41,7 +41,7 @@ const TimeZones = () => {
           {/* История */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Clock className="w-6 h-6 text-primary" />
                 Роль железной дороги в введении часовых поясов
               </h2>
@@ -60,7 +60,7 @@ const TimeZones = () => {
           {/* Введение единого времени */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Globe className="w-6 h-6 text-primary" />
                 Официальное введение единого времени
               </h2>
@@ -75,7 +75,7 @@ const TimeZones = () => {
           {/* Международная система */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Info className="w-6 h-6 text-primary" />
                 Международная система часовых поясов
               </h2>
@@ -99,7 +99,7 @@ const TimeZones = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/how-to-buy" className="text-primary hover:underline">

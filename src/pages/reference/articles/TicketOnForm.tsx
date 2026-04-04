@@ -21,13 +21,13 @@ const TicketOnForm = () => {
           <span>/</span>
           <span>Как читать билет</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Как читать билет</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Как читать билет</h1>
 
         <div className="space-y-8">
           {/* Первая строка */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 Первая строка
               </h2>
@@ -49,7 +49,7 @@ const TicketOnForm = () => {
           {/* Вторая строка */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 Вторая строка
               </h2>
@@ -67,7 +67,7 @@ const TicketOnForm = () => {
           {/* Третья строка */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 Третья строка
               </h2>
@@ -85,7 +85,7 @@ const TicketOnForm = () => {
           {/* Четвертая строка */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 Четвертая строка
               </h2>
@@ -109,7 +109,7 @@ const TicketOnForm = () => {
           {/* Пятая строка */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 Пятая строка
               </h2>
@@ -125,7 +125,7 @@ const TicketOnForm = () => {
           {/* Шестая и седьмая строки */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 Шестая и седьмая строки
               </h2>
@@ -152,7 +152,7 @@ const TicketOnForm = () => {
           {/* Восьмая строка */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 Восьмая строка
               </h2>

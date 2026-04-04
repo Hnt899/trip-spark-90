@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -22,7 +22,7 @@ const Moscow = () => {
           <span>/</span>
           <span>Москва</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Москва</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Москва</h1>
 
         <div className="space-y-8">
           {/* Зачем ехать в Москву */}

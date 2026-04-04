@@ -107,37 +107,7 @@ const RegionsRoutesSection = () => {
   }, [cardWidth]);
 
   return (
-    <section className="pt-2 pb-20 md:py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-hidden">
-      {/* Декоративные желтые пятна */}
-      <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
-        {/* Левое пятно - от центра поднимаемся вверх на 30px */}
-        <div 
-          className="absolute rounded-full blur-3xl"
-          style={{
-            width: '400px',
-            height: '400px',
-            left: '-150px',
-            top: 'calc(50% - 30px)',
-            transform: 'translateY(-50%)',
-            background: '#F9B84F',
-            opacity: 0.3,
-          }}
-        />
-        {/* Правое пятно - от центра опускаемся вниз на 30px */}
-        <div 
-          className="absolute rounded-full blur-3xl"
-          style={{
-            width: '400px',
-            height: '400px',
-            right: '-100px',
-            top: 'calc(50% + 30px)',
-            transform: 'translateY(-50%)',
-            background: '#F9B84F',
-            opacity: 0.3,
-          }}
-        />
-      </div>
-
+    <section className="pt-2 pb-20 md:py-20 relative overflow-hidden">
       <div className="container relative z-10">
         <div className="flex flex-col items-center text-center mb-8 md:mb-12">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">

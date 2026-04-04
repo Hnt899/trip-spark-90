@@ -22,7 +22,7 @@ const CrimeaByTrain = () => {
           <span>/</span>
           <span>Как добраться в Крым на поезде</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Как добраться в Крым в 2024 году: 4 способа</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Как добраться в Крым в 2024 году: 4 способа</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -38,7 +38,7 @@ const CrimeaByTrain = () => {
           {/* Способ 1: Прямой поезд */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Train className="w-6 h-6 text-primary" />
                 1. Прямой поезд
               </h2>
@@ -76,7 +76,7 @@ const CrimeaByTrain = () => {
           {/* Способ 2: Единый билет */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Bus className="w-6 h-6 text-primary" />
                 2. Единый билет: поезд + автобус
               </h2>
@@ -106,7 +106,7 @@ const CrimeaByTrain = () => {
           {/* Способ 3: С пересадкой */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Map className="w-6 h-6 text-primary" />
                 3. Поездка с самостоятельной пересадкой: поезд + автобус
               </h2>
@@ -133,7 +133,7 @@ const CrimeaByTrain = () => {
           {/* Способ 4: Прямой автобус */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Bus className="w-6 h-6 text-primary" />
                 4. Прямой автобус
               </h2>

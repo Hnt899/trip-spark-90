@@ -17,7 +17,7 @@ const PayLater = () => {
           <span>/</span>
           <span>Как оплатить билет позже</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Билет сейчас, оплата потом</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Билет сейчас, оплата потом</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -34,7 +34,7 @@ const PayLater = () => {
           {/* Как подключить услугу */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6">Как подключить услугу «Оплатить позже»</h2>
+              <h2 className="heading-sub mb-6">Как подключить услугу «Оплатить позже»</h2>
               
               <div className="space-y-6">
                 {/* Шаг 1 */}
@@ -109,7 +109,7 @@ const PayLater = () => {
           {/* После оплаты */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <CheckCircle className="w-6 h-6 text-primary" />
                 После оплаты услуги
               </h2>
@@ -130,7 +130,7 @@ const PayLater = () => {
           {/* Как отменить заказ */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <XCircle className="w-6 h-6 text-primary" />
                 Как отменить заказ
               </h2>
@@ -145,7 +145,7 @@ const PayLater = () => {
           {/* Что нужно знать */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Info className="w-6 h-6 text-primary" />
                 Что нужно знать об услуге
               </h2>

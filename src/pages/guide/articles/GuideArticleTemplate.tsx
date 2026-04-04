@@ -21,7 +21,7 @@ const GuideArticleTemplate = ({ title, category, categoryName }: GuideArticlePro
           <span>/</span>
           <span>{title}</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">{title}</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">{title}</h1>
         <div className="prose max-w-none">
           <p className="text-lg text-muted-foreground">
             Информация находится в разработке.

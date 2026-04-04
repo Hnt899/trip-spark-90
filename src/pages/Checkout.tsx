@@ -695,7 +695,7 @@ const Checkout = () => {
         <Header />
         <main className="container pt-24 pb-8 md:pt-32">
           <div className="max-w-5xl mx-auto">
-            <h1 className="text-3xl font-bold mb-8">Оформление заказа</h1>
+            <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Оформление заказа</h1>
 
             {/* Информация о поездке (компактная) */}
             <Card className="mb-6">
@@ -822,7 +822,7 @@ const Checkout = () => {
         <Header />
         <main className="container pt-24 pb-8 md:pt-32">
           <div className="max-w-5xl mx-auto">
-            <h1 className="text-3xl font-bold mb-8">Ошибка</h1>
+            <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Ошибка</h1>
             <Card>
               <CardContent className="p-6">
                 <p className="text-muted-foreground">
@@ -845,7 +845,7 @@ const Checkout = () => {
       <Header />
       <main className="container pt-24 pb-8 md:pt-32">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Заполните данные</h1>
+          <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Заполните данные</h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Левая колонка - Формы */}

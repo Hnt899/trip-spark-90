@@ -235,7 +235,9 @@ const TestimonialDetail = () => {
         <Header />
         <main className="container max-w-4xl pt-24 pb-12 md:pt-32">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Отзыв не найден</h1>
+            <h1 className="heading-gradient text-2xl md:text-3xl font-bold tracking-tight mb-4">
+              Отзыв не найден
+            </h1>
             <Button onClick={() => navigate(-1)}>Назад</Button>
           </div>
         </main>
@@ -267,9 +269,9 @@ const TestimonialDetail = () => {
                 className="w-16 h-16 rounded-full object-cover border-2 border-primary/20"
               />
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-2">
                   {testimonial.name}
-            </h1>
+                </h1>
                 <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4" />

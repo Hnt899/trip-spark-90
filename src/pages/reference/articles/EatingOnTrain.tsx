@@ -21,7 +21,7 @@ const EatingOnTrain = () => {
           <span>/</span>
           <span>Как поесть в поезде: все способы</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Как поесть в поезде: все способы</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Как поесть в поезде: все способы</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -38,7 +38,7 @@ const EatingOnTrain = () => {
           {/* Вагоны-рестораны */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <UtensilsCrossed className="w-6 h-6 text-primary" />
                 Вагоны-рестораны
               </h2>
@@ -84,7 +84,7 @@ const EatingOnTrain = () => {
           {/* Вагоны-бистро */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Coffee className="w-6 h-6 text-primary" />
                 Вагоны-бистро
               </h2>
@@ -113,7 +113,7 @@ const EatingOnTrain = () => {
           {/* Предоплаченное питание */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <DollarSign className="w-6 h-6 text-primary" />
                 Предоплаченное питание
               </h2>
@@ -135,7 +135,7 @@ const EatingOnTrain = () => {
           {/* Дополнительное питание */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <UtensilsCrossed className="w-6 h-6 text-primary" />
                 Дополнительное питание
               </h2>
@@ -170,7 +170,7 @@ const EatingOnTrain = () => {
           {/* Доставка еды */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Clock className="w-6 h-6 text-primary" />
                 Доставка еды к поезду
               </h2>
@@ -193,7 +193,7 @@ const EatingOnTrain = () => {
           {/* Питание в Сапсанах */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <UtensilsCrossed className="w-6 h-6 text-primary" />
                 Питание в «Сапсанах»
               </h2>
@@ -217,7 +217,7 @@ const EatingOnTrain = () => {
           {/* Питание в Ласточках */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <UtensilsCrossed className="w-6 h-6 text-primary" />
                 Питание в «Ласточках»
               </h2>
@@ -236,7 +236,7 @@ const EatingOnTrain = () => {
           {/* Питание в Тавриях */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <UtensilsCrossed className="w-6 h-6 text-primary" />
                 Питание в «Тавриях»
               </h2>
@@ -258,7 +258,7 @@ const EatingOnTrain = () => {
           {/* Еда у проводников */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Coffee className="w-6 h-6 text-primary" />
                 Еда у проводников
               </h2>
@@ -275,7 +275,7 @@ const EatingOnTrain = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/restaurant-cars" className="text-primary hover:underline">

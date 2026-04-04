@@ -22,7 +22,7 @@ const TicketSalesPeriods = () => {
           <span>/</span>
           <span>Сроки продажи ж/д билетов</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Сроки продажи ж/д билетов</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Сроки продажи ж/д билетов</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -38,7 +38,7 @@ const TicketSalesPeriods = () => {
           {/* За 90 дней */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
                 Билеты, которые продаются за 90 дней
               </h2>
@@ -64,7 +64,7 @@ const TicketSalesPeriods = () => {
           {/* За 45 дней */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
                 Билеты, которые продаются за 45 дней
               </h2>
@@ -86,7 +86,7 @@ const TicketSalesPeriods = () => {
           {/* За 180 дней */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
                 Билеты, которые продаются за 180 дней
               </h2>
@@ -99,7 +99,7 @@ const TicketSalesPeriods = () => {
           {/* Международные поезда */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Globe className="w-6 h-6 text-primary" />
                 Сроки продаж билетов на международные поезда
               </h2>
@@ -117,7 +117,7 @@ const TicketSalesPeriods = () => {
           {/* Время открытия продаж */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Clock className="w-6 h-6 text-primary" />
                 Начало продажи билетов по московскому и местному времени
               </h2>
@@ -157,7 +157,7 @@ const TicketSalesPeriods = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/how-to-buy" className="text-primary hover:underline">

@@ -17,7 +17,7 @@ const CheckTicketsAvailability = () => {
           <span>/</span>
           <span>Как узнать, есть ли билеты на поезд и сколько они стоят</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Как узнать, есть ли билеты на поезд и сколько они стоят</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Как узнать, есть ли билеты на поезд и сколько они стоят</h1>
 
         <div className="space-y-8">
           {/* Основная информация */}
@@ -40,7 +40,7 @@ const CheckTicketsAvailability = () => {
           {/* Если билетов нет */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Bell className="w-6 h-6 text-primary" />
                 Если билетов нет в продаже
               </h2>
@@ -62,7 +62,7 @@ const CheckTicketsAvailability = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2">
                 <li>
                   <Link 

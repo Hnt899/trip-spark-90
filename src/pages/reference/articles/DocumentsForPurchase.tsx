@@ -18,13 +18,13 @@ const DocumentsForPurchase = () => {
           <span>/</span>
           <span>Документы для покупки билетов</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Документы для покупки билетов</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Документы для покупки билетов</h1>
 
         <div className="space-y-8">
           {/* Основные инструкции */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Как заполнять данные при оформлении билета</h2>
+              <h2 className="heading-sub mb-4">Как заполнять данные при оформлении билета</h2>
               <div className="space-y-4 text-base leading-relaxed">
                 <p>
                   <strong>Римские цифры</strong> (например, XII, II, V, X) вводятся заглавными латинскими буквами. 
@@ -49,7 +49,7 @@ const DocumentsForPurchase = () => {
           {/* Правила транслитерации - особенности */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Особенности транслитерации</h2>
+              <h2 className="heading-sub mb-4">Особенности транслитерации</h2>
               <div className="space-y-3 text-base">
                 <p>
                   <strong>Символ "Ц" (Це)</strong> транслитерируется как <strong>"TS"</strong>.
@@ -65,7 +65,7 @@ const DocumentsForPurchase = () => {
           {/* Таблица транслитерации кириллицы */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6">Правила транслитерации кириллицы</h2>
+              <h2 className="heading-sub mb-6">Правила транслитерации кириллицы</h2>
               <div className="overflow-x-auto">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div className="space-y-2">
@@ -146,7 +146,7 @@ const DocumentsForPurchase = () => {
           {/* Дополнительные правила национального алфавита */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6">Правила транслитерации национального алфавита</h2>
+              <h2 className="heading-sub mb-6">Правила транслитерации национального алфавита</h2>
               <div className="overflow-x-auto">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div className="space-y-2">
@@ -227,7 +227,7 @@ const DocumentsForPurchase = () => {
           {/* Дополнительная информация */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <div className="space-y-4">
                 <Link 
                   to="/reference/trains/absent-passport" 

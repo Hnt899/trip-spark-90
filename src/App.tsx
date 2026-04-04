@@ -10,6 +10,7 @@ import RouteList from "./pages/RouteList";
 import RouteDetail from "./pages/RouteDetail";
 import Reference from "./pages/Reference";
 import Blog from "./pages/Blog";
+import BlogArticlePage from "./pages/BlogArticlePage";
 import Guide from "./pages/Guide";
 import GuideArticlePage from "./pages/guide/GuideArticlePage";
 import ChtodelatEsliya from "./pages/guide/articles/passenger/ChtodelatEsliya";
@@ -159,6 +160,7 @@ const App = () => (
           <Route path="/reference/trains/restaurant-cars" element={<RestaurantCars />} />
           <Route path="/reference/trains/eating-on-train" element={<EatingOnTrain />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogArticlePage />} />
           <Route path="/guide" element={<Guide />} />
           <Route path="/guide/passenger/chto-delat-esli-ya-zabelel-v-doroge" element={<ChtodelatEsliya />} />
           <Route path="/guide/:category/:slug" element={<GuideArticlePage />} />

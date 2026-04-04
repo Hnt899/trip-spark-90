@@ -21,7 +21,7 @@ const TicketAvailability = () => {
           <span>/</span>
           <span>Наличие ж/д билетов</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Наличие жд билетов</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Наличие жд билетов</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -38,7 +38,7 @@ const TicketAvailability = () => {
           {/* Сроки продажи */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
                 Когда лучше покупать билеты на поезд?
               </h2>
@@ -58,7 +58,7 @@ const TicketAvailability = () => {
           {/* Выбор онлайн */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Search className="w-6 h-6 text-primary" />
                 Выбор билетов онлайн
               </h2>
@@ -78,7 +78,7 @@ const TicketAvailability = () => {
           {/* Процесс покупки */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <CheckCircle className="w-6 h-6 text-primary" />
                 Процесс оформления билета
               </h2>
@@ -103,7 +103,7 @@ const TicketAvailability = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/how-to-buy" className="text-primary hover:underline">

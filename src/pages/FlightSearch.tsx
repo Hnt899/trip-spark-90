@@ -645,7 +645,7 @@ const FlightSearch = () => {
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
             <Plane className="w-5 h-5 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold">
+          <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight">
             Авиабилеты
           </h1>
         </div>

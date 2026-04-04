@@ -22,7 +22,7 @@ const Avtorskietury = () => {
           <span>/</span>
           <span>Авторские туры</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Что такое авторские туры и почему они вам нужны</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Что такое авторские туры и почему они вам нужны</h1>
 
         <div className="space-y-8">
           {/* Введение */}

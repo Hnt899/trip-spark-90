@@ -18,13 +18,13 @@ const ElectronicRegistration = () => {
           <span>/</span>
           <span>Электронная регистрация</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Электронная регистрация</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Электронная регистрация</h1>
 
         <div className="space-y-8">
           {/* Что такое электронная регистрация */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Info className="w-6 h-6 text-primary" />
                 Что такое электронная регистрация
               </h2>
@@ -51,7 +51,7 @@ const ElectronicRegistration = () => {
           {/* Что нужно для посадки */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <CheckCircle className="w-6 h-6 text-primary" />
                 Что нужно для посадки в поезд
               </h2>
@@ -129,7 +129,7 @@ const ElectronicRegistration = () => {
           {/* Как узнать, пройдена ли регистрация */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <CheckCircle className="w-6 h-6 text-primary" />
                 Как узнать, пройдена ли у вас электронная регистрация
               </h2>
@@ -151,7 +151,7 @@ const ElectronicRegistration = () => {
           {/* Что нужно знать */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Info className="w-6 h-6 text-primary" />
                 Что нужно знать об электронной регистрации
               </h2>
@@ -229,7 +229,7 @@ const ElectronicRegistration = () => {
           {/* Как отменить */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <XCircle className="w-6 h-6 text-primary" />
                 Как отменить электронную регистрацию
               </h2>
@@ -267,7 +267,7 @@ const ElectronicRegistration = () => {
           {/* Как вернуть билет */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <RefreshCw className="w-6 h-6 text-primary" />
                 Как вернуть билет с электронной регистрацией
               </h2>
@@ -331,7 +331,7 @@ const ElectronicRegistration = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2">
                 <li>
                   <Link 

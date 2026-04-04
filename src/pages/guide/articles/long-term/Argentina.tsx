@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -22,7 +22,7 @@ const Argentina = () => {
           <span>/</span>
           <span>Аргентина</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Аргентина: отпуск по-домашнему</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Аргентина: отпуск по-домашнему</h1>
 
         <div className="space-y-8">
           {/* Введение с фото */}

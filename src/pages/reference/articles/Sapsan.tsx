@@ -22,7 +22,7 @@ const Sapsan = () => {
           <span>/</span>
           <span>Сапсан</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Поезд «Сапсан»</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Поезд «Сапсан»</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -43,7 +43,7 @@ const Sapsan = () => {
           {/* Цены и расписание */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <DollarSign className="w-6 h-6 text-primary" />
                 Цены и расписание поездов «Сапсан»
               </h2>
@@ -62,7 +62,7 @@ const Sapsan = () => {
           {/* Билет на поезд */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Ticket className="w-6 h-6 text-primary" />
                 Билет на поезд «Сапсан»
               </h2>
@@ -88,7 +88,7 @@ const Sapsan = () => {
           {/* Схемы вагонов */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Map className="w-6 h-6 text-primary" />
                 Схемы вагонов «Сапсана»
               </h2>
@@ -104,7 +104,7 @@ const Sapsan = () => {
           {/* Стоимость билетов */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <DollarSign className="w-6 h-6 text-primary" />
                 Сколько стоят билеты на «Сапсан»
               </h2>
@@ -121,7 +121,7 @@ const Sapsan = () => {
           {/* Скидки */}
           <Card className="bg-green-50 border-green-200">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Users className="w-6 h-6 text-green-700" />
                 Скидки на «Сапсан»
               </h2>

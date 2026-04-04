@@ -44,7 +44,9 @@ const FlightArticle = () => {
           <span className="text-foreground">{article.title}</span>
         </div>
 
-        <h1 className="text-4xl font-bold mb-8 text-foreground">{article.title}</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">
+          {article.title}
+        </h1>
 
         <FlightArticleBody slug={slug!} />
       </main>

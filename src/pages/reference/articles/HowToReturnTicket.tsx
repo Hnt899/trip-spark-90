@@ -17,7 +17,7 @@ const HowToReturnTicket = () => {
           <span>/</span>
           <span>Как вернуть билет на поезд</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Как вернуть билет на поезд</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Как вернуть билет на поезд</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -34,7 +34,7 @@ const HowToReturnTicket = () => {
           {/* Где сдавать билет */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <RefreshCw className="w-6 h-6 text-primary" />
                 Где сдавать билет
               </h2>
@@ -74,7 +74,7 @@ const HowToReturnTicket = () => {
           {/* Как вернуть билет онлайн */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <RefreshCw className="w-6 h-6 text-primary" />
                 Как вернуть билет онлайн
               </h2>
@@ -128,7 +128,7 @@ const HowToReturnTicket = () => {
           {/* Как сдать билет в кассе */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Как сдать билет в кассе
               </h2>
@@ -163,7 +163,7 @@ const HowToReturnTicket = () => {
           {/* Если поезд уже отправился */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Clock className="w-6 h-6 text-primary" />
                 Если поезд уже отправился
               </h2>
@@ -185,7 +185,7 @@ const HowToReturnTicket = () => {
           {/* Что делать, если вы заболели */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Heart className="w-6 h-6 text-primary" />
                 Что делать, если вы заболели
               </h2>
@@ -224,7 +224,7 @@ const HowToReturnTicket = () => {
           {/* Как сдать билет за другого пассажира */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <User className="w-6 h-6 text-primary" />
                 Как сдать билет за другого пассажира
               </h2>
@@ -258,7 +258,7 @@ const HowToReturnTicket = () => {
           {/* Сколько денег вернётся */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <CreditCard className="w-6 h-6 text-primary" />
                 Сколько денег вернётся
               </h2>
@@ -356,7 +356,7 @@ const HowToReturnTicket = () => {
           {/* Если билет оплачен сертификатом */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <CreditCard className="w-6 h-6 text-primary" />
                 Если билет оплачен сертификатом
               </h2>
@@ -380,7 +380,7 @@ const HowToReturnTicket = () => {
           {/* Если билет невозвратный */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <AlertTriangle className="w-6 h-6 text-primary" />
                 Если билет невозвратный
               </h2>
@@ -415,7 +415,7 @@ const HowToReturnTicket = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2">
                 <li>
                   <Link 

@@ -8,11 +8,8 @@ import { useState, useMemo } from "react";
 import type { SectionSurface } from "@/lib/sectionSurface";
 import {
   sectionCardLiftClass,
-  sectionHeadingAccentClass,
-  sectionHeadingBaseClass,
   sectionLeadClass,
   sectionShellClass,
-  sectionYellowGlow,
 } from "@/lib/sectionSurface";
 
 interface PopularRoute {
@@ -241,14 +238,8 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
       <div className="container relative z-10">
         {/* Заголовок секции */}
         <div className="mb-12 text-center">
-          <h2 className={cn("text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight pb-2", sectionHeadingBaseClass(surface))}>
-            <span
-              className={sectionHeadingAccentClass(surface)}
-              style={surface === "brand" ? sectionYellowGlow : undefined}
-            >
-              Популярные
-            </span>{" "}
-            <span className={sectionHeadingBaseClass(surface)}>направления</span>
+          <h2 className="heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight pb-2 tracking-tight">
+            Популярные направления
           </h2>
           <p className={cn("text-lg md:text-xl max-w-2xl mx-auto", sectionLeadClass(surface))}>
             Самые востребованные маршруты с актуальными ценами
@@ -353,20 +344,55 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
             </div>
           </div>
 
-          {/* Правая колонка: Калькулятор */}
-          <div className="lg:h-full lg:min-h-0 lg:flex lg:flex-col">
+          {/* Правая колонка: калькулятор сравнения — акцентный блок (особенно на мобилке) */}
+          <div
+            className={cn(
+              "lg:h-full lg:min-h-0 lg:flex lg:flex-col",
+              surface === "light" &&
+                "max-lg:mt-8 max-lg:pt-8 max-lg:border-t-2 max-lg:border-primary/20 max-lg:rounded-t-2xl"
+            )}
+          >
             <div
               className={cn(
-                "rounded-lg border border-border bg-card p-5 md:p-6 shadow-sm lg:flex-1 lg:flex lg:flex-col lg:min-h-0",
-                sectionCardLiftClass(surface)
+                "rounded-xl p-5 md:p-6 lg:flex-1 lg:flex lg:flex-col lg:min-h-0 lg:rounded-lg",
+                surface === "light"
+                  ? cn(
+                      "border-2 border-primary/35",
+                      "bg-gradient-to-br from-[#eef1fc] via-white to-[#f5f2ff]",
+                      "shadow-[0_12px_40px_rgba(67,56,202,0.12)]",
+                      "ring-1 ring-inset ring-primary/[0.08]",
+                      "max-lg:shadow-[0_16px_52px_rgba(59,49,179,0.16)]"
+                    )
+                  : cn(
+                      "border-2 border-white/25 bg-white/10 backdrop-blur-md",
+                      "shadow-lg shadow-black/20"
+                    )
               )}
             >
               {/* Заголовок калькулятора */}
               <div className="mb-6 shrink-0">
-                <h3 className="text-xl font-bold text-foreground mb-2">
+                <p
+                  className={cn(
+                    "mb-2 text-xs font-semibold uppercase tracking-wide",
+                    surface === "light" ? "text-primary" : "text-white/80"
+                  )}
+                >
+                  Сравнение транспорта
+                </p>
+                <h3
+                  className={cn(
+                    "text-xl font-bold mb-2",
+                    surface === "light" ? "heading-gradient" : "text-white"
+                  )}
+                >
                   Сравнить поезд и самолёт
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p
+                  className={cn(
+                    "text-sm",
+                    surface === "light" ? "text-muted-foreground" : "text-white/75"
+                  )}
+                >
                   Покажем время в пути и реальную выгоду логистики
                 </p>
               </div>

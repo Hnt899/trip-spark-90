@@ -21,7 +21,7 @@ const TiltingCarriages = () => {
           <span>/</span>
           <span>Где ходят поезда с наклоняющимися при повороте вагонами</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Где ходят поезда с наклоняющимися при повороте вагонами?</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Где ходят поезда с наклоняющимися при повороте вагонами?</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -40,7 +40,7 @@ const TiltingCarriages = () => {
           {/* История */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Info className="w-6 h-6 text-primary" />
                 История технологии
               </h2>
@@ -54,7 +54,7 @@ const TiltingCarriages = () => {
           {/* Активная система */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Train className="w-6 h-6 text-primary" />
                 Активная система управления наклоном
               </h2>
@@ -74,7 +74,7 @@ const TiltingCarriages = () => {
           {/* Пассивная система */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Train className="w-6 h-6 text-primary" />
                 Пассивная система управления наклоном
               </h2>
@@ -93,7 +93,7 @@ const TiltingCarriages = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/how-to-buy" className="text-primary hover:underline">

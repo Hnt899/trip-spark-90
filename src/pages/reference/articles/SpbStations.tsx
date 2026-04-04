@@ -21,7 +21,7 @@ const SpbStations = () => {
           <span>/</span>
           <span>Вокзалы Санкт-Петербурга</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Вокзалы Санкт-Петербурга</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Вокзалы Санкт-Петербурга</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -36,7 +36,7 @@ const SpbStations = () => {
           {/* Витебский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Витебский вокзал
               </h2>
@@ -59,7 +59,7 @@ const SpbStations = () => {
           {/* Московский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Московский вокзал Санкт-Петербурга
               </h2>
@@ -82,7 +82,7 @@ const SpbStations = () => {
           {/* Финляндский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Финляндский вокзал
               </h2>
@@ -104,7 +104,7 @@ const SpbStations = () => {
           {/* Балтийский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Балтийский вокзал
               </h2>
@@ -124,7 +124,7 @@ const SpbStations = () => {
           {/* Ладожский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Ладожский вокзал
               </h2>
@@ -143,7 +143,7 @@ const SpbStations = () => {
           {/* Варшавский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <History className="w-6 h-6 text-primary" />
                 Варшавский вокзал
               </h2>
@@ -161,7 +161,7 @@ const SpbStations = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/russian-stations" className="text-primary hover:underline">

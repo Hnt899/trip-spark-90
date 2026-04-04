@@ -48,44 +48,12 @@ const RoutesHeroSection = () => {
   }, []);
 
   return (
-    <section id="routes-hero-section" className="relative py-20 pb-2 md:pb-20 bg-[#100A6F]/80 backdrop-blur-sm overflow-hidden">
-      {/* Декоративные желтые пятна */}
-      <div className="absolute inset-0 pointer-events-none hidden lg:block z-0 overflow-hidden">
-        {/* Левое пятно - от центра поднимаемся вверх на 30px */}
-        <div 
-          className="absolute rounded-full blur-3xl"
-          style={{
-            width: '400px',
-            height: '400px',
-            left: '-150px',
-            top: 'calc(50% - 30px)',
-            transform: 'translateY(-50%)',
-            background: '#F9B84F',
-            opacity: 0.3,
-          }}
-        />
-        {/* Правое пятно - от центра опускаемся вниз на 30px */}
-        <div 
-          className="absolute rounded-full blur-3xl"
-          style={{
-            width: '400px',
-            height: '400px',
-            right: '-100px',
-            top: 'calc(50% + 30px)',
-            transform: 'translateY(-50%)',
-            background: '#F9B84F',
-            opacity: 0.3,
-          }}
-        />
-      </div>
-
+    <section id="routes-hero-section" className="relative py-20 pb-2 md:pb-20 overflow-hidden">
       <div className="container relative z-10">
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-            <span className="block text-white/90 mb-1 md:mb-2">Создавайте свои</span>
-            <span className="block bg-gradient-to-r from-[#F9B84F] via-[#FFD700] to-[#F9B84F] bg-clip-text text-transparent drop-shadow-lg">
-              истории с TudaSuda
-            </span>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4 text-white drop-shadow-lg">
+            <span className="block mb-1 md:mb-2">Создавайте свои</span>
+            <span className="block">истории с TudaSuda</span>
           </h1>
         </div>
 

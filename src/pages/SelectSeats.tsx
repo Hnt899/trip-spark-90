@@ -680,7 +680,7 @@ const SelectSeats = () => {
                   <Bus className="w-5 h-5 text-primary" />
                 </div>
               )}
-              <h1 className="text-3xl font-bold">
+              <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight">
                 {travelType === "train" && "022А Ночной экспресс"}
                 {travelType === "flight" && "SU 1234 Аэрофлот"}
                 {travelType === "bus" && "101 Автолайн"}

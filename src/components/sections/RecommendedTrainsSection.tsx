@@ -14,11 +14,8 @@ import type { SectionSurface } from "@/lib/sectionSurface";
 import {
   carouselDotClass,
   sectionCardLiftClass,
-  sectionHeadingAccentClass,
-  sectionHeadingBaseClass,
   sectionLeadClass,
   sectionShellClass,
-  sectionYellowGlow,
 } from "@/lib/sectionSurface";
 
 interface RecommendedTrainsSectionProps {
@@ -306,14 +303,8 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
 
       <div className="container relative z-10">
         <div className="mb-12 text-center">
-          <h2 className={cn("text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4", sectionHeadingBaseClass(surface))}>
-            <span className={sectionHeadingBaseClass(surface)}>Горящие</span>{" "}
-            <span
-              className={sectionHeadingAccentClass(surface)}
-              style={surface === "brand" ? sectionYellowGlow : undefined}
-            >
-              направления
-            </span>
+          <h2 className="heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight">
+            Горящие направления
           </h2>
           <p className={cn("text-lg md:text-xl max-w-2xl mx-auto", sectionLeadClass(surface))}>
             Специальные предложения и скидки на популярные маршруты

@@ -18,13 +18,13 @@ const HotelSearch = () => {
           <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
             <BedDouble className="w-10 h-10 text-primary" />
           </div>
-          <h1 className="text-4xl font-bold mb-4">Поиск отелей</h1>
+          <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-4">Поиск отелей</h1>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl">
             Система поиска отелей находится в разработке.
           </p>
           {(destination || checkIn || checkOut || guests) && (
             <div className="bg-muted p-6 rounded-lg text-left">
-              <h2 className="font-semibold mb-4">Параметры поиска:</h2>
+              <h2 className="heading-sub mb-4">Параметры поиска:</h2>
               <ul className="space-y-2 text-muted-foreground">
                 {destination && <li>Направление: <span className="text-foreground font-medium">{destination}</span></li>}
                 {checkIn && <li>Заезд: <span className="text-foreground font-medium">{checkIn}</span></li>}

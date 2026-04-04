@@ -16,7 +16,7 @@ const ChildrenBenefits = () => {
           <span>/</span>
           <span>Льготы для детей в поездах</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Льготы для детей в поездах</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Льготы для детей в поездах</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -35,7 +35,7 @@ const ChildrenBenefits = () => {
           {/* Содержание */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Содержание</h2>
+              <h2 className="heading-sub mb-4">Содержание</h2>
               <ul className="list-disc list-inside space-y-2 text-base">
                 <li><a href="#fpk" className="text-primary hover:underline">Льготы в поездах ФПК</a></li>
                 <li><a href="#doss" className="text-primary hover:underline">Льготы в поездах ДОСС</a></li>
@@ -49,7 +49,7 @@ const ChildrenBenefits = () => {
           {/* Льготы в поездах ФПК */}
           <Card id="fpk">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <TrainIcon className="w-6 h-6 text-primary" />
                 Льготы в поездах ФПК
               </h2>
@@ -125,7 +125,7 @@ const ChildrenBenefits = () => {
           {/* Льготы в поездах ДОСС */}
           <Card id="doss">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <TrainIcon className="w-6 h-6 text-primary" />
                 Льготы в поездах ДОСС
               </h2>
@@ -176,7 +176,7 @@ const ChildrenBenefits = () => {
           {/* Льготы в поездах «Гранд Сервис Экспресс» */}
           <Card id="grand">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <TrainIcon className="w-6 h-6 text-primary" />
                 Льготы в поездах «Гранд Сервис Экспресс»
               </h2>
@@ -232,7 +232,7 @@ const ChildrenBenefits = () => {
           {/* Льготы в поездах «Мегаполис» */}
           <Card id="megapolis">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <TrainIcon className="w-6 h-6 text-primary" />
                 Льготы в поездах «Мегаполис»
               </h2>
@@ -260,7 +260,7 @@ const ChildrenBenefits = () => {
           {/* Льготы в поездах за рубеж */}
           <Card id="abroad">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <TrainIcon className="w-6 h-6 text-primary" />
                 Льготы в поездах за рубеж
               </h2>

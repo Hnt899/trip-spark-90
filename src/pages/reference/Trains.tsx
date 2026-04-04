@@ -17,7 +17,7 @@ const Trains = () => {
         </div>
 
         {/* Main Heading */}
-        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-12">
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-10">
           Справочная информация о ж/д билетах
         </h1>
 
@@ -25,7 +25,7 @@ const Trains = () => {
         <div className="space-y-12 max-w-4xl">
           {/* Section 1: Покупка ж/д билета */}
           <section>
-            <h2 className="text-2xl font-bold text-foreground mb-6">
+            <h2 className="heading-sub mb-6">
               Покупка ж/д билета
             </h2>
             <ul className="space-y-3">
@@ -106,7 +106,7 @@ const Trains = () => {
 
           {/* Section 2: Вопросы после покупки */}
           <section>
-            <h2 className="text-2xl font-bold text-foreground mb-6">
+            <h2 className="heading-sub mb-6">
               Вопросы после покупки
             </h2>
             <ul className="space-y-3">
@@ -147,7 +147,7 @@ const Trains = () => {
 
           {/* Section 3: Частые вопросы */}
           <section>
-            <h2 className="text-2xl font-bold text-foreground mb-6">
+            <h2 className="heading-sub mb-6">
               Частые вопросы
             </h2>
             <ul className="space-y-3">
@@ -236,7 +236,7 @@ const Trains = () => {
 
           {/* Section 4: Правила перевозки и нормативные документы */}
           <section>
-            <h2 className="text-2xl font-bold text-foreground mb-6">
+            <h2 className="heading-sub mb-6">
               Правила перевозки и нормативные документы
             </h2>
             <ul className="space-y-3">
@@ -293,7 +293,7 @@ const Trains = () => {
 
           {/* Section 5: О поездах */}
           <section>
-            <h2 className="text-2xl font-bold text-foreground mb-6">
+            <h2 className="heading-sub mb-6">
               О поездах
             </h2>
             <ul className="space-y-3">
@@ -334,7 +334,7 @@ const Trains = () => {
 
           {/* Section 6: Полезные статьи */}
           <section>
-            <h2 className="text-2xl font-bold text-foreground mb-6">
+            <h2 className="heading-sub mb-6">
               Полезные статьи
             </h2>
             <ul className="space-y-3">

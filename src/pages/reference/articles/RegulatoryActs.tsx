@@ -16,7 +16,7 @@ const RegulatoryActs = () => {
           <span>/</span>
           <span>Нормативные акты</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Об утверждении Правил перевозок пассажиров, багажа, грузобагажа железнодорожным транспортом</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Об утверждении Правил перевозок пассажиров, багажа, грузобагажа железнодорожным транспортом</h1>
         
         <Card className="bg-blue-50 border-blue-200 mb-6">
           <CardContent className="p-6">
@@ -30,7 +30,7 @@ const RegulatoryActs = () => {
           {/* Содержание */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <BookOpen className="w-6 h-6 text-primary" />
                 Содержание
               </h2>
@@ -66,7 +66,7 @@ const RegulatoryActs = () => {
           {/* I. Общие положения */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 I. Общие положения
               </h2>
@@ -139,7 +139,7 @@ const RegulatoryActs = () => {
           {/* II. Оформление перевозки пассажиров */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 II. Оформление перевозки пассажиров в поездах дальнего следования и пригородного сообщения
               </h2>
@@ -180,7 +180,7 @@ const RegulatoryActs = () => {
           {/* Основная информация о документе */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">О полном тексте документа</h2>
+              <h2 className="heading-sub mb-4">О полном тексте документа</h2>
               <p className="text-base leading-relaxed">
                 Полный текст Приказа Министерства транспорта РФ от 05.09.2022 № 352 "Об утверждении Правил перевозок пассажиров, багажа, грузобагажа железнодорожным транспортом" 
                 включает 24 раздела и содержит подробную информацию о всех аспектах перевозок пассажиров железнодорожным транспортом, включая:
@@ -205,7 +205,7 @@ const RegulatoryActs = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/ticket-order-rules" className="text-primary hover:underline">

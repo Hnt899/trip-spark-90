@@ -21,7 +21,7 @@ const NewYearTravel = () => {
           <span>/</span>
           <span>Как купить билеты на Новый год и Рождество</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Как купить билеты на Новый год и Рождество</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Как купить билеты на Новый год и Рождество</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -37,7 +37,7 @@ const NewYearTravel = () => {
           {/* Новый год */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Snowflake className="w-6 h-6 text-primary" />
                 Поезд на Новый год и Рождество
               </h2>
@@ -72,7 +72,7 @@ const NewYearTravel = () => {
           {/* Рождество */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Gift className="w-6 h-6 text-primary" />
                 Католическое Рождество
               </h2>
@@ -95,7 +95,7 @@ const NewYearTravel = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/how-to-buy" className="text-primary hover:underline">

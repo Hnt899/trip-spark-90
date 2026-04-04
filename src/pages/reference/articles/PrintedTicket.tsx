@@ -18,13 +18,13 @@ const PrintedTicket = () => {
           <span>/</span>
           <span>Как получить билет</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Как получить билет</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Как получить билет</h1>
 
         <div className="space-y-8">
           {/* Электронный билет */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Smartphone className="w-6 h-6 text-primary" />
                 Электронный билет
               </h2>
@@ -47,7 +47,7 @@ const PrintedTicket = () => {
           {/* Электронная регистрация */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <CheckCircle className="w-6 h-6 text-primary" />
                 Электронная регистрация
               </h2>
@@ -83,7 +83,7 @@ const PrintedTicket = () => {
           {/* Билет на бланке */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Printer className="w-6 h-6 text-primary" />
                 Билет на бланке
               </h2>
@@ -115,7 +115,7 @@ const PrintedTicket = () => {
           {/* Как получить билет в кассе */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Как получить билет в кассе
               </h2>
@@ -146,7 +146,7 @@ const PrintedTicket = () => {
           {/* Как распечатать билет в терминале */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Printer className="w-6 h-6 text-primary" />
                 Как распечатать билет в терминале
               </h2>
@@ -195,7 +195,7 @@ const PrintedTicket = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2">
                 <li>
                   <Link 

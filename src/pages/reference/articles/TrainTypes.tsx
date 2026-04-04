@@ -21,7 +21,7 @@ const TrainTypes = () => {
           <span>/</span>
           <span>Какие бывают вагоны и поезда</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Какие бывают вагоны и поезда</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Какие бывают вагоны и поезда</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -36,7 +36,7 @@ const TrainTypes = () => {
           {/* Перевозчики */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Globe className="w-6 h-6 text-primary" />
                 Все ж/д перевозчики России и стран СНГ
               </h2>
@@ -75,7 +75,7 @@ const TrainTypes = () => {
           {/* Типы вагонов */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Train className="w-6 h-6 text-primary" />
                 Какие бывают вагоны
               </h2>
@@ -111,7 +111,7 @@ const TrainTypes = () => {
           {/* Номер поезда */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Info className="w-6 h-6 text-primary" />
                 Что значит номер поезда?
               </h2>
@@ -131,7 +131,7 @@ const TrainTypes = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/carriage-schemes" className="text-primary hover:underline">

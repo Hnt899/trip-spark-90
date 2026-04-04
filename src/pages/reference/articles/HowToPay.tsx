@@ -17,7 +17,7 @@ const HowToPay = () => {
           <span>/</span>
           <span>Как оплатить ж/д билет</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Как оплатить ж/д билет</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Как оплатить ж/д билет</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -63,7 +63,7 @@ const HowToPay = () => {
                   <CreditCard className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold mb-4">Банковской картой</h2>
+                  <h2 className="heading-sub mb-4">Банковской картой</h2>
                   <p className="text-base mb-4">
                     Мы принимаем к оплате выпущенные в России банковские карты следующих платежных систем:
                   </p>
@@ -133,7 +133,7 @@ const HowToPay = () => {
                   <Smartphone className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold mb-4">Через СБП</h2>
+                  <h2 className="heading-sub mb-4">Через СБП</h2>
                   <p className="text-base mb-4">
                     <strong>СБП</strong> — система быстрых платежей, с помощью которой вы можете купить билеты, не вводя данные карты. 
                     Эту систему поддерживают большинство банков, но некоторые банки к ней могут быть не подключены. 

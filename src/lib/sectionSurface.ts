@@ -22,7 +22,7 @@ export function sectionHeadingBaseClass(surface: SectionSurface): string {
 }
 
 export function sectionLeadClass(surface: SectionSurface): string {
-  return surface === "light" ? "text-slate-600" : "text-white";
+  return surface === "light" ? "text-neutral-950 dark:text-neutral-100" : "text-white";
 }
 
 export function sectionShellClass(surface: SectionSurface, paddingClass: string): string {

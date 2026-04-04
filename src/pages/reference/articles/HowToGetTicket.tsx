@@ -17,7 +17,7 @@ const HowToGetTicket = () => {
           <span>/</span>
           <span>Как получить ж/д билет</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Как получить ж/д билет</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Как получить ж/д билет</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -33,7 +33,7 @@ const HowToGetTicket = () => {
           {/* Электронная регистрация */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <CheckCircle className="w-6 h-6 text-primary" />
                 Электронная регистрация
               </h2>
@@ -76,7 +76,7 @@ const HowToGetTicket = () => {
           {/* Что делать, если нет кассы */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <AlertCircle className="w-6 h-6 text-primary" />
                 Если на вокзале нет кассы или терминала
               </h2>
@@ -92,7 +92,7 @@ const HowToGetTicket = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2">
                 <li>
                   <Link 

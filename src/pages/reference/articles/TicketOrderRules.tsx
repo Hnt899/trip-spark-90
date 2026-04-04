@@ -16,13 +16,13 @@ const TicketOrderRules = () => {
           <span>/</span>
           <span>Правила заказа ж/д билетов</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Правила заказа ж/д билетов</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Правила заказа ж/д билетов</h1>
 
         <div className="space-y-8">
           {/* Содержание */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Содержание</h2>
+              <h2 className="heading-sub mb-4">Содержание</h2>
               <ul className="list-disc list-inside space-y-2 text-base">
                 <li><a href="#general" className="text-primary hover:underline">Общие положения</a></li>
                 <li><a href="#documents" className="text-primary hover:underline">Необходимые документы</a></li>
@@ -41,7 +41,7 @@ const TicketOrderRules = () => {
           {/* 1. Общие положения */}
           <Card id="general">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 1. Общие положения
               </h2>
@@ -84,7 +84,7 @@ const TicketOrderRules = () => {
           {/* 2. Необходимые документы */}
           <Card id="documents">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <IdCard className="w-6 h-6 text-primary" />
                 2. Необходимые документы
               </h2>
@@ -110,7 +110,7 @@ const TicketOrderRules = () => {
           {/* 3. Процесс заказа ж/д билета */}
           <Card id="process">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <ShoppingCart className="w-6 h-6 text-primary" />
                 3. Процесс заказа ж/д билета
               </h2>
@@ -144,7 +144,7 @@ const TicketOrderRules = () => {
           {/* 4. Способ оплаты билетов */}
           <Card id="payment">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <CreditCard className="w-6 h-6 text-primary" />
                 4. Способ оплаты билетов
               </h2>
@@ -157,7 +157,7 @@ const TicketOrderRules = () => {
           {/* 5. Получение и доставка ж/д билетов */}
           <Card id="receiving">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Package className="w-6 h-6 text-primary" />
                 5. Получение и доставка ж/д билетов
               </h2>
@@ -189,7 +189,7 @@ const TicketOrderRules = () => {
           {/* 6. Стоимость услуг по заказу ж/д билетов */}
           <Card id="cost">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <DollarSign className="w-6 h-6 text-primary" />
                 6. Стоимость услуг по заказу ж/д билетов
               </h2>
@@ -206,7 +206,7 @@ const TicketOrderRules = () => {
           {/* 7. Ограничения при покупке электронных билетов */}
           <Card id="limitations">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <AlertCircle className="w-6 h-6 text-primary" />
                 7. Ограничения при покупке электронных билетов
               </h2>
@@ -230,7 +230,7 @@ const TicketOrderRules = () => {
           {/* 8. Возврат билетов */}
           <Card id="refund">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Package className="w-6 h-6 text-primary" />
                 8. Возврат билетов
               </h2>
@@ -286,7 +286,7 @@ const TicketOrderRules = () => {
           {/* 9. Билеты для детей до 5 лет */}
           <Card id="children-under-5">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Baby className="w-6 h-6 text-primary" />
                 9. Билеты для детей до 5 лет
               </h2>
@@ -319,7 +319,7 @@ const TicketOrderRules = () => {
           {/* 10. Билеты для детей от 5 лет */}
           <Card id="children-over-5">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Users className="w-6 h-6 text-primary" />
                 10. Билеты для детей от 5 лет
               </h2>
@@ -332,7 +332,7 @@ const TicketOrderRules = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/how-to-buy" className="text-primary hover:underline">

@@ -21,7 +21,7 @@ const RussianStations = () => {
           <span>/</span>
           <span>Вокзалы России</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Вокзалы России</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Вокзалы России</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -41,7 +41,7 @@ const RussianStations = () => {
           {/* Петрозаводск */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Петрозаводск
               </h2>
@@ -55,7 +55,7 @@ const RussianStations = () => {
           {/* Самара */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Самара
               </h2>
@@ -77,7 +77,7 @@ const RussianStations = () => {
           {/* Липецк */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Липецк
               </h2>
@@ -90,7 +90,7 @@ const RussianStations = () => {
           {/* Новосибирск */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Новосибирск
               </h2>
@@ -104,7 +104,7 @@ const RussianStations = () => {
           {/* Красноярск */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Красноярск
               </h2>
@@ -118,7 +118,7 @@ const RussianStations = () => {
           {/* Омск */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Омск
               </h2>
@@ -132,7 +132,7 @@ const RussianStations = () => {
           {/* Челябинск */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Челябинск
               </h2>
@@ -145,7 +145,7 @@ const RussianStations = () => {
           {/* Сочи и Симферополь */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Сочи и Симферополь
               </h2>
@@ -158,7 +158,7 @@ const RussianStations = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/moscow-stations" className="text-primary hover:underline">

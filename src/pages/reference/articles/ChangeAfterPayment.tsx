@@ -17,13 +17,13 @@ const ChangeAfterPayment = () => {
           <span>/</span>
           <span>Как исправить ошибки в ж/д билете</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Как исправить ошибки в ж/д билете</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Как исправить ошибки в ж/д билете</h1>
 
         <div className="space-y-8">
           {/* Ошибки в ФИО и номере документа - одна ошибка */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <User className="w-6 h-6 text-primary" />
                 Ошибки в ФИО и номере документа
               </h2>
@@ -96,7 +96,7 @@ const ChangeAfterPayment = () => {
           {/* Другие ошибки в ФИО */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 Другие ошибки в ФИО и номере документа
               </h2>
@@ -121,7 +121,7 @@ const ChangeAfterPayment = () => {
           {/* Другие типы ошибок */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <AlertTriangle className="w-6 h-6 text-primary" />
                 Другие типы ошибок
               </h2>
@@ -184,7 +184,7 @@ const ChangeAfterPayment = () => {
           {/* Билет оформлен на старую фамилию */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <User className="w-6 h-6 text-primary" />
                 Билет оформлен на старую фамилию
               </h2>
@@ -204,7 +204,7 @@ const ChangeAfterPayment = () => {
           {/* Ошибки при путешествии за границу */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Globe className="w-6 h-6 text-primary" />
                 Ошибки при путешествии за границу
               </h2>
@@ -226,7 +226,7 @@ const ChangeAfterPayment = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2">
                 <li>
                   <Link 

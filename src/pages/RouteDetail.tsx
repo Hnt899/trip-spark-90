@@ -83,7 +83,9 @@ const RouteDetail = () => {
       <div className="min-h-screen bg-[#F5F5FA]">
         <Header />
         <main className="container px-4 md:px-6 py-12 md:py-20 pt-20 md:pt-32">
-          <h1 className="text-2xl md:text-4xl font-bold mb-6">Маршрут не найден</h1>
+          <h1 className="heading-gradient text-2xl md:text-4xl font-bold tracking-tight mb-6">
+            Маршрут не найден
+          </h1>
           <Button onClick={() => navigate("/routes/list")}>
             Вернуться к списку маршрутов
           </Button>
@@ -118,7 +120,7 @@ const RouteDetail = () => {
             <CardContent className="p-4 md:p-6 lg:p-8">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4 md:mb-6">
                 <div className="flex-1">
-                  <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-foreground mb-2">
+                  <h1 className="heading-gradient text-2xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-2">
                     {route.name}
                   </h1>
                   <p className="text-base md:text-lg text-muted-foreground">

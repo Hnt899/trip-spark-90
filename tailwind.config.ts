@@ -81,6 +81,14 @@ export default {
             height: "0",
           },
         },
+        "collapsible-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-collapsible-content-height)" },
+        },
+        "collapsible-up": {
+          from: { height: "var(--radix-collapsible-content-height)" },
+          to: { height: "0" },
+        },
         "fade-in": {
           "0%": {
             opacity: "0",
@@ -150,6 +158,10 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "collapsible-down":
+          "collapsible-down 0.38s cubic-bezier(0.32, 0.72, 0, 1)",
+        "collapsible-up":
+          "collapsible-up 0.32s cubic-bezier(0.32, 0.72, 0, 1)",
         "fade-in": "fade-in 0.5s ease-out",
         "slide-in": "slide-in 0.5s ease-out",
         "train-arrive": "train-arrive 1.5s cubic-bezier(0.4, 0, 0.2, 1) 0.5s both",

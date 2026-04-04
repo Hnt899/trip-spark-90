@@ -445,9 +445,8 @@ const Guide = () => {
                   ref={tabsListRef}
                   className={cn(
                     "inline-flex h-auto flex-nowrap items-center justify-center rounded-2xl p-2.5 md:p-3.5 gap-2 md:gap-2.5 lg:gap-3 backdrop-blur-md",
-                    "w-max shrink-0 overflow-visible"
+                    "bg-transparent guide-tabs-rail w-max shrink-0 overflow-visible ring-1 ring-white/15 text-white"
                   )}
-                  style={{ backgroundColor: "rgba(32, 8, 255, 0.4)" }}
                 >
                 {Object.values(guideSections).map((section) => (
                   <TabsTrigger 
@@ -473,7 +472,9 @@ const Guide = () => {
 
         {/* Заголовок */}
         <div className="mb-8 mt-8 md:mt-24">
-          <h1 className="text-3xl md:text-5xl font-bold mb-4">Путеводитель TudaSuda</h1>
+          <h1 className="heading-gradient text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+            Путеводитель TudaSuda
+          </h1>
         </div>
 
         {/* Поиск */}

@@ -17,13 +17,13 @@ const TrainSchedule = () => {
           <span>/</span>
           <span>Как узнать расписание, маршрут, график поезда</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Как найти информацию по расписанию, маршруту, остановкам поезда</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Как найти информацию по расписанию, маршруту, остановкам поезда</h1>
 
         <div className="space-y-8">
           {/* Поиск по дате */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
                 Поиск расписания на определённую дату
               </h2>
@@ -48,7 +48,7 @@ const TrainSchedule = () => {
           {/* Поиск без даты */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Search className="w-6 h-6 text-primary" />
                 Поиск без указания даты
               </h2>
@@ -66,7 +66,7 @@ const TrainSchedule = () => {
           {/* Если билетов нет */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <AlertCircle className="w-6 h-6 text-primary" />
                 Если билетов нет
               </h2>
@@ -105,7 +105,7 @@ const TrainSchedule = () => {
           {/* Советы по экономии */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Info className="w-6 h-6 text-primary" />
                 Полезные советы
               </h2>
@@ -122,7 +122,7 @@ const TrainSchedule = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2">
                 <li>
                   <Link 

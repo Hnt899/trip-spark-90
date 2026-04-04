@@ -22,7 +22,7 @@ const ChtodelatEsliya = () => {
           <span>/</span>
           <span>Что делать, если я заболел в дороге?</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Что делать, если я заболел в дороге?</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Что делать, если я заболел в дороге?</h1>
 
         <div className="space-y-8">
           {/* В поезде */}

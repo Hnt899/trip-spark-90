@@ -5,11 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { SectionSurface } from "@/lib/sectionSurface";
 import {
-  sectionHeadingAccentClass,
-  sectionHeadingBaseClass,
   sectionLeadClass,
   sectionShellClass,
-  sectionYellowGlow,
 } from "@/lib/sectionSurface";
 
 interface InspirationSectionProps {
@@ -306,14 +303,8 @@ const InspirationSection = ({ surface = "brand" }: InspirationSectionProps) => {
       )}
       <div className="container relative z-10">
         <div className="text-center mb-12">
-          <h2 className={cn("text-4xl md:text-5xl lg:text-6xl font-extrabold mb-2 leading-tight pb-2", sectionHeadingBaseClass(surface))}>
-            <span
-              className={sectionHeadingAccentClass(surface)}
-              style={surface === "brand" ? sectionYellowGlow : undefined}
-            >
-              Вдохновение
-            </span>{" "}
-            <span className={sectionHeadingBaseClass(surface)}>для следующей поездки</span>
+          <h2 className="heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-2 leading-tight pb-2 tracking-tight">
+            Вдохновение для следующей поездки
           </h2>
           <p className={cn("text-lg", sectionLeadClass(surface))}>
             Найдите идеи и направления

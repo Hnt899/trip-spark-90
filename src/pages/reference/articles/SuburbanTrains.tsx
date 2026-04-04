@@ -17,13 +17,13 @@ const SuburbanTrains = () => {
           <span>/</span>
           <span>Как купить билеты на скорые пригородные поезда</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Как купить билеты на скорые пригородные поезда</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Как купить билеты на скорые пригородные поезда</h1>
 
         <div className="space-y-8">
           {/* Как купить на сайте */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6">Как купить билет на скорые пригородные поезда на сайте TudaSuda</h2>
+              <h2 className="heading-sub mb-6">Как купить билет на скорые пригородные поезда на сайте TudaSuda</h2>
               <p className="text-base leading-relaxed mb-4">
                 На TudaSuda можно купить билеты на скорые пригородные поезда с предоставлением места.
               </p>
@@ -71,7 +71,7 @@ const SuburbanTrains = () => {
           {/* На какие поезда */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Train className="w-6 h-6 text-primary" />
                 На какие скорые пригородные поезда можно купить билет?
               </h2>
@@ -98,7 +98,7 @@ const SuburbanTrains = () => {
           {/* Как отличить */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Как отличить поезд дальнего следования от скорого пригородного поезда?</h2>
+              <h2 className="heading-sub mb-4">Как отличить поезд дальнего следования от скорого пригородного поезда?</h2>
               <p className="text-base leading-relaxed">
                 По номерам. У скорых пригородных поездов они <strong>7000-е</strong>. Нумерация начинается с 7001 и заканчивается 7098.
               </p>
@@ -108,7 +108,7 @@ const SuburbanTrains = () => {
           {/* Когда можно купить */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
                 Когда можно купить билет на скорые пригородные поезда?
               </h2>
@@ -122,7 +122,7 @@ const SuburbanTrains = () => {
           {/* Детские билеты */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Baby className="w-6 h-6 text-primary" />
                 Как купить детский билет на скорый пригородный поезд?
               </h2>
@@ -144,7 +144,7 @@ const SuburbanTrains = () => {
           {/* Как получить билет */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 Как получить билет на скорый пригородный поезд?
               </h2>
@@ -163,7 +163,7 @@ const SuburbanTrains = () => {
           {/* Как вернуть билет */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <RefreshCw className="w-6 h-6 text-primary" />
                 Как вернуть билет на скорый пригородный поезд?
               </h2>
@@ -198,7 +198,7 @@ const SuburbanTrains = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2">
                 <li>
                   <Link 

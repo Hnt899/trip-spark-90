@@ -5,37 +5,7 @@ import instaImage from "@/assets/images/people/insta.jpg";
 
 const ProcessSection = () => {
   return (
-    <section className="py-20 bg-[#100A6F]/80 backdrop-blur-sm relative overflow-visible">
-      {/* Декоративные желтые пятна */}
-      <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
-        {/* Левое пятно - от центра поднимаемся вверх на 30px */}
-        <div 
-          className="absolute rounded-full blur-3xl"
-          style={{
-            width: '400px',
-            height: '400px',
-            left: '-150px',
-            top: 'calc(50% - 30px)',
-            transform: 'translateY(-50%)',
-            background: '#F9B84F',
-            opacity: 0.3,
-          }}
-        />
-        {/* Правое пятно - от центра опускаемся вниз на 30px */}
-        <div 
-          className="absolute rounded-full blur-3xl"
-          style={{
-            width: '400px',
-            height: '400px',
-            right: '-100px',
-            top: 'calc(50% + 30px)',
-            transform: 'translateY(-50%)',
-            background: '#F9B84F',
-            opacity: 0.3,
-          }}
-        />
-      </div>
-
+    <section className="py-20 relative overflow-visible">
       <div className="container space-y-8 relative z-10">
         {/* Блок о нашей работе и приглашение в Instagram */}
         <div className="bg-white rounded-2xl p-6 md:p-8 lg:p-10 flex flex-col lg:flex-row items-center gap-8 shadow-xl">
@@ -46,9 +16,9 @@ const ProcessSection = () => {
             <p className="text-lg text-[#3F3F7F]/80 mb-6 leading-relaxed">
               Хотите узнавать о <span className="font-semibold text-[#867DFF]">новых трендах</span> раньше всех? Подписывайтесь на наш Instagram!
             </p>
-            <Button 
-              className="h-12 px-8 bg-gradient-to-r from-[#867DFF] to-[#6B5CE6] hover:from-[#867DFF]/90 hover:to-[#6B5CE6]/90 text-white rounded-lg text-base font-semibold"
-              onClick={() => window.open('https://instagram.com/tudasuda', '_blank')}
+            <Button
+              className="h-12 px-8 text-base font-semibold rounded-lg"
+              onClick={() => window.open("https://instagram.com/tudasuda", "_blank")}
             >
               <Instagram className="w-5 h-5 mr-2" />
               Перейти в Instagram

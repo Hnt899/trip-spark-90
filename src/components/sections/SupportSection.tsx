@@ -191,7 +191,7 @@ const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
             <div className="md:hidden space-y-6">
               {/* Заголовок */}
               <div className="text-center">
-                <h2 className="text-4xl font-extrabold text-foreground mb-4 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent">
+                <h2 className="heading-gradient text-3xl md:text-4xl font-extrabold tracking-tight mb-4">
                   Умный бот-помощник 24/7
                 </h2>
                 <p className="text-lg text-muted-foreground">
@@ -201,7 +201,7 @@ const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
 
               {/* Преимущества бота */}
               <div className="rounded-lg border border-border/50 bg-muted/30 p-5">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                <h3 className="text-sm font-semibold text-neutral-950 dark:text-neutral-100 uppercase tracking-wide mb-4">
                   Почему выбирают нас
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -231,7 +231,7 @@ const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
               <div className="space-y-8">
                 {/* Заголовок */}
                 <div>
-                  <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent">
+                  <h2 className="heading-gradient text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4">
                     Умный бот-помощник 24/7
                   </h2>
                   <p className="text-lg md:text-xl text-muted-foreground">
@@ -241,7 +241,7 @@ const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
 
                 {/* Какие вопросы решаем */}
                 <div className="space-y-2">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                  <h3 className="text-sm font-semibold text-neutral-950 dark:text-neutral-100 uppercase tracking-wide mb-3">
                     Помогаем с
                   </h3>
                   <div className="space-y-2">
@@ -262,7 +262,7 @@ const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
 
                 {/* Преимущества бота */}
                 <div className="rounded-lg border border-border/50 bg-muted/30 p-5">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                  <h3 className="text-sm font-semibold text-neutral-950 dark:text-neutral-100 uppercase tracking-wide mb-4">
                     Почему выбирают нас
                   </h3>
                   <div className="grid grid-cols-2 gap-4">

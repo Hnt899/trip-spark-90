@@ -30,14 +30,14 @@ const Buses = () => {
           </Link>
         </div>
 
-        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-12">
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-10">
           Справочная информация об автобусных билетах
         </h1>
 
         <div className="space-y-12 max-w-4xl">
           {Object.entries(groupedArticles).map(([category, articles]) => (
             <section key={category}>
-              <h2 className="text-2xl font-bold text-foreground mb-6">{category}</h2>
+              <h2 className="heading-sub mb-6">{category}</h2>
               <ul className="space-y-3">
                 {articles.map((article) => (
                   <li key={article.path}>

@@ -9,11 +9,8 @@ import type { SectionSurface } from "@/lib/sectionSurface";
 import {
   carouselDotClass,
   sectionCardLiftClass,
-  sectionHeadingAccentClass,
-  sectionHeadingBaseClass,
   sectionLeadClass,
   sectionShellClass,
-  sectionYellowGlow,
 } from "@/lib/sectionSurface";
 
 interface EventsSectionProps {
@@ -269,14 +266,8 @@ const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
       <div className="container relative z-10">
         <div className="text-center md:flex md:justify-between md:items-center mb-8">
           <div className="md:text-left">
-            <h2 className={cn("text-3xl md:text-4xl lg:text-5xl font-extrabold mb-2 leading-tight pb-2", sectionHeadingBaseClass(surface))}>
-              Повод для{" "}
-              <span
-                className={sectionHeadingAccentClass(surface)}
-                style={surface === "brand" ? sectionYellowGlow : undefined}
-              >
-                путешествия
-              </span>
+            <h2 className="heading-gradient text-3xl md:text-4xl lg:text-5xl font-extrabold mb-2 leading-tight pb-2 tracking-tight">
+              Повод для путешествия
             </h2>
             <p className={sectionLeadClass(surface)}>
               10 событий, ради которых стоит ровнуть в путь

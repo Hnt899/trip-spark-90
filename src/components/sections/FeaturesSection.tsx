@@ -12,11 +12,8 @@ import {
 import type { SectionSurface } from "@/lib/sectionSurface";
 import {
   carouselDotClass,
-  sectionHeadingAccentClass,
-  sectionHeadingBaseClass,
   sectionLeadClass,
   sectionShellClass,
-  sectionYellowGlow,
 } from "@/lib/sectionSurface";
 
 interface FeaturesSectionProps {
@@ -137,14 +134,8 @@ const FeaturesSection = ({ surface = "brand" }: FeaturesSectionProps) => {
       
       <div className="container relative z-10">
         <div className="text-center mb-12 md:mb-16 space-y-3">
-          <h2 className={cn("text-3xl md:text-4xl lg:text-5xl font-bold", sectionHeadingBaseClass(surface))}>
-            Почему выбирают{" "}
-            <span
-              className={sectionHeadingAccentClass(surface)}
-              style={surface === "brand" ? sectionYellowGlow : undefined}
-            >
-              TudaSuda?
-            </span>
+          <h2 className="heading-gradient text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
+            Почему выбирают TudaSuda?
           </h2>
           <p className={cn("text-base md:text-lg max-w-2xl mx-auto", sectionLeadClass(surface))}>
             Всё для комфортного путешествия туда и обратно

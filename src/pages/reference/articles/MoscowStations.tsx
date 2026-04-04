@@ -21,13 +21,13 @@ const MoscowStations = () => {
           <span>/</span>
           <span>Вокзалы Москвы</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Вокзалы Москвы</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Вокзалы Москвы</h1>
 
         <div className="space-y-8">
           {/* Казанский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Казанский вокзал
               </h2>
@@ -51,7 +51,7 @@ const MoscowStations = () => {
           {/* Курский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Курский вокзал
               </h2>
@@ -72,7 +72,7 @@ const MoscowStations = () => {
           {/* Ленинградский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Ленинградский вокзал
               </h2>
@@ -98,7 +98,7 @@ const MoscowStations = () => {
           {/* Савёловский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Савёловский вокзал
               </h2>
@@ -119,7 +119,7 @@ const MoscowStations = () => {
           {/* Ярославский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Ярославский вокзал
               </h2>
@@ -141,7 +141,7 @@ const MoscowStations = () => {
           {/* Павелецкий вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Павелецкий вокзал
               </h2>
@@ -160,7 +160,7 @@ const MoscowStations = () => {
           {/* Белорусский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Белорусский вокзал
               </h2>
@@ -185,7 +185,7 @@ const MoscowStations = () => {
           {/* Киевский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Киевский вокзал
               </h2>
@@ -206,7 +206,7 @@ const MoscowStations = () => {
           {/* Рижский вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Рижский вокзал
               </h2>
@@ -225,7 +225,7 @@ const MoscowStations = () => {
           {/* Восточный вокзал */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
                 Восточный вокзал
               </h2>
@@ -244,7 +244,7 @@ const MoscowStations = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/russian-stations" className="text-primary hover:underline">

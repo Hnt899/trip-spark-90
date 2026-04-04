@@ -17,7 +17,7 @@ const ProfilePurpose = () => {
           <span>/</span>
           <span>Всё о профиле TudaSuda</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Всё о профиле TudaSuda</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Всё о профиле TudaSuda</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -33,7 +33,7 @@ const ProfilePurpose = () => {
           {/* Содержание */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Содержание статьи:</h2>
+              <h2 className="heading-sub mb-4">Содержание статьи:</h2>
               <ul className="space-y-2">
                 <li>
                   <Link to="#login" className="text-primary hover:underline flex items-center gap-2">
@@ -96,7 +96,7 @@ const ProfilePurpose = () => {
           {/* Как войти в профиль */}
           <Card id="login">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <LogIn className="w-6 h-6 text-primary" />
                 Как войти в профиль TudaSuda
               </h2>
@@ -120,7 +120,7 @@ const ProfilePurpose = () => {
           {/* Как посмотреть заказы */}
           <Card id="orders">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 Как посмотреть заказы и скачать документы
               </h2>
@@ -154,7 +154,7 @@ const ProfilePurpose = () => {
           {/* Как оформить возврат */}
           <Card id="return">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <RefreshCw className="w-6 h-6 text-primary" />
                 Как оформить возврат или обмен
               </h2>
@@ -186,7 +186,7 @@ const ProfilePurpose = () => {
           {/* Как сохранить данные пассажиров */}
           <Card id="passengers">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Save className="w-6 h-6 text-primary" />
                 Как сохранить данные пассажиров
               </h2>
@@ -210,7 +210,7 @@ const ProfilePurpose = () => {
           {/* Дополнительные услуги */}
           <Card id="services">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <ShoppingBag className="w-6 h-6 text-primary" />
                 Как заказать дополнительные услуги
               </h2>
@@ -225,7 +225,7 @@ const ProfilePurpose = () => {
           {/* Контакт-центр */}
           <Card id="contact">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <MessageCircle className="w-6 h-6 text-primary" />
                 Как связаться с контакт-центром или оставить отзыв
               </h2>
@@ -240,7 +240,7 @@ const ProfilePurpose = () => {
           {/* Программа лояльности */}
           <Card id="loyalty">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Gift className="w-6 h-6 text-primary" />
                 Как узнать статус программы лояльности
               </h2>
@@ -261,7 +261,7 @@ const ProfilePurpose = () => {
           {/* Кошелёк */}
           <Card id="wallet">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Wallet className="w-6 h-6 text-primary" />
                 Как проверить баланс и лимиты TudaSuda Кошелька
               </h2>
@@ -277,7 +277,7 @@ const ProfilePurpose = () => {
           {/* Удаление профиля */}
           <Card id="delete">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Trash2 className="w-6 h-6 text-primary" />
                 Как удалить профиль
               </h2>

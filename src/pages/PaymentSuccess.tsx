@@ -152,7 +152,7 @@ const PaymentSuccess = () => {
         <main className="container pt-24 pb-12 md:pt-32">
           <div className="max-w-2xl mx-auto text-center">
             <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Ошибка</h1>
+            <h1 className="heading-gradient text-2xl md:text-3xl font-bold tracking-tight mb-2">Ошибка</h1>
             <p className="text-muted-foreground mb-6">{error}</p>
             <Button onClick={() => navigate("/")}>На главную</Button>
           </div>
@@ -174,7 +174,9 @@ const PaymentSuccess = () => {
         <main className="container pt-24 pb-12 md:pt-32">
           <div className="max-w-2xl mx-auto text-center">
             <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
-            <h1 className="text-2xl font-bold mb-2">Ожидаем подтверждение оплаты</h1>
+            <h1 className="heading-gradient text-2xl md:text-3xl font-bold tracking-tight mb-2">
+              Ожидаем подтверждение оплаты
+            </h1>
             <p className="text-muted-foreground mb-4">
               Мы получили ваш запрос и проверяем статус оплаты...
             </p>
@@ -208,7 +210,7 @@ const PaymentSuccess = () => {
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle2 className="w-10 h-10 text-green-600" />
                 </div>
-                <h1 className="text-3xl font-bold mb-2">Заказ успешно оплачен!</h1>
+                <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-2">Заказ успешно оплачен!</h1>
                 <p className="text-muted-foreground mb-4">
                   Заказ № <span className="font-mono font-semibold">{orderNumber}</span>
                 </p>

@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -22,7 +22,7 @@ const Eslipopalvdtp = () => {
           <span>/</span>
           <span>Если попал в ДТП в автобусе?</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Что делать, если попал в ДТП в автобусе?</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Что делать, если попал в ДТП в автобусе?</h1>
 
         <div className="space-y-8">
           {/* Первые действия */}

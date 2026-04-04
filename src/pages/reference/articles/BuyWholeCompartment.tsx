@@ -17,7 +17,7 @@ const BuyWholeCompartment = () => {
           <span>/</span>
           <span>Можно ли выкупить целое купе</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Можно ли выкупить целое купе</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Можно ли выкупить целое купе</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -33,7 +33,7 @@ const BuyWholeCompartment = () => {
           {/* С детьми */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Users className="w-6 h-6 text-primary" />
                 Поездка с детьми
               </h2>
@@ -61,7 +61,7 @@ const BuyWholeCompartment = () => {
           {/* С ребёнком до 5 лет */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Baby className="w-6 h-6 text-primary" />
                 Поездка с ребёнком до 5 лет
               </h2>
@@ -84,7 +84,7 @@ const BuyWholeCompartment = () => {
           {/* Важное предупреждение */}
           <Card className="bg-red-50 border-red-200">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-red-900">
+              <h2 className="heading-sub mb-4 flex items-center gap-2 text-red-900">
                 <AlertCircle className="w-6 h-6" />
                 Важно
               </h2>
@@ -98,7 +98,7 @@ const BuyWholeCompartment = () => {
           {/* Совет по покупке */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
                 Когда лучше покупать
               </h2>
@@ -113,7 +113,7 @@ const BuyWholeCompartment = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2">
                 <li>
                   <Link 

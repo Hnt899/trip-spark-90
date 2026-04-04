@@ -17,7 +17,7 @@ const RefundToCard = () => {
           <span>/</span>
           <span>Почему деньги возвращаются на карту, которой оплачен заказ</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Почему деньги возвращаются на карту, с которой производилась оплата</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Почему деньги возвращаются на карту, с которой производилась оплата</h1>
 
         <div className="space-y-8">
           {/* Основная информация */}
@@ -46,7 +46,7 @@ const RefundToCard = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2">
                 <li>
                   <Link 

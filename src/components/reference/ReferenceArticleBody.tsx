@@ -202,7 +202,7 @@ function SectionBody({ text }: { text: string }) {
 function SectionHeading({ title, icon: Icon }: { title: string; icon: LucideIcon }) {
   const branded = applyBrandToText(title);
   return (
-    <h2 className="text-2xl font-bold mb-5 flex items-center gap-3 text-foreground">
+    <h2 className="heading-sub mb-5 flex items-center gap-3">
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 border border-primary/20">
         <Icon className="h-6 w-6 text-primary" strokeWidth={2} />
       </span>

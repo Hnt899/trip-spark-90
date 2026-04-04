@@ -17,7 +17,7 @@ const AutoFillPassengerData = () => {
           <span>/</span>
           <span>Автоматический ввод данных пассажиров</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Упрощенный ввод данных пассажиров</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Упрощенный ввод данных пассажиров</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -37,7 +37,7 @@ const AutoFillPassengerData = () => {
           {/* Как пользоваться */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Zap className="w-6 h-6 text-primary" />
                 Как пользоваться автовводом
               </h2>
@@ -120,7 +120,7 @@ const AutoFillPassengerData = () => {
           {/* Преимущества */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Преимущества автоввода</h2>
+              <h2 className="heading-sub mb-4">Преимущества автоввода</h2>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />

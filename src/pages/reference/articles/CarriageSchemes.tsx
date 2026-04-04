@@ -21,7 +21,7 @@ const CarriageSchemes = () => {
           <span>/</span>
           <span>Схемы вагонов ЖД</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Схемы вагонов ЖД</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Схемы вагонов ЖД</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -41,7 +41,7 @@ const CarriageSchemes = () => {
           {/* Плацкарт */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Map className="w-6 h-6 text-primary" />
                 Схема плацкарта поезда
               </h2>
@@ -64,7 +64,7 @@ const CarriageSchemes = () => {
           {/* Купе */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Map className="w-6 h-6 text-primary" />
                 Схема купе поезда
               </h2>
@@ -84,7 +84,7 @@ const CarriageSchemes = () => {
           {/* СВ */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Map className="w-6 h-6 text-primary" />
                 Спальный вагон (СВ)
               </h2>
@@ -100,7 +100,7 @@ const CarriageSchemes = () => {
           {/* Международные поезда */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Map className="w-6 h-6 text-primary" />
                 Международные поезда
               </h2>
@@ -119,7 +119,7 @@ const CarriageSchemes = () => {
           {/* Скоростные поезда */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Map className="w-6 h-6 text-primary" />
                 Скоростные поезда
               </h2>
@@ -140,7 +140,7 @@ const CarriageSchemes = () => {
           {/* Информация о схеме */}
           <Card className="bg-blue-50 border-blue-200">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Info className="w-6 h-6 text-blue-700" />
                 Где найти схему вагона
               </h2>
@@ -155,7 +155,7 @@ const CarriageSchemes = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/how-to-buy" className="text-primary hover:underline">

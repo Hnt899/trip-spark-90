@@ -17,7 +17,7 @@ const WhatNeededForBoarding = () => {
           <span>/</span>
           <span>Что нужно для посадки в поезд</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Что нужно для посадки в поезд</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Что нужно для посадки в поезд</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -40,7 +40,7 @@ const WhatNeededForBoarding = () => {
           {/* Если не прошли электронную регистрацию */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary" />
                 Если вы не прошли электронную регистрацию
               </h2>
@@ -70,7 +70,7 @@ const WhatNeededForBoarding = () => {
           {/* Если прошли электронную регистрацию */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <CheckCircle className="w-6 h-6 text-primary" />
                 Если вы прошли электронную регистрацию
               </h2>
@@ -99,7 +99,7 @@ const WhatNeededForBoarding = () => {
           {/* Документы для оформления билета */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <User className="w-6 h-6 text-primary" />
                 Документы для оформления билета
               </h2>
@@ -135,7 +135,7 @@ const WhatNeededForBoarding = () => {
           {/* Особые случаи */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Info className="w-6 h-6 text-primary" />
                 Особые случаи
               </h2>
@@ -178,7 +178,7 @@ const WhatNeededForBoarding = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2">
                 <li>
                   <Link 

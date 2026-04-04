@@ -14,7 +14,7 @@ const LuggageRules = () => {
           <span>/</span>
           <span>Правила перевозки багажа</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Правила перевозки багажа</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Правила перевозки багажа</h1>
         <div className="prose max-w-none">
           <p className="text-lg text-muted-foreground">
             Информация находится в разработке.

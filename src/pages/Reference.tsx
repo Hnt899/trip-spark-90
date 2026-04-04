@@ -15,15 +15,73 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
 import { cities } from "@/data/cities";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 type TransportType = "trains" | "flights" | "buses";
 type TravelType = "train" | "flight" | "bus";
 
+const REFERENCE_TRANSPORT_TABS: {
+  id: TransportType;
+  hash: string;
+  label: string;
+  Icon: typeof Train;
+}[] = [
+  { id: "trains", hash: "#trains", label: "Поезда", Icon: Train },
+  { id: "flights", hash: "#flights", label: "Самолёты", Icon: Plane },
+  { id: "buses", hash: "#buses", label: "Автобусы", Icon: Bus },
+];
+
+function ReferenceTransportTab({
+  tab,
+  active,
+  onSelect,
+  layout,
+}: {
+  tab: (typeof REFERENCE_TRANSPORT_TABS)[number];
+  active: boolean;
+  onSelect: () => void;
+  layout: "mobile" | "desktop";
+}) {
+  const { Icon, label } = tab;
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      title={label}
+      className={cn(
+        "group relative overflow-hidden rounded-lg transition-shadow",
+        layout === "mobile" && "flex items-center justify-center px-3 py-2",
+        layout === "desktop" && "w-full flex items-center gap-3 px-4 py-3 text-left",
+        active
+          ? "travel-tab-gradient text-white shadow-md"
+          : "bg-muted/50 text-foreground shadow-none"
+      )}
+    >
+      {!active && <span className="reference-tab-hover-fill" aria-hidden />}
+      <span
+        className={cn(
+          "relative z-[1] flex items-center",
+          layout === "mobile" && "justify-center",
+          layout === "desktop" && "min-w-0 gap-3",
+          !active && "group-hover:text-white"
+        )}
+      >
+        <Icon
+          className={cn(
+            "h-5 w-5 shrink-0",
+            !active && "text-foreground group-hover:text-white"
+          )}
+        />
+        {layout === "desktop" && (
+          <span className={cn("font-medium", !active && "group-hover:text-white")}>{label}</span>
+        )}
+      </span>
+    </button>
+  );
+}
+
 const Reference = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<TransportType>("trains");
 
   // Определяем активный таб из URL параметров или hash
@@ -112,53 +170,18 @@ const Reference = () => {
       <div className="md:hidden sticky top-[56px] z-40 bg-background border-b">
         <div className="container">
           <div className="flex items-center justify-center gap-2 py-3">
-            <button
-              onClick={() => {
-                setActiveTab("trains");
-                navigate("/reference#trains");
-              }}
-              className={cn(
-                "flex items-center justify-center px-3 py-2 rounded-lg transition-all",
-                activeTab === "trains"
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "bg-muted/50 text-foreground hover:bg-muted"
-              )}
-              title="Поезда"
-            >
-              <Train className="w-5 h-5 shrink-0" />
-            </button>
-            
-            <button
-              onClick={() => {
-                setActiveTab("flights");
-                navigate("/reference#flights");
-              }}
-              className={cn(
-                "flex items-center justify-center px-3 py-2 rounded-lg transition-all",
-                activeTab === "flights"
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "bg-muted/50 text-foreground hover:bg-muted"
-              )}
-              title="Самолёты"
-            >
-              <Plane className="w-5 h-5 shrink-0" />
-            </button>
-            
-            <button
-              onClick={() => {
-                setActiveTab("buses");
-                navigate("/reference#buses");
-              }}
-              className={cn(
-                "flex items-center justify-center px-3 py-2 rounded-lg transition-all",
-                activeTab === "buses"
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "bg-muted/50 text-foreground hover:bg-muted"
-              )}
-              title="Автобусы"
-            >
-              <Bus className="w-5 h-5 shrink-0" />
-            </button>
+            {REFERENCE_TRANSPORT_TABS.map((tab) => (
+              <ReferenceTransportTab
+                key={tab.id}
+                tab={tab}
+                layout="mobile"
+                active={activeTab === tab.id}
+                onSelect={() => {
+                  setActiveTab(tab.id);
+                  navigate(`/reference${tab.hash}`);
+                }}
+              />
+            ))}
           </div>
         </div>
       </div>
@@ -309,53 +332,18 @@ const Reference = () => {
           {/* Левая панель с табами */}
           <aside className="w-64 shrink-0">
             <div className="space-y-2">
-              <button
-                onClick={() => {
-                  setActiveTab("trains");
-                  navigate("/reference#trains");
-                }}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left",
-                  activeTab === "trains"
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "bg-muted/50 text-foreground hover:bg-muted"
-                )}
-              >
-                <Train className="w-5 h-5 shrink-0" />
-                <span className="font-medium">Поезда</span>
-              </button>
-              
-              <button
-                onClick={() => {
-                  setActiveTab("flights");
-                  navigate("/reference#flights");
-                }}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left",
-                  activeTab === "flights"
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "bg-muted/50 text-foreground hover:bg-muted"
-                )}
-              >
-                <Plane className="w-5 h-5 shrink-0" />
-                <span className="font-medium">Самолёты</span>
-              </button>
-              
-              <button
-                onClick={() => {
-                  setActiveTab("buses");
-                  navigate("/reference#buses");
-                }}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left",
-                  activeTab === "buses"
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "bg-muted/50 text-foreground hover:bg-muted"
-                )}
-              >
-                <Bus className="w-5 h-5 shrink-0" />
-                <span className="font-medium">Автобусы</span>
-              </button>
+              {REFERENCE_TRANSPORT_TABS.map((tab) => (
+                <ReferenceTransportTab
+                  key={tab.id}
+                  tab={tab}
+                  layout="desktop"
+                  active={activeTab === tab.id}
+                  onSelect={() => {
+                    setActiveTab(tab.id);
+                    navigate(`/reference${tab.hash}`);
+                  }}
+                />
+              ))}
             </div>
           </aside>
 
@@ -365,7 +353,7 @@ const Reference = () => {
               <div className="space-y-8">
                 {Object.entries(groupedArticles).map(([category, articles]) => (
                   <section key={category}>
-                    <h2 className="text-2xl font-bold text-foreground mb-4">
+                    <h2 className="heading-sub mb-4">
                       {category}
                     </h2>
                     <ul className="space-y-2">
@@ -389,7 +377,7 @@ const Reference = () => {
               <div className="space-y-8">
                 {Object.entries(groupedFlightsArticles).map(([category, articles]) => (
                   <section key={category}>
-                    <h2 className="text-2xl font-bold text-foreground mb-4">{category}</h2>
+                    <h2 className="heading-sub mb-4">{category}</h2>
                     <ul className="space-y-2">
                       {articles.map((article) => (
                         <li key={article.path}>
@@ -408,7 +396,7 @@ const Reference = () => {
               <div className="space-y-8">
                 {Object.entries(groupedBusesArticles).map(([category, articles]) => (
                   <section key={category}>
-                    <h2 className="text-2xl font-bold text-foreground mb-4">{category}</h2>
+                    <h2 className="heading-sub mb-4">{category}</h2>
                     <ul className="space-y-2">
                       {articles.map((article) => (
                         <li key={article.path}>
@@ -431,7 +419,7 @@ const Reference = () => {
               <div className="space-y-8">
                 {Object.entries(groupedArticles).map(([category, articles]) => (
                   <section key={category}>
-                    <h2 className="text-2xl font-bold text-foreground mb-4">
+                    <h2 className="heading-sub mb-4">
                       {category}
                     </h2>
                     <ul className="space-y-2">
@@ -455,7 +443,7 @@ const Reference = () => {
               <div className="space-y-8">
                 {Object.entries(groupedFlightsArticles).map(([category, articles]) => (
                   <section key={category}>
-                    <h2 className="text-2xl font-bold text-foreground mb-4">{category}</h2>
+                    <h2 className="heading-sub mb-4">{category}</h2>
                     <ul className="space-y-2">
                       {articles.map((article) => (
                         <li key={article.path}>
@@ -474,7 +462,7 @@ const Reference = () => {
               <div className="space-y-8">
                 {Object.entries(groupedBusesArticles).map(([category, articles]) => (
                   <section key={category}>
-                    <h2 className="text-2xl font-bold text-foreground mb-4">{category}</h2>
+                    <h2 className="heading-sub mb-4">{category}</h2>
                     <ul className="space-y-2">
                       {articles.map((article) => (
                         <li key={article.path}>

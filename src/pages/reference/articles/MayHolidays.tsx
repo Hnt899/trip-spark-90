@@ -21,7 +21,7 @@ const MayHolidays = () => {
           <span>/</span>
           <span>Куда поехать на майские праздники</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Куда поехать на майские праздники</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Куда поехать на майские праздники</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -37,7 +37,7 @@ const MayHolidays = () => {
           {/* Поезд на майские */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
                 Поезд на майские праздники
               </h2>
@@ -59,7 +59,7 @@ const MayHolidays = () => {
           {/* Европа */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <MapPin className="w-6 h-6 text-primary" />
                 Путешествие в Европу
               </h2>
@@ -73,7 +73,7 @@ const MayHolidays = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/how-to-buy" className="text-primary hover:underline">

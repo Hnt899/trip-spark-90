@@ -463,7 +463,7 @@ const BusSearch = () => {
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
             <Bus className="w-5 h-5 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold">
+          <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight">
             Автобусы
           </h1>
         </div>

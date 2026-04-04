@@ -40,7 +40,10 @@ const Header = () => {
   const isActive = (path: string) => location.pathname === path;
   const isHomePage = location.pathname === "/";
   const isRoutesPage = location.pathname === "/routes";
-  const isBlogPage = location.pathname === "/blog";
+  const isBlogPage =
+    location.pathname === "/blog" || location.pathname.startsWith("/blog/");
+  const isBlogNavActive =
+    location.pathname === "/blog" || location.pathname.startsWith("/blog/");
   const isMobile = useIsMobile();
 
   // Отслеживание скролла для показа формы поиска и изменения стиля шапки
@@ -527,7 +530,7 @@ const Header = () => {
                 to="/blog" 
                 className={cn(
                   "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
-                  isActive("/blog") 
+                  isBlogNavActive 
                     ? (isHomePage || isRoutesPage) && isHeroMode 
                       ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
                         : "text-primary bg-primary/10 border-transparent"
@@ -698,7 +701,7 @@ const Header = () => {
                         onClick={() => setMobileMenuOpen(false)}
                         className={cn(
                           "px-4 py-3 rounded-xl text-base font-medium transition-colors",
-                          isActive("/blog")
+                          isBlogNavActive
                             ? "bg-primary/10 text-primary"
                             : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
                         )}
@@ -774,7 +777,7 @@ const Header = () => {
               to="/blog" 
               className={cn(
                 "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap border",
-                isActive("/blog") 
+                isBlogNavActive 
                   ? isHomePage && isHeroMode 
                     ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
                       : "text-primary bg-primary/10 border-transparent"

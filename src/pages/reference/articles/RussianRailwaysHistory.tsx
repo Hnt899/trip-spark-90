@@ -21,13 +21,13 @@ const RussianRailwaysHistory = () => {
           <span>/</span>
           <span>История железных дорог России</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">История железных дорог России</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">История железных дорог России</h1>
 
         <div className="space-y-8">
           {/* Начало */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <History className="w-6 h-6 text-primary" />
                 Начало истории
               </h2>
@@ -49,7 +49,7 @@ const RussianRailwaysHistory = () => {
           {/* Развитие */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Train className="w-6 h-6 text-primary" />
                 Развитие железных дорог
               </h2>
@@ -73,7 +73,7 @@ const RussianRailwaysHistory = () => {
           {/* Транссиб */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Route className="w-6 h-6 text-primary" />
                 Транссибирская магистраль
               </h2>
@@ -94,7 +94,7 @@ const RussianRailwaysHistory = () => {
           {/* Война */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
                 Великая Отечественная война
               </h2>
@@ -109,7 +109,7 @@ const RussianRailwaysHistory = () => {
           {/* Современность */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Train className="w-6 h-6 text-primary" />
                 Современность
               </h2>
@@ -129,7 +129,7 @@ const RussianRailwaysHistory = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/how-to-buy" className="text-primary hover:underline">

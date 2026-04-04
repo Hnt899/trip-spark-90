@@ -138,7 +138,7 @@ const RouteList = () => {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-[#3F3F7F] mb-2">
+                <h1 className="heading-gradient text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-2">
                   Маршруты
                 </h1>
                 <p className="text-base md:text-lg text-[#3F3F7F]/70">

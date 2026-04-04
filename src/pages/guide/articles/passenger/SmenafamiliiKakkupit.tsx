@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -22,7 +22,7 @@ const SmenafamiliiKakkupit = () => {
           <span>/</span>
           <span>Смена фамилии, как купить билет?</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Я буду менять фамилию, но хочу купить билет сейчас. Что делать?</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Я буду менять фамилию, но хочу купить билет сейчас. Что делать?</h1>
 
         <div className="space-y-8">
           {/* Вариант 1: Старая фамилия */}

@@ -22,7 +22,7 @@ const SeasonalCoefficients = () => {
           <span>Сезонные коэффициенты РЖД</span>
         </div>
         <div className="flex items-center gap-2 mb-4">
-          <h1 className="text-4xl font-bold">Сезонные коэффициенты РЖД</h1>
+          <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight">Сезонные коэффициенты РЖД</h1>
           <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded">Обновлено 22 апреля 2025</span>
         </div>
 
@@ -48,7 +48,7 @@ const SeasonalCoefficients = () => {
           {/* Таблица для купе и СВ */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
                 Сезонные коэффициенты на 2025 год
               </h2>
@@ -210,7 +210,7 @@ const SeasonalCoefficients = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/how-to-buy" className="text-primary hover:underline">

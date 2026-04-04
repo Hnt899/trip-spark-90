@@ -23,7 +23,7 @@ const HowToBuy = () => {
           <span>/</span>
           <span>Как купить ж/д билет</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Как купить ж/д билет</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Как купить ж/д билет</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -46,7 +46,7 @@ const HowToBuy = () => {
                   <Calendar className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold mb-4">1. Укажите маршрут и дату</h2>
+                  <h2 className="heading-sub mb-4">1. Укажите маршрут и дату</h2>
                   <div className="space-y-3 text-base leading-relaxed">
                     <p>
                       Зайдите в раздел <strong>Ж/д билеты</strong> и укажите место отправления, прибытия и дату. 
@@ -72,7 +72,7 @@ const HowToBuy = () => {
                   <Train className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold mb-4">2. Выберите подходящий поезд и тип вагона</h2>
+                  <h2 className="heading-sub mb-4">2. Выберите подходящий поезд и тип вагона</h2>
                   <div className="space-y-3 text-base leading-relaxed">
                     <p>
                       Для каждого рейса мы показываем время отправления и прибытия, продолжительность поездки, 
@@ -98,7 +98,7 @@ const HowToBuy = () => {
                   <Users className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold mb-4">3. Введите количество пассажиров и выберите места</h2>
+                  <h2 className="heading-sub mb-4">3. Введите количество пассажиров и выберите места</h2>
                   <div className="space-y-3 text-base leading-relaxed">
                     <p>
                       В одном заказе может быть максимум <strong>4 пассажира</strong>. Если пассажиров больше, 
@@ -123,7 +123,7 @@ const HowToBuy = () => {
                   <User className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold mb-4">4. Заполните данные пассажиров и укажите контакты</h2>
+                  <h2 className="heading-sub mb-4">4. Заполните данные пассажиров и укажите контакты</h2>
                   <div className="space-y-4 text-base leading-relaxed">
                     <p>
                       Для оформления билетов укажите <strong>ФИО пассажиров</strong> и данные удостоверения личности. 
@@ -180,7 +180,7 @@ const HowToBuy = () => {
                   <CreditCard className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold mb-4">5. Выберите вариант оплаты</h2>
+                  <h2 className="heading-sub mb-4">5. Выберите вариант оплаты</h2>
                   <div className="space-y-3 text-base leading-relaxed">
                     <p>
                       Вы можете оплатить заказ сразу или оставить билет за собой и выкупить его позже, через несколько дней. 
@@ -210,7 +210,7 @@ const HowToBuy = () => {
                   <CheckCircle className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold mb-4">6. Подтвердите заказ и оплатите его</h2>
+                  <h2 className="heading-sub mb-4">6. Подтвердите заказ и оплатите его</h2>
                   <div className="space-y-3 text-base leading-relaxed">
                     <p>
                       По правилам РЖД, на оплату выбранных мест отводится <strong>15 минут</strong>. Если за это время вы не 
@@ -236,7 +236,7 @@ const HowToBuy = () => {
           {/* Дополнительная информация */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Clock className="w-6 h-6 text-primary" />
                 Что ещё нужно знать
               </h2>

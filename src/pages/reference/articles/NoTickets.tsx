@@ -17,7 +17,7 @@ const NoTickets = () => {
           <span>/</span>
           <span>Что делать, если билетов нет</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Что делать, если билетов на поезд нет</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Что делать, если билетов на поезд нет</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -40,7 +40,7 @@ const NoTickets = () => {
           {/* Бесплатное уведомление */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Bell className="w-6 h-6 text-primary" />
                 Как заказать бесплатное уведомление
               </h2>
@@ -75,7 +75,7 @@ const NoTickets = () => {
           {/* Услуга Поймать билет - краткая информация */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Search className="w-6 h-6 text-primary" />
                 Если билеты раскупили
               </h2>
@@ -94,7 +94,7 @@ const NoTickets = () => {
           {/* Как работает услуга */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Search className="w-6 h-6 text-primary" />
                 Услуга «Поймать билет» — как работает
               </h2>
@@ -191,7 +191,7 @@ const NoTickets = () => {
           {/* Что дальше */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Clock className="w-6 h-6 text-primary" />
                 Что дальше
               </h2>
@@ -218,7 +218,7 @@ const NoTickets = () => {
           {/* Сколько стоит услуга */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <CreditCard className="w-6 h-6 text-primary" />
                 Сколько стоит услуга
               </h2>

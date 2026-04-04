@@ -29,11 +29,8 @@ import type { SectionSurface } from "@/lib/sectionSurface";
 import {
   carouselDotClass,
   sectionCardLiftClass,
-  sectionHeadingAccentClass,
-  sectionHeadingBaseClass,
   sectionLeadClass,
   sectionShellClass,
-  sectionYellowGlow,
 } from "@/lib/sectionSurface";
 
 interface TestimonialsSectionProps {
@@ -296,14 +293,12 @@ const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) =>
 
       <div className="container relative z-10">
         <div className="mb-12 text-center">
-          <h2 className={cn("text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700 leading-tight pb-2", sectionHeadingBaseClass(surface))}>
-            <span
-              className={sectionHeadingAccentClass(surface)}
-              style={surface === "brand" ? sectionYellowGlow : undefined}
-            >
-              Живые
-            </span>{" "}
-            <span className={sectionHeadingBaseClass(surface)}>истории путешествий</span>
+          <h2
+            className={cn(
+              "heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700 leading-tight pb-2 tracking-tight",
+            )}
+          >
+            Живые истории путешествий
           </h2>
           <p className={cn("text-lg md:text-xl max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150", sectionLeadClass(surface))}>
             Реальные люди, реальные эмоции, реальные путешествия

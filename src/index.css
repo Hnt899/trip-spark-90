@@ -104,6 +104,34 @@ All colors MUST be HSL.
   }
 }
 
+@layer components {
+  /**
+   * Градиент синий → фиолетовый внутри текста (как у блока бота). Сочетать с text-* и font-bold.
+   */
+  .heading-gradient {
+    background-image: linear-gradient(to right, #2b47b4, #8a4cf0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .dark .heading-gradient {
+    background-image: linear-gradient(to right, #6b8ae8, #b794f6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /**
+   * Подзаголовки: чёрный на светлой теме, выровнено по нагрузке с основным текстом (xl / 2xl, semibold).
+   */
+  .heading-sub {
+    @apply text-xl md:text-2xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-100;
+  }
+}
+
 @keyframes scroll-vertical {
   0% {
     transform: translateY(0);
@@ -250,6 +278,36 @@ All colors MUST be HSL.
   background: linear-gradient(90deg, #0D0D6E, #867DFF, #0D0D6E, #867DFF, #0D0D6E);
   background-size: 300% 100%;
   animation: gradient-flow 12s ease-in-out infinite;
+}
+
+/* Справочник: ховер неактивного таба — тот же бегущий градиент, что у travel-tab-gradient */
+.reference-tab-hover-fill {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0d0d6e, #867dff, #0d0d6e, #867dff, #0d0d6e);
+  background-size: 300% 100%;
+  animation: gradient-flow 12s ease-in-out infinite;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+.group:hover .reference-tab-hover-fill {
+  opacity: 1;
+}
+
+/* Путеводитель /guide: полоска табов под шапкой — градиент с лёгким «бегом», как у travel-tab */
+.guide-tabs-rail {
+  background: linear-gradient(90deg, #14106e, #3d32b8, #867dff, #3d32b8, #14106e);
+  background-size: 300% 100%;
+  animation: gradient-flow 14s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guide-tabs-rail {
+    animation: none;
+    background-position: 50% 50%;
+  }
 }
 
 /* Скрытие скроллбара */

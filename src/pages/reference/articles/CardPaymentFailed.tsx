@@ -17,13 +17,13 @@ const CardPaymentFailed = () => {
           <span>/</span>
           <span>Что делать, если оплата пластиковой картой не проходит</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Что делать, если оплата пластиковой картой не проходит</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Что делать, если оплата пластиковой картой не проходит</h1>
 
         <div className="space-y-8">
           {/* Проверить правильность ввода пароля */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Shield className="w-6 h-6 text-primary" />
                 Проверить правильность ввода одноразового пароля
               </h2>
@@ -47,7 +47,7 @@ const CardPaymentFailed = () => {
           {/* Попробовать оплатить еще раз */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <RefreshCw className="w-6 h-6 text-primary" />
                 Попробовать оплатить заказ ещё раз
               </h2>
@@ -60,7 +60,7 @@ const CardPaymentFailed = () => {
           {/* Убедиться, что на карточке есть деньги */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <CreditCard className="w-6 h-6 text-primary" />
                 Убедиться, что на карточке есть деньги
               </h2>
@@ -73,7 +73,7 @@ const CardPaymentFailed = () => {
           {/* Выяснить, можно ли расплачиваться в интернете */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Info className="w-6 h-6 text-primary" />
                 Выяснить, можно ли расплачиваться этой картой в интернете
               </h2>
@@ -87,7 +87,7 @@ const CardPaymentFailed = () => {
           {/* Проверить ограничения */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <AlertTriangle className="w-6 h-6 text-primary" />
                 Проверить, не наложены ли на ваш счёт какие-либо ограничения
               </h2>
@@ -101,7 +101,7 @@ const CardPaymentFailed = () => {
           {/* Попробовать другую карту */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <CreditCard className="w-6 h-6 text-primary" />
                 Попробовать оплатить другой карточкой
               </h2>
@@ -114,7 +114,7 @@ const CardPaymentFailed = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2">
                 <li>
                   <Link 

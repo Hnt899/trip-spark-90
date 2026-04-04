@@ -21,7 +21,7 @@ const UnusualRailways = () => {
           <span>/</span>
           <span>Необычные железные дороги</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Необычные железные дороги</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Необычные железные дороги</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -36,7 +36,7 @@ const UnusualRailways = () => {
           {/* Цинхай-Тибетская */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Mountain className="w-6 h-6 text-primary" />
                 Самая высокогорная железная дорога
               </h2>
@@ -50,7 +50,7 @@ const UnusualRailways = () => {
           {/* Перу */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Train className="w-6 h-6 text-primary" />
                 Железная дорога в Перу
               </h2>
@@ -64,7 +64,7 @@ const UnusualRailways = () => {
           {/* БАМ */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Train className="w-6 h-6 text-primary" />
                 Байкало-Амурская магистраль
               </h2>
@@ -78,7 +78,7 @@ const UnusualRailways = () => {
           {/* Швейцария */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Mountain className="w-6 h-6 text-primary" />
                 Самая крутая железная дорога Европы
               </h2>
@@ -96,7 +96,7 @@ const UnusualRailways = () => {
           {/* Австралия */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Globe className="w-6 h-6 text-primary" />
                 Самая прямая дорога в мире
               </h2>
@@ -110,7 +110,7 @@ const UnusualRailways = () => {
           {/* Аргентина */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Globe className="w-6 h-6 text-primary" />
                 «Дорога на край земли»
               </h2>
@@ -124,7 +124,7 @@ const UnusualRailways = () => {
           {/* Великобритания */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="heading-sub mb-4 flex items-center gap-2">
                 <Info className="w-6 h-6 text-primary" />
                 Необычные гибриды
               </h2>
@@ -143,7 +143,7 @@ const UnusualRailways = () => {
           {/* Полезные ссылки */}
           <Card className="bg-muted/50">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Полезные ссылки</h2>
+              <h2 className="heading-sub mb-4">Полезные ссылки</h2>
               <ul className="space-y-2 text-base">
                 <li>
                   <Link to="/reference/trains/how-to-buy" className="text-primary hover:underline">

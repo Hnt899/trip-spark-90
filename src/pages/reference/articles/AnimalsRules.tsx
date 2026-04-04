@@ -14,7 +14,7 @@ const AnimalsRules = () => {
           <span>/</span>
           <span>Правила перевозки животных в поезде</span>
         </div>
-        <h1 className="text-4xl font-bold mb-6">Правила перевозки животных в поезде</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Правила перевозки животных в поезде</h1>
         <div className="prose max-w-none">
           <p className="text-lg text-muted-foreground">
             Информация находится в разработке.

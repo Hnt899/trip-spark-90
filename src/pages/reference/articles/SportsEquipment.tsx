@@ -17,7 +17,7 @@ const SportsEquipment = () => {
           <span>/</span>
           <span>Как провезти в поезде спортивный или туристический инвентарь</span>
         </div>
-        <h1 className="text-4xl font-bold mb-8">Как провезти в поезде спортивный или туристический инвентарь</h1>
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-8">Как провезти в поезде спортивный или туристический инвентарь</h1>
 
         <div className="space-y-8">
           {/* Введение */}
@@ -42,7 +42,7 @@ const SportsEquipment = () => {
           {/* Особенности перевозки */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Info className="w-6 h-6 text-primary" />
                 Особенности перевозки и стоимость
               </h2>
@@ -71,7 +71,7 @@ const SportsEquipment = () => {
           {/* Лыжи и сноуборды */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Snowflake className="w-6 h-6 text-primary" />
                 Сноуборды, лыжи и палки к ним
               </h2>
@@ -85,7 +85,7 @@ const SportsEquipment = () => {
           {/* Байдарки */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Waves className="w-6 h-6 text-primary" />
                 Байдарки и каяки вместе с вёслами
               </h2>
@@ -99,7 +99,7 @@ const SportsEquipment = () => {
           {/* Велосипеды */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Bike className="w-6 h-6 text-primary" />
                 Велосипеды
               </h2>
@@ -113,7 +113,7 @@ const SportsEquipment = () => {
           {/* Спортивные шесты */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Package className="w-6 h-6 text-primary" />
                 Спортивные шесты
               </h2>
@@ -136,7 +136,7 @@ const SportsEquipment = () => {
           {/* Оружие */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <h2 className="heading-sub mb-6 flex items-center gap-2">
                 <Target className="w-6 h-6 text-primary" />
                 Охотничье и спортивное оружие
               </h2>
