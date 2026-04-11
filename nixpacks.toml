@@ -10,4 +10,4 @@ cmds = ['npm ci']
 cmds = ['echo "skip frontend build"']
 
 [start]
-cmd = 'node scripts/migrate.js && node server/index.js'
+cmd = 'node scripts/copy-seed-images.js && node scripts/migrate.js && node server/index.js'
