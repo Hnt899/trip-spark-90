@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, Loader2, AlertCircle } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { apiFetch } from "@/lib/api";
 import { generateRzdStyleTicket } from "@/lib/generateRzdStyleTicket";
 import type { EpdData } from "@/types/epd";
 
@@ -56,15 +56,9 @@ const PaymentSuccess = () => {
     if (!orderNumber) return;
 
     try {
-      const { data, error: fetchError } = await supabase
-        .from("tickets")
-        .select("*")
-        .eq("order_number", orderNumber)
-        .maybeSingle();
-
-      if (fetchError) {
-        throw fetchError;
-      }
+      const data = await apiFetch<Record<string, unknown> | null>(
+        `/api/tickets/by-order/${encodeURIComponent(orderNumber)}`
+      );
 
       if (!data) {
         setError("Заказ не найден");

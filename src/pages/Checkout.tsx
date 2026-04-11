@@ -10,7 +10,7 @@ import { Clock, Loader2, Bell } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
+import { apiFetch } from "@/lib/api";
 import PassengerForm, { PassengerData } from "@/components/checkout/PassengerForm";
 import SelectPassengerModal from "@/components/checkout/SelectPassengerModal";
 import BuyerForm, { BuyerData } from "@/components/checkout/BuyerForm";
@@ -213,20 +213,17 @@ const Checkout = () => {
   const loadUserProfile = async () => {
     if (!user) return;
     try {
-      const { data, error } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (error) throw error;
+      const data = await apiFetch<Record<string, unknown> | null>(
+        "/api/user-profiles/me"
+      );
       
       // Обновляем профиль только если данные изменились
       setUserProfile((prevProfile) => {
+        if (!data) return null;
         if (prevProfile?.id === data?.id) {
           return prevProfile;
         }
-        return data;
+        return data as typeof prevProfile;
       });
 
       // Автозаполнение данных покупателя только если они пустые
@@ -525,10 +522,9 @@ const Checkout = () => {
       }
 
       // Создаём заказ в БД ДО оплаты
-      const { data: insertedTicket, error: dbError } = await supabase
-        .from("tickets")
-        .insert({
-          user_id: user.id,
+      const insertedTicket = await apiFetch<{ id: string }>("/api/tickets", {
+        method: "POST",
+        body: JSON.stringify({
           order_number: baseOrderNumber,
           transport_type: transportType,
           total_price: totalPrice,
@@ -537,64 +533,57 @@ const Checkout = () => {
           to_city: toCity,
           departure_date: format(departureDate, "yyyy-MM-dd"),
           electronic_registration_status: "pending",
-          payment_status: "pending", // Статус ожидания оплаты
-        })
-        .select()
-        .single();
+          payment_status: "pending",
+        }),
+      });
 
-      if (dbError || !insertedTicket) {
-        throw new Error(dbError?.message || "Ошибка при создании заказа");
+      if (!insertedTicket?.id) {
+        throw new Error("Ошибка при создании заказа");
       }
 
       // Помечаем сертификат как использованный, если он был применен
       if (selectedCertificate && certificateCode) {
-        const { error: certError } = await supabase
-          .from("certificates")
-          .update({ 
-            status: "used",
-            used_at: new Date().toISOString()
-          })
-          .eq("id", selectedCertificate.id)
-          .eq("user_id", user.id);
-
-        if (certError) {
+        try {
+          await apiFetch(`/api/certificates/${selectedCertificate.id}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+              status: "used",
+              used_at: new Date().toISOString(),
+            }),
+          });
+        } catch (certError) {
           console.error("Ошибка при обновлении сертификата:", certError);
-          // Не блокируем процесс, если обновление сертификата не удалось
         }
       }
 
-      // Вызываем Edge Function webpay-create
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const payResult = await apiFetch<{
+        skip_webpay?: boolean;
+        order_number?: string;
+        action?: string;
+        fields?: Record<string, string>;
+      }>("/api/webpay-create", {
+        method: "POST",
+        body: JSON.stringify({
+          ticket_id: insertedTicket.id,
+          order_number: baseOrderNumber,
+          total_price: totalPrice,
+          base_url: window.location.origin,
+        }),
+      });
 
-      if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error("Не настроены переменные окружения Supabase");
+      if (payResult.skip_webpay && payResult.order_number) {
+        setIsProcessing(false);
+        navigate(
+          `/payment/success?order=${encodeURIComponent(payResult.order_number)}`
+        );
+        return;
       }
 
-      const createPaymentResponse = await fetch(
-        `${supabaseUrl}/functions/v1/webpay-create`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${supabaseAnonKey}`,
-            "apikey": supabaseAnonKey,
-          },
-          body: JSON.stringify({
-            ticket_id: insertedTicket.id,
-            order_number: baseOrderNumber,
-            total_price: totalPrice,
-            base_url: window.location.origin,
-          }),
-        }
-      );
-
-      if (!createPaymentResponse.ok) {
-        const errorData = await createPaymentResponse.json().catch(() => ({}));
-        throw new Error(errorData.error || "Ошибка при создании платежа");
+      const action = payResult.action;
+      const fields = payResult.fields;
+      if (!action || !fields) {
+        throw new Error("Некорректный ответ оплаты");
       }
-
-      const { action, fields } = await createPaymentResponse.json();
 
       // Создаём POST-форму для редиректа на WebPay
       const form = document.createElement("form");

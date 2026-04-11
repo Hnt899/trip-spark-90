@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { apiFetch } from './api';
 
 /**
  * Уровни логирования
@@ -23,20 +23,7 @@ interface LogEntry {
   timestamp?: Date;
 }
 
-/**
- * Библиотека для логирования событий безопасности
- * 
- * Зачем это нужно:
- * - Отслеживание всех важных событий (входы, ошибки, подозрительная активность)
- * - Аудит безопасности (кто и когда заходил)
- * - Расследование инцидентов
- * - Анализ ошибок и проблем
- */
 export const logger = {
-  /**
-   * Основная функция логирования
-   * Сохраняет лог в Supabase таблицу security_logs
-   */
   async log(entry: LogEntry): Promise<void> {
     try {
       const logData = {
@@ -49,17 +36,15 @@ export const logger = {
         created_at: (entry.timestamp || new Date()).toISOString()
       };
 
-      // Сохраняем в Supabase
-      const { error } = await supabase
-        .from('security_logs')
-        .insert(logData);
-
-      if (error) {
-        // Если не удалось сохранить в БД, выводим в консоль
-        console.error('[Logger] Failed to save log:', error);
+      try {
+        await apiFetch('/api/logs', {
+          method: 'POST',
+          body: JSON.stringify(logData),
+        });
+      } catch {
+        console.error('[Logger] Failed to save log');
       }
 
-      // Также выводим в консоль для разработки (только в dev режиме)
       if (import.meta.env.DEV) {
         const emoji = {
           [LogLevel.INFO]: 'ℹ️',
@@ -67,24 +52,20 @@ export const logger = {
           [LogLevel.ERROR]: '❌',
           [LogLevel.SECURITY]: '🔒'
         }[entry.level] || '📝';
-        
+
         console.log(
           `${emoji} [${entry.level.toUpperCase()}] ${entry.message}`,
           entry.metadata || ''
         );
       }
     } catch (err) {
-      // В случае критической ошибки просто выводим в консоль
       console.error('[Logger] Critical error:', err);
     }
   },
 
-  /**
-   * Логирование попытки входа
-   */
   async logLoginAttempt(
-    emailOrPhone: string, 
-    success: boolean, 
+    emailOrPhone: string,
+    success: boolean,
     userId?: string,
     ip?: string
   ): Promise<void> {
@@ -93,20 +74,17 @@ export const logger = {
       message: `Login attempt: ${success ? 'SUCCESS' : 'FAILED'}`,
       userId,
       ip,
-      metadata: { 
-        emailOrPhone: emailOrPhone.replace(/(.{2})(.*)(.{2})/, '$1***$3'), // Маскируем email/телефон
-        success 
+      metadata: {
+        emailOrPhone: emailOrPhone.replace(/(.{2})(.*)(.{2})/, '$1***$3'),
+        success
       },
       timestamp: new Date()
     });
   },
 
-  /**
-   * Логирование события безопасности
-   */
   async logSecurityEvent(
-    event: string, 
-    userId?: string, 
+    event: string,
+    userId?: string,
     metadata?: Record<string, any>,
     ip?: string
   ): Promise<void> {
@@ -120,9 +98,6 @@ export const logger = {
     });
   },
 
-  /**
-   * Логирование ошибки
-   */
   async logError(
     error: string | Error,
     userId?: string,
@@ -143,9 +118,6 @@ export const logger = {
     });
   },
 
-  /**
-   * Логирование предупреждения
-   */
   async logWarning(
     message: string,
     userId?: string,
@@ -160,9 +132,6 @@ export const logger = {
     });
   },
 
-  /**
-   * Логирование информационного события
-   */
   async logInfo(
     message: string,
     userId?: string,
@@ -177,4 +146,3 @@ export const logger = {
     });
   }
 };
-

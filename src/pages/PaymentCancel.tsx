@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { XCircle, Loader2, ArrowLeft } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 
 const PaymentCancel = () => {
@@ -33,15 +33,9 @@ const PaymentCancel = () => {
     if (!orderNumber) return;
 
     try {
-      const { data, error: fetchError } = await supabase
-        .from("tickets")
-        .select("*")
-        .eq("order_number", orderNumber)
-        .maybeSingle();
-
-      if (fetchError) {
-        throw fetchError;
-      }
+      const data = await apiFetch<Record<string, unknown> | null>(
+        `/api/tickets/by-order/${encodeURIComponent(orderNumber)}`
+      );
 
       if (!data) {
         setError("Заказ не найден");
@@ -67,15 +61,10 @@ const PaymentCancel = () => {
     setIsUpdating(true);
 
     try {
-      const { error: updateError } = await supabase
-        .from("tickets")
-        .update({ payment_status: "cancelled" })
-        .eq("id", ticketId)
-        .eq("payment_status", "pending"); // обновляем только если ещё pending
-
-      if (updateError) {
-        throw updateError;
-      }
+      await apiFetch(`/api/tickets/${ticketId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ payment_status: "cancelled" }),
+      });
 
       // Обновляем локальное состояние
       setTicket((prev: any) => prev ? { ...prev, payment_status: "cancelled" } : null);

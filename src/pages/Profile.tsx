@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/lib/supabase";
+import { apiFetch } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Phone, User, Plus, Trash2, Edit, ExternalLink, MessageCircle, Send, Calendar, Shield, Download, CheckCircle2, Train, Plane, Bus, MoreHorizontal, RefreshCw, ArrowLeft, Gift, X } from "lucide-react";
 import { format } from "date-fns";
@@ -178,25 +178,22 @@ const Profile = () => {
 
   const loadUserProfile = async () => {
     if (!user) return;
-    
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+    try {
+      const data = await apiFetch<UserProfile | null>("/api/user-profiles/me");
+      if (data) {
+        setUserProfile(data);
+        setProfileForm({
+          first_name: data.first_name || "",
+          last_name: data.last_name || "",
+          patronymic: data.patronymic || "",
+          phone: data.phone || "",
+          email: data.email || "",
+          birth_date: data.birth_date || "",
+        });
+      }
+    } catch (error) {
       console.error("Error loading profile:", error);
-    } else if (data) {
-      setUserProfile(data);
-      setProfileForm({
-        first_name: data.first_name || "",
-        last_name: data.last_name || "",
-        patronymic: data.patronymic || "",
-        phone: data.phone || "",
-        email: data.email || "",
-        birth_date: data.birth_date || "",
-      });
     }
   };
 
@@ -204,29 +201,21 @@ const Profile = () => {
     if (!user) return;
     setLoadingOrders(true);
     try {
-      const { data, error } = await supabase
-        .from("tickets")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+      const data = await apiFetch<Record<string, unknown>[]>("/api/tickets");
 
-      if (error) {
-        console.error("Error loading ticket orders:", error);
-        toast({
-          title: "Ошибка",
-          description: "Не удалось загрузить историю заказов",
-          variant: "destructive",
-        });
-      } else {
-        // Устанавливаем order_status в 'active' по умолчанию для существующих записей
-        const ordersWithStatus = (data || []).map(order => ({
-          ...order,
-          order_status: order.order_status || 'active',
-        }));
-        setTicketOrders(ordersWithStatus);
-      }
+      // Устанавливаем order_status в 'active' по умолчанию для существующих записей
+      const ordersWithStatus = (data || []).map((order) => ({
+        ...order,
+        order_status: order.order_status || "active",
+      }));
+      setTicketOrders(ordersWithStatus as TicketOrder[]);
     } catch (error) {
       console.error("Error loading ticket orders:", error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось загрузить историю заказов",
+        variant: "destructive",
+      });
     } finally {
       setLoadingOrders(false);
     }
@@ -236,26 +225,11 @@ const Profile = () => {
     if (!user) return;
     setLoadingCertificates(true);
     try {
-      // Автоматически списываем истекшие сертификаты
-      await supabase.rpc('expire_old_certificates');
+      await apiFetch("/api/rpc/expire_old_certificates", { method: "POST" });
 
-      const { data, error } = await supabase
-        .from("certificates")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error loading certificates:", error);
-        toast({
-          title: "Ошибка",
-          description: "Не удалось загрузить сертификаты",
-          variant: "destructive",
-        });
-      } else {
-        setCertificates(data || []);
-        setDisplayedCertificates(data || []);
-      }
+      const data = await apiFetch<Certificate[]>("/api/certificates?all=1");
+      setCertificates(data || []);
+      setDisplayedCertificates(data || []);
     } catch (error) {
       console.error("Error loading certificates:", error);
     } finally {
@@ -276,15 +250,12 @@ const Profile = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from("tickets")
-        .update({ electronic_registration_status: "confirmed" })
-        .eq("id", orderId)
-        .eq("user_id", user.id);
-
-      if (error) {
-        throw error;
-      }
+      await apiFetch(`/api/tickets/${orderId}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          electronic_registration_status: "confirmed",
+        }),
+      });
 
       toast({
         title: "Успешно",
@@ -310,53 +281,37 @@ const Profile = () => {
     try {
       console.log("Updating ticket to refunded, orderId:", orderId);
       
-      // Получаем данные билета
-      const { data: ticketData, error: ticketError } = await supabase
-        .from("tickets")
-        .select("*")
-        .eq("id", orderId)
-        .eq("user_id", user.id)
-        .single();
+      const ticketData = await apiFetch<Record<string, unknown> | null>(
+        `/api/tickets/${orderId}`
+      );
 
-      if (ticketError || !ticketData) {
-        throw ticketError || new Error("Билет не найден");
+      if (!ticketData) {
+        throw new Error("Билет не найден");
       }
 
-      // Рассчитываем сумму сертификата (с вычетом сервисного сбора)
-      const serviceFee = Math.round(totalPrice * 0.1); // 10% сервисный сбор
+      const serviceFee = Math.round(totalPrice * 0.1);
       const certificateAmount = totalPrice - serviceFee;
 
-      // Создаем сертификат через RPC функцию
-      const { data: certificateData, error: certError } = await supabase.rpc('create_certificate', {
-        p_user_id: user.id,
-        p_transport_type: transportType,
-        p_amount: certificateAmount,
-        p_order_id: orderId
+      const certificateData = await apiFetch<Record<string, unknown> | null>(
+        "/api/rpc/create_certificate",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            p_transport_type: transportType,
+            p_amount: certificateAmount,
+            p_order_id: orderId,
+          }),
+        }
+      );
+
+      if (!certificateData) {
+        throw new Error("Не удалось создать сертификат");
+      }
+
+      await apiFetch(`/api/tickets/${orderId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ order_status: "refunded" }),
       });
-
-      if (certError) {
-        console.error("Error creating certificate:", certError);
-        throw certError;
-      }
-
-      // certificateData может быть массивом, берем первый элемент
-      const certificate = Array.isArray(certificateData) ? certificateData[0] : certificateData;
-      console.log("Certificate created:", certificate);
-
-      // Обновляем статус билета
-      const { data, error } = await supabase
-        .from("tickets")
-        .update({ order_status: "refunded" })
-        .eq("id", orderId)
-        .eq("user_id", user.id)
-        .select();
-
-      if (error) {
-        console.error("Error updating ticket:", error);
-        throw error;
-      }
-
-      console.log("Ticket updated successfully:", data);
 
       toast({
         title: "Успешно",
@@ -383,53 +338,37 @@ const Profile = () => {
     try {
       console.log("Updating ticket to exchanged, orderId:", orderId);
       
-      // Получаем данные билета
-      const { data: ticketData, error: ticketError } = await supabase
-        .from("tickets")
-        .select("*")
-        .eq("id", orderId)
-        .eq("user_id", user.id)
-        .single();
+      const ticketData = await apiFetch<Record<string, unknown> | null>(
+        `/api/tickets/${orderId}`
+      );
 
-      if (ticketError || !ticketData) {
-        throw ticketError || new Error("Билет не найден");
+      if (!ticketData) {
+        throw new Error("Билет не найден");
       }
 
-      // Рассчитываем сумму сертификата (с вычетом сервисного сбора)
-      const serviceFee = Math.round(totalPrice * 0.1); // 10% сервисный сбор
+      const serviceFee = Math.round(totalPrice * 0.1);
       const certificateAmount = totalPrice - serviceFee;
 
-      // Создаем сертификат через RPC функцию
-      const { data: certificateData, error: certError } = await supabase.rpc('create_certificate', {
-        p_user_id: user.id,
-        p_transport_type: transportType,
-        p_amount: certificateAmount,
-        p_order_id: orderId
+      const certificateData = await apiFetch<Record<string, unknown> | null>(
+        "/api/rpc/create_certificate",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            p_transport_type: transportType,
+            p_amount: certificateAmount,
+            p_order_id: orderId,
+          }),
+        }
+      );
+
+      if (!certificateData) {
+        throw new Error("Не удалось создать сертификат");
+      }
+
+      await apiFetch(`/api/tickets/${orderId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ order_status: "exchanged" }),
       });
-
-      if (certError) {
-        console.error("Error creating certificate:", certError);
-        throw certError;
-      }
-
-      // certificateData может быть массивом, берем первый элемент
-      const certificate = Array.isArray(certificateData) ? certificateData[0] : certificateData;
-      console.log("Certificate created:", certificate);
-
-      // Обновляем статус билета
-      const { data, error } = await supabase
-        .from("tickets")
-        .update({ order_status: "exchanged" })
-        .eq("id", orderId)
-        .eq("user_id", user.id)
-        .select();
-
-      if (error) {
-        console.error("Error updating ticket:", error);
-        throw error;
-      }
-
-      console.log("Ticket updated successfully:", data);
 
       toast({
         title: "Успешно",
@@ -529,21 +468,16 @@ const Profile = () => {
     if (!user) return;
     
     setLoading(true);
-    const { data, error } = await supabase
-      .from("passengers")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (error) {
+    try {
+      const data = await apiFetch<Passenger[]>("/api/passengers");
+      setPassengers(data || []);
+    } catch (error) {
       console.error("Error loading passengers:", error);
       toast({
         title: "Ошибка",
         description: "Не удалось загрузить пассажиров",
         variant: "destructive",
       });
-    } else {
-      setPassengers(data || []);
     }
     setLoading(false);
   };
@@ -563,28 +497,20 @@ const Profile = () => {
     setLoading(true);
     
     if (editingPassenger) {
-      // Обновление существующего пассажира
-      const { error } = await supabase
-        .from("passengers")
-        .update({
-          display_name: formData.display_name || null,
-          name: formData.name,
-          surname: formData.surname,
-          patronymic: formData.patronymic || null,
-          gender: formData.gender || null,
-          passport_series: formData.passport_series,
-          passport_number: formData.passport_number,
-          birth_date: formData.birth_date,
-        })
-        .eq("id", editingPassenger.id);
-
-      if (error) {
-        toast({
-          title: "Ошибка",
-          description: "Не удалось обновить пассажира",
-          variant: "destructive",
+      try {
+        await apiFetch(`/api/passengers/${editingPassenger.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            display_name: formData.display_name || null,
+            name: formData.name,
+            surname: formData.surname,
+            patronymic: formData.patronymic || null,
+            gender: formData.gender || null,
+            passport_series: formData.passport_series,
+            passport_number: formData.passport_number,
+            birth_date: formData.birth_date,
+          }),
         });
-      } else {
         toast({
           title: "Успешно",
           description: "Пассажир обновлен",
@@ -592,36 +518,40 @@ const Profile = () => {
         setEditingPassenger(null);
         resetForm();
         loadPassengers();
-      }
-    } else {
-      // Создание нового пассажира
-      const { error } = await supabase
-        .from("passengers")
-        .insert({
-          user_id: user.id,
-          display_name: formData.display_name || null,
-          name: formData.name,
-          surname: formData.surname,
-          patronymic: formData.patronymic || null,
-          gender: formData.gender || null,
-          passport_series: formData.passport_series,
-          passport_number: formData.passport_number,
-          birth_date: formData.birth_date,
-        });
-
-      if (error) {
+      } catch {
         toast({
           title: "Ошибка",
-          description: "Не удалось сохранить пассажира",
+          description: "Не удалось обновить пассажира",
           variant: "destructive",
         });
-      } else {
+      }
+    } else {
+      try {
+        await apiFetch("/api/passengers", {
+          method: "POST",
+          body: JSON.stringify({
+            display_name: formData.display_name || null,
+            name: formData.name,
+            surname: formData.surname,
+            patronymic: formData.patronymic || null,
+            gender: formData.gender || null,
+            passport_series: formData.passport_series,
+            passport_number: formData.passport_number,
+            birth_date: formData.birth_date,
+          }),
+        });
         toast({
           title: "Успешно",
           description: "Пассажир сохранен",
         });
         resetForm();
         loadPassengers();
+      } catch {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось сохранить пассажира",
+          variant: "destructive",
+        });
       }
     }
     setLoading(false);
@@ -631,23 +561,19 @@ const Profile = () => {
     if (!confirm("Вы уверены, что хотите удалить этого пассажира?")) return;
 
     setLoading(true);
-    const { error } = await supabase
-      .from("passengers")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      toast({
-        title: "Ошибка",
-        description: "Не удалось удалить пассажира",
-        variant: "destructive",
-      });
-    } else {
+    try {
+      await apiFetch(`/api/passengers/${id}`, { method: "DELETE" });
       toast({
         title: "Успешно",
         description: "Пассажир удален",
       });
       loadPassengers();
+    } catch {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить пассажира",
+        variant: "destructive",
+      });
     }
     setLoading(false);
   };
@@ -702,40 +628,36 @@ const Profile = () => {
       }
       
       console.log('Normalizing phone:', { original: profileForm.phone, normalized: normalizedPhone });
-      
-      const { error: phoneError, data: phoneData } = await supabase.auth.updateUser({
-        phone: normalizedPhone,
-      });
-      if (phoneError) {
-        console.error("Error updating phone in auth:", phoneError);
-        // Не прерываем выполнение, продолжаем сохранять в профиле
-      } else {
-        console.log("Phone updated in auth.users:", phoneData);
-      }
-      
-      // Используем нормализованный номер для сохранения в профиле
       profileForm.phone = normalizedPhone;
     }
 
-    // Обновляем email в auth.users, если он указан и отличается от текущего
-    // Но не обновляем, если текущий email содержит @temp.com (это временный email для телефона)
-    if (profileForm.email && profileForm.email !== user.email && !user.email?.includes('@temp.com')) {
-      const { error: emailError } = await supabase.auth.updateUser({
-        email: profileForm.email,
-      });
-      if (emailError) {
-        console.error("Error updating email:", emailError);
+    try {
+      const patchBody: Record<string, string> = {};
+      if (normalizedPhone) {
+        patchBody.phone = normalizedPhone;
       }
-    }
-    
-    // Если у пользователя был временный email (@temp.com), но он указал реальный email в профиле
-    if (user.email?.includes('@temp.com') && profileForm.email && !profileForm.email.includes('@temp.com')) {
-      const { error: emailError } = await supabase.auth.updateUser({
-        email: profileForm.email,
-      });
-      if (emailError) {
-        console.error("Error updating email from temp:", emailError);
+      if (
+        profileForm.email &&
+        profileForm.email !== user.email &&
+        !user.email?.includes("@temp.com")
+      ) {
+        patchBody.email = profileForm.email.trim().toLowerCase();
       }
+      if (
+        user.email?.includes("@temp.com") &&
+        profileForm.email &&
+        !profileForm.email.includes("@temp.com")
+      ) {
+        patchBody.email = profileForm.email.trim().toLowerCase();
+      }
+      if (Object.keys(patchBody).length > 0) {
+        await apiFetch("/api/auth/me", {
+          method: "PATCH",
+          body: JSON.stringify(patchBody),
+        });
+      }
+    } catch (e) {
+      console.error("Error updating auth user:", e);
     }
     
     // Готовим данные для сохранения
@@ -750,56 +672,26 @@ const Profile = () => {
     
     console.log('Saving profile data:', profileData);
 
-    if (userProfile) {
-      // Обновление существующего профиля
-      const { data, error } = await supabase
-        .from("user_profiles")
-        .update(profileData)
-        .eq("user_id", user.id)
-        .select();
-
-      if (error) {
-        console.error("Error updating profile:", error);
-        toast({
-          title: "Ошибка",
-          description: error.message || "Не удалось сохранить данные. Проверьте консоль браузера.",
-          variant: "destructive",
-        });
-      } else {
-        console.log("Profile updated successfully:", data);
-        toast({
-          title: "Успешно",
-          description: "Данные сохранены",
-        });
-        setShowProfileDialog(false);
-        loadUserProfile();
-      }
-    } else {
-      // Создание нового профиля
-      const { data, error } = await supabase
-        .from("user_profiles")
-        .insert({
-          user_id: user.id,
-          ...profileData,
-        })
-        .select();
-
-      if (error) {
-        console.error("Error creating profile:", error);
-        toast({
-          title: "Ошибка",
-          description: error.message || "Не удалось сохранить данные. Проверьте консоль браузера.",
-          variant: "destructive",
-        });
-      } else {
-        console.log("Profile created successfully:", data);
-        toast({
-          title: "Успешно",
-          description: "Данные сохранены",
-        });
-        setShowProfileDialog(false);
-        loadUserProfile();
-      }
+    try {
+      await apiFetch("/api/user-profiles/me", {
+        method: "PUT",
+        body: JSON.stringify(profileData),
+      });
+      toast({
+        title: "Успешно",
+        description: "Данные сохранены",
+      });
+      setShowProfileDialog(false);
+      loadUserProfile();
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error("Error saving profile:", err);
+      toast({
+        title: "Ошибка",
+        description:
+          err.message || "Не удалось сохранить данные. Проверьте консоль браузера.",
+        variant: "destructive",
+      });
     }
     setLoading(false);
   };
@@ -830,7 +722,9 @@ const Profile = () => {
     if (error) {
       toast({
         title: "Ошибка",
-        description: error.message || "Не удалось изменить пароль",
+        description:
+          (error as { message?: string })?.message ||
+          "Не удалось изменить пароль",
         variant: "destructive",
       });
     } else {
@@ -886,30 +780,20 @@ const Profile = () => {
     // Отправляем код на email для подтверждения включения 2FA
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: emailFor2FA,
-        options: {
-          shouldCreateUser: false
-        }
+      await apiFetch("/api/2fa/profile/send-email", {
+        method: "POST",
+        body: JSON.stringify({ email: emailFor2FA }),
       });
-
-      if (error) {
-        toast({
-          title: "Ошибка",
-          description: error.message || "Не удалось отправить код на email",
-          variant: "destructive",
-        });
-      } else {
-        setShow2FASetup(true);
-        toast({
-          title: "Код отправлен",
-          description: `Мы отправили код подтверждения на ${emailFor2FA}`,
-        });
-      }
-    } catch (error: any) {
+      setShow2FASetup(true);
+      toast({
+        title: "Код отправлен",
+        description: `Мы отправили код подтверждения на ${emailFor2FA}`,
+      });
+    } catch (error: unknown) {
+      const err = error as Error;
       toast({
         title: "Ошибка",
-        description: error.message || "Не удалось отправить код",
+        description: err.message || "Не удалось отправить код",
         variant: "destructive",
       });
     }
@@ -917,7 +801,7 @@ const Profile = () => {
   };
 
   const handleEnable2FA = async () => {
-    if (!user || twoFactorToken.length !== 8) return;
+    if (!user || twoFactorToken.length !== 6) return;
     
     // Определяем email для проверки кода
     const userEmail = user.email;
@@ -937,46 +821,37 @@ const Profile = () => {
     
     setLoading(true);
     try {
-      // Проверяем код через Supabase
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: emailFor2FA,
-        token: twoFactorToken,
-        type: 'email',
+      await apiFetch("/api/2fa/profile/verify-email", {
+        method: "POST",
+        body: JSON.stringify({
+          email: emailFor2FA,
+          code: twoFactorToken,
+        }),
       });
 
-      if (error) {
+      const result = await twoFactorAuth.enable(user.id);
+
+      if (result.success) {
+        resetRateLimit(`2fa_toggle:${user.id}`);
+        toast({
+          title: "Успешно",
+          description: "Двухфакторная аутентификация включена",
+        });
+        setShow2FASetup(false);
+        setTwoFactorToken("");
+        await load2FAData();
+      } else {
         toast({
           title: "Ошибка",
-          description: error.message || "Неверный код",
+          description: result.error || "Не удалось включить 2FA",
           variant: "destructive",
         });
-      } else {
-        // Код верный - включаем 2FA в базе данных
-        const result = await twoFactorAuth.enable(user.id);
-        
-        if (result.success) {
-          // Сбрасываем rate limit при успешном включении
-          resetRateLimit(`2fa_toggle:${user.id}`);
-          
-          toast({
-            title: "Успешно",
-            description: "Двухфакторная аутентификация включена",
-          });
-          setShow2FASetup(false);
-          setTwoFactorToken("");
-          await load2FAData();
-        } else {
-          toast({
-            title: "Ошибка",
-            description: result.error || "Не удалось включить 2FA",
-            variant: "destructive",
-          });
-        }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Ошибка",
-        description: error.message || "Не удалось включить 2FA",
+        description:
+          (error as Error).message || "Не удалось включить 2FA",
         variant: "destructive",
       });
     }
@@ -1007,10 +882,11 @@ const Profile = () => {
           variant: "destructive",
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Ошибка",
-        description: error.message || "Не удалось отключить 2FA",
+        description:
+          (error as Error).message || "Не удалось отключить 2FA",
         variant: "destructive",
       });
     }

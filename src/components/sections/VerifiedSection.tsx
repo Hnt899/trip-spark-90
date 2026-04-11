@@ -242,7 +242,7 @@ const VerifiedSection = ({ surface = "brand", omitOuterChrome = false }: Verifie
 
                 {/* Кнопка */}
                 <Button
-                  onClick={() => navigate("/routes")}
+                  onClick={() => navigate("/routes/list")}
                   size="lg"
                   className="bg-gradient-to-r from-primary via-purple-600 to-primary hover:from-primary/90 hover:via-purple-600/90 hover:to-primary/90 text-white px-8 md:px-12 py-6 md:py-8 text-base md:text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >

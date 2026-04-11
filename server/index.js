@@ -1,21 +1,34 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import fetch from "node-fetch";
 import rateLimit from "express-rate-limit";
-
-dotenv.config();
+import { registerApiRoutes } from "./registerApiRoutes.js";
+import { uploadRouter, UPLOAD_DIR } from "./uploadRoute.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Router, а не api-inference
 const HF_ROUTER_URL = "https://router.huggingface.co/v1/chat/completions";
-// Модель + провайдер. Для Router обычно указывают суффикс провайдера, например :hf-inference
 const HF_MODEL = process.env.HF_MODEL || "meta-llama/Meta-Llama-3.1-8B-Instruct";
 const HF_API_TOKEN = process.env.HF_API_TOKEN;
 
-app.use(cors());
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.set("trust proxy", 1);
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+        return cb(null, true);
+      }
+      cb(new Error("CORS"));
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json({ limit: "1mb" }));
 
 // ============================================
@@ -52,6 +65,10 @@ const chatRateLimit = rateLimit({
 
 // Применяем общий rate limit ко всем запросам
 app.use("/api", generalRateLimit);
+
+app.use("/uploads", express.static(UPLOAD_DIR));
+app.use(uploadRouter);
+registerApiRoutes(app);
 
 // Пинг (без rate limit для мониторинга)
 app.get("/api/ping", (req, res) => {

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Check, Gift, ChevronDown } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface Certificate {
@@ -51,19 +51,18 @@ const CertificateInput = ({
     if (!userId) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("certificates")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("transport_type", transportType)
-        .eq("status", "active")
-        .gt("expires_at", new Date().toISOString())
-        .order("amount", { ascending: false });
-
-      if (error) {
+      try {
+        const data = await apiFetch<Certificate[]>(
+          `/api/certificates?transport_type=${encodeURIComponent(transportType)}`
+        );
+        setCertificates(
+          (data || []).filter(
+            (c) =>
+              c.status === "active" && new Date(c.expires_at) > new Date()
+          )
+        );
+      } catch (error) {
         console.error("Error loading certificates:", error);
-      } else {
-        setCertificates(data || []);
       }
     } catch (error) {
       console.error("Error loading certificates:", error);
@@ -113,14 +112,16 @@ const CertificateInput = ({
               } else {
                 // Проверяем сертификат в базе данных, если не найден в списке
                 try {
-                  const { data, error: dbError } = await supabase
-                    .from("certificates")
-                    .select("*")
-                    .eq("certificate_code", code)
-                    .eq("user_id", userId)
-                    .single();
-                  
-                  if (!dbError && data) {
+                  let data: Certificate | null = null;
+                  try {
+                    data = await apiFetch<Certificate | null>(
+                      `/api/certificates/by-code/${encodeURIComponent(code)}`
+                    );
+                  } catch {
+                    data = null;
+                  }
+
+                  if (data) {
                     // Проверяем тип транспорта
                     if (data.transport_type !== transportType) {
                       const transportNames: Record<string, string> = {

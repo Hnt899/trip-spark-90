@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+import { apiFetch } from "@/lib/api";
 import { PassengerData } from "./PassengerForm";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -48,13 +48,7 @@ const SelectPassengerModal = ({
   const loadPassengers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("passengers")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
+      const data = await apiFetch<SavedPassenger[]>("/api/passengers");
       setPassengers(data || []);
     } catch (error) {
       console.error("Error loading passengers:", error);

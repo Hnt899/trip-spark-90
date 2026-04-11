@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import RoutesPage from "./pages/Routes";
@@ -24,6 +24,13 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminPlaceholder from "./pages/admin/AdminPlaceholder";
+import AdminBlogList from "./pages/admin/AdminBlogList";
+import AdminBlogEdit from "./pages/admin/AdminBlogEdit";
+import AdminRouteList from "./pages/admin/AdminRouteList";
+import AdminRouteEdit from "./pages/admin/AdminRouteEdit";
 import NotFound from "./pages/NotFound";
 import TestimonialDetail from "./pages/TestimonialDetail";
 import ChatWidget from "./components/ChatWidget";
@@ -174,6 +181,14 @@ const App = () => (
           <Route path="/payment/cancel" element={<PaymentCancel />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="blog" element={<AdminBlogList />} />
+            <Route path="blog/:postId" element={<AdminBlogEdit />} />
+            <Route path="routes" element={<AdminRouteList />} />
+            <Route path="routes/:routeId" element={<AdminRouteEdit />} />
+          </Route>
           <Route path="/testimonials/:id" element={<TestimonialDetail />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

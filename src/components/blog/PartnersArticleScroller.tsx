@@ -11,7 +11,7 @@ import BlogArticleCard from "@/components/blog/BlogArticleCard";
 
 /** Как у блока «Рекламные спецпроекты» */
 const PARTNERS_GRID_CLASS =
-  "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3";
+  "grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3";
 
 const INITIAL_PARTNER_CARDS = 3;
 
@@ -82,7 +82,10 @@ const PartnersArticleScroller = ({
           </header>
           <div className={PARTNERS_GRID_CLASS}>
             {firstRow.map((a) => (
-              <div key={a.id} className="min-w-0">
+              <div
+                key={a.id}
+                className="flex h-full min-h-0 min-w-0 flex-col"
+              >
                 <BlogArticleCard article={a} className="h-full" />
               </div>
             ))}
@@ -98,7 +101,10 @@ const PartnersArticleScroller = ({
               >
                 <div className={cn(PARTNERS_GRID_CLASS, "mt-6")}>
                   {restRow.map((a) => (
-                    <div key={a.id} className="min-w-0">
+                    <div
+                      key={a.id}
+                      className="flex h-full min-h-0 min-w-0 flex-col"
+                    >
                       <BlogArticleCard article={a} className="h-full" />
                     </div>
                   ))}

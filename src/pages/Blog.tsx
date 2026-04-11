@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BlogArticleCard from "@/components/blog/BlogArticleCard";
@@ -19,6 +20,9 @@ import {
 } from "@/components/ui/sheet";
 import { blogArticles } from "@/data/blogArticles";
 import { filterAndSortBlogArticles } from "@/lib/blogFeed";
+import { mergeBlogArticles } from "@/lib/mergeBlogArticles";
+import { apiFetch } from "@/lib/api";
+import type { BlogArticle } from "@/types/blogArticle";
 import { logoGradientText } from "@/lib/sectionSurface";
 import { cn } from "@/lib/utils";
 import type { BlogChannelTab, BlogSortMode } from "@/types/blogArticle";
@@ -119,6 +123,16 @@ const SOCIAL_TILES: {
 ];
 
 const Blog = () => {
+  const { data: remoteArticles = [] } = useQuery({
+    queryKey: ["blog-posts-public"],
+    queryFn: () => apiFetch<BlogArticle[]>("/api/blog/posts"),
+    staleTime: 60_000,
+  });
+
+  const allArticles = useMemo(
+    () => mergeBlogArticles(remoteArticles, blogArticles),
+    [remoteArticles],
+  );
   const [channel, setChannel] = useState<BlogChannelTab>("all");
   const [sort, setSort] = useState<BlogSortMode>("new");
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(
@@ -156,13 +170,13 @@ const Blog = () => {
 
   const filtered = useMemo(
     () =>
-      filterAndSortBlogArticles(blogArticles, {
+      filterAndSortBlogArticles(allArticles, {
         channel,
         sort,
         selectedTagIds,
         onlyEditorsPick,
       }),
-    [channel, sort, selectedTagIds, onlyEditorsPick],
+    [allArticles, channel, sort, selectedTagIds, onlyEditorsPick],
   );
 
   const firstFeedChunk = filtered.slice(0, PAGE_SIZE);
@@ -171,18 +185,18 @@ const Blog = () => {
   const feedHasExtraPages = filtered.length > PAGE_SIZE;
 
   const editorsPickArticles = useMemo(
-    () => blogArticles.filter((a) => a.editorsPick),
-    [],
+    () => allArticles.filter((a) => a.editorsPick),
+    [allArticles],
   );
 
   const partnerCarouselArticles = useMemo(
-    () => blogArticles.filter((a) => a.partnerCarousel),
-    [],
+    () => allArticles.filter((a) => a.partnerCarousel),
+    [allArticles],
   );
 
   const sponsoredArticles = useMemo(
-    () => blogArticles.filter((a) => a.sponsoredGrid),
-    [],
+    () => allArticles.filter((a) => a.sponsoredGrid),
+    [allArticles],
   );
 
   const filtersNode = (
@@ -303,7 +317,7 @@ const Blog = () => {
                       В путь
                     </p>
                     <p className="mt-2 text-3xl font-extrabold tabular-nums tracking-tight text-[#100A6F] dark:text-white">
-                      {blogArticles.length}+
+                      {allArticles.length}+
                     </p>
                     <p className="mt-1 max-w-[9rem] text-[11px] leading-snug text-muted-foreground">
                       материалов в журнале
@@ -410,9 +424,12 @@ const Blog = () => {
               </p>
             ) : (
               <>
-                <div className={BLOG_FEED_GRID_CLASS}>
+                <div className={cn(BLOG_FEED_GRID_CLASS, "items-stretch")}>
                   {firstFeedChunk.map((article) => (
-                    <div key={article.id} className="min-w-0">
+                    <div
+                      key={article.id}
+                      className="flex h-full min-h-0 min-w-0 flex-col"
+                    >
                       <BlogArticleCard article={article} />
                     </div>
                   ))}
@@ -426,11 +443,16 @@ const Blog = () => {
                         "data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down",
                       )}
                     >
-                      <div className={cn(BLOG_FEED_GRID_CLASS, "mt-6")}>
+                      <div
+                        className={cn(
+                          BLOG_FEED_GRID_CLASS,
+                          "mt-6 items-stretch",
+                        )}
+                      >
                         {moreFeedChunk.map((article, i) => (
                           <div
                             key={article.id}
-                            className="min-w-0 animate-in fade-in slide-in-from-bottom-3 duration-500 motion-reduce:animate-none"
+                            className="flex h-full min-h-0 min-w-0 flex-col animate-in fade-in slide-in-from-bottom-3 duration-500 motion-reduce:animate-none"
                             style={{
                               animationDelay: `${Math.min(i, 11) * 45}ms`,
                             }}
@@ -502,9 +524,14 @@ const Blog = () => {
               отдельно, чтобы вы могли отличить их от редакционных текстов.
             </p>
           </header>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {sponsoredArticles.map((article) => (
-              <BlogArticleCard key={article.id} article={article} />
+              <div
+                key={article.id}
+                className="flex h-full min-h-0 min-w-0 flex-col"
+              >
+                <BlogArticleCard article={article} />
+              </div>
             ))}
           </div>
         </section>

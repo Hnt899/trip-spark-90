@@ -1,5 +1,5 @@
 import { logger } from './logger';
-import { supabase } from './supabase';
+import { apiFetch } from './api';
 
 /**
  * Интерфейс для хранения попыток
@@ -214,24 +214,23 @@ export const checkOTPRateLimit = async (emailOrPhone: string): Promise<{ allowed
   
   // Проверяем количество отправленных кодов за последний час
   if (!emailOrPhone.includes('@')) {
-    // Для SMS проверяем в таблице verification_codes
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { data, error } = await supabase
-      .from('verification_codes')
-      .select('id')
-      .eq('phone', normalizedPhone)
-      .gte('created_at', oneHourAgo);
-    
-    if (!error && data && data.length >= limit.maxAttempts) {
-      await logger.logSecurityEvent(
-        'OTP rate limit exceeded (database)',
-        undefined,
-        { phone: normalizedPhone.replace(/(.{3})(.*)(.{2})/, '$1***$3'), count: data.length }
+    try {
+      const { count } = await apiFetch<{ count: number }>(
+        `/api/auth/sms/count-recent?phone=${encodeURIComponent(emailOrPhone)}`
       );
-      return {
-        allowed: false,
-        error: `Превышен лимит отправки кодов (${limit.maxAttempts} в час). Попробуйте позже.`
-      };
+      if (count >= limit.maxAttempts) {
+        await logger.logSecurityEvent(
+          'OTP rate limit exceeded (database)',
+          undefined,
+          { phone: normalizedPhone.replace(/(.{3})(.*)(.{2})/, '$1***$3'), count }
+        );
+        return {
+          allowed: false,
+          error: `Превышен лимит отправки кодов (${limit.maxAttempts} в час). Попробуйте позже.`
+        };
+      }
+    } catch {
+      /* ignore — сервер недоступен, остаётся клиентский лимит */
     }
   }
   
