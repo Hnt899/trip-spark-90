@@ -14,6 +14,10 @@ const ALLOWED_BLOCK_TYPES = new Set([
   "orderedList",
   "divider",
   "quote",
+  "table",
+  "ctaButton",
+  "destinationCard",
+  "routeByDays",
 ]);
 
 function isValidImageUrl(url) {
@@ -85,6 +89,52 @@ function sanitizeBlocks(raw) {
       });
     } else if (type === "divider") {
       out.push({ type: "divider" });
+    } else if (type === "table") {
+      const rows = Array.isArray(b.rows) ? b.rows.slice(0, 50) : [];
+      const cleanRows = [];
+      for (const row of rows) {
+        if (!row || typeof row !== "object" || !Array.isArray(row.cells)) continue;
+        const cells = row.cells.slice(0, 20).map((c) => ({
+          text: String(c?.text ?? "").slice(0, 8000),
+        }));
+        cleanRows.push({ cells });
+      }
+      if (cleanRows.length > 0) {
+        out.push({ type: "table", rows: cleanRows, hasHeader: !!b.hasHeader });
+      }
+    } else if (type === "ctaButton") {
+      out.push({
+        type: "ctaButton",
+        text: String(b.text ?? "Подробнее").slice(0, 200),
+        url: String(b.url ?? "").slice(0, 2000),
+        variant: b.variant === "secondary" ? "secondary" : "primary",
+      });
+    } else if (type === "destinationCard") {
+      out.push({
+        type: "destinationCard",
+        season: String(b.season ?? "").slice(0, 500),
+        format: String(b.format ?? "").slice(0, 500),
+        comfort: String(b.comfort ?? "").slice(0, 500),
+        uniqueness: String(b.uniqueness ?? "").slice(0, 500),
+      });
+    } else if (type === "routeByDays") {
+      const days = Array.isArray(b.days) ? b.days.slice(0, 30) : [];
+      const cleanDays = [];
+      for (const d of days) {
+        if (!d || typeof d !== "object") continue;
+        cleanDays.push({
+          label: String(d.label ?? "").slice(0, 200),
+          title: String(d.title ?? "").slice(0, 500),
+          description: String(d.description ?? "").slice(0, 8000),
+        });
+      }
+      if (cleanDays.length > 0) {
+        out.push({
+          type: "routeByDays",
+          image: b.image ? String(b.image).slice(0, 2000) : "",
+          days: cleanDays,
+        });
+      }
     }
   }
   return out;

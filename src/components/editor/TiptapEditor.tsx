@@ -3,9 +3,13 @@ import { useEditor, EditorContent, type JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Dropcursor from "@tiptap/extension-dropcursor";
+import { Table, TableRow, TableHeader, TableCell } from "@tiptap/extension-table";
 import { BlogImageExtension } from "./BlogImageExtension";
 import { BlogGalleryExtension } from "./BlogGalleryExtension";
 import { SoftEnterExtension } from "./SoftEnterExtension";
+import { CtaButtonExtension } from "./CtaButtonExtension";
+import { DestinationCardExtension } from "./DestinationCardExtension";
+import { RouteDaysExtension } from "./RouteDaysExtension";
 import { TiptapToolbar } from "./TiptapToolbar";
 import { uploadImages } from "@/lib/uploadImages";
 import type { BlogContentBlock } from "@/types/blogContent";
@@ -34,9 +38,16 @@ export default function TiptapEditor({ initialBlocks, onChange }: Props) {
       Placeholder.configure({
         placeholder: "Начните писать статью…",
       }),
+      Table.configure({ resizable: true }),
+      TableRow,
+      TableHeader,
+      TableCell,
       BlogImageExtension,
       BlogGalleryExtension,
       SoftEnterExtension,
+      CtaButtonExtension,
+      DestinationCardExtension,
+      RouteDaysExtension,
     ],
     content: blocksToTiptap(initialBlocks),
     onUpdate: ({ editor: e }) => handleUpdate(e.getJSON()),

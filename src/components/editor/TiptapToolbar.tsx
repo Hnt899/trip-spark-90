@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Editor } from "@tiptap/react";
 import type { ReactNode } from "react";
 import { Toggle } from "@/components/ui/toggle";
@@ -9,6 +10,22 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Bold,
   Italic,
@@ -24,7 +41,12 @@ import {
   GalleryHorizontal,
   Undo2,
   Redo2,
+  TableIcon,
+  MousePointerClick,
+  MapPin,
+  Route,
 } from "lucide-react";
+import type { CtaButtonVariant } from "@/types/blogContent";
 
 function Tip({
   children,
@@ -58,6 +80,83 @@ function Tip({
         </p>
       </TooltipContent>
     </Tooltip>
+  );
+}
+
+function TableInsertButton({ editor }: { editor: Editor }) {
+  const [open, setOpen] = useState(false);
+  const [rows, setRows] = useState("3");
+  const [cols, setCols] = useState("3");
+
+  const handleInsert = () => {
+    const r = Math.max(1, Math.min(20, parseInt(rows) || 3));
+    const c = Math.max(1, Math.min(10, parseInt(cols) || 3));
+    editor
+      .chain()
+      .focus()
+      .insertTable({ rows: r, cols: c, withHeaderRow: true })
+      .run();
+    setOpen(false);
+    setRows("3");
+    setCols("3");
+  };
+
+  return (
+    <>
+      <Tip
+        label="Таблица"
+        description="Вставляет таблицу с настраиваемым количеством строк и столбцов."
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-9 px-2.5"
+          onClick={() => setOpen(true)}
+        >
+          <TableIcon className="h-4 w-4" />
+        </Button>
+      </Tip>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-xs">
+          <DialogHeader>
+            <DialogTitle>Вставить таблицу</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="table-rows">Строки</Label>
+              <Input
+                id="table-rows"
+                type="number"
+                min={1}
+                max={20}
+                value={rows}
+                onChange={(e) => setRows(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="table-cols">Столбцы</Label>
+              <Input
+                id="table-cols"
+                type="number"
+                min={1}
+                max={10}
+                value={cols}
+                onChange={(e) => setCols(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Отмена
+            </Button>
+            <Button type="button" onClick={handleInsert}>
+              Вставить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -262,6 +361,61 @@ export function TiptapToolbar({ editor }: { editor: Editor }) {
             onClick={() => editor.commands.insertBlogGallery({ slides: [] })}
           >
             <GalleryHorizontal className="h-4 w-4" />
+          </Button>
+        </Tip>
+
+        <Separator orientation="vertical" className="mx-1 h-6" />
+
+        <TableInsertButton editor={editor} />
+
+        <Tip
+          label="CTA-кнопка"
+          description="Кнопка призыва к действию с ссылкой. Стилизуется как primary или secondary."
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-9 px-2.5"
+            onClick={() =>
+              editor.commands.insertCtaButton({
+                text: "Подробнее",
+                url: "",
+                variant: "primary",
+              })
+            }
+          >
+            <MousePointerClick className="h-4 w-4" />
+          </Button>
+        </Tip>
+
+        <Tip
+          label="Карточка направления"
+          description="Блок с полями: сезон, формат, комфорт, уникальность."
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-9 px-2.5"
+            onClick={() => editor.commands.insertDestinationCard()}
+          >
+            <MapPin className="h-4 w-4" />
+          </Button>
+        </Tip>
+
+        <Tip
+          label="Маршрут по дням"
+          description="Блок маршрута с днями: заголовок, описание и фото для каждого дня."
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-9 px-2.5"
+            onClick={() => editor.commands.insertRouteDays()}
+          >
+            <Route className="h-4 w-4" />
           </Button>
         </Tip>
 

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import type { BlogArticle, BlogBadge } from "@/types/blogArticle";
 import type { BlogContentBlock } from "@/types/blogContent";
 import BlogBlockRenderer from "@/components/blog/BlogBlockRenderer";
+import ArticleTabs from "@/components/blog/ArticleTabs";
 import { Loader2 } from "lucide-react";
 
 const BADGE_LABEL: Record<BlogBadge, string> = {
@@ -140,6 +141,7 @@ const BlogArticlePage = () => {
         </p>
         {article ? (
           <div className="mt-10 min-w-0">
+            <ArticleTabs blocks={article.content_blocks} />
             <BlogBlockRenderer blocks={article.content_blocks} />
           </div>
         ) : (

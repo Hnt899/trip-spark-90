@@ -1,5 +1,11 @@
 import type { JSONContent } from "@tiptap/react";
-import type { BlogContentBlock, BlogCarouselSlide } from "@/types/blogContent";
+import type {
+  BlogContentBlock,
+  BlogCarouselSlide,
+  BlogTableRow,
+  CtaButtonVariant,
+  RouteDayItem,
+} from "@/types/blogContent";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers: Tiptap inline content → HTML string (with marks)         */
@@ -33,6 +39,40 @@ function inlineToHtml(node: JSONContent): string {
       }
       if (child.content) return inlineToHtml(child);
       return "";
+    })
+    .join("");
+}
+
+function nodeToHtml(node: JSONContent): string {
+  if (!node.content) return "";
+  return node.content
+    .map((child) => {
+      switch (child.type) {
+        case "paragraph":
+          return `<p>${inlineToHtml(child)}</p>`;
+        case "bulletList":
+          return `<ul>${child.content?.map((li) => `<li>${nodeToHtml(li)}</li>`).join("") || ""}</ul>`;
+        case "orderedList":
+          return `<ol>${child.content?.map((li) => `<li>${nodeToHtml(li)}</li>`).join("") || ""}</ol>`;
+        case "listItem":
+          return nodeToHtml(child);
+        case "text": {
+          let s = escapeHtml(child.text || "");
+          for (const mark of child.marks || []) {
+            switch (mark.type) {
+              case "bold": s = `<strong>${s}</strong>`; break;
+              case "italic": s = `<em>${s}</em>`; break;
+              case "strike": s = `<s>${s}</s>`; break;
+            }
+          }
+          return s;
+        }
+        case "hardBreak":
+          return "<br>";
+        default:
+          if (child.content) return nodeToHtml(child);
+          return "";
+      }
     })
     .join("");
 }
@@ -91,6 +131,38 @@ function htmlToInline(html: string): JSONContent[] | undefined {
 
   walk(doc.body, []);
   return nodes.length > 0 ? nodes : undefined;
+}
+
+function htmlToCellContent(html: string): JSONContent[] {
+  if (!html) return [{ type: "paragraph" }];
+  if (!/<(ul|ol|p)\b/i.test(html)) {
+    return [{ type: "paragraph", content: htmlToInline(html) }];
+  }
+  const doc = new DOMParser().parseFromString(`<body>${html}</body>`, "text/html");
+  const result: JSONContent[] = [];
+
+  for (const child of Array.from(doc.body.children)) {
+    const tag = child.tagName.toLowerCase();
+    if (tag === "ul" || tag === "ol") {
+      const listType = tag === "ul" ? "bulletList" : "orderedList";
+      const items: JSONContent[] = [];
+      for (const li of Array.from(child.children)) {
+        if (li.tagName.toLowerCase() === "li") {
+          items.push({
+            type: "listItem",
+            content: [{ type: "paragraph", content: htmlToInline(li.innerHTML) }],
+          });
+        }
+      }
+      if (items.length > 0) result.push({ type: listType, content: items });
+    } else if (tag === "p") {
+      result.push({ type: "paragraph", content: htmlToInline(child.innerHTML) });
+    } else {
+      result.push({ type: "paragraph", content: htmlToInline(child.innerHTML) });
+    }
+  }
+
+  return result.length > 0 ? result : [{ type: "paragraph" }];
 }
 
 /* ------------------------------------------------------------------ */
@@ -166,6 +238,49 @@ export function blocksToTiptap(blocks: BlogContentBlock[]): JSONContent {
 
       case "divider":
         content.push({ type: "horizontalRule" });
+        break;
+
+      case "table": {
+        const rows = block.rows || [];
+        const tableContent: JSONContent[] = rows.map((row, rowIdx) => ({
+          type: "tableRow",
+          content: row.cells.map((cell) => ({
+            type: rowIdx === 0 && block.hasHeader ? "tableHeader" : "tableCell",
+            content: htmlToCellContent(cell.text),
+          })),
+        }));
+        content.push({ type: "table", content: tableContent });
+        break;
+      }
+
+      case "ctaButton":
+        content.push({
+          type: "ctaButton",
+          attrs: {
+            text: block.text,
+            url: block.url,
+            variant: block.variant,
+          },
+        });
+        break;
+
+      case "destinationCard":
+        content.push({
+          type: "destinationCard",
+          attrs: {
+            season: block.season,
+            format: block.format,
+            comfort: block.comfort,
+            uniqueness: block.uniqueness,
+          },
+        });
+        break;
+
+      case "routeByDays":
+        content.push({
+          type: "routeDays",
+          attrs: { image: block.image || "", days: block.days },
+        });
         break;
     }
   }
@@ -248,6 +363,58 @@ export function tiptapToBlocks(doc: JSONContent): BlogContentBlock[] {
       case "horizontalRule":
         blocks.push({ type: "divider" });
         break;
+
+      case "table": {
+        const tableRows: BlogTableRow[] = [];
+        let hasHeader = false;
+        if (node.content) {
+          for (const row of node.content) {
+            if (row.type !== "tableRow" || !row.content) continue;
+            const cells = row.content.map((cell) => ({
+              text: nodeToHtml(cell),
+            }));
+            if (row.content[0]?.type === "tableHeader") hasHeader = true;
+            tableRows.push({ cells });
+          }
+        }
+        if (tableRows.length > 0) {
+          blocks.push({ type: "table", rows: tableRows, hasHeader });
+        }
+        break;
+      }
+
+      case "ctaButton": {
+        blocks.push({
+          type: "ctaButton",
+          text: (node.attrs?.text as string) || "Подробнее",
+          url: (node.attrs?.url as string) || "",
+          variant: (node.attrs?.variant as CtaButtonVariant) || "primary",
+        });
+        break;
+      }
+
+      case "destinationCard": {
+        blocks.push({
+          type: "destinationCard",
+          season: (node.attrs?.season as string) || "",
+          format: (node.attrs?.format as string) || "",
+          comfort: (node.attrs?.comfort as string) || "",
+          uniqueness: (node.attrs?.uniqueness as string) || "",
+        });
+        break;
+      }
+
+      case "routeDays": {
+        const days = (node.attrs?.days as RouteDayItem[]) || [];
+        if (days.length > 0) {
+          blocks.push({
+            type: "routeByDays",
+            image: (node.attrs?.image as string) || "",
+            days,
+          });
+        }
+        break;
+      }
     }
   }
 

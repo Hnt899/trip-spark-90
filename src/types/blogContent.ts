@@ -12,6 +12,17 @@ export type BlogCarouselSlide = {
   oldPrice?: string;
 };
 
+export type BlogTableCell = { text: string };
+export type BlogTableRow = { cells: BlogTableCell[] };
+
+export type CtaButtonVariant = "primary" | "secondary";
+
+export type RouteDayItem = {
+  label: string;
+  title: string;
+  description: string;
+};
+
 export type BlogContentBlock =
   | { type: "paragraph"; text: string }
   | { type: "heading"; level: number; text: string }
@@ -20,4 +31,8 @@ export type BlogContentBlock =
   | { type: "quote"; text: string; attribution?: string }
   | { type: "bulletList"; items: string[] }
   | { type: "orderedList"; items: string[] }
-  | { type: "divider" };
+  | { type: "divider" }
+  | { type: "table"; rows: BlogTableRow[]; hasHeader: boolean }
+  | { type: "ctaButton"; text: string; url: string; variant: CtaButtonVariant }
+  | { type: "destinationCard"; season: string; format: string; comfort: string; uniqueness: string }
+  | { type: "routeByDays"; image: string; days: RouteDayItem[] };
