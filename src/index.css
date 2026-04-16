@@ -449,6 +449,18 @@ All colors MUST be HSL.
   border-radius: 0.5rem;
 }
 
+.tiptap [data-type="blog-image"] img {
+  display: block;
+  width: auto !important;
+  max-width: 100%;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.tiptap [data-type="blog-image"] figure > div {
+  background: transparent !important;
+}
+
 .tiptap:focus-visible {
   outline: none;
 }
