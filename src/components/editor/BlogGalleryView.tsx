@@ -3,8 +3,15 @@ import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { GalleryHorizontal, ImagePlus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { uploadImages } from "@/lib/uploadImages";
-import type { BlogCarouselSlide } from "@/types/blogContent";
+import type { BlogCarouselMode, BlogCarouselSlide } from "@/types/blogContent";
 
 export function BlogGalleryView({
   node,
@@ -13,6 +20,8 @@ export function BlogGalleryView({
   selected,
 }: NodeViewProps) {
   const slides: BlogCarouselSlide[] = node.attrs.slides || [];
+  const mode: BlogCarouselMode = node.attrs.mode || "manual";
+  const intervalSec = Number(node.attrs.intervalSec) || 5;
   const fileRef = useRef<HTMLInputElement>(null);
 
   const addFiles = useCallback(
@@ -62,7 +71,41 @@ export function BlogGalleryView({
           <GalleryHorizontal className="h-4 w-4" />
           Галерея ({slides.length} фото)
         </div>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-2">
+          <Select
+            value={mode}
+            onValueChange={(value) =>
+              updateAttributes({ mode: value as BlogCarouselMode })
+            }
+          >
+            <SelectTrigger className="h-8 w-[190px] text-xs">
+              <SelectValue placeholder="Режим прокрутки" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="manual">Только вручную</SelectItem>
+              <SelectItem value="auto">Только авто</SelectItem>
+              <SelectItem value="hybrid">Авто + вручную</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {mode !== "manual" ? (
+            <Input
+              type="number"
+              min={1}
+              max={30}
+              value={intervalSec}
+              onChange={(e) => {
+                const n = parseInt(e.target.value || "5", 10);
+                updateAttributes({
+                  intervalSec: Number.isFinite(n) ? Math.min(30, Math.max(1, n)) : 5,
+                });
+              }}
+              className="h-8 w-24 text-xs"
+              title="Интервал автопрокрутки в секундах"
+            />
+          ) : null}
+
+          <div className="flex gap-1">
           <Button
             type="button"
             size="sm"
@@ -81,6 +124,7 @@ export function BlogGalleryView({
           >
             <Trash2 className="h-4 w-4" />
           </Button>
+          </div>
         </div>
       </div>
 

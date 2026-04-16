@@ -12,6 +12,8 @@ export type BlogCarouselSlide = {
   oldPrice?: string;
 };
 
+export type BlogCarouselMode = "manual" | "auto" | "hybrid";
+
 export type BlogTableCell = { text: string };
 export type BlogTableRow = { cells: BlogTableCell[] };
 
@@ -27,7 +29,12 @@ export type BlogContentBlock =
   | { type: "paragraph"; text: string }
   | { type: "heading"; level: number; text: string }
   | { type: "image"; url: string; alt?: string; caption?: string }
-  | { type: "carousel"; slides: BlogCarouselSlide[] }
+  | {
+      type: "carousel";
+      slides: BlogCarouselSlide[];
+      mode?: BlogCarouselMode;
+      intervalSec?: number;
+    }
   | { type: "quote"; text: string; attribution?: string }
   | { type: "bulletList"; items: string[] }
   | { type: "orderedList"; items: string[] }

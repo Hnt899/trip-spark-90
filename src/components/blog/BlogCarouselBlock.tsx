@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { BlogCarouselSlide } from "@/types/blogContent";
+import type { BlogCarouselMode, BlogCarouselSlide } from "@/types/blogContent";
 import {
   Carousel,
   CarouselContent,
@@ -19,13 +19,20 @@ function slideCaption(s: BlogCarouselSlide): string | undefined {
 
 export default function BlogCarouselBlock({
   slides,
+  mode = "manual",
+  intervalSec = 5,
   className,
 }: {
   slides: BlogCarouselSlide[];
+  mode?: BlogCarouselMode;
+  intervalSec?: number;
   className?: string;
 }) {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const autoplayEnabled = mode === "auto" || mode === "hybrid";
+  const allowManual = mode !== "auto";
 
   const onSelect = useCallback((carousel: CarouselApi) => {
     setCurrent(carousel.selectedScrollSnap());
@@ -41,13 +48,31 @@ export default function BlogCarouselBlock({
     };
   }, [api, onSelect]);
 
+  useEffect(() => {
+    if (!api || !autoplayEnabled || slides.length < 2 || paused) return;
+    const ms = Math.min(30, Math.max(1, intervalSec || 5)) * 1000;
+    const id = window.setInterval(() => {
+      api.scrollNext();
+    }, ms);
+    return () => window.clearInterval(id);
+  }, [api, autoplayEnabled, intervalSec, paused, slides.length]);
+
   if (!slides.length) return null;
 
   return (
-    <div className={cn("my-8 w-full", className)}>
+    <div
+      className={cn("my-8 w-full", className)}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
       <Carousel
         setApi={setApi}
-        opts={{ align: "center", loop: slides.length > 1, containScroll: "trimSnaps" }}
+        opts={{
+          align: "center",
+          loop: slides.length > 1,
+          containScroll: "trimSnaps",
+          watchDrag: allowManual,
+        }}
         className="w-full"
       >
         <CarouselContent>
@@ -78,7 +103,7 @@ export default function BlogCarouselBlock({
           })}
         </CarouselContent>
       </Carousel>
-      {slides.length > 1 ? (
+      {slides.length > 1 && allowManual ? (
         <div
           className="mt-4 flex justify-center gap-2"
           role="tablist"

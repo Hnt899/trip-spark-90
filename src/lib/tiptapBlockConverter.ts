@@ -203,7 +203,11 @@ export function blocksToTiptap(blocks: BlogContentBlock[]): JSONContent {
       case "carousel":
         content.push({
           type: "blogGallery",
-          attrs: { slides: block.slides || [] },
+          attrs: {
+            slides: block.slides || [],
+            mode: block.mode || "manual",
+            intervalSec: block.intervalSec || 5,
+          },
         });
         break;
 
@@ -333,7 +337,14 @@ export function tiptapToBlocks(doc: JSONContent): BlogContentBlock[] {
       case "blogGallery": {
         const slides = (node.attrs?.slides as BlogCarouselSlide[]) || [];
         if (slides.length > 0) {
-          blocks.push({ type: "carousel", slides });
+          const modeRaw = String(node.attrs?.mode || "manual");
+          const mode =
+            modeRaw === "auto" || modeRaw === "hybrid" ? modeRaw : "manual";
+          const intervalSec = Math.min(
+            30,
+            Math.max(1, parseInt(String(node.attrs?.intervalSec || "5"), 10) || 5),
+          );
+          blocks.push({ type: "carousel", slides, mode, intervalSec });
         }
         break;
       }

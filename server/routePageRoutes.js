@@ -43,6 +43,13 @@ function sanitizeBlocks(raw) {
       });
     } else if (type === "carousel") {
       const slides = Array.isArray(b.slides) ? b.slides.slice(0, 15) : [];
+      const modeRaw = String(b.mode || "manual");
+      const mode =
+        modeRaw === "auto" || modeRaw === "hybrid" ? modeRaw : "manual";
+      const intervalSec = Math.min(
+        30,
+        Math.max(1, parseInt(String(b.intervalSec || "5"), 10) || 5),
+      );
       const clean = [];
       for (const s of slides) {
         if (!s || typeof s !== "object") continue;
@@ -53,7 +60,9 @@ function sanitizeBlocks(raw) {
         if (caption) slide.caption = caption;
         clean.push(slide);
       }
-      if (clean.length > 0) out.push({ type: "carousel", slides: clean });
+      if (clean.length > 0) {
+        out.push({ type: "carousel", slides: clean, mode, intervalSec });
+      }
     } else if (type === "bulletList" || type === "orderedList") {
       const items = Array.isArray(b.items)
         ? b.items.slice(0, 50).map((x) => String(x ?? "").slice(0, 8000))

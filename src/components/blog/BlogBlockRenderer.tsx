@@ -160,7 +160,14 @@ export default function BlogBlockRenderer({
             if (!Array.isArray(block.slides) || block.slides.length === 0) {
               return null;
             }
-            return <BlogCarouselBlock key={key} slides={block.slides} />;
+            return (
+              <BlogCarouselBlock
+                key={key}
+                slides={block.slides}
+                mode={block.mode || "manual"}
+                intervalSec={block.intervalSec || 5}
+              />
+            );
           case "bulletList":
             if (!Array.isArray(block.items) || block.items.length === 0)
               return null;
