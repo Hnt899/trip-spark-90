@@ -34,11 +34,11 @@ export function BlogImageView({ node, updateAttributes, deleteNode, selected }: 
     >
       {src ? (
         <figure className="group relative">
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-muted dark:border-slate-800">
+          <div className="flex items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-transparent dark:border-slate-800">
             <img
               src={src}
               alt={node.attrs.alt as string}
-              className="h-auto max-w-full object-cover"
+              className="block h-auto max-w-full object-contain"
               draggable={false}
             />
           </div>

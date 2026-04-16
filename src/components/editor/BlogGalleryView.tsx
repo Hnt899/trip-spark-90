@@ -98,11 +98,11 @@ export function BlogGalleryView({
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {slides.map((slide, i) => (
             <div key={i} className="group relative">
-              <div className="overflow-hidden rounded-lg border bg-muted">
+              <div className="flex items-center justify-center overflow-hidden rounded-lg border bg-transparent">
                 <img
                   src={slide.image}
                   alt=""
-                  className="aspect-[4/3] w-full object-cover"
+                  className="aspect-[4/3] w-full object-contain"
                   draggable={false}
                 />
               </div>
