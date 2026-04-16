@@ -59,54 +59,53 @@ export function BlogGalleryView({
       draggable
       data-drag-handle=""
     >
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <GalleryHorizontal className="h-4 w-4" />
           Галерея ({slides.length} фото)
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex flex-wrap items-center gap-1">
-            {(
-              [
-                { v: "manual", t: "Вручную" },
-                { v: "auto", t: "Авто" },
-                { v: "hybrid", t: "Авто + вручную" },
-              ] as const
-            ).map((x) => (
-              <Button
-                key={x.v}
-                type="button"
-                size="sm"
-                variant={mode === x.v ? "default" : "outline"}
-                className="h-8 px-2.5 text-xs"
-                onClick={() => updateAttributes({ mode: x.v as BlogCarouselMode })}
-              >
-                {x.t}
-              </Button>
-            ))}
+        <div className="flex flex-wrap items-center gap-1">
+          {(
+            [
+              { v: "manual", t: "Вручную" },
+              { v: "auto", t: "Авто" },
+              { v: "hybrid", t: "Авто + вручную" },
+            ] as const
+          ).map((x) => (
+            <Button
+              key={x.v}
+              type="button"
+              size="sm"
+              variant={mode === x.v ? "default" : "outline"}
+              className="h-8 px-2.5 text-xs"
+              onClick={() => updateAttributes({ mode: x.v as BlogCarouselMode })}
+            >
+              {x.t}
+            </Button>
+          ))}
+        </div>
+
+        {mode !== "manual" ? (
+          <div className="flex items-center gap-1">
+            <Input
+              type="number"
+              min={1}
+              max={30}
+              value={intervalSec}
+              onChange={(e) => {
+                const n = parseInt(e.target.value || "5", 10);
+                updateAttributes({
+                  intervalSec: Number.isFinite(n) ? Math.min(30, Math.max(1, n)) : 5,
+                });
+              }}
+              className="h-8 w-20 text-xs"
+              title="Интервал автопрокрутки в секундах"
+            />
+            <span className="text-xs text-muted-foreground">сек</span>
           </div>
+        ) : null}
 
-          {mode !== "manual" ? (
-            <div className="flex items-center gap-1">
-              <Input
-                type="number"
-                min={1}
-                max={30}
-                value={intervalSec}
-                onChange={(e) => {
-                  const n = parseInt(e.target.value || "5", 10);
-                  updateAttributes({
-                    intervalSec: Number.isFinite(n) ? Math.min(30, Math.max(1, n)) : 5,
-                  });
-                }}
-                className="h-8 w-20 text-xs"
-                title="Интервал автопрокрутки в секундах"
-              />
-              <span className="text-xs text-muted-foreground">сек</span>
-            </div>
-          ) : null}
-
-          <div className="flex gap-1">
+        <div className="ml-auto flex gap-1">
           <Button
             type="button"
             size="sm"
@@ -125,7 +124,6 @@ export function BlogGalleryView({
           >
             <Trash2 className="h-4 w-4" />
           </Button>
-          </div>
         </div>
       </div>
 
