@@ -42,6 +42,7 @@ import {
   Undo2,
   Redo2,
   TableIcon,
+  Trash2,
   MousePointerClick,
   MapPin,
   Route,
@@ -367,6 +368,23 @@ export function TiptapToolbar({ editor }: { editor: Editor }) {
         <Separator orientation="vertical" className="mx-1 h-6" />
 
         <TableInsertButton editor={editor} />
+        {editor.isActive("table") ? (
+          <Tip
+            label="Удалить таблицу"
+            shortcut="Delete"
+            description="Удаляет текущую таблицу целиком."
+          >
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-9 px-2.5 text-destructive hover:text-destructive"
+              onClick={() => editor.chain().focus().deleteTable().run()}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </Tip>
+        ) : null}
 
         <Tip
           label="CTA-кнопка"

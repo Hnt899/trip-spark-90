@@ -122,6 +122,16 @@ export default function TiptapEditor({ initialBlocks, onChange }: Props) {
         });
         return true;
       },
+      handleKeyDown: (_view, event) => {
+        if (event.key !== "Backspace" && event.key !== "Delete") return false;
+        if (!editor?.isActive("table")) return false;
+
+        const selectionType = editor.state.selection.constructor.name;
+        if (selectionType !== "CellSelection") return false;
+
+        event.preventDefault();
+        return editor.chain().focus().deleteTable().run();
+      },
     },
   });
 
