@@ -140,8 +140,8 @@ export default function BlogBlockRenderer({
           case "image":
             if (!block.url?.trim()) return null;
             return (
-              <figure key={key} className="my-6">
-                <div className="flex min-h-[220px] w-full items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-transparent dark:border-slate-800">
+              <figure key={key} className="my-6 flex flex-col items-center">
+                <div className="inline-flex max-w-full items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-transparent dark:border-slate-800">
                   <img
                     src={block.url}
                     alt={block.alt || ""}
