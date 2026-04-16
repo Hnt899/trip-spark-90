@@ -10,10 +10,11 @@ interface ArticleTabsProps {
 
 function extractH1Headings(blocks: BlogContentBlock[]) {
   const headings: { text: string; index: number }[] = [];
-  blocks.forEach((block, i) => {
+  blocks.forEach((block) => {
     if (block.type === "heading" && block.level === 1 && block.text.trim()) {
       const plainText = block.text.replace(/<[^>]*>/g, "").trim();
-      headings.push({ text: plainText, index: i });
+      // Важно: index должен совпадать с порядковым h1Counter в BlogBlockRenderer.
+      headings.push({ text: plainText, index: headings.length });
     }
   });
   return headings;

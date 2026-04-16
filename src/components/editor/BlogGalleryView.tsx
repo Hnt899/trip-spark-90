@@ -3,13 +3,6 @@ import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { GalleryHorizontal, ImagePlus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { uploadImages } from "@/lib/uploadImages";
 import type { BlogCarouselMode, BlogCarouselSlide } from "@/types/blogContent";
 
@@ -72,37 +65,45 @@ export function BlogGalleryView({
           Галерея ({slides.length} фото)
         </div>
         <div className="flex items-center gap-2">
-          <Select
-            value={mode}
-            onValueChange={(value) =>
-              updateAttributes({ mode: value as BlogCarouselMode })
-            }
-          >
-            <SelectTrigger className="h-8 w-[190px] text-xs">
-              <SelectValue placeholder="Режим прокрутки" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="manual">Только вручную</SelectItem>
-              <SelectItem value="auto">Только авто</SelectItem>
-              <SelectItem value="hybrid">Авто + вручную</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-center gap-1">
+            {(
+              [
+                { v: "manual", t: "Вручную" },
+                { v: "auto", t: "Авто" },
+                { v: "hybrid", t: "Авто + вручную" },
+              ] as const
+            ).map((x) => (
+              <Button
+                key={x.v}
+                type="button"
+                size="sm"
+                variant={mode === x.v ? "default" : "outline"}
+                className="h-8 px-2.5 text-xs"
+                onClick={() => updateAttributes({ mode: x.v as BlogCarouselMode })}
+              >
+                {x.t}
+              </Button>
+            ))}
+          </div>
 
           {mode !== "manual" ? (
-            <Input
-              type="number"
-              min={1}
-              max={30}
-              value={intervalSec}
-              onChange={(e) => {
-                const n = parseInt(e.target.value || "5", 10);
-                updateAttributes({
-                  intervalSec: Number.isFinite(n) ? Math.min(30, Math.max(1, n)) : 5,
-                });
-              }}
-              className="h-8 w-24 text-xs"
-              title="Интервал автопрокрутки в секундах"
-            />
+            <div className="flex items-center gap-1">
+              <Input
+                type="number"
+                min={1}
+                max={30}
+                value={intervalSec}
+                onChange={(e) => {
+                  const n = parseInt(e.target.value || "5", 10);
+                  updateAttributes({
+                    intervalSec: Number.isFinite(n) ? Math.min(30, Math.max(1, n)) : 5,
+                  });
+                }}
+                className="h-8 w-20 text-xs"
+                title="Интервал автопрокрутки в секундах"
+              />
+              <span className="text-xs text-muted-foreground">сек</span>
+            </div>
           ) : null}
 
           <div className="flex gap-1">
