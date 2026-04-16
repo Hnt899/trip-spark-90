@@ -141,12 +141,12 @@ export default function BlogBlockRenderer({
             if (!block.url?.trim()) return null;
             return (
               <figure key={key} className="my-6">
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-muted dark:border-slate-800">
+                <div className="flex min-h-[220px] w-full items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-transparent dark:border-slate-800">
                   <img
                     src={block.url}
                     alt={block.alt || ""}
                     referrerPolicy="no-referrer"
-                    className="h-auto max-w-full object-cover"
+                    className="mx-auto block h-auto max-h-[560px] w-auto max-w-full object-contain"
                   />
                 </div>
                 {block.caption ? (
