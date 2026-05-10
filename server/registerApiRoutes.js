@@ -21,6 +21,7 @@ import {
 } from "./webpayNode.js";
 import { sendExolveSms } from "./sendSms.js";
 import { sendEmailOtp } from "./emailOtp.js";
+import { registerRzdTrainSearchRoutes } from "./rzdTrainSearchRoutes.js";
 
 function normalizePhoneE164(input) {
   const digits = input.replace(/\D/g, "");
@@ -39,6 +40,8 @@ function randomDigits(n) {
  * @param {import('express').Express} app
  */
 export function registerApiRoutes(app) {
+  registerRzdTrainSearchRoutes(app);
+
   // --- Auth: session ---
   app.get("/api/auth/session", authMiddleware, async (req, res) => {
     const row = await getUserById(pool, req.userId);

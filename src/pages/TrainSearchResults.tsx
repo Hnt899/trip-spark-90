@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -22,10 +22,11 @@ import {
   Calendar as CalendarIcon,
   Train
 } from "lucide-react";
-import { format, addDays } from "date-fns";
+import { format, addDays, parse } from "date-fns";
 import { ru } from "date-fns/locale";
 import { cities } from "@/data/cities";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
 
 interface Amenity {
   icon: React.ReactNode;
@@ -103,269 +104,34 @@ const amenitiesData: Amenity[] = [
   }
 ];
 
-import { getStation } from "@/data/stations";
+/** Данные с бэкенда (даты без времени, ISO-календарь) */
+interface TrainRouteFromApi
+  extends Omit<TrainRoute, "departureDate" | "arrivalDate" | "amenities"> {
+  departureDate: string;
+  arrivalDate: string;
+}
 
-// Функция для генерации маршрутов на основе параметров поиска
-const generateRoutes = (
-  fromCity: string,
-  toCity: string,
-  departureDate: Date,
+const RZD_FALLBACK_AMENITIES = amenitiesData.slice(0, 5);
+
+function deserializeTrainRoutes(rows: TrainRouteFromApi[]): TrainRoute[] {
+  const ref = new Date();
+  return rows.map((r) => ({
+    ...r,
+    departureDate: parse(r.departureDate, "yyyy-MM-dd", ref),
+    arrivalDate: parse(r.arrivalDate, "yyyy-MM-dd", ref),
+    amenities: RZD_FALLBACK_AMENITIES,
+  }));
+}
+
+function filterRoutesByTicketType(
+  routes: TrainRoute[],
   ticketType: string
-): TrainRoute[] => {
-  // Хардкоженные данные маршрутов
-  const routes: TrainRoute[] = [
-    {
-      id: "1",
-      trainNumber: "022А",
-      trainName: "Ночной экспресс",
-      departureTime: "00:25",
-      departureDate,
-      departureStation: getStation(fromCity, 0),
-      departureCity: fromCity,
-      arrivalTime: "09:26",
-      arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
-      arrivalCity: toCity,
-      duration: "9 ч 1 м",
-      amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[2], amenitiesData[3], amenitiesData[4], amenitiesData[5]],
-      reviews: {
-        count: 169,
-        rating: 9.7
-      },
-      tickets: [
-        {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 140,
-          upperBerths: 142,
-          price: 4605
-        },
-        {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 16,
-          upperBerths: 0,
-          price: 12987
-        }
-      ],
-      minPrice: 4605
-    },
-    {
-      id: "2",
-      trainNumber: "016А",
-      trainName: "Арктика",
-      tags: ["Фирменный", "Проходящий"],
-      departureTime: "00:46",
-      departureDate,
-      departureStation: getStation(fromCity, 0),
-      departureCity: fromCity,
-      arrivalTime: "09:13",
-      arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 1),
-      arrivalCity: toCity,
-      duration: "8 ч 27 м",
-      amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[2], amenitiesData[3], amenitiesData[4]],
-      reviews: {
-        count: 2000,
-        rating: 8.7
-      },
-      tickets: [
-        {
-          type: "platzkart",
-          name: "Плацкарт",
-          lowerBerths: 29,
-          upperBerths: 98,
-          price: 2451
-        },
-        {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 22,
-          upperBerths: 20,
-          price: 5516
-        },
-        {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 6,
-          upperBerths: 6,
-          price: 14867
-        }
-      ],
-      minPrice: 2451
-    },
-    {
-      id: "3",
-      trainNumber: "060*Г",
-      trainName: "Волга",
-      tags: ["Фирменный", "Проходящий"],
-      departureTime: "00:48",
-      departureDate,
-      departureStation: getStation(fromCity, 2),
-      departureCity: fromCity,
-      arrivalTime: "09:57",
-      arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
-      arrivalCity: toCity,
-      duration: "9 ч 9 м",
-      amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[2], amenitiesData[3], amenitiesData[6]],
-      reviews: {
-        count: 1400,
-        rating: 9.0
-      },
-      tickets: [
-        {
-          type: "platzkart",
-          name: "Плацкарт",
-          lowerBerths: 72,
-          upperBerths: 79,
-          price: 3220
-        },
-        {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 21,
-          upperBerths: 27,
-          price: 4861
-        },
-        {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 16,
-          upperBerths: 0,
-          price: 16840
-        }
-      ],
-      minPrice: 3220
-    },
-    {
-      id: "4",
-      trainNumber: "057M",
-      trainName: "",
-      departureTime: "01:00",
-      departureDate,
-      departureStation: getStation(fromCity, 1),
-      departureCity: fromCity,
-      arrivalTime: "10:41",
-      arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
-      arrivalCity: toCity,
-      duration: "9 ч 41 м",
-      amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[4], amenitiesData[5]],
-      reviews: {
-        count: 164,
-        rating: 7.8
-      },
-      tickets: [
-        {
-          type: "platzkart",
-          name: "Плацкарт",
-          lowerBerths: 150,
-          upperBerths: 153,
-          price: 2196
-        },
-        {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 61,
-          upperBerths: 66,
-          price: 2239
-        },
-        {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 0,
-          upperBerths: 0,
-          price: 10005
-        }
-      ],
-      minPrice: 2196
-    },
-    {
-      id: "5",
-      trainNumber: "050*C",
-      trainName: "",
-      tags: ["Проходящий"],
-      departureTime: "02:05",
-      departureDate,
-      departureStation: getStation(fromCity, 2),
-      departureCity: fromCity,
-      arrivalTime: "11:00",
-      arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
-      arrivalCity: toCity,
-      duration: "8 ч 55 м",
-      amenities: [amenitiesData[0], amenitiesData[4], amenitiesData[5]],
-      reviews: {
-        count: 282,
-        rating: 7.6
-      },
-      tickets: [
-        {
-          type: "platzkart",
-          name: "Плацкарт",
-          lowerBerths: 76,
-          upperBerths: 96,
-          price: 2196
-        },
-        {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 41,
-          upperBerths: 57,
-          price: 3183
-        }
-      ],
-      minPrice: 2196
-    },
-    {
-      id: "6",
-      trainNumber: "082B",
-      trainName: "",
-      tags: ["Двухэтажный", "Проходящий"],
-      departureTime: "03:13",
-      departureDate,
-      departureStation: getStation(fromCity, 2),
-      departureCity: fromCity,
-      arrivalTime: "11:40",
-      arrivalDate: departureDate,
-      arrivalStation: getStation(toCity, 0),
-      arrivalCity: toCity,
-      duration: "8 ч 27 м",
-      amenities: [amenitiesData[0], amenitiesData[1], amenitiesData[4], amenitiesData[5], amenitiesData[6]],
-      reviews: {
-        count: 1100,
-        rating: 7.8
-      },
-      tickets: [
-        {
-          type: "coupe",
-          name: "Купе",
-          lowerBerths: 160,
-          upperBerths: 186,
-          price: 2389
-        },
-        {
-          type: "sv",
-          name: "СВ",
-          lowerBerths: 22,
-          upperBerths: 0,
-          price: 13098
-        }
-      ],
-      minPrice: 2389
-    }
-  ];
-
-  // Фильтруем по типу билета, если указан
-  if (ticketType && ticketType !== "all") {
-    return routes.filter(route => 
-      route.tickets.some(ticket => ticket.type === ticketType)
-    );
-  }
-
-  return routes;
-};
+): TrainRoute[] {
+  if (!ticketType || ticketType === "all") return routes;
+  return routes.filter((route) =>
+    route.tickets.some((ticket) => ticket.type === ticketType)
+  );
+}
 
 const TrainSearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -385,7 +151,46 @@ const TrainSearchResults = () => {
 
   const departureDate = selectedDate;
 
-  const routes = generateRoutes(fromCity, toCity, departureDate, ticketType);
+  const [rawRoutes, setRawRoutes] = useState<TrainRouteFromApi[]>([]);
+  const [routeLoad, setRouteLoad] = useState<"idle" | "loading" | "error" | "ok">("idle");
+  const [routeError, setRouteError] = useState<string | null>(null);
+
+  const normalizedRoutes = useMemo(
+    () => deserializeTrainRoutes(rawRoutes),
+    [rawRoutes]
+  );
+  const routes = useMemo(
+    () => filterRoutesByTicketType(normalizedRoutes, ticketType),
+    [normalizedRoutes, ticketType]
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    const day = format(departureDate, "yyyy-MM-dd");
+    setRouteLoad("loading");
+    setRouteError(null);
+    (async () => {
+      try {
+        const data = await apiFetch<{ routes: TrainRouteFromApi[]; message?: string }>(
+          `/api/train-search/rzd?from=${encodeURIComponent(fromCity)}&to=${encodeURIComponent(toCity)}&date=${encodeURIComponent(day)}`
+        );
+        if (cancelled) return;
+        setRawRoutes(Array.isArray(data.routes) ? data.routes : []);
+        setRouteLoad("ok");
+        if (data.message && (!data.routes || data.routes.length === 0)) {
+          setRouteError(data.message);
+        }
+      } catch (e) {
+        if (cancelled) return;
+        setRawRoutes([]);
+        setRouteLoad("error");
+        setRouteError(e instanceof Error ? e.message : "Не удалось загрузить расписание");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [fromCity, toCity, departureDate]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -631,7 +436,11 @@ const TrainSearchResults = () => {
                           "text-xs mt-1",
                           isSelected ? "text-white/90" : "text-muted-foreground"
                         )}>
-                          {routes[0]?.minPrice?.toLocaleString("ru-RU") || "4605"} Р
+                          {routeLoad === "loading"
+                            ? "…"
+                            : normalizedRoutes[0]?.minPrice
+                              ? `${normalizedRoutes[0].minPrice.toLocaleString("ru-RU")} Р`
+                              : "—"}
                         </div>
                       </button>
                     );
@@ -653,8 +462,19 @@ const TrainSearchResults = () => {
         </div>
 
         {/* Список маршрутов */}
+        {routeLoad === "loading" && (
+          <p className="text-center py-16 text-muted-foreground">
+            Загружаем расписание РЖД…
+          </p>
+        )}
+        {routeLoad === "error" && routeError && (
+          <p className="text-center py-8 text-red-600" role="alert">
+            {routeError}
+          </p>
+        )}
         <div className="space-y-6">
-          {routes.map((route) => (
+          {routeLoad !== "loading" &&
+          routes.map((route) => (
             <Card key={route.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
                 <div className="flex flex-col lg:flex-row gap-6">
@@ -693,7 +513,11 @@ const TrainSearchResults = () => {
                       <div className="flex-1 relative">
                         <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-2">
                           <Clock className="w-4 h-4" />
-                          <span>{route.duration} в пути</span>
+                          <span>
+                            {route.duration === "—"
+                              ? route.duration
+                              : `${route.duration} в пути`}
+                          </span>
                         </div>
                         <div className="relative h-[2px] bg-border">
                           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-primary" />
@@ -744,12 +568,20 @@ const TrainSearchResults = () => {
                   <div className="lg:w-80 space-y-4">
                     {/* Отзывы */}
                     <div className="flex items-center justify-end gap-2">
-                      <span className="text-sm text-muted-foreground">
-                        {formatReviewCount(route.reviews.count)} отзывов
-                      </span>
-                      <div className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-semibold">
-                        {route.reviews.rating}
-                      </div>
+                      {route.reviews.count > 0 ? (
+                        <>
+                          <span className="text-sm text-muted-foreground">
+                            {formatReviewCount(route.reviews.count)} отзывов
+                          </span>
+                          <div className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-semibold">
+                            {route.reviews.rating}
+                          </div>
+                        </>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">
+                          Оценки от пассажиров не собираем
+                        </span>
+                      )}
                     </div>
 
                     {/* Типы билетов и цены */}
@@ -800,7 +632,11 @@ const TrainSearchResults = () => {
                     {/* Цена и кнопка */}
                     <div className="pt-4 border-t">
                       <div className="text-2xl font-bold mb-1">
-                        от {route.minPrice.toLocaleString("ru-RU")} Р
+                        {route.minPrice > 0 ? (
+                          <>от {route.minPrice.toLocaleString("ru-RU")} Р</>
+                        ) : (
+                          <>цена недоступна</>
+                        )}
                       </div>
                       <div className="text-sm text-muted-foreground mb-4">за одного</div>
                       <Button
@@ -828,10 +664,11 @@ const TrainSearchResults = () => {
           ))}
         </div>
 
-        {routes.length === 0 && (
+        {routeLoad === "ok" && routes.length === 0 && (
           <div className="text-center py-12">
             <p className="text-lg text-muted-foreground">
-              К сожалению, на выбранную дату нет доступных поездов
+              {routeError ||
+                "К сожалению, на выбранную дату нет подходящих поездов (измените тип мест или дату)."}
             </p>
           </div>
         )}
