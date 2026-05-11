@@ -33,31 +33,135 @@ export async function stripeWebhookHandler(req, res) {
   }
 
   if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-    const orderNumber = session.metadata?.order_number;
-    if (!orderNumber) {
-      console.warn("[stripe] checkout.session.completed without order_number");
-      return res.json({ received: true });
-    }
+    await finalizeCheckoutSessionFromStripeWebhook(event.data.object);
+    return res.json({ received: true });
+  }
 
-    const { rows: tickets } = await pool.query(
-      `SELECT id, order_number, payment_status, payment_transaction_id FROM tickets WHERE order_number = $1`,
-      [orderNumber]
+  return res.json({ received: true });
+}
+
+/** Подтверждение оплаты после редиректа с Checkout (строго свой заказ пользователя). */
+async function finalizeCheckoutSessionForUser(sessionId, userId) {
+  const sk = process.env.STRIPE_SECRET_KEY;
+  if (!sk) throw new Error("STRIPE_SECRET_KEY missing");
+
+  const stripe = new Stripe(sk);
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+  if (session.payment_status !== "paid") {
+    return {
+      ok: false,
+      code: "not_paid",
+      payment_status: session.payment_status ?? "unknown",
+    };
+  }
+
+  const orderNumber = session.metadata?.order_number;
+  if (!orderNumber) return { ok: false, code: "no_metadata" };
+
+  const ticketIdMeta = session.metadata?.ticket_id
+    ? String(session.metadata.ticket_id)
+    : null;
+
+  const { rows } = await pool.query(
+    `SELECT id, order_number, payment_status FROM tickets WHERE order_number = $1 AND user_id = $2`,
+    [orderNumber, userId]
+  );
+  const ticket = rows[0];
+  if (!ticket) return { ok: false, code: "order_not_found" };
+  if (ticketIdMeta && String(ticket.id) !== ticketIdMeta) {
+    return { ok: false, code: "ticket_mismatch" };
+  }
+  if (ticket.payment_status === "paid") {
+    return { ok: true, already: true, order_number: orderNumber };
+  }
+
+  const txId = session.id;
+  const raw = JSON.stringify(session);
+
+  await pool.query(
+    `UPDATE tickets SET
+        payment_status = 'paid',
+        payment_transaction_id = $2,
+        payment_paid_at = NOW(),
+        payment_method = 'stripe',
+        payment_raw = $3::jsonb,
+        updated_at = NOW()
+      WHERE id = $1 AND user_id = $4`,
+    [ticket.id, txId, raw, userId]
+  );
+
+  return { ok: true, order_number: orderNumber };
+}
+
+/**
+ * Завершение без webhook: браузер приходит на success с ?session_id=…
+ */
+export async function stripeSyncCheckoutHandler(req, res) {
+  const body = req.body || {};
+  const sessionId =
+    typeof body.session_id === "string" ? body.session_id.trim() : "";
+  if (!sessionId) {
+    return res.status(400).json({ error: "session_id required" });
+  }
+
+  const sk = process.env.STRIPE_SECRET_KEY;
+  if (!sk) {
+    return res.status(503).json({ error: "Stripe не настроен" });
+  }
+
+  try {
+    const result = await finalizeCheckoutSessionForUser(
+      sessionId,
+      req.userId
     );
-    const ticket = tickets[0];
-    if (!ticket) {
-      console.warn("[stripe] unknown order", orderNumber);
-      return res.json({ received: true });
-    }
-    if (ticket.payment_status === "paid") {
-      return res.json({ received: true, message: "already paid" });
+    if (!result.ok) {
+      if (result.code === "not_paid") {
+        return res.status(400).json({
+          error: "Оплата ещё не подтверждена Stripe",
+          payment_status: result.payment_status,
+        });
+      }
+      if (result.code === "order_not_found") {
+        return res.status(404).json({ error: "Заказ не найден или чужой" });
+      }
+      if (result.code === "ticket_mismatch") {
+        return res.status(400).json({ error: "Несовпадение заказа" });
+      }
+      return res.status(400).json({ error: "Некорректная сессия оплаты" });
     }
 
-    const txId = session.id;
-    const raw = JSON.stringify(session);
+    return res.json({
+      ok: true,
+      order_number: result.order_number,
+      already: result.already ?? false,
+    });
+  } catch (e) {
+    console.error("[stripe] sync-checkout", e);
+    const msg =
+      e instanceof Error ? e.message : "Ошибка Stripe";
+    return res.status(502).json({ error: msg });
+  }
+}
 
-    await pool.query(
-      `UPDATE tickets SET
+/** Используется из webhook после проверки подписи — без доп. проверки user_id */
+async function finalizeCheckoutSessionFromStripeWebhook(session) {
+  const orderNumber = session.metadata?.order_number;
+  if (!orderNumber) return;
+
+  const { rows: tickets } = await pool.query(
+    `SELECT id, order_number, payment_status, payment_transaction_id FROM tickets WHERE order_number = $1`,
+    [orderNumber]
+  );
+  const ticket = tickets[0];
+  if (!ticket) return;
+  if (ticket.payment_status === "paid") return;
+
+  const txId = session.id;
+  const raw = JSON.stringify(session);
+
+  await pool.query(
+    `UPDATE tickets SET
         payment_status = 'paid',
         payment_transaction_id = $2,
         payment_paid_at = NOW(),
@@ -65,17 +169,13 @@ export async function stripeWebhookHandler(req, res) {
         payment_raw = $3::jsonb,
         updated_at = NOW()
       WHERE id = $1`,
-      [ticket.id, txId, raw]
-    );
-  }
-
-  return res.json({ received: true });
+    [ticket.id, txId, raw]
+  );
 }
 
-/**
- * @param {import('express').Express} app
- */
 export function registerStripePaymentRoutes(app) {
+  app.post("/api/stripe-sync-checkout", authMiddleware, express.json(), stripeSyncCheckoutHandler);
+
   app.post("/api/webpay-create", authMiddleware, express.json(), async (req, res) => {
     const body = req.body || {};
     if (!body.ticket_id || !body.order_number || body.total_price === undefined) {
@@ -118,8 +218,7 @@ export function registerStripePaymentRoutes(app) {
     const sk = process.env.STRIPE_SECRET_KEY;
     if (!sk) {
       return res.status(503).json({
-        error:
-          "Stripe не настроен: задайте STRIPE_SECRET_KEY на сервере (и STRIPE_WEBHOOK_SECRET для webhook).",
+        error: "Stripe не настроен: задайте STRIPE_SECRET_KEY на сервере.",
       });
     }
 
@@ -148,7 +247,7 @@ export function registerStripePaymentRoutes(app) {
             quantity: 1,
           },
         ],
-        success_url: `${baseUrl}/payment/success?order=${encodeURIComponent(orderNumber)}`,
+        success_url: `${baseUrl}/payment/success?order=${encodeURIComponent(orderNumber)}&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${baseUrl}/payment/cancel?order=${encodeURIComponent(orderNumber)}`,
         metadata: {
           order_number: orderNumber,

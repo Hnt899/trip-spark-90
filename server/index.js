@@ -30,12 +30,17 @@ app.use(
     credentials: true,
   }),
 );
-// Stripe webhook требует сырое тело для проверки подписи (до express.json)
-app.post(
-  "/api/stripe-webhook",
-  express.raw({ type: "application/json" }),
-  stripeWebhookHandler
-);
+// Webhook необязателен локально: оплата подтверждается через POST /api/stripe-sync-checkout
+if (process.env.STRIPE_WEBHOOK_SECRET) {
+  app.post(
+    "/api/stripe-webhook",
+    express.raw({ type: "application/json" }),
+    stripeWebhookHandler
+  );
+} else if (process.env.STRIPE_SECRET_KEY) {
+  console.log("[stripe] Webhook отключён (нет STRIPE_WEBHOOK_SECRET) — используйте синхронизацию после Checkout");
+}
+
 app.use(express.json({ limit: "1mb" }));
 
 // ============================================

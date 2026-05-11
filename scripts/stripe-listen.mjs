@@ -1,7 +1,7 @@
 /**
- * Запуск Stripe CLI: `npm run stripe:listen`
- * После winget нужен новый терминал; если PATH ещё не виден Node — ищем stripe.exe в WinGet.
- * Ключ берётся из .env.local: STRIPE_SECRET_KEY → передаём в CLI как STRIPE_API_KEY (без stripe login).
+ * Запуск Stripe CLI: прокси webhook на localhost (необязательно).
+ * Локально оплату можно подтверждать без CLI: на success редиректе есть session_id → POST /api/stripe-sync-checkout.
+ * CLI нужен, если хотите именно входящие webhook-события или прод-образ webhook.
  */
 import { execSync, spawn } from "node:child_process";
 import dotenv from "dotenv";
