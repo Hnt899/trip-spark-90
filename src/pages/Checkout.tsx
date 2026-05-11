@@ -559,6 +559,9 @@ const Checkout = () => {
       const payResult = await apiFetch<{
         skip_webpay?: boolean;
         order_number?: string;
+        /** Stripe Checkout */
+        url?: string;
+        /** Legacy WebPay (отключено) */
         action?: string;
         fields?: Record<string, string>;
       }>("/api/webpay-create", {
@@ -579,19 +582,21 @@ const Checkout = () => {
         return;
       }
 
+      if (payResult.url) {
+        window.location.href = payResult.url;
+        return;
+      }
+
       const action = payResult.action;
       const fields = payResult.fields;
       if (!action || !fields) {
-        throw new Error("Некорректный ответ оплаты");
+        throw new Error("Некорректный ответ оплаты (ожидался Stripe Checkout URL)");
       }
 
-      // Создаём POST-форму для редиректа на WebPay
       const form = document.createElement("form");
       form.method = "POST";
       form.action = action;
       form.style.display = "none";
-
-      // Добавляем все поля как hidden inputs
       Object.entries(fields).forEach(([key, value]) => {
         const input = document.createElement("input");
         input.type = "hidden";
@@ -599,12 +604,8 @@ const Checkout = () => {
         input.value = String(value);
         form.appendChild(input);
       });
-
-      // Добавляем форму в body и отправляем
       document.body.appendChild(form);
       form.submit();
-
-      // setIsProcessing(false) не нужен, так как происходит редирект
     } catch (error) {
       console.error("Ошибка при создании платежа:", error);
       setIsProcessing(false);

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import fetch from "node-fetch";
 import rateLimit from "express-rate-limit";
+import { stripeWebhookHandler } from "./stripePayments.js";
 import { registerApiRoutes } from "./registerApiRoutes.js";
 import { uploadRouter, UPLOAD_DIR } from "./uploadRoute.js";
 
@@ -28,6 +29,12 @@ app.use(
     },
     credentials: true,
   }),
+);
+// Stripe webhook требует сырое тело для проверки подписи (до express.json)
+app.post(
+  "/api/stripe-webhook",
+  express.raw({ type: "application/json" }),
+  stripeWebhookHandler
 );
 app.use(express.json({ limit: "1mb" }));
 

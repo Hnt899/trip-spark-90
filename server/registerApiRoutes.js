@@ -1,5 +1,4 @@
 import express from "express";
-import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { authenticator } from "otplib";
 import { pool } from "./db.js";
@@ -14,14 +13,10 @@ import {
 import { registerAdminRoutes } from "./adminApiRoutes.js";
 import { registerBlogPublicRoutes } from "./blogRoutes.js";
 import { registerRoutePublicRoutes } from "./routePageRoutes.js";
-import {
-  createInitSignatureV2,
-  verifyNotifySignature,
-  parseBoolLike,
-} from "./webpayNode.js";
 import { sendExolveSms } from "./sendSms.js";
 import { sendEmailOtp } from "./emailOtp.js";
 import { registerRzdTrainSearchRoutes } from "./rzdTrainSearchRoutes.js";
+import { registerStripePaymentRoutes } from "./stripePayments.js";
 
 function normalizePhoneE164(input) {
   const digits = input.replace(/\D/g, "");
@@ -41,6 +36,7 @@ function randomDigits(n) {
  */
 export function registerApiRoutes(app) {
   registerRzdTrainSearchRoutes(app);
+  registerStripePaymentRoutes(app);
 
   // --- Auth: session ---
   app.get("/api/auth/session", authMiddleware, async (req, res) => {
@@ -763,197 +759,6 @@ export function registerApiRoutes(app) {
     }
     res.json({ ok: true });
   });
-
-  // --- WebPay ---
-  app.post("/api/webpay-create", authMiddleware, express.json(), async (req, res) => {
-    const body = req.body || {};
-    if (!body.ticket_id || !body.order_number || body.total_price === undefined) {
-      return res.status(400).json({ error: "Missing ticket_id, order_number, total_price" });
-    }
-    if (typeof body.total_price !== "number" || body.total_price <= 0) {
-      return res.status(400).json({ error: "total_price must be positive" });
-    }
-
-    const skipWebpay = parseBoolLike(process.env.SKIP_WEBPAY) === true;
-    if (skipWebpay) {
-      const txId = `skip-${crypto.randomUUID()}`;
-      const { rows } = await pool.query(
-        `UPDATE tickets SET
-          payment_status = 'paid',
-          payment_paid_at = NOW(),
-          payment_method = 'skip_webpay',
-          payment_transaction_id = $3,
-          payment_raw = $4::jsonb,
-          updated_at = NOW()
-        WHERE id = $1::uuid AND user_id = $2::uuid AND order_number = $5
-        RETURNING id`,
-        [
-          body.ticket_id,
-          req.userId,
-          txId,
-          JSON.stringify({ skip_webpay: true, at: new Date().toISOString() }),
-          String(body.order_number),
-        ]
-      );
-      if (!rows.length) {
-        return res.status(404).json({ error: "Ticket not found" });
-      }
-      console.warn(
-        "[webpay-create] SKIP_WEBPAY: оплата пропущена, билет помечен paid (только для разработки / без реального эквайринга)"
-      );
-      return res.json({ skip_webpay: true, order_number: body.order_number });
-    }
-
-    const storeId = process.env.WEBPAY_STORE_ID;
-    const secretKey = process.env.WEBPAY_SECRET_KEY;
-    const testMode = process.env.WEBPAY_TEST_MODE;
-    const currencyId = process.env.WEBPAY_CURRENCY_ID;
-    const publicBase =
-      process.env.WEBPAY_PUBLIC_API_BASE ||
-      `http://localhost:${process.env.PORT || 4000}/api`;
-
-    if (!storeId || !secretKey || !currencyId) {
-      return res.status(500).json({ error: "WebPay env not configured" });
-    }
-
-    let baseUrl = body.base_url || req.headers.origin || "";
-    baseUrl = String(baseUrl).replace(/\/$/, "");
-    if (!baseUrl) baseUrl = "http://localhost:8080";
-
-    const wsbSeed = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
-    const wsbTotal = body.total_price.toFixed(2);
-    const isTestMode = parseBoolLike(testMode) ?? false;
-    const wsbTest = isTestMode ? "1" : "0";
-    const notifyUrl = `${publicBase.replace(/\/$/, "")}/webpay-notify`;
-
-    const webpayFields = {
-      wsb_version: "2",
-      wsb_storeid: storeId,
-      wsb_order_num: body.order_number,
-      wsb_currency_id: String(currencyId),
-      wsb_total: wsbTotal,
-      wsb_seed: wsbSeed.slice(0, 32),
-      wsb_test: wsbTest,
-      wsb_operation_type: "payment",
-      wsb_return_url: `${baseUrl}/payment/success?order=${encodeURIComponent(body.order_number)}`,
-      wsb_cancel_return_url: `${baseUrl}/payment/cancel?order=${encodeURIComponent(body.order_number)}`,
-      wsb_notify_url: notifyUrl,
-    };
-    if (body.customer_id) webpayFields.wsb_customer_id = body.customer_id;
-
-    const signature = createInitSignatureV2({
-      wsb_seed: webpayFields.wsb_seed,
-      wsb_storeid: storeId,
-      wsb_customer_id: webpayFields.wsb_customer_id || "",
-      wsb_order_num: body.order_number,
-      wsb_test,
-      wsb_currency_id: String(currencyId),
-      wsb_total: wsbTotal,
-      wsb_operation_type: "payment",
-      secret_key: secretKey,
-    });
-    webpayFields.wsb_signature = signature;
-
-    const actionUrl = isTestMode
-      ? "https://securesandbox.webpay.by"
-      : "https://payment.webpay.by";
-
-    res.json({ action: actionUrl, fields: webpayFields });
-  });
-
-  app.post(
-    "/api/webpay-notify",
-    express.urlencoded({ extended: true, limit: "256kb" }),
-    async (req, res) => {
-      const secretKey = process.env.WEBPAY_SECRET_KEY;
-      if (!secretKey)
-        return res.status(500).json({ error: "WEBPAY_SECRET_KEY missing" });
-
-      const notifyParams = { ...req.body };
-      const signatureParams = { ...notifyParams, secret_key: secretKey };
-      if (!verifyNotifySignature(signatureParams)) {
-        return res.status(400).json({ error: "Invalid signature" });
-      }
-
-      const orderNumber = notifyParams.site_order_id || notifyParams.wsb_order_num;
-      if (!orderNumber)
-        return res.status(400).json({ error: "Missing order number" });
-
-      const transactionId =
-        notifyParams.transaction_id || notifyParams.wsb_tid || "";
-
-      let paymentStatus = "paid";
-      const statusField = notifyParams.status || notifyParams.payment_status;
-      if (statusField) {
-        const sl = String(statusField).toLowerCase();
-        if (sl === "failed" || sl === "error" || sl === "declined")
-          paymentStatus = "failed";
-        else if (sl === "cancelled" || sl === "canceled")
-          paymentStatus = "cancelled";
-        else if (
-          sl === "success" ||
-          sl === "paid" ||
-          sl === "approved" ||
-          sl === ""
-        )
-          paymentStatus = "paid";
-      }
-
-      const { rows: tickets } = await pool.query(
-        `SELECT id, order_number, payment_status, payment_transaction_id FROM tickets WHERE order_number = $1`,
-        [orderNumber]
-      );
-      const ticket = tickets[0];
-      if (!ticket) return res.status(404).json({ error: "Order not found" });
-
-      if (ticket.payment_status === "paid") {
-        return res.json({ message: "Order already paid", order_number: orderNumber });
-      }
-      if (
-        transactionId &&
-        ticket.payment_transaction_id === transactionId
-      ) {
-        return res.json({
-          message: "Transaction already processed",
-          order_number: orderNumber,
-        });
-      }
-
-      const updateData = {
-        payment_status: paymentStatus,
-        payment_raw: JSON.stringify(notifyParams),
-        payment_method: "webpay",
-      };
-      if (transactionId) updateData.payment_transaction_id = transactionId;
-      if (paymentStatus === "paid")
-        updateData.payment_paid_at = new Date().toISOString();
-
-      await pool.query(
-        `UPDATE tickets SET
-          payment_status = $2,
-          payment_transaction_id = COALESCE($3, payment_transaction_id),
-          payment_paid_at = COALESCE($4::timestamptz, payment_paid_at),
-          payment_method = $5,
-          payment_raw = $6::jsonb,
-          updated_at = NOW()
-        WHERE id = $1`,
-        [
-          ticket.id,
-          updateData.payment_status,
-          updateData.payment_transaction_id || null,
-          updateData.payment_paid_at || null,
-          updateData.payment_method,
-          updateData.payment_raw,
-        ]
-      );
-
-      res.json({
-        message: "Order status updated",
-        order_number: orderNumber,
-        payment_status: paymentStatus,
-      });
-    }
-  );
 
   app.get("/api/auth/public/profile-by-phone", async (req, res) => {
     const phone = req.query.phone;
