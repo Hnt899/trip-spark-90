@@ -29,6 +29,7 @@ export function registerRzdTrainSearchRoutes(app) {
             : undefined,
       });
     } catch (e) {
+      console.error("[rzd] train-search failed:", e);
       if (e && e.code === "UNKNOWN_STATION") {
         return res.status(400).json({
           error: e.message || "Неизвестная станция",

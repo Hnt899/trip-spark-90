@@ -74,7 +74,7 @@ export function createRzdPassClient(options = {}) {
         Cookie: cookieHeader || undefined,
         "User-Agent":
           options.userAgent ||
-          "Mozilla/5.0 (compatible; trip-spark/1.0; +https://github.com/)",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         Referer: options.referer || "https://ticket.rzd.ru/",
       },
       body: new URLSearchParams(form).toString(),
@@ -84,7 +84,19 @@ export function createRzdPassClient(options = {}) {
     if (set.length) {
       cookieHeader += set.map((s) => s.split(";")[0]).join("; ") + "; ";
     }
-    return r.json();
+    const text = await r.text();
+    if (!r.ok) {
+      throw new Error(
+        `РЖД HTTP ${r.status}: ${text.slice(0, 120).replace(/\s+/g, " ")}`
+      );
+    }
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error(
+        `РЖД вернул не JSON (возможна блокировка IP): ${text.slice(0, 120).replace(/\s+/g, " ")}`
+      );
+    }
   }
 
   /**
