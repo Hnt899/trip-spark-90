@@ -10,10 +10,20 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+coverage/
 *.local
 .env
 uploads/
 bun.lockb
+
+# Local artifact dumps (non-development)
+_diplom_*.docx
+_diplom_renumber_tmp/
+_tmp_tbl/
+_all_caps.txt
+_table_runs.txt
+приложение/
+диаграммы/
 
 # Editor directories and files
 .vscode/*
