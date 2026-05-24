@@ -101,7 +101,7 @@ const RouteList = () => {
   const apiQ = useQuery({
     queryKey: ["route-pages-public-list"],
     queryFn: () =>
-      fetch("/api/routes").then((r) => {
+      fetch("/api/route-pages").then((r) => {
         if (!r.ok) throw new Error(`${r.status}`);
         return r.json() as Promise<ApiRoute[]>;
       }),

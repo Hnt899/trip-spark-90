@@ -88,7 +88,7 @@ const RouteDetail = () => {
   const apiQ = useQuery({
     queryKey: ["route-page-public", id],
     queryFn: () =>
-      fetch(`/api/routes/by-id/${id}`).then((r) => {
+      fetch(`/api/route-pages/by-id/${id}`).then((r) => {
         if (!r.ok) throw new Error(`${r.status}`);
         return r.json() as Promise<ApiRoute>;
       }),

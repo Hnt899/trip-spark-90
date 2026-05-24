@@ -176,7 +176,8 @@ function parseBody(body) {
  * @param {import('express').Express} app
  */
 export function registerRoutePublicRoutes(app) {
-  app.get("/api/routes", async (_req, res) => {
+  // /api/route-pages — обход WAF на некоторых VPS, где /api/routes режется HTML Forbidden
+  app.get("/api/route-pages", async (_req, res) => {
     try {
       const { rows } = await pool.query(
         `SELECT id, legacy_id, slug, name, region, rating, cover_image_url, excerpt, views
@@ -191,7 +192,7 @@ export function registerRoutePublicRoutes(app) {
     }
   });
 
-  app.get("/api/routes/by-id/:id", async (req, res) => {
+  app.get("/api/route-pages/by-id/:id", async (req, res) => {
     const id = String(req.params.id || "");
     if (!id) return res.status(400).json({ error: "id required" });
     try {
