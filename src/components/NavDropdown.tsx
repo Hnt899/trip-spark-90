@@ -41,7 +41,7 @@ const NavDropdown = ({ label, items, href, isActive = false, isHomePage = false 
       </HoverCardTrigger>
       <HoverCardContent
         className={cn(
-          "w-80 p-4 rounded-xl shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-3 data-[side=top]:slide-in-from-bottom-3 transition-all duration-200",
+          "z-[60] w-80 p-4 rounded-xl shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-3 data-[side=top]:slide-in-from-bottom-3 transition-all duration-200",
           isHomePage
             ? "bg-white/95 supports-[backdrop-filter]:bg-white/90 backdrop-blur-lg border border-foreground/20"
             : "bg-background border"
@@ -96,7 +96,7 @@ const NavDropdown = ({ label, items, href, isActive = false, isHomePage = false 
       </PopoverTrigger>
       <PopoverContent
         className={cn(
-          "w-80 p-4 rounded-xl shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-3 data-[side=top]:slide-in-from-bottom-3 transition-all duration-200",
+          "z-[60] w-80 p-4 rounded-xl shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-3 data-[side=top]:slide-in-from-bottom-3 transition-all duration-200",
           isHomePage
             ? "bg-white/95 supports-[backdrop-filter]:bg-white/90 backdrop-blur-lg border border-foreground/20"
             : "bg-background border"

@@ -80,17 +80,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       .finally(() => setLoading(false));
   }, []);
 
-  const normalizePhoneForSMS = (phone: string): string => {
-    const digits = phone.replace(/\D/g, "");
-    if (digits.startsWith("8")) {
-      return "+7" + digits.substring(1);
-    } else if (digits.startsWith("7")) {
-      return "+" + digits;
-    }
-    return "+7" + digits;
-  };
-
   const signIn = async (emailOrPhone: string) => {
+    if (!emailOrPhone.includes("@")) {
+      return {
+        error: {
+          message:
+            "Вход по SMS отключён. Укажите email или используйте «Войти по паролю».",
+        },
+      };
+    }
+
     const rateLimitCheck = await checkOTPRateLimit(emailOrPhone);
     if (!rateLimitCheck.allowed) {
       return {
@@ -101,45 +100,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       };
     }
 
-    const isEmail = emailOrPhone.includes("@");
-
-    if (isEmail) {
-      try {
-        await apiFetch("/api/auth/email/send-otp", {
-          method: "POST",
-          body: JSON.stringify({ email: emailOrPhone }),
-        });
-        await logger.logSecurityEvent("Email OTP sent", undefined, {
-          emailOrPhone: emailOrPhone.replace(/(.{2})(.*)(.{2})/, "$1***$3"),
-        });
-        return { error: null };
-      } catch (e: unknown) {
-        const err = e as Error;
-        await logger.logError(err, undefined, {
-          action: "send_email_otp",
-          emailOrPhone: emailOrPhone.replace(/(.{2})(.*)(.{2})/, "$1***$3"),
-        });
-        return { error: { message: err.message } };
-      }
-    }
-
-    const normalizedPhone = normalizePhoneForSMS(emailOrPhone);
     try {
-      await apiFetch<{ success: boolean; error?: string }>(
-        "/api/auth/sms/send",
-        {
-          method: "POST",
-          body: JSON.stringify({ phone: normalizedPhone }),
-        }
-      );
-      await logger.logSecurityEvent("SMS OTP sent", undefined, {
-        phone: normalizedPhone.replace(/(.{3})(.*)(.{2})/, "$1***$3"),
+      await apiFetch("/api/auth/email/send-otp", {
+        method: "POST",
+        body: JSON.stringify({ email: emailOrPhone }),
+      });
+      await logger.logSecurityEvent("Email OTP sent", undefined, {
+        emailOrPhone: emailOrPhone.replace(/(.{2})(.*)(.{2})/, "$1***$3"),
       });
       return { error: null };
     } catch (e: unknown) {
       const err = e as Error;
-      await logger.logError(err, undefined, { action: "call_sms_function" });
-      return { error: { message: err.message || "Ошибка при отправке SMS" } };
+      await logger.logError(err, undefined, {
+        action: "send_email_otp",
+        emailOrPhone: emailOrPhone.replace(/(.{2})(.*)(.{2})/, "$1***$3"),
+      });
+      return { error: { message: err.message } };
     }
   };
 
@@ -159,124 +135,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       };
     }
 
-    const isEmail = emailOrPhone.includes("@");
-
-    if (isEmail) {
-      try {
-        const data = await apiFetch<{
-          user: AppUser;
-          access_token: string;
-        }>("/api/auth/email/verify-otp", {
-          method: "POST",
-          body: JSON.stringify({
-            email: emailOrPhone,
-            token,
-            isRegistration,
-          }),
-        });
-
-        let u = data.user;
-        if (!u.user_metadata?.has_password) {
-          const autoPassword =
-            Math.random().toString(36).slice(-12) +
-            Math.random().toString(36).slice(-12);
-          try {
-            await apiFetch("/api/auth/me", {
-              method: "PATCH",
-              body: JSON.stringify({
-                password: autoPassword,
-                user_metadata: {
-                  has_password: false,
-                  auto_password: autoPassword,
-                },
-              }),
-              headers: {
-                Authorization: `Bearer ${data.access_token}`,
-              },
-            });
-            const sess = await apiFetch<{ user: AppUser }>("/api/auth/session", {
-              headers: { Authorization: `Bearer ${data.access_token}` },
-            });
-            u = sess.user;
-          } catch {
-            /* ignore */
-          }
-        }
-
-        Cookies.set(TOKEN_COOKIE, data.access_token, { expires: 30 });
-        setSession({ access_token: data.access_token, user: u });
-        setUser(u);
-        resetRateLimit(`otp_verify:${emailOrPhone}`);
-        resetRateLimit(`otp:${emailOrPhone}`);
-        await logger.logLoginAttempt(emailOrPhone, true, u.id);
-        return { error: null, user: u };
-      } catch (e: unknown) {
-        const err = e as Error;
-        await logger.logLoginAttempt(emailOrPhone, false, undefined);
-        return { error: { message: err.message }, user: undefined };
-      }
-    }
-
-    const normalizedPhone = normalizePhoneForSMS(emailOrPhone);
-    try {
-      const data = await apiFetch<{ user: AppUser; access_token: string }>(
-        "/api/auth/sms/verify",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            phone: normalizedPhone,
-            token,
-            isRegistration,
-          }),
-        }
-      );
-
-      Cookies.set(TOKEN_COOKIE, data.access_token, { expires: 30 });
-      setSession({ access_token: data.access_token, user: data.user });
-      setUser(data.user);
-      resetRateLimit(`otp_verify:${emailOrPhone}`);
-      resetRateLimit(`otp:${emailOrPhone}`);
-      await logger.logLoginAttempt(normalizedPhone, true, data.user.id);
-      return { error: null, user: data.user };
-    } catch (e: unknown) {
-      const err = e as Error & { data?: { code?: string } };
-      if (err.data && (err.data as { code?: string }).code === "PHONE_NOT_REGISTERED") {
-        await logger.logLoginAttempt(normalizedPhone, false, undefined);
-        return {
-          error: {
-            message:
-              "Неверный код подтверждения или номер не зарегистрирован",
-          },
-          user: undefined,
-        };
-      }
-      await logger.logLoginAttempt(normalizedPhone, false, undefined);
+    if (!emailOrPhone.includes("@")) {
       return {
-        error: { message: err.message || "Ошибка верификации" },
+        error: {
+          message: "Вход по SMS отключён. Используйте email.",
+        },
         user: undefined,
       };
     }
-  };
 
-  const normalizePhone = (phone: string): string[] => {
-    const digits = phone.replace(/\D/g, "");
-    const variants: string[] = [];
-    if (digits.startsWith("8")) {
-      const with7 = "7" + digits.substring(1);
-      variants.push("+" + with7);
-      variants.push(with7);
-      variants.push("8" + digits.substring(1));
-    } else if (digits.startsWith("7")) {
-      variants.push("+" + digits);
-      variants.push(digits);
-      variants.push("8" + digits.substring(1));
-    } else {
-      variants.push("+7" + digits);
-      variants.push("7" + digits);
-      variants.push("8" + digits);
-      variants.push(digits);
+    try {
+      const data = await apiFetch<{
+        user: AppUser;
+        access_token: string;
+      }>("/api/auth/email/verify-otp", {
+        method: "POST",
+        body: JSON.stringify({
+          email: emailOrPhone,
+          token,
+          isRegistration,
+        }),
+      });
+
+      let u = data.user;
+      if (!u.user_metadata?.has_password) {
+        const autoPassword =
+          Math.random().toString(36).slice(-12) +
+          Math.random().toString(36).slice(-12);
+        try {
+          await apiFetch("/api/auth/me", {
+            method: "PATCH",
+            body: JSON.stringify({
+              password: autoPassword,
+              user_metadata: {
+                has_password: false,
+                auto_password: autoPassword,
+              },
+            }),
+            headers: {
+              Authorization: `Bearer ${data.access_token}`,
+            },
+          });
+          const sess = await apiFetch<{ user: AppUser }>("/api/auth/session", {
+            headers: { Authorization: `Bearer ${data.access_token}` },
+          });
+          u = sess.user;
+        } catch {
+          /* ignore */
+        }
+      }
+
+      Cookies.set(TOKEN_COOKIE, data.access_token, { expires: 30 });
+      setSession({ access_token: data.access_token, user: u });
+      setUser(u);
+      resetRateLimit(`otp_verify:${emailOrPhone}`);
+      resetRateLimit(`otp:${emailOrPhone}`);
+      await logger.logLoginAttempt(emailOrPhone, true, u.id);
+      return { error: null, user: u };
+    } catch (e: unknown) {
+      const err = e as Error;
+      await logger.logLoginAttempt(emailOrPhone, false, undefined);
+      return { error: { message: err.message }, user: undefined };
     }
-    return [...new Set(variants)];
   };
 
   const signInWithPassword = async (emailOrPhone: string, password: string) => {
@@ -289,7 +209,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       };
     }
 
-    const isEmail = emailOrPhone.includes("@");
+    if (!emailOrPhone.includes("@")) {
+      return {
+        error: {
+          message: "Вход по номеру телефона отключён. Используйте email.",
+        },
+      };
+    }
 
     const finishLogin = async (body: Record<string, string>) => {
       const json = await apiFetch<{
@@ -338,63 +264,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     try {
-      if (isEmail) {
-        return await finishLogin({ email: emailOrPhone.trim().toLowerCase() });
-      }
-
-      const phoneVariants = normalizePhone(emailOrPhone);
-      for (const phoneVariant of phoneVariants) {
-        const profile = await apiFetch<{
-          email?: string;
-          user_id?: string;
-          phone?: string;
-        } | null>(
-          `/api/auth/public/profile-by-phone?phone=${encodeURIComponent(phoneVariant)}`
-        );
-        if (profile?.email) {
-          return await finishLogin({ email: profile.email.trim().toLowerCase() });
-        }
-      }
-
-      const digitsOnly = emailOrPhone.replace(/\D/g, "");
-      if (digitsOnly.length >= 10) {
-        const last10 = digitsOnly.slice(-10);
-        const { matches } = await apiFetch<{ matches: Array<{ email: string }> }>(
-          "/api/auth/match-profiles-last10",
-          { method: "POST", body: JSON.stringify({ last10 }) }
-        );
-        if (matches?.length && matches[0].email) {
-          return await finishLogin({
-            email: matches[0].email.trim().toLowerCase(),
-          });
-        }
-      }
-
-      for (const phoneVariant of phoneVariants) {
-        const digitsOnlyV = phoneVariant.replace(/\D/g, "");
-        const tempEmail = digitsOnlyV + "@temp.com";
-        try {
-          await finishLogin({ email: tempEmail, password });
-          return { error: null };
-        } catch {
-          /* try next */
-        }
-      }
-
-      await logger.logLoginAttempt(emailOrPhone, false, undefined);
-      return {
-        error: {
-          message:
-            "Неверный номер телефона или пароль. Если вы регистрировались через email, используйте email для входа. Если номер не привязан, добавьте его в личном кабинете.",
-        },
-      };
+      return await finishLogin({ email: emailOrPhone.trim().toLowerCase() });
     } catch (e: unknown) {
       const err = e as Error;
       await logger.logLoginAttempt(emailOrPhone, false, undefined);
-      await logger.logError(err, undefined, {
-        action: "sign_in_with_password",
-        method: isEmail ? "email" : "phone",
-      });
       return { error: { message: err.message || "Ошибка входа" } };
     }
   };

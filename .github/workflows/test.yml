@@ -1,0 +1,50 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit and API tests
+        run: npm run test:coverage
+        env:
+          NODE_ENV: test
+          JWT_SECRET: ci-jwt-secret
+          WEBPAY_STORE_ID: ci-store
+          WEBPAY_SECRET_KEY: ci-webpay-secret
+          WEBPAY_CURRENCY_ID: 933
+          WEBPAY_TEST_MODE: "1"
+          WEBPAY_PUBLIC_API_BASE: http://localhost:4000/api
+          HF_API_TOKEN: ci-hf-token
+          HF_MODEL: meta-llama/Meta-Llama-3.1-8B-Instruct
+          EXOLVE_API_KEY: ci-exolve-key
+          EXOLVE_SENDER: TUDASUDA
+          SMTP_HOST: smtp.test.local
+          SMTP_PORT: "587"
+          SMTP_USER: ci@test.local
+          SMTP_PASS: ci-pass
+          SMTP_FROM: ci@test.local
+          DATABASE_URL: postgres://test:test@localhost:5432/test
+
+      - name: Build
+        run: npm run build

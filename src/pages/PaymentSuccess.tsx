@@ -13,8 +13,7 @@ const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const orderNumber = searchParams.get("order");
-  /** Stripe Checkout подставляет id сессии; без webhook локально билет подтверждается этим запросом */
-  const stripeSessionId = searchParams.get("session_id");
+  const yookassaPaymentId = searchParams.get("payment_id");
   
   const hasGeneratedRef = useRef(false);
   const [ticket, setTicket] = useState<any>(null);
@@ -23,7 +22,6 @@ const PaymentSuccess = () => {
   const [error, setError] = useState<string | null>(null);
   const [pollingCount, setPollingCount] = useState(0);
   const maxPollingAttempts = 15; // 15 попыток × 2 секунды = 30 секунд
-  const syncStripeRef = useRef(false);
 
   const generateTickets = async (ticketData: any) => {
     if (!ticketData.tickets_data || !Array.isArray(ticketData.tickets_data)) {
@@ -65,17 +63,16 @@ const PaymentSuccess = () => {
     if (!orderNumber) return;
 
     try {
-      if (stripeSessionId && !syncStripeRef.current) {
-        syncStripeRef.current = true;
-        try {
-          await apiFetch("/api/stripe-sync-checkout", {
-            method: "POST",
-            body: JSON.stringify({ session_id: stripeSessionId }),
-          });
-        } catch (syncErr) {
-          syncStripeRef.current = false;
-          console.warn("[payment] stripe-sync-checkout:", syncErr);
-        }
+      try {
+        await apiFetch("/api/yookassa-sync-payment", {
+          method: "POST",
+          body: JSON.stringify({
+            payment_id: yookassaPaymentId || undefined,
+            order_number: orderNumber,
+          }),
+        });
+      } catch (syncErr) {
+        console.warn("[payment] yookassa-sync-payment:", syncErr);
       }
 
       const data = await apiFetch<Record<string, unknown> | null>(
@@ -102,7 +99,7 @@ const PaymentSuccess = () => {
     }
   };
 
-  // Загрузка билета + при необходимости синхронизация Stripe без CLI/webhook
+  // Загрузка билета + синхронизация статуса с ЮKassa
   useEffect(() => {
     if (!orderNumber) {
       setError("Номер заказа не указан");
@@ -111,8 +108,8 @@ const PaymentSuccess = () => {
     }
 
     loadTicketOnce();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- первый вход на success по order/session
-  }, [orderNumber, stripeSessionId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- первый вход на success по order/payment_id
+  }, [orderNumber, yookassaPaymentId]);
 
   // Polling для проверки статуса оплаты
   useEffect(() => {

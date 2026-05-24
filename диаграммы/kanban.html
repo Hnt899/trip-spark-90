@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kanban — план разработки TudaSuda</title>
+    <link rel="stylesheet" href="er-database.css" />
+    <link rel="stylesheet" href="kanban.css" />
+  </head>
+  <body class="kanban-app">
+    <header class="kanban-topbar">
+      <div class="kanban-topbar__brand">
+        <strong>Проект «TudaSuda»</strong>
+        <span>· дипломный план</span>
+      </div>
+      <nav class="kanban-tabs" aria-label="Виды">
+        <span class="kanban-tab kanban-tab--active">Доска</span>
+        <a class="kanban-tab" href="gantt.html">Гант</a>
+        <a class="kanban-tab" href="er-database.html">БД</a>
+      </nav>
+      <span class="kanban-summary-badge">
+        <strong>550 ч</strong> · 01.09.2025 — 15.03.2026
+      </span>
+    </header>
+
+    <div class="kanban-board-wrap">
+      <div class="kanban-board" aria-label="Канбан-доска этапов">
+        <div class="kanban-board-row" aria-label="Этапы 1–6">
+        <section class="kanban-column">
+          <div class="kanban-column__stripe stripe--1"></div>
+          <header class="kanban-column__head">
+            <h2 class="kanban-column__title">Интервью и анализ требований (21 час)</h2>
+            <p class="kanban-column__phase-dates">01.09 — 10.09.2025</p>
+          </header>
+          <div class="kanban-cards">
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Интервью с заказчиком <span class="kanban-card__hours">(5 ч)</span></p>
+                <span class="kanban-card__date">📅 01 сен — 03 сен</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Анализ предметной области <span class="kanban-card__hours">(6 ч)</span></p>
+                <span class="kanban-card__date">📅 03 сен — 06 сен</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Черновик ТЗ и user stories <span class="kanban-card__hours">(6 ч)</span></p>
+                <span class="kanban-card__date">📅 06 сен — 09 сен</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Согласование требований <span class="kanban-card__hours">(4 ч)</span></p>
+                <span class="kanban-card__date">📅 09 сен — 10 сен</span>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section class="kanban-column">
+          <div class="kanban-column__stripe stripe--2"></div>
+          <header class="kanban-column__head">
+            <h2 class="kanban-column__title">Разработка прототипа (50 часов)</h2>
+            <p class="kanban-column__phase-dates">01.09 — 11.09.2025</p>
+          </header>
+          <div class="kanban-cards">
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Wireframes главной и поиска <span class="kanban-card__hours">(14 ч)</span></p>
+                <span class="kanban-card__date">📅 01 сен — 04 сен</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Прототип покупки билета <span class="kanban-card__hours">(16 ч)</span></p>
+                <span class="kanban-card__date">📅 04 сен — 07 сен</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Прототип ЛК и профиля <span class="kanban-card__hours">(12 ч)</span></p>
+                <span class="kanban-card__date">📅 07 сен — 09 сен</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Согласование UI/UX <span class="kanban-card__hours">(8 ч)</span></p>
+                <span class="kanban-card__date">📅 09 сен — 11 сен</span>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section class="kanban-column">
+          <div class="kanban-column__stripe stripe--3"></div>
+          <header class="kanban-column__head">
+            <h2 class="kanban-column__title">Проектирование архитектуры и БД (36 часов)</h2>
+            <p class="kanban-column__phase-dates">11.09 — 25.09.2025</p>
+          </header>
+          <div class="kanban-cards">
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Диаграмма компонентов C4 <span class="kanban-card__hours">(8 ч)</span></p>
+                <span class="kanban-card__date">📅 11 сен — 14 сен</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">ER-модель PostgreSQL <span class="kanban-card__hours">(12 ч)</span></p>
+                <span class="kanban-card__date">📅 14 сен — 18 сен</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Спецификация REST API <span class="kanban-card__hours">(10 ч)</span></p>
+                <span class="kanban-card__date">📅 18 сен — 22 сен</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Выбор стека и окружения <span class="kanban-card__hours">(6 ч)</span></p>
+                <span class="kanban-card__date">📅 22 сен — 25 сен</span>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section class="kanban-column">
+          <div class="kanban-column__stripe stripe--4"></div>
+          <header class="kanban-column__head">
+            <h2 class="kanban-column__title">Разработка frontend-части (82 часа)</h2>
+            <p class="kanban-column__phase-dates">26.09 — 25.10.2025</p>
+          </header>
+          <div class="kanban-cards">
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Поиск маршрутов и фильтры <span class="kanban-card__hours">(22 ч)</span></p>
+                <span class="kanban-card__date">📅 26 сен — 05 окт</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Карточки рейсов и оформление <span class="kanban-card__hours">(24 ч)</span></p>
+                <span class="kanban-card__date">📅 05 окт — 14 окт</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Профиль, заказы, билеты <span class="kanban-card__hours">(22 ч)</span></p>
+                <span class="kanban-card__date">📅 14 окт — 21 окт</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Адаптив и UI-kit (shadcn) <span class="kanban-card__hours">(14 ч)</span></p>
+                <span class="kanban-card__date">📅 21 окт — 25 окт</span>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section class="kanban-column">
+          <div class="kanban-column__stripe stripe--5"></div>
+          <header class="kanban-column__head">
+            <h2 class="kanban-column__title">Разработка backend API (100 часов)</h2>
+            <p class="kanban-column__phase-dates">01.10 — 05.11.2025</p>
+          </header>
+          <div class="kanban-cards">
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">API маршрутов и расписания <span class="kanban-card__hours">(28 ч)</span></p>
+                <span class="kanban-card__date">📅 01 окт — 12 окт</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Бронирование и заказы <span class="kanban-card__hours">(30 ч)</span></p>
+                <span class="kanban-card__date">📅 12 окт — 24 окт</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Загрузки и статика /uploads <span class="kanban-card__hours">(18 ч)</span></p>
+                <span class="kanban-card__date">📅 24 окт — 30 окт</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Миграции и seed БД <span class="kanban-card__hours">(24 ч)</span></p>
+                <span class="kanban-card__date">📅 30 окт — 05 ноя</span>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section class="kanban-column">
+          <div class="kanban-column__stripe stripe--6"></div>
+          <header class="kanban-column__head">
+            <h2 class="kanban-column__title">Аутентификация, OTP, 2FA, security (49 часов)</h2>
+            <p class="kanban-column__phase-dates">20.10 — 15.11.2025</p>
+          </header>
+          <div class="kanban-cards">
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">JWT, сессии, refresh <span class="kanban-card__hours">(12 ч)</span></p>
+                <span class="kanban-card__date">📅 20 окт — 27 окт</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">OTP по email <span class="kanban-card__hours">(10 ч)</span></p>
+                <span class="kanban-card__date">📅 27 окт — 02 ноя</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">2FA TOTP (Google Auth) <span class="kanban-card__hours">(14 ч)</span></p>
+                <span class="kanban-card__date">📅 02 ноя — 08 ноя</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Helmet, rate limit, CORS <span class="kanban-card__hours">(13 ч)</span></p>
+                <span class="kanban-card__date">📅 08 ноя — 15 ноя</span>
+              </div>
+            </article>
+          </div>
+        </section>
+        </div>
+        <div class="kanban-board-row kanban-board-row--5" aria-label="Этапы 7–11">
+        <section class="kanban-column">
+          <div class="kanban-column__stripe stripe--7"></div>
+          <header class="kanban-column__head">
+            <h2 class="kanban-column__title">Интеграция платежей Stripe (39 часов)</h2>
+            <p class="kanban-column__phase-dates">10.11 — 30.11.2025</p>
+          </header>
+          <div class="kanban-cards">
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Checkout Session / Payment Intent <span class="kanban-card__hours">(14 ч)</span></p>
+                <span class="kanban-card__date">📅 10 ноя — 16 ноя</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Webhooks и подпись событий <span class="kanban-card__hours">(12 ч)</span></p>
+                <span class="kanban-card__date">📅 16 ноя — 22 ноя</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Статусы оплаты в заказе <span class="kanban-card__hours">(8 ч)</span></p>
+                <span class="kanban-card__date">📅 22 ноя — 26 ноя</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Тестовый режим и возвраты <span class="kanban-card__hours">(5 ч)</span></p>
+                <span class="kanban-card__date">📅 26 ноя — 30 ноя</span>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section class="kanban-column">
+          <div class="kanban-column__stripe stripe--8"></div>
+          <header class="kanban-column__head">
+            <h2 class="kanban-column__title">CMS, админка и статистика (54 часа)</h2>
+            <p class="kanban-column__phase-dates">20.11 — 20.12.2025</p>
+          </header>
+          <div class="kanban-cards">
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Панель администратора <span class="kanban-card__hours">(18 ч)</span></p>
+                <span class="kanban-card__date">📅 20 ноя — 01 дек</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">CMS: новости и баннеры <span class="kanban-card__hours">(16 ч)</span></p>
+                <span class="kanban-card__date">📅 01 дек — 10 дек</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Управление рейсами и тарифами <span class="kanban-card__hours">(12 ч)</span></p>
+                <span class="kanban-card__date">📅 10 дек — 15 дек</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Дашборд статистики <span class="kanban-card__hours">(8 ч)</span></p>
+                <span class="kanban-card__date">📅 15 дек — 20 дек</span>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section class="kanban-column">
+          <div class="kanban-column__stripe stripe--9"></div>
+          <header class="kanban-column__head">
+            <h2 class="kanban-column__title">Интеграционное тестирование (44 часа)</h2>
+            <p class="kanban-column__phase-dates">21.12.2025 — 20.01.2026</p>
+          </header>
+          <div class="kanban-cards">
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Vitest: API и утилиты <span class="kanban-card__hours">(14 ч)</span></p>
+                <span class="kanban-card__date">📅 21 дек — 02 янв</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">React-компоненты (RTL) <span class="kanban-card__hours">(10 ч)</span></p>
+                <span class="kanban-card__date">📅 02 янв — 08 янв</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Playwright e2e сценарии <span class="kanban-card__hours">(12 ч)</span></p>
+                <span class="kanban-card__date">📅 08 янв — 14 янв</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Регрессия и исправление дефектов <span class="kanban-card__hours">(8 ч)</span></p>
+                <span class="kanban-card__date">📅 14 янв — 20 янв</span>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section class="kanban-column">
+          <div class="kanban-column__stripe stripe--10"></div>
+          <header class="kanban-column__head">
+            <h2 class="kanban-column__title">Деплой и стабилизация (27 часов)</h2>
+            <p class="kanban-column__phase-dates">21.01 — 10.02.2026</p>
+          </header>
+          <div class="kanban-cards">
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">VPS, nginx, SSL <span class="kanban-card__hours">(10 ч)</span></p>
+                <span class="kanban-card__date">📅 21 янв — 27 янв</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">CI/CD (GitHub Actions) <span class="kanban-card__hours">(8 ч)</span></p>
+                <span class="kanban-card__date">📅 27 янв — 02 фев</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Мониторинг и логи <span class="kanban-card__hours">(5 ч)</span></p>
+                <span class="kanban-card__date">📅 02 фев — 06 фев</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Нагрузочная стабилизация <span class="kanban-card__hours">(4 ч)</span></p>
+                <span class="kanban-card__date">📅 06 фев — 10 фев</span>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section class="kanban-column">
+          <div class="kanban-column__stripe stripe--11"></div>
+          <header class="kanban-column__head">
+            <h2 class="kanban-column__title">Документирование и оформление (48 часов)</h2>
+            <p class="kanban-column__phase-dates">11.02 — 15.03.2026</p>
+          </header>
+          <div class="kanban-cards">
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Руководства пользователя и админа <span class="kanban-card__hours">(14 ч)</span></p>
+                <span class="kanban-card__date">📅 11 фев — 22 фев</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Справочник API и БД <span class="kanban-card__hours">(12 ч)</span></p>
+                <span class="kanban-card__date">📅 22 фев — 02 мар</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Пояснительная записка ВКР <span class="kanban-card__hours">(14 ч)</span></p>
+                <span class="kanban-card__date">📅 02 мар — 10 мар</span>
+              </div>
+            </article>
+            <article class="kanban-card">
+              <span class="kanban-card__menu" aria-hidden="true">⋮</span>
+              <span class="kanban-card__status kanban-card__status--done" aria-label="Выполнено">✓</span>
+              <div class="kanban-card__body">
+                <p class="kanban-card__text">Приложения и презентация <span class="kanban-card__hours">(8 ч)</span></p>
+                <span class="kanban-card__date">📅 10 мар — 15 мар</span>
+              </div>
+            </article>
+          </div>
+        </section>
+        </div>
+      </div>
+    </div>
+
+    <footer class="kanban-footer">
+      <strong>Итого:</strong> 550 часов · 11 этапов · 6 + 5 колонок, без горизонтальной прокрутки.
+    </footer>
+  </body>
+</html>

@@ -103,6 +103,8 @@ const Profile = () => {
     departure_date: string;
     electronic_registration_status: "pending" | "confirmed";
     order_status: "active" | "refunded" | "exchanged";
+    payment_status?: "pending" | "paid" | "failed" | "cancelled";
+    payment_method?: string | null;
     created_at: string;
   }
   const [ticketOrders, setTicketOrders] = useState<TicketOrder[]>([]);
@@ -275,62 +277,51 @@ const Profile = () => {
     }
   };
 
-  const handleRefundTicket = async (orderId: string, orderNumber: string, totalPrice: number, transportType: string) => {
+  const handleRefundTicket = async (orderId: string, _orderNumber: string, totalPrice: number) => {
     if (!user) return;
     setLoading(true);
     try {
-      console.log("Updating ticket to refunded, orderId:", orderId);
-      
-      const ticketData = await apiFetch<Record<string, unknown> | null>(
-        `/api/tickets/${orderId}`
-      );
-
-      if (!ticketData) {
-        throw new Error("Билет не найден");
-      }
-
       const serviceFee = Math.round(totalPrice * 0.1);
-      const certificateAmount = totalPrice - serviceFee;
+      const refundAmount = totalPrice - serviceFee;
 
-      const certificateData = await apiFetch<Record<string, unknown> | null>(
-        "/api/rpc/create_certificate",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            p_transport_type: transportType,
-            p_amount: certificateAmount,
-            p_order_id: orderId,
-          }),
-        }
-      );
-
-      if (!certificateData) {
-        throw new Error("Не удалось создать сертификат");
-      }
-
-      await apiFetch(`/api/tickets/${orderId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ order_status: "refunded" }),
+      const result = await apiFetch<{
+        ok?: boolean;
+        refund_amount?: string;
+        already?: boolean;
+      }>(`/api/tickets/${orderId}/refund`, {
+        method: "POST",
+        body: JSON.stringify({ amount: refundAmount }),
       });
 
+      const amountLabel = result.refund_amount
+        ? Number(result.refund_amount).toLocaleString("ru-RU")
+        : refundAmount.toLocaleString("ru-RU");
+
       toast({
-        title: "Успешно",
-        description: `Сертификат добавлен на сумму ${certificateAmount.toLocaleString("ru-RU")} ₽. Посмотрите его в графе "Сертификаты".`,
+        title: result.already ? "Возврат уже оформлен" : "Возврат оформлен",
+        description: result.already
+          ? "По этому заказу возврат уже был выполнен ранее."
+          : `Возврат ${amountLabel} ₽ отправлен через ЮKassa на карту оплаты.`,
       });
       setRefundTicketModal({ open: false, orderId: "", orderNumber: "", totalPrice: 0, transportType: "" });
       await loadTicketOrders();
-      await loadCertificates(); // Обновляем список сертификатов
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error refunding ticket:", error);
       toast({
         title: "Ошибка",
-        description: error?.message || "Не удалось обработать возврат билета. Проверьте консоль браузера.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Не удалось оформить возврат. Проверьте, что заказ оплачен через ЮKassa.",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
+
+  const canRefundToCard = (order: TicketOrder) =>
+    order.payment_status === "paid" && order.payment_method === "yookassa";
 
   const handleExchangeTicket = async (orderId: string, orderNumber: string, totalPrice: number, transportType: string) => {
     if (!user) return;
@@ -1140,20 +1131,22 @@ const Profile = () => {
                                             <RefreshCw className="w-4 h-4 mr-2" />
                                             Обменять билет
                                           </DropdownMenuItem>
-                                          <DropdownMenuItem
-                                            onClick={() => {
-                                              setRefundTicketModal({
-                                                open: true,
-                                                orderId: order.id,
-                                                orderNumber: order.order_number,
-                                                totalPrice: order.total_price,
-                                                transportType: order.transport_type,
-                                              });
-                                            }}
-                                          >
-                                            <ArrowLeft className="w-4 h-4 mr-2" />
-                                            Вернуть деньги за билет
-                                          </DropdownMenuItem>
+                                          {canRefundToCard(order) && (
+                                            <DropdownMenuItem
+                                              onClick={() => {
+                                                setRefundTicketModal({
+                                                  open: true,
+                                                  orderId: order.id,
+                                                  orderNumber: order.order_number,
+                                                  totalPrice: order.total_price,
+                                                  transportType: order.transport_type,
+                                                });
+                                              }}
+                                            >
+                                              <ArrowLeft className="w-4 h-4 mr-2" />
+                                              Вернуть деньги за билет
+                                            </DropdownMenuItem>
+                                          )}
                                         </>
                                       )}
                                     </DropdownMenuContent>
@@ -1534,10 +1527,10 @@ const Profile = () => {
                         <Label htmlFor="2fa_token">Введите код с почты</Label>
                         <Input
                           id="2fa_token"
-                          placeholder="00000000"
+                          placeholder="000000"
                           value={twoFactorToken}
-                          onChange={(e) => setTwoFactorToken(e.target.value.replace(/\D/g, "").slice(0, 8))}
-                          maxLength={8}
+                          onChange={(e) => setTwoFactorToken(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          maxLength={6}
                         />
                         <p className="text-xs text-muted-foreground">
                           Код отправлен на {userProfile?.email || user?.email}
@@ -1556,7 +1549,7 @@ const Profile = () => {
                         </Button>
                         <Button 
                           onClick={handleEnable2FA} 
-                          disabled={loading || twoFactorToken.length !== 8}
+                          disabled={loading || twoFactorToken.length !== 6}
                         >
                           Включить 2FA
                         </Button>
@@ -1738,20 +1731,28 @@ const Profile = () => {
         <RefundTicketModal
           open={refundTicketModal.open}
           onClose={() => {
-            setRefundTicketModal({ open: false, orderId: "", orderNumber: "", totalPrice: 0, transportType: "" });
+            if (!loading) {
+              setRefundTicketModal({
+                open: false,
+                orderId: "",
+                orderNumber: "",
+                totalPrice: 0,
+                transportType: "",
+              });
+            }
           }}
           onConfirm={() => {
             if (refundTicketModal.orderId) {
-              handleRefundTicket(
+              void handleRefundTicket(
                 refundTicketModal.orderId,
                 refundTicketModal.orderNumber,
-                refundTicketModal.totalPrice,
-                refundTicketModal.transportType
+                refundTicketModal.totalPrice
               );
             }
           }}
           orderNumber={refundTicketModal.orderNumber}
           totalPrice={refundTicketModal.totalPrice}
+          isProcessing={loading}
         />
       </main>
       <Footer />

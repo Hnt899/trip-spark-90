@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CI/CD pipeline — GitHub → VPS (Ubuntu)</title>
+    <link rel="stylesheet" href="er-database.css" />
+    <style>
+      /* Компактная страница только под экспорт cicd.png */
+      .page--cicd-only {
+        padding-top: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page page--cicd-only">
+      <h1 class="cicd-title">Схема CI/CD pipeline</h1>
+      <p class="cicd-subtitle">
+        GitHub → VPS (Ubuntu LTS): nginx + Node.js (Express) + PostgreSQL
+      </p>
+
+      <div class="cicd-pipeline">
+        <div class="cicd-flow">
+          <article class="cicd-card">
+            <div class="cicd-card__head cicd-card__head--gh">GitHub</div>
+            <div class="cicd-card__body">
+              Репозиторий · ветка <code>main</code> · push или ручной запуск →
+              обновление кода на сервере (<code>git pull</code> и скрипт деплоя)
+            </div>
+          </article>
+
+          <div class="cicd-arrow-col" aria-hidden="true">
+            ↓
+            <span>trigger</span>
+          </div>
+
+          <div class="cicd-split cicd-split--single">
+            <article class="cicd-card cicd-card--wide">
+              <div class="cicd-card__head cicd-card__head--vps">
+                VPS (Ubuntu LTS)
+              </div>
+              <div class="cicd-card__body">
+                <strong style="color: var(--text)">nginx:</strong> статика SPA из
+                <code>dist/</code> после <code>npx vite build</code><br />
+                <strong style="color: var(--text)">reverse proxy:</strong>
+                <code>/api/*</code>, <code>/uploads/*</code> → процесс Node.js
+                (Express)<br />
+                <strong style="color: var(--text)">старт приложения:</strong>
+                <code>copy-seed-images → migrate.js → server/index.js</code>
+                (systemd или PM2)
+              </div>
+            </article>
+            <div class="cicd-pg">
+              <strong>PostgreSQL</strong> на том же сервере ·
+              <code>DATABASE_URL</code> → Express / <code>pg</code>
+            </div>
+          </div>
+        </div>
+
+        <p class="cicd-footer">
+          Пользователь открывает сайт на своём домене; nginx отдаёт фронт и
+          проксирует <code>/api</code> и <code>/uploads</code> на backend.
+          Обязательный GitHub Actions pipeline не задан — деплой по
+          <code>main</code> настраивается на сервере (cron, webhook или ручной
+          сценарий, см. <code>DEPLOYMENT.md</code>).
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

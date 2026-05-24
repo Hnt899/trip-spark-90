@@ -9,7 +9,7 @@
 - Поиск и выбор рейсов/маршрутов, оформление заказа, чекаут.
 - Учётные записи: пароль, вход по e-mail OTP и SMS, JWT-сессии.
 - Профиль пользователя, сохранённые пассажиры, билеты, сертификаты.
-- Оплата через интеграцию **WebPay** (подписи, callback).
+- Оплата через интеграцию **ЮKassa** (redirect + webhook/sync).
 - Поддержка **2FA** (TOTP, резервные коды, e-mail при логине).
 - Виджет поддержки: **Hugging Face Router** (`/api/support/chat`).
 - Контент: справочные и гайдовые статьи (React Router).
@@ -78,7 +78,7 @@ flowchart LR
 | Rate limit | `express-rate-limit` |
 | Почта OTP | `nodemailer` |
 | SMS | МТС Exolve HTTP API (`server/sendSms.js`) |
-| Оплата | SHA1-подписи WebPay (`server/webpayNode.js`), `md5` |
+| Оплата | ЮKassa API v3 (`server/yookassaPayments.js`) |
 | Конфиг | `dotenv` |
 | HTTP из Node | `node-fetch` |
 | ИИ-чат | запросы к Hugging Face Router (`server/index.js`) |
@@ -105,7 +105,7 @@ trip-spark-90/
 │   └── components/         # UI, секции, виджеты
 ├── server/
 │   ├── index.js            # Express, rate limits, /api/ping, /api/support/chat
-│   ├── registerApiRoutes.js # основной REST: auth, профили, билеты, webpay, 2fa…
+│   ├── registerApiRoutes.js # основной REST: auth, профили, билеты, yookassa, 2fa…
 │   ├── db.js               # dotenv + Pool PostgreSQL
 │   ├── webpayNode.js
 │   ├── sendSms.js
@@ -149,7 +149,7 @@ erDiagram
 | **user_profiles** | Профиль: ФИО, телефон, e-mail для отображения, `birth_date`. `user_id` UNIQUE → один профиль на пользователя. |
 | **passengers** | Сохранённые пассажиры: паспортные данные, ФИО, пол, дата рождения. |
 | **orders** | Заказы: `order_number` (unique), `status`, `total_amount`. |
-| **tickets** | Билеты: тип транспорта (`train`/`flight`/`bus`), города, дата, JSON `tickets_data`, статусы оплаты и заказа, WebPay-поля. |
+| **tickets** | Билеты: тип транспорта (`train`/`flight`/`bus`), города, дата, JSON `tickets_data`, статусы оплаты и заказа, поля транзакций ЮKassa. |
 | **verification_codes** | SMS-коды: телефон, код, срок, used. |
 | **email_otp_challenges** | E-mail OTP: email, code, purpose, expires_at, used. |
 | **certificates** | Подарочные/сертификаты: код, сумма, срок, связь с билетом. |
@@ -228,8 +228,10 @@ psql "$DATABASE_URL" -f postgres/schema.sql
 | GET | `/api/certificates/by-code/:code` | JWT | По коду |
 | POST | `/api/2fa/*` | JWT | generate-secret, verify-totp, enable, disable, backup, e-mail шаги |
 | POST | `/api/logs` | — | Приём клиентских логов (лимит тела) |
-| POST | `/api/webpay-create` | JWT | Инициация оплаты |
-| POST | `/api/webpay-notify` | — | Callback WebPay (подпись) |
+| POST | `/api/webpay-create` | JWT | Инициация оплаты (redirect в ЮKassa) |
+| POST | `/api/yookassa-sync-payment` | JWT | Синхронизация статуса платежа после возврата |
+| POST | `/api/yookassa-webhook` | — | Callback ЮKassa |
+| POST | `/api/admin/tickets/:id/refund` | admin | Возврат платежа через ЮKassa |
 | GET | `/api/auth/public/profile-by-phone` | — | Публичный поиск профиля по телефону |
 | POST | `/api/auth/match-profiles-last10` | — | Сопоставление профилей по последним 10 цифрам |
 | GET | `/api/auth/sms/count-recent` | — | Счётчик недавних SMS |
@@ -285,9 +287,8 @@ npm run create-user -- you@mail.com пароль --admin
 | `PORT` | Нет | Порт Express (платформа деплоя часто задаёт сама) |
 | `EXOLVE_API_KEY`, `EXOLVE_SENDER` | Для SMS | МТС Exolve |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | Продакшен e-mail | OTP и 2FA по почте; без SMTP в dev код может логироваться в консоль |
-| `WEBPAY_STORE_ID`, `WEBPAY_SECRET_KEY`, `WEBPAY_CURRENCY_ID`, `WEBPAY_TEST_MODE` | Для оплаты | WebPay |
-| `WEBPAY_PUBLIC_API_BASE` | Для callback | Публичный базовый URL API для `wsb_notify_url` |
-| `SKIP_WEBPAY` | Нет | Если `true` / `1`: оплата WebPay не вызывается; билет сразу получает `payment_status = paid`, редирект на `/payment/success` и генерация PDF. **Не включайте в продакшене**, если нужна реальная оплата. |
+| `YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY` | Для оплаты | ЮKassa (только сервер) |
+| `SKIP_WEBPAY` | Нет | Если `true` / `1`: оплата пропускается, билет сразу получает `payment_status = paid`, редирект на `/payment/success` и генерация PDF. **Не включайте в продакшене**, если нужна реальная оплата. |
 | `HF_API_TOKEN`, `HF_MODEL` | Для чата | Hugging Face Router |
 
 ### 7.2. Фронтенд (Vite)
@@ -331,13 +332,23 @@ npm run set-admin    # grant|revoke <email> (на Windows надёжнее, че
 2. Задеплоить **Express** на PaaS, выставить все переменные из §7.1, старт: `node server/index.js`.
 3. Задеплоить **Vite** на Vercel (или аналог): build `npm run build`, output `dist`, SPA rewrites (см. `vercel.json`).
 4. В настройках фронта задать **`VITE_API_URL`** = публичный URL бэкенда.
-5. Убедиться, что **CORS** и **WEBPAY_PUBLIC_API_BASE** / callback URL указывают на реальный API.
+5. Убедиться, что **CORS** и webhook ЮKassa (`/api/yookassa-webhook`) указывают на реальный API.
 
 ---
 
 ## 11. Дополнительная документация в репозитории
 
-- **[EXOLVE_SETUP.md](./EXOLVE_SETUP.md)** — настройка SMS МТС Exolve.
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** — инструкция по развёртыванию (Vercel + Railway + PostgreSQL).
+- **[TESTING.md](./TESTING.md)** — архитектура и запуск автоматизированных тестов.
+- **[docs/user-manual.md](./docs/user-manual.md)** — руководство пользователя.
+- **[docs/admin-manual.md](./docs/admin-manual.md)** — руководство администратора.
+- **[docs/api-reference.md](./docs/api-reference.md)** — справочник API.
+- **[docs/database.md](./docs/database.md)** — описание БД и связей.
+- **[docs/support-guide.md](./docs/support-guide.md)** — руководство по чат-помощнику.
+- **[docs/tz.md](./docs/tz.md)** — техническое задание (краткая версия).
+- **[docs/client-documents.md](./docs/client-documents.md)** — комплект документов для заказчика.
+- **[docs/security-guide.md](./docs/security-guide.md)** — меры безопасности.
+- **[docs/changelog.md](./docs/changelog.md)** — журнал изменений.
 
 ---
 

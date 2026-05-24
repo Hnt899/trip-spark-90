@@ -1,0 +1,1423 @@
+ПРИЛОЖЕНИЕ Г
+Описание структуры базы данных (материалы проекта TudaSuda)
+
+Ниже для каждого файла: два предложения о назначении, относительный путь от корня репозитория, затем полное содержимое файла.
+
+————————————————————————————————————————————————————————————————————————
+
+Текстовое описание структуры базы и перечень сущностей для дипломного пояснения. Дублирует назначение схемы и не заменяет SQL: актуальные типы полей — только в schema.sql.
+
+docs/database.md
+
+--- файл начало ---
+# Документация по базе данных TudaSuda
+
+## 1. Источник схемы
+
+- Основной файл схемы: `postgres/schema.sql`
+- Дополнительные изменения: `postgres/migrations/*.sql`
+
+## 2. ER-диаграмма (логическая)
+
+[СКРИНШОТ: ER-диаграмма базы данных]
+
+Ключевые сущности:
+- `users`
+- `user_profiles`
+- `passengers`
+- `orders`
+- `tickets`
+- `verification_codes`
+- `email_otp_challenges`
+- `certificates`
+- `security_logs`
+- `user_2fa`
+- `blog_posts`
+
+## 3. Связи
+
+- `users` 1:1 `user_profiles`
+- `users` 1:N `passengers`
+- `users` 1:N `orders`
+- `users` 1:N `tickets`
+- `users` 1:N `security_logs`
+- `users` 1:1 `user_2fa`
+- `users` 1:N `blog_posts`
+
+## 4. Индексы и ограничения
+
+В `schema.sql` реализованы:
+- первичные ключи на `uuid`;
+- уникальные ограничения (`email`, `order_number`, `slug` и др.);
+- индексы для ускорения выборок по пользователю/заказам/статусам.
+
+## 5. Триггеры
+
+Используются триггеры на автообновление `updated_at` для основных таблиц.
+
+## 6. SQL-функции
+
+Реализованы функции:
+- `cleanup_expired_codes()`
+- `generate_certificate_code()`
+- `expire_old_certificates()`
+- `create_certificate(...)`
+- `generate_2fa_secret(...)`
+- `is_2fa_enabled(...)`
+- `use_backup_code(...)`
+
+## 7. Практическое применение
+
+Для полного состава полей, типов и ограничений использовать `postgres/schema.sql` как единственный источник истины.
+
+--- файл конец ---
+
+————————————————————————————————————————————————————————————————————————
+
+Основной скрипт создания базы: таблицы, индексы, триггеры updated_at, функции PL/pgSQL. Применяется к пустой БД командой psql … -f postgres/schema.sql.
+
+postgres/schema.sql
+
+--- файл начало ---
+-- Standalone PostgreSQL schema (no Supabase auth schema).
+-- Apply once to a fresh database: psql $DATABASE_URL -f postgres/schema.sql
+
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- ---------------------------------------------------------------------------
+-- users (replaces auth.users for this application)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  phone TEXT,
+  is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+  raw_user_meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone) WHERE phone IS NOT NULL;
+
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+CREATE TRIGGER update_users_updated_at
+  BEFORE UPDATE ON users
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ---------------------------------------------------------------------------
+-- Core tables
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  first_name TEXT,
+  last_name TEXT,
+  patronymic TEXT,
+  phone TEXT,
+  email TEXT,
+  birth_date DATE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id);
+
+DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
+CREATE TRIGGER update_user_profiles_updated_at
+  BEFORE UPDATE ON user_profiles
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS passengers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  display_name TEXT,
+  name TEXT NOT NULL,
+  surname TEXT NOT NULL,
+  patronymic TEXT,
+  gender TEXT,
+  passport_series TEXT NOT NULL,
+  passport_number TEXT NOT NULL,
+  birth_date DATE NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_passengers_user_id ON passengers(user_id);
+
+DROP TRIGGER IF EXISTS update_passengers_updated_at ON passengers;
+CREATE TRIGGER update_passengers_updated_at
+  BEFORE UPDATE ON passengers
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  order_number TEXT NOT NULL UNIQUE,
+  status TEXT NOT NULL DEFAULT 'pending',
+  total_amount DECIMAL(10, 2) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+
+DROP TRIGGER IF EXISTS update_orders_updated_at ON orders;
+CREATE TRIGGER update_orders_updated_at
+  BEFORE UPDATE ON orders
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS tickets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  order_number TEXT NOT NULL,
+  transport_type TEXT NOT NULL CHECK (transport_type IN ('train', 'flight', 'bus')),
+  total_price DECIMAL(10, 2) NOT NULL,
+  tickets_data JSONB NOT NULL,
+  from_city TEXT NOT NULL,
+  to_city TEXT NOT NULL,
+  departure_date DATE NOT NULL,
+  electronic_registration_status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (electronic_registration_status IN ('pending', 'confirmed')),
+  order_status TEXT DEFAULT 'active' CHECK (order_status IN ('active', 'refunded', 'exchanged')),
+  payment_status TEXT DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed', 'cancelled')),
+  payment_transaction_id TEXT,
+  payment_paid_at TIMESTAMPTZ,
+  payment_method TEXT,
+  payment_raw JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_tickets_user_id ON tickets(user_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_order_number ON tickets(order_number);
+CREATE INDEX IF NOT EXISTS idx_tickets_created_at ON tickets(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_tickets_payment_transaction_id ON tickets(payment_transaction_id)
+  WHERE payment_transaction_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tickets_payment_status ON tickets(payment_status) WHERE payment_status IS NOT NULL;
+
+DROP TRIGGER IF EXISTS update_tickets_updated_at ON tickets;
+CREATE TRIGGER update_tickets_updated_at
+  BEFORE UPDATE ON tickets
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS verification_codes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  phone TEXT NOT NULL,
+  code TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  used BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_verification_codes_phone ON verification_codes(phone);
+CREATE INDEX IF NOT EXISTS idx_verification_codes_code ON verification_codes(code);
+CREATE INDEX IF NOT EXISTS idx_verification_codes_expires_at ON verification_codes(expires_at);
+
+CREATE TABLE IF NOT EXISTS certificates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  certificate_code TEXT NOT NULL UNIQUE,
+  transport_type TEXT NOT NULL CHECK (transport_type IN ('train', 'flight', 'bus')),
+  amount DECIMAL(10, 2) NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'used', 'expired')),
+  used_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ NOT NULL,
+  order_id UUID REFERENCES tickets(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_certificates_user_id ON certificates(user_id);
+CREATE INDEX IF NOT EXISTS idx_certificates_code ON certificates(certificate_code);
+CREATE INDEX IF NOT EXISTS idx_certificates_status ON certificates(status);
+
+DROP TRIGGER IF EXISTS update_certificates_updated_at ON certificates;
+CREATE TRIGGER update_certificates_updated_at
+  BEFORE UPDATE ON certificates
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS security_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  level TEXT NOT NULL CHECK (level IN ('info', 'warn', 'error', 'security')),
+  message TEXT NOT NULL,
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  ip_address TEXT,
+  user_agent TEXT,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_security_logs_created_at ON security_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_security_logs_user_id ON security_logs(user_id);
+
+CREATE TABLE IF NOT EXISTS user_2fa (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  secret TEXT NOT NULL,
+  enabled BOOLEAN DEFAULT false,
+  backup_codes TEXT[],
+  last_used_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_2fa_user_id ON user_2fa(user_id);
+
+DROP TRIGGER IF EXISTS update_user_2fa_updated_at ON user_2fa;
+CREATE TRIGGER update_user_2fa_updated_at
+  BEFORE UPDATE ON user_2fa
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS email_otp_challenges (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL,
+  code TEXT NOT NULL,
+  purpose TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  used BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_otp_email ON email_otp_challenges(email);
+
+-- ---------------------------------------------------------------------------
+-- Functions
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION cleanup_expired_codes()
+RETURNS void AS $$
+BEGIN
+  DELETE FROM verification_codes
+  WHERE expires_at < NOW() OR used = TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION generate_certificate_code()
+RETURNS TEXT AS $$
+DECLARE
+  code TEXT;
+  exists_check INTEGER;
+BEGIN
+  LOOP
+    code := LPAD(FLOOR(RANDOM() * 10000000000)::TEXT, 10, '0');
+    SELECT COUNT(*) INTO exists_check FROM certificates WHERE certificate_code = code;
+    EXIT WHEN exists_check = 0;
+  END LOOP;
+  RETURN code;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION expire_old_certificates()
+RETURNS void AS $$
+BEGIN
+  UPDATE certificates
+  SET status = 'expired', updated_at = NOW()
+  WHERE status = 'active' AND expires_at < NOW();
+
+  UPDATE certificates
+  SET status = 'expired', updated_at = NOW()
+  WHERE status = 'used'
+    AND used_at IS NOT NULL
+    AND used_at < NOW() - INTERVAL '1 day';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION create_certificate(
+  p_user_id UUID,
+  p_transport_type TEXT,
+  p_amount DECIMAL,
+  p_order_id UUID DEFAULT NULL
+)
+RETURNS TABLE (
+  id UUID,
+  certificate_code TEXT,
+  amount DECIMAL,
+  expires_at TIMESTAMPTZ
+) AS $$
+DECLARE
+  v_code TEXT;
+  v_expires_at TIMESTAMPTZ;
+  v_cert_id UUID;
+  v_amount DECIMAL(10,2);
+BEGIN
+  v_code := generate_certificate_code();
+  v_expires_at := NOW() + INTERVAL '1 month';
+
+  INSERT INTO certificates (
+    user_id, certificate_code, transport_type, amount, status, expires_at, order_id
+  ) VALUES (
+    p_user_id, v_code, p_transport_type, p_amount, 'active', v_expires_at, p_order_id
+  )
+  RETURNING certificates.id, certificates.certificate_code, certificates.amount, certificates.expires_at
+  INTO v_cert_id, v_code, v_amount, v_expires_at;
+
+  RETURN QUERY SELECT v_cert_id, v_code, v_amount, v_expires_at;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION generate_2fa_secret(p_user_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_secret TEXT;
+  v_backup_codes TEXT[];
+  v_result JSONB;
+BEGIN
+  v_secret := encode(gen_random_bytes(20), 'base64');
+  v_backup_codes := ARRAY(
+    SELECT LPAD(TO_HEX((RANDOM() * 4294967295)::BIGINT), 8, '0')
+    FROM generate_series(1, 10)
+  );
+
+  INSERT INTO user_2fa (user_id, secret, backup_codes, enabled)
+  VALUES (p_user_id, v_secret, v_backup_codes, false)
+  ON CONFLICT (user_id)
+  DO UPDATE SET
+    secret = EXCLUDED.secret,
+    backup_codes = EXCLUDED.backup_codes,
+    enabled = false,
+    updated_at = NOW();
+
+  v_result := jsonb_build_object('secret', v_secret, 'backup_codes', to_jsonb(v_backup_codes));
+  RETURN v_result;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION enable_2fa(p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE user_2fa SET enabled = true, updated_at = NOW() WHERE user_id = p_user_id;
+  RETURN FOUND;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION disable_2fa(p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE user_2fa SET enabled = false, updated_at = NOW() WHERE user_id = p_user_id;
+  RETURN FOUND;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION is_2fa_enabled(p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_enabled BOOLEAN;
+BEGIN
+  SELECT enabled INTO v_enabled FROM user_2fa WHERE user_id = p_user_id;
+  RETURN COALESCE(v_enabled, false);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION use_backup_code(p_user_id UUID, p_code TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_backup_codes TEXT[];
+  v_code_index INT;
+BEGIN
+  SELECT backup_codes INTO v_backup_codes FROM user_2fa WHERE user_id = p_user_id;
+  SELECT array_position(v_backup_codes, p_code) INTO v_code_index;
+  IF v_code_index IS NULL THEN
+    RETURN false;
+  END IF;
+  v_backup_codes := array_remove(v_backup_codes, p_code);
+  UPDATE user_2fa
+  SET backup_codes = v_backup_codes, last_used_at = NOW(), updated_at = NOW()
+  WHERE user_id = p_user_id;
+  RETURN true;
+END;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Blog (CMS): статьи с JSON-блоками контента
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS blog_posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  excerpt TEXT NOT NULL DEFAULT '',
+  cover_image_url TEXT,
+  content_blocks JSONB NOT NULL DEFAULT '[]'::jsonb,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+  published_at TIMESTAMPTZ,
+  reading_minutes INT NOT NULL DEFAULT 5 CHECK (reading_minutes >= 1 AND reading_minutes <= 240),
+  badges TEXT[] NOT NULL DEFAULT ARRAY['own']::text[],
+  channel TEXT NOT NULL DEFAULT 'tudasuda' CHECK (channel IN ('tudasuda', 'partners', 'special')),
+  tag_ids TEXT[] NOT NULL DEFAULT '{}'::text[],
+  editors_pick BOOLEAN NOT NULL DEFAULT false,
+  partner_carousel BOOLEAN NOT NULL DEFAULT false,
+  sponsored_grid BOOLEAN NOT NULL DEFAULT false,
+  views INT NOT NULL DEFAULT 0,
+  author_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_blog_posts_published_at ON blog_posts (published_at DESC)
+  WHERE status = 'published';
+
+DROP TRIGGER IF EXISTS update_blog_posts_updated_at ON blog_posts;
+CREATE TRIGGER update_blog_posts_updated_at
+  BEFORE UPDATE ON blog_posts
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+--- файл конец ---
+
+————————————————————————————————————————————————————————————————————————
+
+Разовое добавление колонки is_admin на уже существующей базе без переустановки схемы. Имеет смысл только для старых инсталляций, где миграция не накатывалась.
+
+postgres/migrations/001_add_user_is_admin.sql
+
+--- файл начало ---
+-- Для уже существующей БД без колонки is_admin (однократно):
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE;
+
+--- файл конец ---
+
+————————————————————————————————————————————————————————————————————————
+
+Исторический скрипт создания таблицы blog_posts для баз, развёрнутых до включения блога в schema.sql. На новых установках таблица уже создаётся основным schema.sql.
+
+postgres/migrations/002_blog_posts.sql
+
+--- файл начало ---
+CREATE TABLE IF NOT EXISTS blog_posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  excerpt TEXT NOT NULL DEFAULT '',
+  cover_image_url TEXT,
+  content_blocks JSONB NOT NULL DEFAULT '[]'::jsonb,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+  published_at TIMESTAMPTZ,
+  reading_minutes INT NOT NULL DEFAULT 5 CHECK (reading_minutes >= 1 AND reading_minutes <= 240),
+  badges TEXT[] NOT NULL DEFAULT ARRAY['own']::text[],
+  channel TEXT NOT NULL DEFAULT 'tudasuda' CHECK (channel IN ('tudasuda', 'partners', 'special')),
+  tag_ids TEXT[] NOT NULL DEFAULT '{}'::text[],
+  editors_pick BOOLEAN NOT NULL DEFAULT false,
+  partner_carousel BOOLEAN NOT NULL DEFAULT false,
+  sponsored_grid BOOLEAN NOT NULL DEFAULT false,
+  views INT NOT NULL DEFAULT 0,
+  author_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_blog_posts_published_at ON blog_posts (published_at DESC)
+  WHERE status = 'published';
+
+DROP TRIGGER IF EXISTS update_blog_posts_updated_at ON blog_posts;
+CREATE TRIGGER update_blog_posts_updated_at
+  BEFORE UPDATE ON blog_posts
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+--- файл конец ---
+
+————————————————————————————————————————————————————————————————————————
+
+Добавляет таблицу route_pages для информационных страниц маршрутов админ-панели. Подключается после базовой схемы, если используется функциональность маршрутных страниц.
+
+postgres/migrations/003_route_pages.sql
+
+--- файл начало ---
+-- Таблица маршрутов (CMS): страницы маршрутов с JSON-блоками контента
+CREATE TABLE IF NOT EXISTS route_pages (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  legacy_id     TEXT UNIQUE,                          -- "1","2",… для обратной совместимости с захардкоженными ID
+  slug          TEXT NOT NULL UNIQUE,
+  name          TEXT NOT NULL,
+  region        TEXT NOT NULL DEFAULT '',
+  rating        NUMERIC(3,1) NOT NULL DEFAULT 0 CHECK (rating >= 0 AND rating <= 10),
+  cover_image_url TEXT,
+  excerpt       TEXT NOT NULL DEFAULT '',
+  content_blocks JSONB NOT NULL DEFAULT '[]'::jsonb,
+  status        TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+  published_at  TIMESTAMPTZ,
+  views         INT NOT NULL DEFAULT 0,
+  author_id     UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+--- файл конец ---
+
+————————————————————————————————————————————————————————————————————————
+
+Визуальная ER-диаграмма в браузере: сущности, связи и легенда по группам таблиц. Открывается локально; для диплома обычно делают скриншот или «Печать в PDF».
+
+диаграммы/er-database.html
+
+--- файл начало ---
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ER-диаграмма БД — TudaSuda (Trip Spark)</title>
+    <link rel="stylesheet" href="er-database.css" />
+  </head>
+  <body>
+    <div class="page">
+      <h1>ER-диаграмма базы данных</h1>
+      <p class="subtitle">
+        PostgreSQL · схема <code>postgres/schema.sql</code> + таблица
+        <code>route_pages</code> (миграция)
+      </p>
+
+      <div class="legend">
+        <span class="legend-item"
+          ><span class="legend-dot core"></span> Ядро: пользователь и
+          заказы</span
+        >
+        <span class="legend-item"
+          ><span class="legend-dot pay"></span> Оплата и сертификаты</span
+        >
+        <span class="legend-item"
+          ><span class="legend-dot auth"></span> Аутентификация и
+          безопасность</span
+        >
+        <span class="legend-item"
+          ><span class="legend-dot cms"></span> Контент (CMS)</span
+        >
+      </div>
+
+      <div class="diagram">
+        <section class="panel" aria-label="Ядро предметной области">
+          <h2 class="panel-title">Ядро: пользователь, заказы, билеты</h2>
+          <div class="entity-grid">
+            <div class="hub-row">
+              <article class="entity entity--hub entity--core">
+                <div class="entity__head">users</div>
+                <div class="entity__body">
+                  <code>id</code> PK · <code>email</code> UK<br />
+                  <code>password_hash</code> · <code>phone</code><br />
+                  <code>is_admin</code> · <code>raw_user_meta</code> JSONB
+                </div>
+              </article>
+            </div>
+
+            <div class="connector">│</div>
+
+            <div class="branch-row">
+              <article class="entity entity--core">
+                <div class="entity__head">user_profiles</div>
+                <div class="entity__body">
+                  <code>id</code> PK · <code>user_id</code> FK → users<br />
+                  UNIQUE(user_id) · ФИО, контакты, <code>birth_date</code>
+                  <div class="relation">
+                    <strong>1 : 1</strong> с users (каскад при удалении)
+                  </div>
+                </div>
+              </article>
+              <article class="entity entity--core">
+                <div class="entity__head">passengers</div>
+                <div class="entity__body">
+                  <code>id</code> PK · <code>user_id</code> FK → users<br />
+                  паспорт, ФИО, <code>birth_date</code>
+                  <div class="relation">
+                    <strong>1 : N</strong> users → passengers
+                  </div>
+                </div>
+              </article>
+              <article class="entity entity--core">
+                <div class="entity__head">orders</div>
+                <div class="entity__body">
+                  <code>id</code> PK · <code>user_id</code> FK → users<br />
+                  <code>order_number</code> UK · <code>status</code> ·
+                  <code>total_amount</code>
+                  <div class="relation">
+                    <strong>1 : N</strong> users → orders
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div class="connector">│</div>
+
+            <div class="branch-row-2">
+              <article class="entity entity--pay">
+                <div class="entity__head">tickets</div>
+                <div class="entity__body">
+                  <code>id</code> PK · <code>user_id</code> FK → users<br />
+                  <code>order_number</code> · <code>transport_type</code><br />
+                  <code>total_price</code> · <code>tickets_data</code> JSONB<br />
+                  <code>payment_status</code> · <code>payment_raw</code> JSONB
+                  <div class="relation">
+                    <strong>1 : N</strong> users → tickets<br />
+                    логическая связь с orders по
+                    <strong>order_number</strong> (FK в SQL не задан)
+                  </div>
+                </div>
+              </article>
+              <article class="entity entity--pay">
+                <div class="entity__head">certificates</div>
+                <div class="entity__body">
+                  <code>id</code> PK · <code>user_id</code> FK → users<br />
+                  <code>certificate_code</code> UK · <code>amount</code><br />
+                  <code>order_id</code> FK → tickets.id (SET NULL)
+                  <div class="relation">
+                    <strong>N : 1</strong> certificates → ticket<br />
+                    <strong>1 : N</strong> users → certificates
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-label="Безопасность и контент">
+          <h2 class="panel-title">Безопасность, OTP и CMS</h2>
+          <div class="side-grid">
+            <article class="entity entity--auth">
+              <div class="entity__head">user_2fa</div>
+              <div class="entity__body">
+                <code>user_id</code> FK → users UNIQUE<br />
+                <code>secret</code> · <code>enabled</code> ·
+                <code>backup_codes</code>[]
+              </div>
+            </article>
+            <article class="entity entity--auth">
+              <div class="entity__head">verification_codes</div>
+              <div class="entity__body">
+                SMS OTP: <code>phone</code> · <code>code</code><br />
+                <code>expires_at</code> · <code>used</code>
+                <div class="relation">без FK к users (по номеру)</div>
+              </div>
+            </article>
+            <article class="entity entity--auth">
+              <div class="entity__head">email_otp_challenges</div>
+              <div class="entity__body">
+                <code>email</code> · <code>code</code> ·
+                <code>purpose</code><br />
+                <code>expires_at</code> · <code>used</code>
+                <div class="relation">без FK к users (по email)</div>
+              </div>
+            </article>
+            <article class="entity entity--auth">
+              <div class="entity__head">security_logs</div>
+              <div class="entity__body">
+                <code>level</code> · <code>message</code><br />
+                <code>user_id</code> FK → users NULL<br />
+                <code>metadata</code> JSONB
+              </div>
+            </article>
+            <article class="entity entity--cms full-width">
+              <div class="entity__head">blog_posts</div>
+              <div class="entity__body">
+                <code>slug</code> UK · <code>content_blocks</code> JSONB<br />
+                <code>status</code> · <code>author_id</code> FK → users NULL
+              </div>
+            </article>
+            <article class="entity entity--cms full-width">
+              <div class="entity__head">route_pages</div>
+              <div class="entity__body">
+                <code>slug</code> UK · <code>rating</code> ·
+                <code>content_blocks</code> JSONB<br />
+                <code>author_id</code> FK → users NULL · миграция
+                <code>003_route_pages.sql</code>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <p class="note">
+        Все таблицы с полями <code>updated_at</code> используют триггер
+        <code>update_updated_at_column()</code>. Расширение БД:
+        <code>pgcrypto</code> (UUID и крипто-утилиты для функций 2FA и
+        сертификатов).
+      </p>
+
+      <section class="section-gap" id="cicd" aria-labelledby="cicd-heading">
+        <h2 class="cicd-title" id="cicd-heading">
+          Схема CI/CD pipeline
+        </h2>
+        <p class="cicd-subtitle">
+          Push в ветку <code>main</code> (или ручной запуск) → обновление на VPS:
+          nginx + Node.js + PostgreSQL
+          (<a href="cicd.html">отдельная страница для экспорта cicd.png</a>)
+        </p>
+
+        <div class="cicd-pipeline">
+          <div class="cicd-flow">
+            <article class="cicd-card">
+              <div class="cicd-card__head cicd-card__head--gh">GitHub</div>
+              <div class="cicd-card__body">
+                Репозиторий проекта · ветка <code>main</code><br />
+                push / ручной деплой → <code>git pull</code> и скрипт на сервере
+              </div>
+            </article>
+
+            <div class="cicd-arrow-col" aria-hidden="true">
+              ↓
+              <span>trigger</span>
+            </div>
+
+            <div class="cicd-split cicd-split--single">
+              <article class="cicd-card cicd-card--wide">
+                <div class="cicd-card__head cicd-card__head--vps">
+                  VPS (Ubuntu LTS)
+                </div>
+                <div class="cicd-card__body">
+                  <strong style="color: var(--text)">nginx:</strong>
+                  <code>npx vite build</code> → каталог <code>dist/</code> ·
+                  статика SPA<br />
+                  <strong style="color: var(--text)">reverse proxy:</strong>
+                  <code>/api/*</code> и <code>/uploads/*</code> → процесс Node.js
+                  (Express)<br />
+                  <strong style="color: var(--text)">старт:</strong>
+                  <code>copy-seed-images → migrate.js → server/index.js</code>
+                  (systemd или PM2)
+                </div>
+              </article>
+              <div class="cicd-pg">
+                <strong>PostgreSQL</strong> на том же сервере ·
+                <code>DATABASE_URL</code> → Express / <code>pg</code>
+              </div>
+            </div>
+          </div>
+
+          <p class="cicd-footer">
+            Пользователь открывает сайт на своём домене; nginx отдаёт фронт и
+            проксирует <code>/api</code> и <code>/uploads</code> на backend.
+            Обязательный GitHub Actions pipeline не используется — сценарий
+            деплоя настраивается на VPS при пуше в <code>main</code> (см.
+            <code>DEPLOYMENT.md</code>).
+          </p>
+        </div>
+
+        <p class="cicd-export-hint">
+          Для файла <strong>cicd.png</strong>: откройте
+          <a href="cicd.html"><code>диаграммы/cicd.html</code></a> в браузере и
+          сделайте скриншот только блока схемы или экспорт из инструментов
+          браузера.
+        </p>
+      </section>
+    </div>
+  </body>
+</html>
+
+--- файл конец ---
+
+————————————————————————————————————————————————————————————————————————
+
+Стили для HTML-диаграммы (цвета сущностей, сетка, адаптивная вёрстка). Без этого файла страница er-database.html отображается некорректно.
+
+диаграммы/er-database.css
+
+--- файл начало ---
+/* ER-диаграмма БД TudaSuda — статическая вёрстка */
+
+:root {
+  --bg: #0f1419;
+  --surface: #1a2332;
+  --surface-2: #243044;
+  --border: #3d4f6f;
+  --text: #e8eef7;
+  --muted: #8b9cb3;
+  --accent-core: #5b8def;
+  --accent-pay: #3ecf8e;
+  --accent-auth: #c084fc;
+  --accent-cms: #f59e0b;
+  --line: #5a6d8a;
+  --shadow: rgba(0, 0, 0, 0.35);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+}
+
+h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.65rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: 0 0 1.75rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  margin-bottom: 1.75rem;
+  padding: 0.85rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.legend-dot.core {
+  background: var(--accent-core);
+}
+.legend-dot.pay {
+  background: var(--accent-pay);
+}
+.legend-dot.auth {
+  background: var(--accent-auth);
+}
+.legend-dot.cms {
+  background: var(--accent-cms);
+}
+
+.diagram {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem 2rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .diagram {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem 1.25rem;
+  background: linear-gradient(165deg, var(--surface) 0%, #151d2a 100%);
+  box-shadow: 0 8px 28px var(--shadow);
+}
+
+.panel-title {
+  margin: 0 0 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.entity-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.hub-row {
+  display: flex;
+  justify-content: center;
+}
+
+.branch-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .branch-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.branch-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .branch-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.entity {
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface-2);
+  box-shadow: 0 2px 12px var(--shadow);
+}
+
+.entity--hub {
+  max-width: 280px;
+  border-color: var(--accent-core);
+  box-shadow: 0 0 0 1px rgba(91, 141, 239, 0.25), 0 8px 24px var(--shadow);
+}
+
+.entity--core {
+  border-top: 3px solid var(--accent-core);
+}
+
+.entity--pay {
+  border-top: 3px solid var(--accent-pay);
+}
+
+.entity--auth {
+  border-top: 3px solid var(--accent-auth);
+}
+
+.entity--cms {
+  border-top: 3px solid var(--accent-cms);
+}
+
+.entity__head {
+  padding: 0.55rem 0.75rem;
+  font-weight: 700;
+  font-size: 0.88rem;
+  letter-spacing: 0.02em;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--border);
+}
+
+.entity__body {
+  padding: 0.5rem 0.75rem 0.65rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  line-height: 1.55;
+}
+
+.entity__body code {
+  color: #b8c9e0;
+  font-size: inherit;
+}
+
+.relation {
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px dashed var(--border);
+  font-size: 0.68rem;
+  color: var(--line);
+}
+
+.relation strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.25rem;
+  color: var(--line);
+  font-size: 1.1rem;
+  user-select: none;
+}
+
+.note {
+  margin-top: 1.5rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+}
+
+.note code {
+  color: #9ec5ff;
+  font-size: 0.85em;
+}
+
+/* Правая колонка: плотная сетка карточек */
+.side-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 520px) {
+  .side-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.side-grid .entity__body {
+  font-size: 0.68rem;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+/* --- CI/CD pipeline (GitHub → VPS) --- */
+
+.section-gap {
+  margin-top: 3.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.cicd-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.45rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.cicd-subtitle {
+  margin: 0 0 1.25rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.cicd-pipeline {
+  padding: 1.25rem 1rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--surface) 0%, #121922 100%);
+  box-shadow: 0 10px 32px var(--shadow);
+}
+
+.cicd-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.cicd-card {
+  width: 100%;
+  max-width: 340px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  overflow: hidden;
+  background: var(--surface-2);
+  box-shadow: 0 4px 16px var(--shadow);
+}
+
+.cicd-card__head {
+  padding: 0.6rem 0.85rem;
+  font-weight: 750;
+  font-size: 0.92rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cicd-card__head--gh {
+  background: linear-gradient(90deg, #24292f 0%, #2d333b 100%);
+  border-bottom-color: #444c56;
+}
+
+.cicd-card__head--vercel {
+  background: #000;
+  color: #fff;
+  border-bottom-color: #333;
+}
+
+.cicd-card__head--railway {
+  background: linear-gradient(90deg, #2e1065 0%, #5b21b6 100%);
+  border-bottom-color: #7c3aed;
+}
+
+.cicd-card__head--vps {
+  background: linear-gradient(90deg, #0f4c75 0%, #0d9488 100%);
+  color: #f8fafc;
+  border-bottom-color: #14b8a6;
+}
+
+.cicd-split--single {
+  grid-template-columns: 1fr;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.cicd-card__body {
+  padding: 0.65rem 0.85rem 0.75rem;
+  font-size: 0.74rem;
+  color: var(--muted);
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  line-height: 1.55;
+}
+
+.cicd-card__body code {
+  color: #b8d4ff;
+  font-size: inherit;
+}
+
+.cicd-arrow-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.35rem 0 0.5rem;
+  color: var(--line);
+  font-size: 1.35rem;
+  line-height: 1;
+  user-select: none;
+}
+
+.cicd-arrow-col span {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-top: 0.35rem;
+}
+
+.cicd-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  max-width: 920px;
+  align-items: stretch;
+}
+
+@media (max-width: 720px) {
+  .cicd-split {
+    grid-template-columns: 1fr;
+  }
+
+  .cicd-card {
+    max-width: none;
+  }
+}
+
+.cicd-card--wide {
+  max-width: none;
+}
+
+.cicd-pg {
+  margin-top: 0.65rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  border: 2px dashed var(--border);
+  background: rgba(91, 141, 239, 0.08);
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.cicd-pg strong {
+  color: var(--accent-core);
+}
+
+.cicd-footer {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cicd-footer code {
+  color: #9ec5ff;
+  font-size: 0.85em;
+}
+
+.cicd-export-hint {
+  margin-top: 0.75rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.cicd-export-hint a {
+  color: var(--accent-core);
+}
+
+/* --- Gantt diagram --- */
+
+.gantt-wrap {
+  padding: 1.25rem 1rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--surface) 0%, #121922 100%);
+  box-shadow: 0 10px 32px var(--shadow);
+}
+
+.gantt-grid {
+  display: grid;
+  grid-template-columns: 300px minmax(720px, 1fr);
+  gap: 0.75rem 0.9rem;
+  align-items: center;
+  overflow-x: auto;
+  padding-bottom: 0.4rem;
+}
+
+@media (max-width: 920px) {
+  .gantt-grid {
+    grid-template-columns: 250px minmax(680px, 1fr);
+  }
+}
+
+.gantt-head-left {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.gantt-scale {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.gantt-scale span {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--muted);
+  padding: 0.4rem 0.2rem;
+  border-right: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+}
+
+.gantt-scale span:last-child {
+  border-right: 0;
+}
+
+.gantt-task {
+  padding: 0.48rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.gantt-task__name {
+  font-size: 0.78rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.gantt-task__meta {
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.gantt-lane {
+  position: relative;
+  height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background:
+    linear-gradient(to right, transparent calc(14.285% - 0.5px), var(--border) calc(14.285% - 0.5px), var(--border) calc(14.285% + 0.5px), transparent calc(14.285% + 0.5px)),
+    linear-gradient(to right, transparent calc(28.57% - 0.5px), var(--border) calc(28.57% - 0.5px), var(--border) calc(28.57% + 0.5px), transparent calc(28.57% + 0.5px)),
+    linear-gradient(to right, transparent calc(42.855% - 0.5px), var(--border) calc(42.855% - 0.5px), var(--border) calc(42.855% + 0.5px), transparent calc(42.855% + 0.5px)),
+    linear-gradient(to right, transparent calc(57.14% - 0.5px), var(--border) calc(57.14% - 0.5px), var(--border) calc(57.14% + 0.5px), transparent calc(57.14% + 0.5px)),
+    linear-gradient(to right, transparent calc(71.425% - 0.5px), var(--border) calc(71.425% - 0.5px), var(--border) calc(71.425% + 0.5px), transparent calc(71.425% + 0.5px)),
+    linear-gradient(to right, transparent calc(85.71% - 0.5px), var(--border) calc(85.71% - 0.5px), var(--border) calc(85.71% + 0.5px), transparent calc(85.71% + 0.5px)),
+    rgba(0, 0, 0, 0.18);
+}
+
+.bar {
+  --start: 0%;
+  --width: 25%;
+  position: absolute;
+  left: var(--start);
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--width);
+  min-width: 42px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #f7fbff;
+  font-size: 0.66rem;
+  line-height: 24px;
+  text-align: center;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bar-core {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.bar-back {
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+}
+
+.bar-sec {
+  background: linear-gradient(90deg, #f97316, #fb923c);
+}
+
+.bar-ops {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.gantt-summary {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.gantt-summary strong {
+  color: var(--text);
+}
+
+--- файл конец ---
+
+————————————————————————————————————————————————————————————————————————

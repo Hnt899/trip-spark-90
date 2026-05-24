@@ -13,10 +13,12 @@ import {
 import { registerAdminRoutes } from "./adminApiRoutes.js";
 import { registerBlogPublicRoutes } from "./blogRoutes.js";
 import { registerRoutePublicRoutes } from "./routePageRoutes.js";
+import { registerReferencePublicRoutes } from "./referenceRoutes.js";
+import { registerGuidePublicRoutes } from "./guideRoutes.js";
 import { sendExolveSms } from "./sendSms.js";
 import { sendEmailOtp } from "./emailOtp.js";
 import { registerRzdTrainSearchRoutes } from "./rzdTrainSearchRoutes.js";
-import { registerStripePaymentRoutes } from "./stripePayments.js";
+import { registerYookassaPaymentRoutes } from "./yookassaPayments.js";
 
 function normalizePhoneE164(input) {
   const digits = input.replace(/\D/g, "");
@@ -36,7 +38,7 @@ function randomDigits(n) {
  */
 export function registerApiRoutes(app) {
   registerRzdTrainSearchRoutes(app);
-  registerStripePaymentRoutes(app);
+  registerYookassaPaymentRoutes(app);
 
   // --- Auth: session ---
   app.get("/api/auth/session", authMiddleware, async (req, res) => {
@@ -212,128 +214,18 @@ export function registerApiRoutes(app) {
     res.json({ user: formatUser(row), access_token });
   });
 
-  // --- SMS ---
-  app.post("/api/auth/sms/send", express.json(), async (req, res) => {
-    const { phone } = req.body || {};
-    if (!phone) return res.status(400).json({ error: "phone required" });
-    const normalized = normalizePhoneE164(phone);
-    const digits = normalized.replace(/\D/g, "");
-    const phoneWithPlus = "+" + digits;
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { rows: recent } = await pool.query(
-      `SELECT id FROM verification_codes WHERE (phone = $1 OR phone = $2 OR phone LIKE $3) AND created_at >= $4`,
-      [phoneWithPlus, digits, `%${digits.slice(-10)}`, oneHourAgo]
-    );
-    if (recent.length >= 3) {
-      return res.status(429).json({
-        success: false,
-        error: "Превышен лимит отправки SMS (3 в час). Попробуйте позже.",
-      });
-    }
-    const code = randomDigits(6);
-    const message = `Ваш код: ${code}`;
-    try {
-      await sendExolveSms(normalized, message);
-    } catch (e) {
-      console.error(e);
-      return res.status(400).json({
-        success: false,
-        error: e.message || "SMS failed",
-      });
-    }
-    const exp = new Date(Date.now() + 10 * 60 * 1000);
-    await pool.query(
-      `INSERT INTO verification_codes (phone, code, expires_at) VALUES ($1, $2, $3)`,
-      [phoneWithPlus, code, exp.toISOString()]
-    );
-    res.json({ success: true, message_id: "ok" });
+  // --- SMS (отключено; вернём позже с Exolve) ---
+  app.post("/api/auth/sms/send", express.json(), (_req, res) => {
+    return res.status(503).json({
+      success: false,
+      error: "Вход по SMS временно отключён. Используйте email или пароль.",
+    });
   });
 
-  app.post("/api/auth/sms/verify", express.json(), async (req, res) => {
-    const { phone, token, isRegistration } = req.body || {};
-    if (!phone || !token)
-      return res.status(400).json({ error: "phone and token required" });
-    const normalized = normalizePhoneE164(phone);
-    const digits = normalized.replace(/\D/g, "");
-    const phoneWithPlus = "+" + digits;
-    const tempEmail = `${digits}@temp.com`;
-    const tempPassword = `phone_${digits}_${digits.slice(-4)}`;
-
-    const { rows: codes } = await pool.query(
-      `SELECT * FROM verification_codes WHERE (phone = $1 OR phone = $2) AND code = $3 AND used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1`,
-      [phoneWithPlus, digits, String(token).trim()]
-    );
-    if (!codes.length)
-      return res.status(400).json({ error: "Invalid or expired code" });
-    await pool.query(`UPDATE verification_codes SET used = true WHERE id = $1`, [
-      codes[0].id,
-    ]);
-
-    const { rows: prof } = await pool.query(
-      `SELECT user_id FROM user_profiles WHERE phone = $1 OR phone = $2 LIMIT 1`,
-      [phoneWithPlus, normalized]
-    );
-
-    let userId;
-    let row;
-
-    if (prof.length) {
-      userId = prof[0].user_id;
-      row = await getUserById(pool, userId);
-    } else {
-      const existing = (
-        await pool.query(`SELECT * FROM users WHERE email = $1`, [tempEmail])
-      ).rows[0];
-      if (existing) {
-        row = existing;
-      } else {
-        if (!isRegistration) {
-          return res.status(400).json({
-            error: "User not found",
-            code: "PHONE_NOT_REGISTERED",
-          });
-        }
-        const hash = await bcrypt.hash(tempPassword, 10);
-        const meta = { phone: phoneWithPlus, temp_password: tempPassword };
-        const ins = await pool.query(
-          `INSERT INTO users (email, password_hash, phone, raw_user_meta) VALUES ($1, $2, $3, $4::jsonb) RETURNING *`,
-          [tempEmail, hash, phoneWithPlus, JSON.stringify(meta)]
-        );
-        row = ins.rows[0];
-      }
-    }
-
-    await pool.query(
-      `INSERT INTO user_profiles (user_id, phone, email) VALUES ($1, $2, $3)
-       ON CONFLICT (user_id) DO UPDATE SET phone = EXCLUDED.phone, email = COALESCE(user_profiles.email, EXCLUDED.email)`,
-      [row.id, phoneWithPlus, tempEmail]
-    );
-
-    const metaObj = row.raw_user_meta || {};
-    if (!metaObj.has_password) {
-      const autoPassword =
-        Math.random().toString(36).slice(-12) +
-        Math.random().toString(36).slice(-12);
-      const newHash = await bcrypt.hash(autoPassword, 10);
-      const meta = {
-        ...metaObj,
-        has_password: false,
-        auto_password: autoPassword,
-      };
-      await pool.query(
-        `UPDATE users SET password_hash = $2, raw_user_meta = $3::jsonb WHERE id = $1`,
-        [row.id, newHash, JSON.stringify(meta)]
-      );
-      row = await getUserById(pool, row.id);
-    }
-
-    const access_token = signAccessToken(
-      row.id,
-      row.email,
-      row.raw_user_meta,
-      row.is_admin
-    );
-    res.json({ user: formatUser(row), access_token });
+  app.post("/api/auth/sms/verify", express.json(), (_req, res) => {
+    return res.status(503).json({
+      error: "Вход по SMS временно отключён. Используйте email или пароль.",
+    });
   });
 
   // --- Update current user (auth.users parity) ---
@@ -801,5 +693,7 @@ export function registerApiRoutes(app) {
 
   registerBlogPublicRoutes(app);
   registerRoutePublicRoutes(app);
+  registerReferencePublicRoutes(app);
+  registerGuidePublicRoutes(app);
   registerAdminRoutes(app);
 }

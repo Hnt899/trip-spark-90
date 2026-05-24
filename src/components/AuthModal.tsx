@@ -33,18 +33,27 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const { signIn, verifyOTP, signInWithPassword, verify2FACode } = useAuth();
   const { toast } = useToast();
 
-  const handleSubmitEmailOrPhone = async () => {
-    if (!emailOrPhone) {
+  const handleSubmitEmail = async () => {
+    const email = emailOrPhone.trim();
+    if (!email) {
       toast({
         title: "Ошибка",
-        description: "Введите email или номер телефона",
+        description: "Введите email",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!email.includes("@")) {
+      toast({
+        title: "Ошибка",
+        description: "Вход по SMS отключён. Укажите корректный email.",
         variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
-    const { error } = await signIn(emailOrPhone);
+    const { error } = await signIn(email);
     setLoading(false);
 
     if (error) {
@@ -57,16 +66,16 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
       setStep("otp");
       toast({
         title: "Код отправлен",
-        description: "Проверьте вашу почту или телефон",
+        description: "Проверьте вашу почту",
       });
     }
   };
 
   const handleVerifyOTP = async () => {
-    if (otp.length !== 8) {
+    if (otp.length !== 6) {
       toast({
         title: "Ошибка",
-        description: "Введите полный код из 8 цифр",
+        description: "Введите полный код из 6 цифр",
         variant: "destructive",
       });
       return;
@@ -103,10 +112,19 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   };
 
   const handlePasswordLogin = async () => {
-    if (!emailOrPhone || !password) {
+    const email = emailOrPhone.trim();
+    if (!email || !password) {
       toast({
         title: "Ошибка",
-        description: "Введите email/телефон и пароль",
+        description: "Введите email и пароль",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!email.includes("@")) {
+      toast({
+        title: "Ошибка",
+        description: "Вход по номеру телефона отключён. Используйте email.",
         variant: "destructive",
       });
       return;
@@ -119,7 +137,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     if (error) {
       toast({
         title: "Ошибка",
-        description: error.message || "Неверный email/телефон или пароль",
+        description: error.message || "Неверный email или пароль",
         variant: "destructive",
       });
     } else if (requires2FA && userEmail) {
@@ -143,10 +161,10 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   };
 
   const handleVerify2FA = async () => {
-    if (otp.length !== 8) {
+    if (otp.length !== 6) {
       toast({
         title: "Ошибка",
-        description: "Введите полный код из 8 цифр",
+        description: "Введите полный код из 6 цифр",
         variant: "destructive",
       });
       return;
@@ -187,9 +205,9 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
             {step === "2fa" && "Двухфакторная аутентификация"}
           </DialogTitle>
           <DialogDescription>
-            {step === "input" && "Введите email или номер телефона для входа или регистрации"}
-            {step === "otp" && "Мы отправили код на ваш email или телефон"}
-            {step === "password" && "Введите email/телефон и пароль для входа"}
+            {step === "input" && "Введите email для входа или регистрации"}
+            {step === "otp" && "Мы отправили код на вашу почту"}
+            {step === "password" && "Введите email и пароль для входа"}
             {step === "2fa" && "Мы отправили код подтверждения на вашу почту"}
           </DialogDescription>
         </DialogHeader>
@@ -197,16 +215,17 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         {step === "input" && (
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="emailOrPhone">Email или телефон</Label>
+              <Label htmlFor="emailOrPhone">Email</Label>
               <Input
                 id="emailOrPhone"
-                type="text"
-                placeholder="example@mail.com или +79001234567"
+                type="email"
+                placeholder="example@mail.com"
+                autoComplete="email"
                 value={emailOrPhone}
                 onChange={(e) => setEmailOrPhone(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    handleSubmitEmailOrPhone();
+                    handleSubmitEmail();
                   }
                 }}
               />
@@ -215,7 +234,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
               <Button
                 onClick={() => {
                   setIsRegistration(false);
-                  handleSubmitEmailOrPhone();
+                  handleSubmitEmail();
                 }}
                 disabled={loading}
                 className="flex-1"
@@ -225,7 +244,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
               <Button
                 onClick={() => {
                   setIsRegistration(true);
-                  handleSubmitEmailOrPhone();
+                  handleSubmitEmail();
                 }}
                 disabled={loading}
                 variant="outline"
@@ -252,11 +271,12 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         {step === "password" && (
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="emailOrPhonePass">Email или телефон</Label>
+              <Label htmlFor="emailOrPhonePass">Email</Label>
               <Input
                 id="emailOrPhonePass"
-                type="text"
-                placeholder="example@mail.com или +79001234567"
+                type="email"
+                placeholder="example@mail.com"
+                autoComplete="email"
                 value={emailOrPhone}
                 onChange={(e) => setEmailOrPhone(e.target.value)}
               />
@@ -289,7 +309,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
           <div className="space-y-4 py-4">
             <div className="flex justify-center">
               <InputOTP
-                maxLength={8}
+                maxLength={6}
                 value={otp}
                 onChange={(value) => setOtp(value)}
               >
@@ -300,14 +320,12 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                   <InputOTPSlot index={3} />
                   <InputOTPSlot index={4} />
                   <InputOTPSlot index={5} />
-                  <InputOTPSlot index={6} />
-                  <InputOTPSlot index={7} />
                 </InputOTPGroup>
               </InputOTP>
             </div>
             <Button
               onClick={handleVerifyOTP}
-              disabled={loading || otp.length !== 8}
+              disabled={loading || otp.length !== 6}
               className="w-full"
             >
               Подтвердить
@@ -322,7 +340,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
           <div className="space-y-4 py-4">
             <div className="flex justify-center">
               <InputOTP
-                maxLength={8}
+                maxLength={6}
                 value={otp}
                 onChange={(value) => setOtp(value)}
               >
@@ -333,14 +351,12 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                   <InputOTPSlot index={3} />
                   <InputOTPSlot index={4} />
                   <InputOTPSlot index={5} />
-                  <InputOTPSlot index={6} />
-                  <InputOTPSlot index={7} />
                 </InputOTPGroup>
               </InputOTP>
             </div>
             <Button
               onClick={handleVerify2FA}
-              disabled={loading || otp.length !== 8}
+              disabled={loading || otp.length !== 6}
               className="w-full"
             >
               Подтвердить

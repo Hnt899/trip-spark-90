@@ -8,33 +8,21 @@ vi.mock("../../db.js", () => ({ pool: poolMock }));
 vi.mock("../../sendSms.js", () => ({ sendExolveSms: vi.fn(async () => ({ success: true })) }));
 vi.mock("../../emailOtp.js", () => ({ sendEmailOtp: vi.fn(async () => undefined) }));
 
-const checkoutCreate = vi.fn().mockResolvedValue({
-  id: "cs_test_123",
-  url: "https://checkout.stripe.com/c/pay/cs_test_123",
-});
-
-vi.mock("stripe", () => ({
-  default: class MockStripe {
-    checkout: { sessions: { create: typeof checkoutCreate } };
-    webhooks: { constructEvent: () => ({ type: "checkout.session.completed", data: {} }) };
-    constructor() {
-      this.checkout = { sessions: { create: checkoutCreate } };
-      this.webhooks = {
-        constructEvent: vi.fn(),
-      };
-    }
-  },
+const fetchMock = vi.fn();
+vi.mock("node-fetch", () => ({
+  default: fetchMock,
 }));
 
-describe("checkout / Stripe", () => {
+describe("checkout / ЮKassa", () => {
   let passwordHash = "";
 
   beforeEach(async () => {
     resetPgMock();
     passwordHash = await bcrypt.hash("secret", 6);
     process.env.SKIP_WEBPAY = "0";
-    process.env.STRIPE_SECRET_KEY = "sk_test_mock";
-    checkoutCreate.mockClear();
+    process.env.YOOKASSA_SHOP_ID = "test_shop";
+    process.env.YOOKASSA_SECRET_KEY = "test_secret";
+    fetchMock.mockReset();
   });
 
   async function getAuth() {
@@ -48,7 +36,7 @@ describe("checkout / Stripe", () => {
     return { app, token: login.body.access_token as string };
   }
 
-  it("SKIP_WEBPAY: помечает билет оплаченным без Stripe", async () => {
+  it("SKIP_WEBPAY: помечает билет оплаченным без ЮKassa", async () => {
     process.env.SKIP_WEBPAY = "1";
     onQuery(/UPDATE tickets SET/, () => ({ rows: [{ id: "t-1" }], rowCount: 1 }));
     const { app, token } = await getAuth();
@@ -84,8 +72,8 @@ describe("checkout / Stripe", () => {
     expect(res.body.error).toMatch(/total_price must be positive/i);
   });
 
-  it("503 если Stripe не настроен", async () => {
-    delete process.env.STRIPE_SECRET_KEY;
+  it("503 если ЮKassa не настроена", async () => {
+    delete process.env.YOOKASSA_SECRET_KEY;
     const { app, token } = await getAuth();
     const res = await request(app)
       .post("/api/webpay-create")
@@ -98,12 +86,21 @@ describe("checkout / Stripe", () => {
       });
 
     expect(res.status).toBe(503);
-    expect(String(res.body.error)).toMatch(/STRIPE_SECRET_KEY/i);
+    expect(String(res.body.error)).toMatch(/YOOKASSA/i);
   });
 
-  it("возвращает url Stripe Checkout при настроенном ключе", async () => {
-    process.env.STRIPE_SECRET_KEY = "sk_test_mock";
-    onQuery(/UPDATE tickets SET payment_method = 'stripe'/, () => ({ rows: [], rowCount: 1 }));
+  it("возвращает URL ЮKassa при успешном создании платежа", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: "pay_yoo_1",
+        status: "pending",
+        confirmation: {
+          confirmation_url: "https://yoomoney.ru/checkout/payments/v2/contract?orderId=123",
+        },
+      }),
+    });
+    onQuery(/UPDATE tickets SET payment_transaction_id =/, () => ({ rows: [], rowCount: 1 }));
     const { app, token } = await getAuth();
     const res = await request(app)
       .post("/api/webpay-create")
@@ -116,8 +113,112 @@ describe("checkout / Stripe", () => {
       });
 
     expect(res.status).toBe(200);
-    expect(res.body.url).toMatch(/^https:\/\/checkout\.stripe\.com\//);
+    expect(res.body.url).toMatch(/^https:\/\/yoomoney\.ru\//);
     expect(res.body.order_number).toBe("T503");
-    expect(checkoutCreate).toHaveBeenCalled();
+    expect(res.body.payment_id).toBe("pay_yoo_1");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("sync-payment: помечает билет paid после подтверждения в ЮKassa", async () => {
+    onQuery(/SELECT \* FROM tickets WHERE order_number = \$1 AND user_id = \$2 LIMIT 1/, () => ({
+      rows: [
+        {
+          id: "11111111-1111-1111-1111-111111111111",
+          order_number: "T600",
+          user_id: "u-1",
+          payment_status: "pending",
+          payment_transaction_id: "pay_yoo_2",
+        },
+      ],
+    }));
+    onQuery(/UPDATE tickets SET payment_status = \$2/, () => ({ rows: [], rowCount: 1 }));
+
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: "pay_yoo_2",
+        status: "succeeded",
+        metadata: { order_number: "T600", user_id: "u-1" },
+      }),
+    });
+
+    const { app, token } = await getAuth();
+    const res = await request(app)
+      .post("/api/yookassa-sync-payment")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ order_number: "T600" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe("paid");
+  });
+
+  it("user refund: возврат своего билета через ЮKassa", async () => {
+    onQuery(/SELECT \* FROM tickets WHERE id = \$1::uuid AND user_id = \$2::uuid/, () => ({
+      rows: [
+        {
+          id: "11111111-1111-1111-1111-111111111111",
+          order_number: "T701",
+          user_id: "u-1",
+          payment_method: "yookassa",
+          payment_status: "paid",
+          payment_transaction_id: "pay_yoo_4",
+          total_price: "900",
+          order_status: "active",
+          payment_raw: {},
+        },
+      ],
+    }));
+    onQuery(/UPDATE tickets SET/, () => ({ rows: [], rowCount: 1 }));
+
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ id: "rfnd_2", status: "succeeded" }),
+    });
+
+    const { app, token } = await getAuth();
+    const res = await request(app)
+      .post("/api/tickets/11111111-1111-1111-1111-111111111111/refund")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ amount: 810 });
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.refund_amount).toBe("810.00");
+  });
+
+  it("admin refund: создаёт возврат и обновляет ticket", async () => {
+    onQuery(/SELECT is_admin FROM users WHERE id = \$1/, () => ({ rows: [{ is_admin: true }] }));
+    onQuery(/SELECT \* FROM tickets WHERE id = \$1::uuid/, () => ({
+      rows: [
+        {
+          id: "11111111-1111-1111-1111-111111111111",
+          order_number: "T700",
+          payment_method: "yookassa",
+          payment_status: "paid",
+          payment_transaction_id: "pay_yoo_3",
+          total_price: "1200",
+          payment_raw: {},
+        },
+      ],
+    }));
+    onQuery(/UPDATE tickets SET payment_status = \$2/, () => ({ rows: [], rowCount: 1 }));
+
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: "rfnd_1",
+        status: "succeeded",
+      }),
+    });
+
+    const { app, token } = await getAuth();
+    const res = await request(app)
+      .post("/api/admin/tickets/11111111-1111-1111-1111-111111111111/refund")
+      .set("Authorization", `Bearer ${token}`)
+      .send({});
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.refund?.id).toBe("rfnd_1");
   });
 });

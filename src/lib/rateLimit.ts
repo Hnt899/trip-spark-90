@@ -152,7 +152,7 @@ export const RATE_LIMITS = {
     blockDurationMs: 30 * 60 * 1000 // 30 минут блокировки
   },
   
-  // Отправка OTP/SMS: 3 кода в час
+  // Отправка email OTP: 3 кода в час
   SEND_OTP: {
     maxAttempts: 3,
     windowMs: 60 * 60 * 1000, // 1 час
@@ -204,36 +204,9 @@ export const checkLoginRateLimit = async (emailOrPhone: string): Promise<{ allow
  * Проверяет rate limit для отправки OTP
  */
 export const checkOTPRateLimit = async (emailOrPhone: string): Promise<{ allowed: boolean; error?: string }> => {
-  const key = `otp:${emailOrPhone}`;
+  const key = `otp:${emailOrPhone.toLowerCase()}`;
   const limit = RATE_LIMITS.SEND_OTP;
-  
-  // Также проверяем в базе данных (более надежно)
-  const normalizedPhone = emailOrPhone.includes('@') 
-    ? emailOrPhone.toLowerCase() 
-    : emailOrPhone.replace(/\D/g, '');
-  
-  // Проверяем количество отправленных кодов за последний час
-  if (!emailOrPhone.includes('@')) {
-    try {
-      const { count } = await apiFetch<{ count: number }>(
-        `/api/auth/sms/count-recent?phone=${encodeURIComponent(emailOrPhone)}`
-      );
-      if (count >= limit.maxAttempts) {
-        await logger.logSecurityEvent(
-          'OTP rate limit exceeded (database)',
-          undefined,
-          { phone: normalizedPhone.replace(/(.{3})(.*)(.{2})/, '$1***$3'), count }
-        );
-        return {
-          allowed: false,
-          error: `Превышен лимит отправки кодов (${limit.maxAttempts} в час). Попробуйте позже.`
-        };
-      }
-    } catch {
-      /* ignore — сервер недоступен, остаётся клиентский лимит */
-    }
-  }
-  
+
   // Проверяем клиентский лимит
   const result = rateLimiter.checkLimit(key, limit.maxAttempts, limit.windowMs, limit.blockDurationMs);
   

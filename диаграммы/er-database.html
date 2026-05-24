@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ER-диаграмма БД — TudaSuda (Trip Spark)</title>
+    <link rel="stylesheet" href="er-database.css" />
+  </head>
+  <body>
+    <div class="page">
+      <h1>ER-диаграмма базы данных</h1>
+      <p class="subtitle">
+        PostgreSQL · схема <code>postgres/schema.sql</code> + таблица
+        <code>route_pages</code> (миграция)
+      </p>
+
+      <div class="legend">
+        <span class="legend-item"
+          ><span class="legend-dot core"></span> Ядро: пользователь и
+          заказы</span
+        >
+        <span class="legend-item"
+          ><span class="legend-dot pay"></span> Оплата и сертификаты</span
+        >
+        <span class="legend-item"
+          ><span class="legend-dot auth"></span> Аутентификация и
+          безопасность</span
+        >
+        <span class="legend-item"
+          ><span class="legend-dot cms"></span> Контент (CMS)</span
+        >
+      </div>
+
+      <div class="diagram">
+        <section class="panel" aria-label="Ядро предметной области">
+          <h2 class="panel-title">Ядро: пользователь, заказы, билеты</h2>
+          <div class="entity-grid">
+            <div class="hub-row">
+              <article class="entity entity--hub entity--core">
+                <div class="entity__head">users</div>
+                <div class="entity__body">
+                  <code>id</code> PK · <code>email</code> UK<br />
+                  <code>password_hash</code> · <code>phone</code><br />
+                  <code>is_admin</code> · <code>raw_user_meta</code> JSONB
+                </div>
+              </article>
+            </div>
+
+            <div class="connector">│</div>
+
+            <div class="branch-row">
+              <article class="entity entity--core">
+                <div class="entity__head">user_profiles</div>
+                <div class="entity__body">
+                  <code>id</code> PK · <code>user_id</code> FK → users<br />
+                  UNIQUE(user_id) · ФИО, контакты, <code>birth_date</code>
+                  <div class="relation">
+                    <strong>1 : 1</strong> с users (каскад при удалении)
+                  </div>
+                </div>
+              </article>
+              <article class="entity entity--core">
+                <div class="entity__head">passengers</div>
+                <div class="entity__body">
+                  <code>id</code> PK · <code>user_id</code> FK → users<br />
+                  паспорт, ФИО, <code>birth_date</code>
+                  <div class="relation">
+                    <strong>1 : N</strong> users → passengers
+                  </div>
+                </div>
+              </article>
+              <article class="entity entity--core">
+                <div class="entity__head">orders</div>
+                <div class="entity__body">
+                  <code>id</code> PK · <code>user_id</code> FK → users<br />
+                  <code>order_number</code> UK · <code>status</code> ·
+                  <code>total_amount</code>
+                  <div class="relation">
+                    <strong>1 : N</strong> users → orders
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div class="connector">│</div>
+
+            <div class="branch-row-2">
+              <article class="entity entity--pay">
+                <div class="entity__head">tickets</div>
+                <div class="entity__body">
+                  <code>id</code> PK · <code>user_id</code> FK → users<br />
+                  <code>order_number</code> · <code>transport_type</code><br />
+                  <code>total_price</code> · <code>tickets_data</code> JSONB<br />
+                  <code>payment_status</code> · <code>payment_raw</code> JSONB
+                  <div class="relation">
+                    <strong>1 : N</strong> users → tickets<br />
+                    логическая связь с orders по
+                    <strong>order_number</strong> (FK в SQL не задан)
+                  </div>
+                </div>
+              </article>
+              <article class="entity entity--pay">
+                <div class="entity__head">certificates</div>
+                <div class="entity__body">
+                  <code>id</code> PK · <code>user_id</code> FK → users<br />
+                  <code>certificate_code</code> UK · <code>amount</code><br />
+                  <code>order_id</code> FK → tickets.id (SET NULL)
+                  <div class="relation">
+                    <strong>N : 1</strong> certificates → ticket<br />
+                    <strong>1 : N</strong> users → certificates
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-label="Безопасность и контент">
+          <h2 class="panel-title">Безопасность, OTP и CMS</h2>
+          <div class="side-grid">
+            <article class="entity entity--auth">
+              <div class="entity__head">user_2fa</div>
+              <div class="entity__body">
+                <code>user_id</code> FK → users UNIQUE<br />
+                <code>secret</code> · <code>enabled</code> ·
+                <code>backup_codes</code>[]
+              </div>
+            </article>
+            <article class="entity entity--auth">
+              <div class="entity__head">verification_codes</div>
+              <div class="entity__body">
+                SMS OTP: <code>phone</code> · <code>code</code><br />
+                <code>expires_at</code> · <code>used</code>
+                <div class="relation">без FK к users (по номеру)</div>
+              </div>
+            </article>
+            <article class="entity entity--auth">
+              <div class="entity__head">email_otp_challenges</div>
+              <div class="entity__body">
+                <code>email</code> · <code>code</code> ·
+                <code>purpose</code><br />
+                <code>expires_at</code> · <code>used</code>
+                <div class="relation">без FK к users (по email)</div>
+              </div>
+            </article>
+            <article class="entity entity--auth">
+              <div class="entity__head">security_logs</div>
+              <div class="entity__body">
+                <code>level</code> · <code>message</code><br />
+                <code>user_id</code> FK → users NULL<br />
+                <code>metadata</code> JSONB
+              </div>
+            </article>
+            <article class="entity entity--cms full-width">
+              <div class="entity__head">blog_posts</div>
+              <div class="entity__body">
+                <code>slug</code> UK · <code>content_blocks</code> JSONB<br />
+                <code>status</code> · <code>author_id</code> FK → users NULL
+              </div>
+            </article>
+            <article class="entity entity--cms full-width">
+              <div class="entity__head">route_pages</div>
+              <div class="entity__body">
+                <code>slug</code> UK · <code>rating</code> ·
+                <code>content_blocks</code> JSONB<br />
+                <code>author_id</code> FK → users NULL · миграция
+                <code>003_route_pages.sql</code>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <p class="note">
+        Все таблицы с полями <code>updated_at</code> используют триггер
+        <code>update_updated_at_column()</code>. Расширение БД:
+        <code>pgcrypto</code> (UUID и крипто-утилиты для функций 2FA и
+        сертификатов).
+      </p>
+
+      <section class="section-gap" id="cicd" aria-labelledby="cicd-heading">
+        <h2 class="cicd-title" id="cicd-heading">
+          Схема CI/CD pipeline
+        </h2>
+        <p class="cicd-subtitle">
+          Push в ветку <code>main</code> (или ручной запуск) → обновление на VPS:
+          nginx + Node.js + PostgreSQL
+          (<a href="cicd.html">отдельная страница для экспорта cicd.png</a>)
+        </p>
+
+        <div class="cicd-pipeline">
+          <div class="cicd-flow">
+            <article class="cicd-card">
+              <div class="cicd-card__head cicd-card__head--gh">GitHub</div>
+              <div class="cicd-card__body">
+                Репозиторий проекта · ветка <code>main</code><br />
+                push / ручной деплой → <code>git pull</code> и скрипт на сервере
+              </div>
+            </article>
+
+            <div class="cicd-arrow-col" aria-hidden="true">
+              ↓
+              <span>trigger</span>
+            </div>
+
+            <div class="cicd-split cicd-split--single">
+              <article class="cicd-card cicd-card--wide">
+                <div class="cicd-card__head cicd-card__head--vps">
+                  VPS (Ubuntu LTS)
+                </div>
+                <div class="cicd-card__body">
+                  <strong style="color: var(--text)">nginx:</strong>
+                  <code>npx vite build</code> → каталог <code>dist/</code> ·
+                  статика SPA<br />
+                  <strong style="color: var(--text)">reverse proxy:</strong>
+                  <code>/api/*</code> и <code>/uploads/*</code> → процесс Node.js
+                  (Express)<br />
+                  <strong style="color: var(--text)">старт:</strong>
+                  <code>copy-seed-images → migrate.js → server/index.js</code>
+                  (systemd или PM2)
+                </div>
+              </article>
+              <div class="cicd-pg">
+                <strong>PostgreSQL</strong> на том же сервере ·
+                <code>DATABASE_URL</code> → Express / <code>pg</code>
+              </div>
+            </div>
+          </div>
+
+          <p class="cicd-footer">
+            Пользователь открывает сайт на своём домене; nginx отдаёт фронт и
+            проксирует <code>/api</code> и <code>/uploads</code> на backend.
+            Обязательный GitHub Actions pipeline не используется — сценарий
+            деплоя настраивается на VPS при пуше в <code>main</code> (см.
+            <code>DEPLOYMENT.md</code>).
+          </p>
+        </div>
+
+        <p class="cicd-export-hint">
+          Для файла <strong>cicd.png</strong>: откройте
+          <a href="cicd.html"><code>диаграммы/cicd.html</code></a> в браузере и
+          сделайте скриншот только блока схемы или экспорт из инструментов
+          браузера.
+        </p>
+      </section>
+    </div>
+  </body>
+</html>

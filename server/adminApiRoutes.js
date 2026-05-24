@@ -2,6 +2,8 @@ import { pool } from "./db.js";
 import { adminMiddleware } from "./authMiddleware.js";
 import { registerAdminBlogRoutes } from "./blogRoutes.js";
 import { registerAdminRouteRoutes } from "./routePageRoutes.js";
+import { registerAdminReferenceRoutes } from "./referenceRoutes.js";
+import { registerAdminGuideRoutes } from "./guideRoutes.js";
 
 /**
  * @param {import('express').Express} app
@@ -111,4 +113,6 @@ export function registerAdminRoutes(app) {
 
   registerAdminBlogRoutes(app);
   registerAdminRouteRoutes(app);
+  registerAdminReferenceRoutes(app);
+  registerAdminGuideRoutes(app);
 }
