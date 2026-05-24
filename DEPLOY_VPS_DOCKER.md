@@ -101,3 +101,74 @@ git log --oneline -n 5
 git checkout <old_commit_sha>
 docker compose --env-file .env.vps up -d --build
 ```
+
+## 9) After first start (CORS, content, login, bot)
+
+### Fix `Error: CORS` in logs
+
+In `.env.vps` set **exactly** the URL you open in browser (no trailing slash):
+
+```env
+ALLOWED_ORIGINS=http://87.232.65.135
+```
+
+Then restart app:
+
+```bash
+cd /opt/trip-spark-90
+docker compose --env-file .env.vps up -d --force-recreate app
+```
+
+Check: open site → F12 → Network → `/api/...` should be **200**, not failed/CORS.
+
+### Fill blog / routes / reference / guide (empty DB)
+
+Run once inside the app container:
+
+```bash
+cd /opt/trip-spark-90
+docker compose --env-file .env.vps exec app node scripts/seed-content.js
+docker compose --env-file .env.vps exec app node scripts/seed-reference.js
+docker compose --env-file .env.vps exec app node scripts/seed-guide.js
+```
+
+Refresh the site.
+
+### Create demo user (password login)
+
+```bash
+docker compose --env-file .env.vps exec app node scripts/create-user.js you@mail.com YourPassword123 --admin
+```
+
+Log in via **«Войти по паролю»** (email + password).  
+Email OTP needs `SMTP_*` in `.env.vps`.
+
+### Trains schedule (RZD) empty or error
+
+On VPS test API:
+
+```bash
+curl -s "http://127.0.0.1/api/train-search/rzd?from=Москва&to=Санкт-Петербург&date=2026-05-26" | head -c 400
+docker compose --env-file .env.vps logs app --tail 30
+```
+
+If timeout — add to `.env.vps`:
+
+```env
+RZD_FETCH_TIMEOUT_MS=20000
+RZD_MAX_RID_ATTEMPTS=12
+```
+
+Then `docker compose --env-file .env.vps up -d --force-recreate app`.
+
+Cities must match `integrations/rzd-pass/station-codes.json` exactly: `Москва`, `Санкт-Петербург`, `Казань`, etc.
+
+If RZD returns **403** on VPS, the API serves **demo trains** (`RZD_DEMO_FALLBACK=1`, default). Disable with `RZD_DEMO_FALLBACK=0` in `.env.vps`.
+
+### AI support chat
+
+Set `HF_API_TOKEN=hf_...` in `.env.vps`, then:
+
+```bash
+docker compose --env-file .env.vps up -d --force-recreate app
+```

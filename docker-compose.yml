@@ -31,6 +31,8 @@ services:
       RZD_MAX_RID_ATTEMPTS: ${RZD_MAX_RID_ATTEMPTS:-12}
       RZD_RID_DELAY_MS: ${RZD_RID_DELAY_MS:-900}
       RZD_HTTPS_PROXY: ${RZD_HTTPS_PROXY:-}
+      RZD_CACHE_TTL_SEC: ${RZD_CACHE_TTL_SEC:-1800}
+      RZD_DEMO_FALLBACK: ${RZD_DEMO_FALLBACK:-1}
     depends_on:
       db:
         condition: service_healthy
