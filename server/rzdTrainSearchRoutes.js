@@ -1,5 +1,5 @@
 import { getDemoTrainRoutes } from "../integrations/rzd-pass/demoTrainRoutes.js";
-import { searchTrainsByCities } from "../integrations/rzd-pass/index.js";
+import { searchTrainsByCities } from "../integrations/rzd-pass/searchByCities.js";
 import {
   getRzdCache,
   getRzdStale,

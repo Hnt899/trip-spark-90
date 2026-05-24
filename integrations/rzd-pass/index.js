@@ -7,4 +7,3 @@ export {
   formatTimeInWay,
 } from "./mapTimetableToRoutes.js";
 export { searchTrainsByCities } from "./searchByCities.js";
-export { getDemoTrainRoutes } from "./demoTrainRoutes.js";
