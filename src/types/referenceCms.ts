@@ -5,6 +5,7 @@ export type ReferenceKind = "trains" | "flights" | "buses";
 export type ReferenceSection = {
   id: string;
   parent_id: string | null;
+  moved_from_parent_id?: string | null;
   kind: ReferenceKind;
   slug: string;
   name: string;

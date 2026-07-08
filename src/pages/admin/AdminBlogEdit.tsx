@@ -3,10 +3,20 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Select,
   SelectContent,
@@ -21,7 +31,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, Trash2 } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, Trash2, X } from "lucide-react";
 import CoverUpload from "@/components/admin/CoverUpload";
 import type { BlogBadge } from "@/types/blogArticle";
 import type { BlogContentBlock } from "@/types/blogContent";
@@ -45,6 +55,22 @@ type Loaded = {
   editors_pick: boolean;
   partner_carousel: boolean;
   sponsored_grid: boolean;
+};
+
+type BlogTag = {
+  id: string;
+  slug: string;
+  name: string;
+};
+
+type BlogTagGroup = {
+  id: string;
+  name: string;
+  tags: BlogTag[];
+};
+
+type TagGroupsResponse = {
+  groups: BlogTagGroup[];
 };
 
 const CHANNELS = [
@@ -81,7 +107,8 @@ export default function AdminBlogEdit() {
   const [status, setStatus] = useState<"draft" | "published">("draft");
   const [readingMinutes, setReadingMinutes] = useState(5);
   const [channel, setChannel] = useState("tudasuda");
-  const [tagsRaw, setTagsRaw] = useState("");
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [tagsSelectOpen, setTagsSelectOpen] = useState(false);
   const [badgeOwn, setBadgeOwn] = useState(true);
   const [badgePartner, setBadgePartner] = useState(false);
   const [badgeAd, setBadgeAd] = useState(false);
@@ -101,6 +128,11 @@ export default function AdminBlogEdit() {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
+  const tagsQ = useQuery({
+    queryKey: ["admin-blog-tag-groups-for-edit"],
+    queryFn: () => apiFetch<TagGroupsResponse>("/api/admin/blog/tag-groups?withTags=1"),
+    retry: false,
+  });
 
   useEffect(() => {
     if (!isNew) return;
@@ -113,7 +145,7 @@ export default function AdminBlogEdit() {
     setStatus("draft");
     setReadingMinutes(5);
     setChannel("tudasuda");
-    setTagsRaw("");
+    setSelectedTagIds([]);
     setBadgeOwn(true);
     setBadgePartner(false);
     setBadgeAd(false);
@@ -138,7 +170,7 @@ export default function AdminBlogEdit() {
     setStatus(row.status === "published" ? "published" : "draft");
     setReadingMinutes(row.reading_minutes || 5);
     setChannel(row.channel || "tudasuda");
-    setTagsRaw((row.tag_ids || []).join(", "));
+    setSelectedTagIds(Array.isArray(row.tag_ids) ? row.tag_ids : []);
     const b = row.badges || ["own"];
     setBadgeOwn(b.includes("own"));
     setBadgePartner(b.includes("partner"));
@@ -162,11 +194,13 @@ export default function AdminBlogEdit() {
   }
 
   function collectTagIds(): string[] {
-    return tagsRaw
-      .split(/[,;\s]+/)
-      .map((s) => s.trim().toLowerCase())
-      .filter(Boolean);
+    return [...new Set(selectedTagIds.map((s) => s.trim().toLowerCase()).filter(Boolean))];
   }
+
+  const allTags = (tagsQ.data?.groups || []).flatMap((group) =>
+    group.tags.map((tag) => ({ ...tag, groupName: group.name })),
+  );
+  const selectedTags = allTags.filter((tag) => selectedTagIds.includes(tag.slug));
 
   const saveMut = useMutation({
     mutationFn: async () => {
@@ -335,14 +369,72 @@ export default function AdminBlogEdit() {
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="tags">Теги (id через запятую)</Label>
-            <Input
-              id="tags"
-              value={tagsRaw}
-              onChange={(e) => setTagsRaw(e.target.value)}
-              placeholder="trains, lifehacks, russia"
-              className="font-mono text-sm"
-            />
+            <Label>Теги</Label>
+            {selectedTags.length ? (
+              <div className="flex flex-wrap gap-2">
+                {selectedTags.map((tag) => (
+                  <Badge key={tag.slug} variant="secondary" className="gap-1">
+                    {tag.name}
+                    <button
+                      type="button"
+                      className="rounded p-0.5 hover:bg-muted"
+                      onClick={() =>
+                        setSelectedTagIds((prev) => prev.filter((id) => id !== tag.slug))
+                      }
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            ) : null}
+            <Popover open={tagsSelectOpen} onOpenChange={setTagsSelectOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="justify-between">
+                  {selectedTagIds.length
+                    ? `Выбрано тегов: ${selectedTagIds.length}`
+                    : "Выберите теги"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 opacity-60" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[340px] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Поиск тега..." />
+                  <CommandList>
+                    <CommandEmpty>Ничего не найдено.</CommandEmpty>
+                    {(tagsQ.data?.groups || []).map((group) => (
+                      <CommandGroup key={group.id} heading={group.name}>
+                        {group.tags.map((tag) => {
+                          const active = selectedTagIds.includes(tag.slug);
+                          return (
+                            <CommandItem
+                              key={tag.id}
+                              value={`${tag.name} ${tag.slug}`}
+                              onSelect={() => {
+                                setSelectedTagIds((prev) =>
+                                  active ? prev.filter((id) => id !== tag.slug) : [...prev, tag.slug],
+                                );
+                              }}
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${active ? "opacity-100" : "opacity-0"}`}
+                              />
+                              <span>{tag.name}</span>
+                              <span className="ml-auto text-xs text-muted-foreground">/{tag.slug}</span>
+                            </CommandItem>
+                          );
+                        })}
+                      </CommandGroup>
+                    ))}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {tagsQ.isError ? (
+              <p className="text-xs text-destructive">
+                Не удалось загрузить справочник тегов: {(tagsQ.error as Error)?.message}
+              </p>
+            ) : null}
           </div>
           <div className="space-y-2">
             <Label>Бейджи</Label>

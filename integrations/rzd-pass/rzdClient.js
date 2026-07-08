@@ -86,9 +86,14 @@ export function createRzdPassClient(options = {}) {
     }
     const text = await r.text();
     if (!r.ok) {
-      throw new Error(
-        `РЖД HTTP ${r.status}: ${text.slice(0, 120).replace(/\s+/g, " ")}`
-      );
+      const snippet = text.slice(0, 120).replace(/\s+/g, " ");
+      const err = new Error(`РЖД HTTP ${r.status}: ${snippet}`);
+      if (r.status === 403) {
+        err.code = "RZD_FORBIDDEN";
+        err.message =
+          "РЖД заблокировал IP сервера (HTTP 403). Повторите позже или используйте RZD_HTTPS_PROXY.";
+      }
+      throw err;
     }
     try {
       return JSON.parse(text);

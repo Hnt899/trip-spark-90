@@ -164,7 +164,7 @@ function TableInsertButton({ editor }: { editor: Editor }) {
 export function TiptapToolbar({ editor }: { editor: Editor }) {
   return (
     <TooltipProvider delayDuration={600}>
-      <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5">
+      <div className="flex min-h-11 items-center gap-0.5 overflow-x-auto px-2 py-1.5">
         <Tip
           label="Жирный"
           shortcut="Ctrl+B"
@@ -437,7 +437,7 @@ export function TiptapToolbar({ editor }: { editor: Editor }) {
           </Button>
         </Tip>
 
-        <div className="ml-auto flex items-center gap-0.5">
+        <div className="ml-auto flex shrink-0 items-center gap-0.5">
           <Tip
             label="Отменить"
             shortcut="Ctrl+Z"
@@ -448,7 +448,7 @@ export function TiptapToolbar({ editor }: { editor: Editor }) {
               variant="ghost"
               size="sm"
               className="h-9 px-2.5"
-              disabled={!editor.can().undo()}
+              disabled={!editor.can().chain().focus().undo().run()}
               onClick={() => editor.chain().focus().undo().run()}
             >
               <Undo2 className="h-4 w-4" />
@@ -456,16 +456,16 @@ export function TiptapToolbar({ editor }: { editor: Editor }) {
           </Tip>
 
           <Tip
-            label="Повторить"
-            shortcut="Ctrl+Y"
-            description="Повторяет отменённое действие заново."
+            label="Вернуть"
+            shortcut="Ctrl+Y / Ctrl+Shift+Z"
+            description="Возвращает последнее отменённое действие вперед."
           >
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="h-9 px-2.5"
-              disabled={!editor.can().redo()}
+              disabled={!editor.can().chain().focus().redo().run()}
               onClick={() => editor.chain().focus().redo().run()}
             >
               <Redo2 className="h-4 w-4" />

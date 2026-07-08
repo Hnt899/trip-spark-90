@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Trash2 } from "lucide-react";
 
@@ -20,6 +20,27 @@ type Loaded = ReferencePost;
 export default function AdminReferenceEdit() {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fallbackToList = useCallback(() => {
+    const state = location.state as
+      | { kind?: ReferenceKind; query?: string; status?: "all" | "draft" | "published" }
+      | undefined;
+    const params = new URLSearchParams();
+    if (state?.kind) params.set("kind", state.kind);
+    if (state?.query) params.set("q", state.query);
+    if (state?.status) params.set("status", state.status);
+    const suffix = params.toString();
+    navigate(suffix ? `/admin/reference?${suffix}` : "/admin/reference");
+  }, [location.state, navigate]);
+
+  const handleBack = useCallback(() => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    fallbackToList();
+  }, [fallbackToList, navigate]);
+
   const qc = useQueryClient();
   const isNew = postId === "new";
 
@@ -137,7 +158,7 @@ export default function AdminReferenceEdit() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-reference-posts"] });
       qc.invalidateQueries({ queryKey: ["reference-posts"] });
-      navigate("/admin/reference");
+      fallbackToList();
     },
   });
 
@@ -166,8 +187,8 @@ export default function AdminReferenceEdit() {
         <h1 className="text-2xl font-bold tracking-tight">
           {isNew ? "Новая статья справочной" : "Редактирование статьи"}
         </h1>
-        <Button variant="outline" asChild>
-          <Link to="/admin/reference">← К списку</Link>
+        <Button variant="outline" onClick={handleBack}>
+          ← Назад
         </Button>
       </div>
 

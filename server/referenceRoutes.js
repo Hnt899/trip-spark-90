@@ -156,7 +156,7 @@ function sanitizeBlocks(raw) {
 async function loadSectionById(sectionId) {
   if (!sectionId) return null;
   const { rows } = await pool.query(
-    `SELECT id, kind, parent_id, slug, name, sort_order
+    `SELECT id, kind, parent_id, moved_from_parent_id, slug, name, sort_order
      FROM reference_sections
      WHERE id = $1::uuid`,
     [sectionId],
@@ -262,7 +262,7 @@ export function registerAdminReferenceRoutes(app) {
       const where = kind ? "WHERE s.kind = $1" : "";
       const params = kind ? [kind] : [];
       const { rows } = await pool.query(
-        `SELECT s.id, s.parent_id, s.kind, s.slug, s.name, s.sort_order, s.created_at, s.updated_at,
+        `SELECT s.id, s.parent_id, s.moved_from_parent_id, s.kind, s.slug, s.name, s.sort_order, s.created_at, s.updated_at,
                 COUNT(p.id)::int AS total_posts
          FROM reference_sections s
          LEFT JOIN reference_posts p ON p.section_id = s.id
@@ -356,6 +356,21 @@ export function registerAdminReferenceRoutes(app) {
             return res.status(400).json({ error: "Parent must have same kind" });
           }
         }
+
+        // Track which parent we had before moving to top-level (parent_id: null)
+        // so the UI can render "Вернуть обратно".
+        let nextMovedFromParent = null;
+        if (nextKind !== current.kind) {
+          nextMovedFromParent = null;
+        } else if (nextParent === null) {
+          // If moving to top-level from another parent, store previous parent id.
+          nextMovedFromParent = current.parent_id
+            ? current.parent_id
+            : current.moved_from_parent_id ?? null;
+        } else {
+          // Any non-null parent clears the "moved from" state.
+          nextMovedFromParent = null;
+        }
         const { rows } = await pool.query(
           `UPDATE reference_sections SET
              parent_id = $2::uuid,
@@ -363,10 +378,11 @@ export function registerAdminReferenceRoutes(app) {
              slug = $4,
              name = $5,
              sort_order = $6,
+             moved_from_parent_id = $7::uuid,
              updated_at = NOW()
            WHERE id = $1::uuid
            RETURNING *`,
-          [req.params.id, nextParent, nextKind, nextSlug, nextName, nextSort],
+          [req.params.id, nextParent, nextKind, nextSlug, nextName, nextSort, nextMovedFromParent],
         );
         if (current.kind !== nextKind) {
           await pool.query(

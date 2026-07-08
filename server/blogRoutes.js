@@ -336,6 +336,215 @@ function normalizeTagIds(arr) {
   return arr.map((x) => String(x).trim().toLowerCase()).filter(Boolean);
 }
 
+function normalizeSlug(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+}
+
+function fallbackSlug(prefix) {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function normalizeName(value) {
+  return String(value || "").trim().slice(0, 120);
+}
+
+function normalizeUuidArray(arr) {
+  if (!Array.isArray(arr)) return [];
+  return [...new Set(arr.map((x) => String(x || "").trim()).filter(Boolean))];
+}
+
+const DEFAULT_BLOG_TAG_GROUPS = [
+  {
+    slug: "content-type",
+    name: "По типу контента",
+    sort_order: 10,
+    tags: [
+      { slug: "instructions", name: "Инструкции" },
+      { slug: "lifehacks", name: "Лайфхаки" },
+      { slug: "destinations", name: "Обзоры направлений" },
+    ],
+  },
+  {
+    slug: "travel-themes",
+    name: "По темам путешествий",
+    sort_order: 20,
+    tags: [
+      { slug: "flights", name: "Авиабилеты" },
+      { slug: "trains", name: "Ж/д билеты" },
+      { slug: "buses", name: "Автобусы" },
+      { slug: "hotels", name: "Отели" },
+      { slug: "visas", name: "Визы и документы" },
+      { slug: "budget", name: "Бюджетные поездки" },
+      { slug: "family", name: "Семейный отдых" },
+      { slug: "solo", name: "Соло-тревел" },
+      { slug: "eco", name: "Экотуризм" },
+      { slug: "ski", name: "Горнолыжные курорты" },
+    ],
+  },
+  {
+    slug: "regions",
+    name: "По регионам",
+    sort_order: 30,
+    tags: [
+      { slug: "russia", name: "Россия" },
+      { slug: "europe", name: "Европа" },
+      { slug: "asia", name: "Азия" },
+      { slug: "turkey", name: "Турция" },
+      { slug: "cis", name: "СНГ" },
+    ],
+  },
+  {
+    slug: "service",
+    name: "Новости и сервис",
+    sort_order: 40,
+    tags: [
+      { slug: "service-news", name: "Новости сервиса TudaSuda" },
+      { slug: "about-service", name: "О сервисе" },
+      { slug: "for-partners", name: "Для партнёров" },
+    ],
+  },
+];
+
+let ensureBlogTagsReadyPromise = null;
+async function ensureBlogTagTablesAndSeed() {
+  if (ensureBlogTagsReadyPromise) return ensureBlogTagsReadyPromise;
+  ensureBlogTagsReadyPromise = (async () => {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS blog_tag_groups (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          slug TEXT NOT NULL UNIQUE,
+          name TEXT NOT NULL,
+          sort_order INT NOT NULL DEFAULT 0,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `);
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_blog_tag_groups_sort
+          ON blog_tag_groups(sort_order, name)
+      `);
+      await client.query(`
+        DROP TRIGGER IF EXISTS update_blog_tag_groups_updated_at ON blog_tag_groups
+      `);
+      await client.query(`
+        CREATE TRIGGER update_blog_tag_groups_updated_at
+          BEFORE UPDATE ON blog_tag_groups
+          FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+      `);
+
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS blog_tags (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          slug TEXT NOT NULL UNIQUE,
+          name TEXT NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_blog_tags_name ON blog_tags(name)`);
+      await client.query(`DROP TRIGGER IF EXISTS update_blog_tags_updated_at ON blog_tags`);
+      await client.query(`
+        CREATE TRIGGER update_blog_tags_updated_at
+          BEFORE UPDATE ON blog_tags
+          FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+      `);
+
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS blog_tag_group_links (
+          tag_id UUID NOT NULL REFERENCES blog_tags(id) ON DELETE CASCADE,
+          group_id UUID NOT NULL REFERENCES blog_tag_groups(id) ON DELETE CASCADE,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          PRIMARY KEY (tag_id, group_id)
+        )
+      `);
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_blog_tag_group_links_group
+          ON blog_tag_group_links(group_id, tag_id)
+      `);
+
+      for (const group of DEFAULT_BLOG_TAG_GROUPS) {
+        const groupRow = (
+          await client.query(
+            `INSERT INTO blog_tag_groups (slug, name, sort_order)
+             VALUES ($1, $2, $3)
+             ON CONFLICT (slug) DO UPDATE
+               SET name = EXCLUDED.name,
+                   sort_order = EXCLUDED.sort_order
+             RETURNING id`,
+            [group.slug, group.name, group.sort_order],
+          )
+        ).rows[0];
+        for (const tag of group.tags) {
+          const tagRow = (
+            await client.query(
+              `INSERT INTO blog_tags (slug, name)
+               VALUES ($1, $2)
+               ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name
+               RETURNING id`,
+              [tag.slug, tag.name],
+            )
+          ).rows[0];
+          await client.query(
+            `INSERT INTO blog_tag_group_links (tag_id, group_id)
+             VALUES ($1::uuid, $2::uuid)
+             ON CONFLICT DO NOTHING`,
+            [tagRow.id, groupRow.id],
+          );
+        }
+      }
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  })();
+  return ensureBlogTagsReadyPromise;
+}
+
+async function fetchTagGroupsWithTags() {
+  await ensureBlogTagTablesAndSeed();
+  const [{ rows: groups }, { rows: tags }, { rows: links }] = await Promise.all([
+    pool.query(
+      `SELECT id, slug, name, sort_order, created_at, updated_at
+       FROM blog_tag_groups
+       ORDER BY sort_order ASC, name ASC`,
+    ),
+    pool.query(
+      `SELECT id, slug, name, created_at, updated_at
+       FROM blog_tags
+       ORDER BY name ASC`,
+    ),
+    pool.query(`SELECT tag_id, group_id FROM blog_tag_group_links`),
+  ]);
+
+  const groupsMap = new Map(groups.map((g) => [g.id, { ...g, tags: [] }]));
+  const tagsMap = new Map(tags.map((t) => [t.id, t]));
+
+  for (const link of links) {
+    const group = groupsMap.get(link.group_id);
+    const tag = tagsMap.get(link.tag_id);
+    if (group && tag) group.tags.push(tag);
+  }
+
+  return {
+    groups: Array.from(groupsMap.values()).map((group) => ({
+      ...group,
+      tags: group.tags.sort((a, b) => a.name.localeCompare(b.name)),
+    })),
+    tags,
+  };
+}
+
 function rowToArticle(row) {
   const pub = row.published_at
     ? new Date(row.published_at).toISOString()
@@ -356,6 +565,18 @@ function rowToArticle(row) {
     sponsoredGrid: !!row.sponsored_grid,
     views: row.views ?? 0,
   };
+}
+
+async function fetchPublicTagGroups() {
+  const { groups } = await fetchTagGroupsWithTags();
+  return groups.map((group) => ({
+    id: group.slug,
+    title: group.name,
+    tags: group.tags.map((tag) => ({
+      id: tag.slug,
+      label: tag.name,
+    })),
+  }));
 }
 
 function parseCreateBody(body) {
@@ -422,6 +643,16 @@ function parseCreateBody(body) {
  * @param {import('express').Express} app
  */
 export function registerBlogPublicRoutes(app) {
+  app.get("/api/blog/tag-groups", async (_req, res) => {
+    try {
+      const groups = await fetchPublicTagGroups();
+      res.json(groups);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Failed to list tag groups" });
+    }
+  });
+
   app.get("/api/blog/posts", async (req, res) => {
     try {
       const { rows } = await pool.query(
@@ -472,6 +703,235 @@ export function registerBlogPublicRoutes(app) {
  * @param {import('express').Express} app
  */
 export function registerAdminBlogRoutes(app) {
+  app.get("/api/admin/blog/tag-groups", adminMiddleware, async (req, res) => {
+    try {
+      const withTags = String(req.query.withTags || "") === "1";
+      const payload = await fetchTagGroupsWithTags();
+      if (withTags) {
+        return res.json(payload);
+      }
+      return res.json({ groups: payload.groups.map(({ tags, ...group }) => group) });
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ error: e.message || "Tag groups list failed" });
+    }
+  });
+
+  app.post(
+    "/api/admin/blog/tag-groups",
+    adminMiddleware,
+    express.json({ limit: "128kb" }),
+    async (req, res) => {
+      await ensureBlogTagTablesAndSeed();
+      const name = normalizeName(req.body?.name);
+      const slugRaw = normalizeSlug(req.body?.slug || name);
+      const slug = slugRaw || fallbackSlug("tag-group");
+      const sortOrder = parseInt(String(req.body?.sort_order ?? "0"), 10) || 0;
+      if (!name) return res.status(400).json({ error: "name required" });
+      if (!slug || !SLUG_RE.test(slug)) return res.status(400).json({ error: "Invalid slug" });
+      try {
+        const { rows } = await pool.query(
+          `INSERT INTO blog_tag_groups (name, slug, sort_order)
+           VALUES ($1, $2, $3)
+           RETURNING *`,
+          [name, slug, sortOrder],
+        );
+        return res.status(201).json(rows[0]);
+      } catch (e) {
+        if (e.code === "23505") return res.status(400).json({ error: "Slug already exists" });
+        console.error(e);
+        return res.status(500).json({ error: e.message || "Tag group create failed" });
+      }
+    },
+  );
+
+  app.patch(
+    "/api/admin/blog/tag-groups/:id",
+    adminMiddleware,
+    express.json({ limit: "128kb" }),
+    async (req, res) => {
+      await ensureBlogTagTablesAndSeed();
+      try {
+        const current = (
+          await pool.query(`SELECT * FROM blog_tag_groups WHERE id = $1::uuid`, [req.params.id])
+        ).rows[0];
+        if (!current) return res.status(404).json({ error: "Not found" });
+
+        const name = req.body?.name != null ? normalizeName(req.body.name) : current.name;
+        const slug =
+          req.body?.slug != null
+            ? normalizeSlug(req.body.slug) || current.slug
+            : current.slug;
+        const sortOrder =
+          req.body?.sort_order != null
+            ? parseInt(String(req.body.sort_order), 10) || 0
+            : current.sort_order;
+        if (!name) return res.status(400).json({ error: "name required" });
+        if (!slug || !SLUG_RE.test(slug)) return res.status(400).json({ error: "Invalid slug" });
+
+        const { rows } = await pool.query(
+          `UPDATE blog_tag_groups
+           SET name = $2, slug = $3, sort_order = $4, updated_at = NOW()
+           WHERE id = $1::uuid
+           RETURNING *`,
+          [req.params.id, name, slug, sortOrder],
+        );
+        return res.json(rows[0]);
+      } catch (e) {
+        if (e.code === "23505") return res.status(400).json({ error: "Slug already exists" });
+        console.error(e);
+        return res.status(500).json({ error: e.message || "Tag group update failed" });
+      }
+    },
+  );
+
+  app.delete("/api/admin/blog/tag-groups/:id", adminMiddleware, async (req, res) => {
+    await ensureBlogTagTablesAndSeed();
+    try {
+      const deleted = await pool.query(
+        `DELETE FROM blog_tag_groups WHERE id = $1::uuid`,
+        [req.params.id],
+      );
+      if (!deleted.rowCount) return res.status(404).json({ error: "Not found" });
+      return res.json({ ok: true });
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ error: e.message || "Tag group delete failed" });
+    }
+  });
+
+  app.post(
+    "/api/admin/blog/tags",
+    adminMiddleware,
+    express.json({ limit: "128kb" }),
+    async (req, res) => {
+      await ensureBlogTagTablesAndSeed();
+      const name = normalizeName(req.body?.name);
+      const slugRaw = normalizeSlug(req.body?.slug || name);
+      const slug = slugRaw || fallbackSlug("tag");
+      const groupIds = normalizeUuidArray(req.body?.group_ids);
+      if (!name) return res.status(400).json({ error: "name required" });
+      if (!slug || !SLUG_RE.test(slug)) return res.status(400).json({ error: "Invalid slug" });
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        const { rows } = await client.query(
+          `INSERT INTO blog_tags (name, slug)
+           VALUES ($1, $2)
+           RETURNING *`,
+          [name, slug],
+        );
+        const tag = rows[0];
+
+        if (groupIds.length) {
+          const existingGroups = (
+            await client.query(
+              `SELECT id FROM blog_tag_groups WHERE id = ANY($1::uuid[])`,
+              [groupIds],
+            )
+          ).rows.map((row) => row.id);
+          for (const groupId of existingGroups) {
+            await client.query(
+              `INSERT INTO blog_tag_group_links (tag_id, group_id)
+               VALUES ($1::uuid, $2::uuid)
+               ON CONFLICT DO NOTHING`,
+              [tag.id, groupId],
+            );
+          }
+        }
+        await client.query("COMMIT");
+        return res.status(201).json(tag);
+      } catch (e) {
+        await client.query("ROLLBACK");
+        if (e.code === "23505") return res.status(400).json({ error: "Slug already exists" });
+        console.error(e);
+        return res.status(500).json({ error: e.message || "Tag create failed" });
+      } finally {
+        client.release();
+      }
+    },
+  );
+
+  app.patch(
+    "/api/admin/blog/tags/:id",
+    adminMiddleware,
+    express.json({ limit: "128kb" }),
+    async (req, res) => {
+      await ensureBlogTagTablesAndSeed();
+      const client = await pool.connect();
+      try {
+        const current = (
+          await client.query(`SELECT * FROM blog_tags WHERE id = $1::uuid`, [req.params.id])
+        ).rows[0];
+        if (!current) return res.status(404).json({ error: "Not found" });
+
+        const name = req.body?.name != null ? normalizeName(req.body.name) : current.name;
+        const slug =
+          req.body?.slug != null
+            ? normalizeSlug(req.body.slug) || current.slug
+            : current.slug;
+        const groupIds =
+          req.body?.group_ids != null ? normalizeUuidArray(req.body.group_ids) : null;
+        if (!name) return res.status(400).json({ error: "name required" });
+        if (!slug || !SLUG_RE.test(slug)) return res.status(400).json({ error: "Invalid slug" });
+
+        await client.query("BEGIN");
+        const { rows } = await client.query(
+          `UPDATE blog_tags
+           SET name = $2, slug = $3, updated_at = NOW()
+           WHERE id = $1::uuid
+           RETURNING *`,
+          [req.params.id, name, slug],
+        );
+
+        if (Array.isArray(groupIds)) {
+          await client.query(`DELETE FROM blog_tag_group_links WHERE tag_id = $1::uuid`, [
+            req.params.id,
+          ]);
+          if (groupIds.length) {
+            const existingGroups = (
+              await client.query(
+                `SELECT id FROM blog_tag_groups WHERE id = ANY($1::uuid[])`,
+                [groupIds],
+              )
+            ).rows.map((row) => row.id);
+            for (const groupId of existingGroups) {
+              await client.query(
+                `INSERT INTO blog_tag_group_links (tag_id, group_id)
+                 VALUES ($1::uuid, $2::uuid)
+                 ON CONFLICT DO NOTHING`,
+                [req.params.id, groupId],
+              );
+            }
+          }
+        }
+        await client.query("COMMIT");
+        return res.json(rows[0]);
+      } catch (e) {
+        await client.query("ROLLBACK");
+        if (e.code === "23505") return res.status(400).json({ error: "Slug already exists" });
+        console.error(e);
+        return res.status(500).json({ error: e.message || "Tag update failed" });
+      } finally {
+        client.release();
+      }
+    },
+  );
+
+  app.delete("/api/admin/blog/tags/:id", adminMiddleware, async (req, res) => {
+    await ensureBlogTagTablesAndSeed();
+    try {
+      const deleted = await pool.query(`DELETE FROM blog_tags WHERE id = $1::uuid`, [
+        req.params.id,
+      ]);
+      if (!deleted.rowCount) return res.status(404).json({ error: "Not found" });
+      return res.json({ ok: true });
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ error: e.message || "Tag delete failed" });
+    }
+  });
+
   app.get("/api/admin/blog/posts", adminMiddleware, async (req, res) => {
     try {
       const { rows } = await pool.query(

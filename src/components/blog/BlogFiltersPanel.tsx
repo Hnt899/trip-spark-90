@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { blogTagGroups } from "@/data/blogArticles";
 import { cn } from "@/lib/utils";
+import type { BlogTagGroup } from "@/types/blogArticle";
 
 export interface BlogFiltersPanelProps {
+  tagGroups?: BlogTagGroup[];
   selectedTagIds: Set<string>;
   onToggleTag: (tagId: string) => void;
   onlyEditorsPick: boolean;
@@ -14,6 +16,7 @@ export interface BlogFiltersPanelProps {
 }
 
 export function BlogFiltersPanelInner({
+  tagGroups,
   selectedTagIds,
   onToggleTag,
   onlyEditorsPick,
@@ -21,6 +24,7 @@ export function BlogFiltersPanelInner({
   onClear,
   className,
 }: BlogFiltersPanelProps) {
+  const groups = tagGroups?.length ? tagGroups : blogTagGroups;
   const activeCount =
     selectedTagIds.size + (onlyEditorsPick ? 1 : 0);
 
@@ -62,7 +66,7 @@ export function BlogFiltersPanelInner({
         </p>
       </div>
 
-      {blogTagGroups.map((group) => (
+      {groups.map((group) => (
         <div key={group.id}>
           <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             {group.title}

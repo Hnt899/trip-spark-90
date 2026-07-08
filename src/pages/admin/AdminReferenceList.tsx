@@ -18,6 +18,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 const KIND_LABEL: Record<ReferenceKind, string> = {
   trains: "Поезда",
@@ -134,13 +142,27 @@ export default function AdminReferenceList() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
+          <Breadcrumb className="mb-2">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbPage>Справочники</BreadcrumbPage>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{KIND_LABEL[kind]}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
           <h1 className="text-2xl font-bold tracking-tight">Справочная (CMS)</h1>
           <p className="text-muted-foreground">
             Редактирование статей по поездам, самолетам и автобусам.
           </p>
         </div>
         <Button asChild>
-          <Link to="/admin/reference/new">
+          <Link
+            to="/admin/reference/new"
+            state={{ fromReferenceList: true, kind, query, status }}
+          >
             <Plus className="mr-2 h-4 w-4" />
             Новая статья
           </Link>
@@ -250,6 +272,8 @@ export default function AdminReferenceList() {
                 const children = (sectionsQ.data || []).filter(
                   (s) => s.parent_id === parent.id,
                 );
+                const prevParentId = parent.moved_from_parent_id || undefined;
+                const prevParentName = prevParentId ? sectionMap.get(prevParentId)?.name : undefined;
                 return (
                   <div key={parent.id} className="rounded-md border p-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -258,6 +282,17 @@ export default function AdminReferenceList() {
                         <span className="ml-2 text-xs text-muted-foreground">/{parent.slug}</span>
                       </p>
                       <div className="flex gap-2">
+                        {prevParentId ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              patchSectionMut.mutate({ id: parent.id, parent_id: prevParentId });
+                            }}
+                          >
+                            Вернуть обратно{prevParentName ? ` (${prevParentName})` : ""}
+                          </Button>
+                        ) : null}
                         <Button
                           size="sm"
                           variant="outline"
@@ -379,7 +414,12 @@ export default function AdminReferenceList() {
                     <TableCell>{row.status || "published"}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="outline" size="sm" asChild>
-                        <Link to={`/admin/reference/${row.id}`}>Править</Link>
+                        <Link
+                          to={`/admin/reference/${row.id}`}
+                          state={{ fromReferenceList: true, kind, query, status }}
+                        >
+                          Править
+                        </Link>
                       </Button>
                     </TableCell>
                   </TableRow>

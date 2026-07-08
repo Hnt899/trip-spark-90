@@ -26,6 +26,7 @@ import type { BlogArticle } from "@/types/blogArticle";
 import { logoGradientText } from "@/lib/sectionSurface";
 import { cn } from "@/lib/utils";
 import type { BlogChannelTab, BlogSortMode } from "@/types/blogArticle";
+import type { BlogTagGroup } from "@/types/blogArticle";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowDown,
@@ -128,6 +129,11 @@ const Blog = () => {
     queryFn: () => apiFetch<BlogArticle[]>("/api/blog/posts"),
     staleTime: 60_000,
   });
+  const { data: remoteTagGroups = [] } = useQuery({
+    queryKey: ["blog-tag-groups-public"],
+    queryFn: () => apiFetch<BlogTagGroup[]>("/api/blog/tag-groups"),
+    staleTime: 60_000,
+  });
 
   const allArticles = useMemo(
     () => mergeBlogArticles(remoteArticles, blogArticles),
@@ -201,6 +207,7 @@ const Blog = () => {
 
   const filtersNode = (
     <BlogFiltersPanelInner
+      tagGroups={remoteTagGroups}
       selectedTagIds={selectedTagIds}
       onToggleTag={toggleTag}
       onlyEditorsPick={onlyEditorsPick}

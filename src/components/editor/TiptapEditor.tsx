@@ -139,7 +139,7 @@ export default function TiptapEditor({ initialBlocks, onChange }: Props) {
 
   return (
     <div>
-      <div className="sticky top-0 z-30 rounded-t-xl border border-b-0 border-slate-200 bg-slate-50 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="sticky top-0 z-30 min-h-12 rounded-t-xl border border-b-0 border-slate-200 bg-slate-50 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <TiptapToolbar editor={editor} />
       </div>
       <div className="rounded-b-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
