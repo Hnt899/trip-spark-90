@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import NavDropdown from "@/components/NavDropdown";
-import { popularRoutes, faqTopics, guidesList } from "@/data/navLinks";
+import { popularRoutes, faqTopics } from "@/data/navLinks";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -79,6 +79,7 @@ const Header = () => {
         if (isRoutesPage) {
           setShowStickySearch(true);
           setIsAnimatingOut(false);
+          setIsHeroMode(false);
         } else if (isBlogPage) {
           setShowStickySearch(window.scrollY > 50);
           setIsAnimatingOut(false);
@@ -153,11 +154,11 @@ const Header = () => {
         }
       }
 
-      // На routes форма всегда видна и шапка всегда в hero режиме
+      // На routes страница белая — цветная шапка (не hero), форма поиска видна
       if (isRoutesPage) {
         setShowStickySearch(true);
         setIsAnimatingOut(false);
-        setIsHeroMode(true);
+        setIsHeroMode(false);
         return;
       }
 
@@ -425,7 +426,7 @@ const Header = () => {
         "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300",
         (isHomePage || isRoutesPage) && isHeroMode
           ? "bg-transparent border-b border-white/20 backdrop-blur-md" 
-            : "bg-[#E8ECF7]/60 backdrop-blur-md border-b"
+            : "bg-[#E8ECF7] backdrop-blur-md border-b border-[#100A6F]/10 shadow-sm"
       )}>
         <div className="container">
           {/* Верхняя часть шапки: лого, навигация, вход */}
@@ -541,13 +542,21 @@ const Header = () => {
               >
                 Блог
               </Link>
-              <NavDropdown 
-                label="Путеводитель" 
-                items={guidesList}
-                href="/guide"
-                isActive={isActive("/guide") || location.pathname.startsWith("/guide/")}
-                isHomePage={(isHomePage || isRoutesPage) && isHeroMode}
-              />
+              <Link 
+                to="/guide" 
+                className={cn(
+                  "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
+                  isActive("/guide") || location.pathname.startsWith("/guide/")
+                    ? (isHomePage || isRoutesPage) && isHeroMode 
+                      ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
+                        : "text-primary bg-primary/10 border-transparent"
+                    : (isHomePage || isRoutesPage) && isHeroMode
+                      ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                        : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
+                )}
+              >
+                Путеводитель
+              </Link>
             </nav>
 
             {/* Кнопка входа/профиль и бургер-меню для мобильных */}
@@ -788,13 +797,21 @@ const Header = () => {
             >
               Блог
             </Link>
-            <NavDropdown 
-              label="Путеводитель" 
-              items={guidesList}
-              href="/guide"
-              isActive={isActive("/guide") || location.pathname.startsWith("/guide/")}
-              isHomePage={isHomePage && isHeroMode}
-            />
+            <Link 
+              to="/guide" 
+              className={cn(
+                "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap border",
+                isActive("/guide") || location.pathname.startsWith("/guide/")
+                  ? isHomePage && isHeroMode 
+                    ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
+                      : "text-primary bg-primary/10 border-transparent"
+                  : isHomePage && isHeroMode
+                    ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                      : "text-foreground/80 border-transparent hover:text-primary"
+              )}
+            >
+              Путеводитель
+            </Link>
           </nav>
         </div>
       </header>

@@ -26,8 +26,8 @@ export type RouteDayItem = {
 };
 
 export type BlogContentBlock =
-  | { type: "paragraph"; text: string }
-  | { type: "heading"; level: number; text: string }
+  | { type: "paragraph"; text: string; anchor?: boolean; anchorLabel?: string }
+  | { type: "heading"; level: number; text: string; anchor?: boolean; anchorLabel?: string }
   | { type: "image"; url: string; alt?: string; caption?: string }
   | {
       type: "carousel";

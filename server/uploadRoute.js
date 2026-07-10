@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
   },
 });
 
-const ALLOWED_MIME = new Set([
+const ALLOWED_IMAGE_MIME = new Set([
   "image/jpeg",
   "image/png",
   "image/gif",
@@ -26,12 +26,20 @@ const ALLOWED_MIME = new Set([
   "image/avif",
 ]);
 
+const ALLOWED_VIDEO_MIME = new Set([
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+]);
+
+const ALLOWED_MIME = new Set([...ALLOWED_IMAGE_MIME, ...ALLOWED_VIDEO_MIME]);
+
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 200 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (!ALLOWED_MIME.has(file.mimetype)) {
-      return cb(new Error("Only image files are allowed"));
+      return cb(new Error("Only image or video files are allowed"));
     }
     cb(null, true);
   },
@@ -52,6 +60,11 @@ router.post(
 
 router.use((err, _req, res, _next) => {
   if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({
+        error: "Файл слишком большой. Максимум 200 МБ для видео/изображений.",
+      });
+    }
     return res.status(400).json({ error: err.message });
   }
   if (err?.message) {

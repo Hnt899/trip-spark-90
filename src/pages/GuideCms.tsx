@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Search, X, ChevronDown, Loader2 } from "lucide-react";
+import { Search, X, ChevronDown, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -50,7 +50,12 @@ export default function GuideCms() {
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchResultsRef = useRef<HTMLDivElement>(null);
+  const tabsScrollRef = useRef<HTMLDivElement>(null);
+  const guideTabsBarRef = useRef<HTMLElement>(null);
   const isMobile = useIsMobile();
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [guideTabsBarHeight, setGuideTabsBarHeight] = useState(88);
 
   const categoriesQ = useQuery({
     queryKey: ["guide-categories"],
@@ -90,14 +95,61 @@ export default function GuideCms() {
     () => sectionsWithAll.filter((section) => section.id !== "important"),
     [sectionsWithAll],
   );
-  const tabRows = useMemo(() => {
-    const rows: SectionModel[][] = [];
-    for (let i = 0; i < sectionsForTabs.length; i += 8) rows.push(sectionsForTabs.slice(i, i + 8));
-    return rows;
-  }, [sectionsForTabs]);
+
+  const scrollTabs = (direction: "left" | "right") => {
+    tabsScrollRef.current?.scrollBy({
+      left: direction === "left" ? -280 : 280,
+      behavior: "smooth",
+    });
+  };
+
+  const updateTabsOverflow = () => {
+    const el = tabsScrollRef.current;
+    if (!el) {
+      setCanScrollLeft(false);
+      setCanScrollRight(false);
+      return;
+    }
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    const overflows = maxScroll > 4;
+    setCanScrollLeft(overflows && el.scrollLeft > 4);
+    setCanScrollRight(overflows && el.scrollLeft < maxScroll - 4);
+  };
+
+  useEffect(() => {
+    const el = tabsScrollRef.current;
+    if (!el || isMobile) return;
+
+    updateTabsOverflow();
+    el.addEventListener("scroll", updateTabsOverflow, { passive: true });
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateTabsOverflow) : null;
+    ro?.observe(el);
+    window.addEventListener("resize", updateTabsOverflow);
+
+    return () => {
+      el.removeEventListener("scroll", updateTabsOverflow);
+      ro?.disconnect();
+      window.removeEventListener("resize", updateTabsOverflow);
+    };
+  }, [isMobile, sectionsForTabs.length]);
+
+  useEffect(() => {
+    const bar = guideTabsBarRef.current;
+    if (!bar || isMobile) return;
+
+    const syncHeight = () => setGuideTabsBarHeight(bar.offsetHeight);
+    syncHeight();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(syncHeight) : null;
+    ro?.observe(bar);
+    window.addEventListener("resize", syncHeight);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", syncHeight);
+    };
+  }, [isMobile, canScrollLeft, canScrollRight, sectionsForTabs.length]);
 
   const tabTriggerClass =
-    "shrink-0 whitespace-nowrap rounded-full px-3.5 py-2.5 text-sm font-semibold transition-colors shadow-none data-[state=active]:shadow-none md:px-4 md:py-3 md:text-base lg:px-5 lg:py-3.5 lg:text-lg";
+    "shrink-0 whitespace-nowrap rounded-full px-4 py-2.5 text-base font-semibold transition-colors shadow-none data-[state=active]:shadow-none md:px-5 md:py-3 md:text-lg lg:px-6 lg:py-3.5 lg:text-xl";
 
   const renderTabTrigger = (section: SectionModel) => (
     <TabsTrigger
@@ -144,28 +196,59 @@ export default function GuideCms() {
     <div className="min-h-screen bg-background">
       <Header />
       {!isMobile ? (
-        <section className="px-3 pb-6 pt-20 sm:px-4 md:px-6 md:pb-8 md:pt-32">
-          <div className="mx-auto w-full max-w-[96vw]">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mx-auto block w-full">
-              <TabsList className="guide-tabs-rail !flex h-auto w-full flex-col items-center gap-0 overflow-visible rounded-2xl p-2.5 text-white backdrop-blur-md ring-1 ring-white/15 md:gap-2.5 md:p-3.5 lg:gap-3">
-                {tabRows.map((row, index) => (
-                  <div
-                    key={`tab-row-${index}`}
-                    className={cn(
-                      "flex w-full flex-wrap items-center justify-center gap-2 md:gap-2.5 lg:gap-3",
-                      index > 0 ? "mt-2" : "",
-                    )}
+        <>
+          <section
+            ref={guideTabsBarRef}
+            className="fixed left-0 right-0 top-[var(--site-header-height)] z-40 bg-background px-3 pb-3 pt-0 sm:px-4 md:px-6 md:pb-4"
+          >
+            <div className="mx-auto w-full max-w-[96vw]">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="mx-auto block w-full">
+                <div className="guide-tabs-rail flex items-center gap-2 rounded-2xl p-2.5 text-white ring-1 ring-white/15 backdrop-blur-md md:gap-3 md:p-3.5 lg:p-4">
+                  {(canScrollLeft || canScrollRight) && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      disabled={!canScrollLeft}
+                      className="h-10 w-10 shrink-0 rounded-full text-white hover:bg-white/15 hover:text-white disabled:pointer-events-none disabled:opacity-30 md:h-11 md:w-11"
+                      onClick={() => scrollTabs("left")}
+                      aria-label="Прокрутить теги влево"
+                    >
+                      <ChevronLeft className="h-6 w-6 md:h-7 md:w-7" />
+                    </Button>
+                  )}
+                  <TabsList
+                    ref={tabsScrollRef}
+                    className="!flex h-auto min-w-0 flex-1 items-center justify-start gap-2 overflow-x-auto bg-transparent p-0 scrollbar-hide md:gap-2.5 lg:gap-3"
                   >
-                    {row.map(renderTabTrigger)}
-                  </div>
-                ))}
-              </TabsList>
-            </Tabs>
-          </div>
-        </section>
+                    {sectionsForTabs.map(renderTabTrigger)}
+                  </TabsList>
+                  {(canScrollLeft || canScrollRight) && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      disabled={!canScrollRight}
+                      className="h-10 w-10 shrink-0 rounded-full text-white hover:bg-white/15 hover:text-white disabled:pointer-events-none disabled:opacity-30 md:h-11 md:w-11"
+                      onClick={() => scrollTabs("right")}
+                      aria-label="Прокрутить теги вправо"
+                    >
+                      <ChevronRight className="h-6 w-6 md:h-7 md:w-7" />
+                    </Button>
+                  )}
+                </div>
+              </Tabs>
+            </div>
+          </section>
+          <div
+            className="shrink-0"
+            style={{ height: `calc(var(--site-header-height) + ${guideTabsBarHeight}px)` }}
+            aria-hidden
+          />
+        </>
       ) : null}
 
-      <main className={cn("container max-w-6xl pb-12", isMobile ? "pt-20 md:pt-32" : "pt-0")}>
+      <main className={cn("container max-w-6xl pb-12 pt-6 md:pt-8", isMobile && "pt-20 md:pt-32")}>
 
         <div className="mb-6 md:mb-8">
           <h1 className="heading-gradient mb-4 text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">

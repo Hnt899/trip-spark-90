@@ -12,107 +12,165 @@ import {
   sectionLeadClass,
   sectionShellClass,
 } from "@/lib/sectionSurface";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import { mediaOrFallback } from "@/lib/pageContentMerge";
+import type { EventsFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle, cmsHeadingClass, cmsBgStyle } from "@/lib/cmsStyle";
 
 interface EventsSectionProps {
   surface?: SectionSurface;
 }
 
+const DEFAULT_EVENTS = [
+  {
+    city: "Краснодар",
+    age: "12+",
+    price: "от 2500",
+    artist: "ARTIC & ASTI",
+    date: "23 октября",
+    venue: "Ледовый дворец",
+    color: "from-red-900 to-red-700",
+  },
+  {
+    city: "Казань",
+    age: "18+",
+    price: "от 2500",
+    artist: "Anna Asti. Шоу «Царица»",
+    date: "9 ноября",
+    venue: "Татнефть Арена",
+    color: "from-pink-700 to-pink-500",
+  },
+  {
+    city: "Петербург",
+    age: "12+",
+    price: "от 2500",
+    artist: "Баста",
+    date: "20 декабря",
+    venue: "Газпром Арена",
+    color: "from-orange-800 to-blue-900",
+  },
+  {
+    city: "Москва",
+    age: "16+",
+    price: "от 3000",
+    artist: "Сергей Лазарев",
+    date: "5 ноября",
+    venue: "Crocus City Hall",
+    color: "from-purple-900 to-purple-600",
+  },
+  {
+    city: "Екатеринбург",
+    age: "18+",
+    price: "от 2800",
+    artist: "Макс Корж",
+    date: "15 ноября",
+    venue: "КРК Уралец",
+    color: "from-blue-900 to-blue-600",
+  },
+  {
+    city: "Нижний Новгород",
+    age: "12+",
+    price: "от 2200",
+    artist: "Земфира",
+    date: "18 ноября",
+    venue: "КЗ Нагорный",
+    color: "from-green-900 to-green-600",
+  },
+  {
+    city: "Новосибирск",
+    age: "16+",
+    price: "от 2600",
+    artist: "Би-2",
+    date: "25 ноября",
+    venue: "Дворец Спорта",
+    color: "from-yellow-900 to-yellow-600",
+  },
+  {
+    city: "Сочи",
+    age: "18+",
+    price: "от 3500",
+    artist: "Мот",
+    date: "1 декабря",
+    venue: "Фестивальный",
+    color: "from-teal-900 to-teal-600",
+  },
+  {
+    city: "Уфа",
+    age: "12+",
+    price: "от 2400",
+    artist: "Полина Гагарина",
+    date: "8 декабря",
+    venue: "Конгресс-Холл",
+    color: "from-indigo-900 to-indigo-600",
+  },
+  {
+    city: "Владивосток",
+    age: "16+",
+    price: "от 2900",
+    artist: "Монеточка",
+    date: "12 декабря",
+    venue: "Фетисов Арена",
+    color: "from-rose-900 to-rose-600",
+  },
+];
+
+type EventCard = (typeof DEFAULT_EVENTS)[number] & {
+  bgColor?: string;
+  image?: string;
+  href?: string;
+  textColor?: string;
+};
+
 const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  
-  const events = [
-    {
-      city: "Краснодар",
-      age: "12+",
-      price: "от 2500",
-      artist: "ARTIC & ASTI",
-      date: "23 октября",
-      venue: "Ледовый дворец",
-      color: "from-red-900 to-red-700",
-    },
-    {
-      city: "Казань",
-      age: "18+",
-      price: "от 2500",
-      artist: "Anna Asti. Шоу «Царица»",
-      date: "9 ноября",
-      venue: "Татнефть Арена",
-      color: "from-pink-700 to-pink-500",
-    },
-    {
-      city: "Петербург",
-      age: "12+",
-      price: "от 2500",
-      artist: "Баста",
-      date: "20 декабря",
-      venue: "Газпром Арена",
-      color: "from-orange-800 to-blue-900",
-    },
-    {
-      city: "Москва",
-      age: "16+",
-      price: "от 3000",
-      artist: "Сергей Лазарев",
-      date: "5 ноября",
-      venue: "Crocus City Hall",
-      color: "from-purple-900 to-purple-600",
-    },
-    {
-      city: "Екатеринбург",
-      age: "18+",
-      price: "от 2800",
-      artist: "Макс Корж",
-      date: "15 ноября",
-      venue: "КРК Уралец",
-      color: "from-blue-900 to-blue-600",
-    },
-    {
-      city: "Нижний Новгород",
-      age: "12+",
-      price: "от 2200",
-      artist: "Земфира",
-      date: "18 ноября",
-      venue: "КЗ Нагорный",
-      color: "from-green-900 to-green-600",
-    },
-    {
-      city: "Новосибирск",
-      age: "16+",
-      price: "от 2600",
-      artist: "Би-2",
-      date: "25 ноября",
-      venue: "Дворец Спорта",
-      color: "from-yellow-900 to-yellow-600",
-    },
-    {
-      city: "Сочи",
-      age: "18+",
-      price: "от 3500",
-      artist: "Мот",
-      date: "1 декабря",
-      venue: "Фестивальный",
-      color: "from-teal-900 to-teal-600",
-    },
-    {
-      city: "Уфа",
-      age: "12+",
-      price: "от 2400",
-      artist: "Полина Гагарина",
-      date: "8 декабря",
-      venue: "Конгресс-Холл",
-      color: "from-indigo-900 to-indigo-600",
-    },
-    {
-      city: "Владивосток",
-      age: "16+",
-      price: "от 2900",
-      artist: "Монеточка",
-      date: "12 декабря",
-      venue: "Фетисов Арена",
-      color: "from-rose-900 to-rose-600",
-    },
-  ];
+  const f = usePageSectionFields<EventsFields>("events");
+  const sectionTitle = f.title || "Повод для путешествия";
+  const sectionSubtitle = f.subtitle || "10 событий, ради которых стоит ровнуть в путь";
+  const moreLabel = f.moreLabel || "Ещё";
+  const moreHref = f.moreHref || "/blog";
+
+  const events: EventCard[] =
+    Array.isArray(f.items) && f.items.length > 0
+      ? f.items.map((item, i) => {
+          const def = DEFAULT_EVENTS[i] ?? DEFAULT_EVENTS[0];
+          return {
+            city: item.city || def.city,
+            age: item.age || def.age,
+            price: item.price || def.price,
+            artist: item.artist || def.artist,
+            date: item.date || def.date,
+            venue: item.venue || def.venue,
+            color: item.color || def.color,
+            bgColor: item.bgColor,
+            image: item.image,
+            href: item.href,
+            textColor: item.textColor,
+          };
+        })
+      : DEFAULT_EVENTS;
+
+  const handleEventClick = (event: EventCard) => {
+    if (!event.href) return;
+    if (event.href.startsWith("http")) {
+      window.open(event.href, "_blank", "noopener,noreferrer");
+    } else {
+      navigate(event.href);
+    }
+  };
+
+  const eventBgStyle = (event: EventCard) => {
+    const img = typeof event.image === "string" ? event.image.trim() : "";
+    if (img) return cmsBgStyle(undefined, mediaOrFallback(img, img));
+    if (event.bgColor?.trim()) return { background: event.bgColor.trim() };
+    return undefined;
+  };
+
+  const eventBgClass = (event: EventCard) => {
+    if (event.image?.trim() || event.bgColor?.trim()) return undefined;
+    return `bg-gradient-to-br ${event.color}`;
+  };
 
   // Десктоп конфиг
   const desktopVisibleCount = 3;
@@ -123,7 +181,7 @@ const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
     const head = events.slice(0, desktopVisibleCount);
     const tail = events.slice(-desktopVisibleCount);
     return [...tail, ...events, ...head];
-  }, []);
+  }, [events]);
 
   const totalOriginal = events.length;
   const desktopStartAt = desktopVisibleCount;
@@ -231,6 +289,7 @@ const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
   };
 
   return (
+    <CmsEditable sectionId="events">
     <section className={sectionShellClass(surface, "pt-20 pb-12 md:py-20")}>
       {/* Декоративные желтые пятна */}
       {surface === "brand" && (
@@ -266,11 +325,17 @@ const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
       <div className="container relative z-10">
         <div className="text-center md:flex md:justify-between md:items-center mb-8">
           <div className="md:text-left">
-            <h2 className="heading-gradient text-3xl md:text-4xl lg:text-5xl font-extrabold mb-2 leading-tight pb-2 tracking-tight">
-              Повод для путешествия
+            <h2
+              className={cmsHeadingClass(
+                f.titleColor,
+                "heading-gradient text-3xl md:text-4xl lg:text-5xl font-extrabold mb-2 leading-tight pb-2 tracking-tight"
+              )}
+              style={cmsColorStyle(f.titleColor)}
+            >
+              {sectionTitle}
             </h2>
-            <p className={sectionLeadClass(surface)}>
-              10 событий, ради которых стоит ровнуть в путь
+            <p className={sectionLeadClass(surface)} style={cmsColorStyle(f.subtitleColor)}>
+              {sectionSubtitle}
             </p>
           </div>
           <Button 
@@ -279,9 +344,15 @@ const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
               "hidden md:flex items-center gap-2",
               surface === "light" && "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
             )}
-            onClick={() => navigate("/blog")}
+            onClick={() => {
+              if (moreHref.startsWith("http")) {
+                window.open(moreHref, "_blank", "noopener,noreferrer");
+              } else {
+                navigate(moreHref);
+              }
+            }}
           >
-            Ещё <ArrowRight className="w-4 h-4" />
+            {moreLabel} <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
 
@@ -305,12 +376,19 @@ const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
                 >
                   <div 
                     className="group relative overflow-hidden rounded-2xl aspect-[3/4] cursor-pointer transition-transform duration-300"
+                    onClick={() => handleEventClick(event)}
                   >
-                    <div className={`absolute inset-0 bg-gradient-to-br ${event.color}`}>
+                    <div
+                      className={cn("absolute inset-0", eventBgClass(event))}
+                      style={eventBgStyle(event)}
+                    >
                       <div className="absolute inset-0 bg-black/20"></div>
                     </div>
 
-                    <div className="relative h-full p-6 flex flex-col justify-between text-white">
+                    <div
+                      className="relative h-full p-6 flex flex-col justify-between text-white"
+                      style={cmsColorStyle(event.textColor)}
+                    >
                       <div className="flex justify-between items-start">
                         <h3 className="text-3xl font-bold">{event.city}</h3>
                         <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm">{event.age}</span>
@@ -350,6 +428,7 @@ const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
               {events.map((event, index) => (
                 <div
                   key={`${event.city}-${index}`}
+                  onClick={() => handleEventClick(event)}
                   className={cn(
                     "flex-shrink-0 w-full",
                     "group relative rounded-3xl overflow-hidden",
@@ -361,7 +440,10 @@ const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
                 >
                   {/* Изображение/градиент */}
                   <div className="relative h-64 overflow-hidden">
-                    <div className={`absolute inset-0 bg-gradient-to-br ${event.color}`}>
+                    <div
+                      className={cn("absolute inset-0", eventBgClass(event))}
+                      style={eventBgStyle(event)}
+                    >
                       <div className="absolute inset-0 bg-black/30"></div>
                     </div>
                     
@@ -372,7 +454,7 @@ const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
                   </div>
 
                   {/* Контент */}
-                  <div className="p-6">
+                  <div className="p-6" style={cmsColorStyle(event.textColor)}>
                     {/* Город */}
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-lg font-semibold text-foreground">
@@ -416,6 +498,7 @@ const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
         </div>
       </div>
     </section>
+    </CmsEditable>
   );
 };
 

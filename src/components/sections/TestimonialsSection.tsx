@@ -32,10 +32,117 @@ import {
   sectionLeadClass,
   sectionShellClass,
 } from "@/lib/sectionSurface";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import { mediaOrFallback } from "@/lib/pageContentMerge";
+import type { TestimonialsFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle, cmsHeadingClass } from "@/lib/cmsStyle";
 
 interface TestimonialsSectionProps {
   surface?: SectionSurface;
 }
+
+const DEFAULT_TESTIMONIALS = [
+  {
+    id: 1,
+    name: "Марина",
+    avatar: person1,
+    photo: stPetersburg,
+    text: "Вот такой вид из окна поезда Москва — Санкт-Петербург",
+    route: "Москва → Санкт-Петербург",
+    date: "15 ноября 2024",
+  },
+  {
+    id: 2,
+    name: "Алексей",
+    avatar: person2,
+    photo: kazan,
+    text: "Поездка прошла идеально, буду ездить через TudaSuda!",
+    route: "Москва → Казань",
+    date: "12 ноября 2024",
+  },
+  {
+    id: 3,
+    name: "Елена",
+    avatar: person3,
+    photo: trainInterior,
+    text: "Удобные места, чисто, комфортно. Всё как на фото!",
+    route: "Санкт-Петербург → Москва",
+    date: "10 ноября 2024",
+  },
+  {
+    id: 4,
+    name: "Дмитрий",
+    avatar: person4,
+    photo: baikal1,
+    text: "Невероятные виды! Поездка на Байкал — это что-то особенное",
+    route: "Иркутск → Байкал",
+    date: "8 ноября 2024",
+  },
+  {
+    id: 5,
+    name: "Анна",
+    avatar: person5,
+    photo: novgorod,
+    text: "Отличная цена и сервис. Рекомендую всем друзьям!",
+    route: "Москва → Великий Новгород",
+    date: "5 ноября 2024",
+  },
+  {
+    id: 6,
+    name: "Сергей",
+    avatar: person6,
+    photo: vladivostok1,
+    text: "Дальневосточные приключения начались! Владивосток ждёт",
+    route: "Москва → Владивосток",
+    date: "3 ноября 2024",
+  },
+  {
+    id: 7,
+    name: "Ольга",
+    avatar: person7,
+    photo: kaliningrad1,
+    text: "Европейский колорит в России. Калининград — это магия!",
+    route: "Москва → Калининград",
+    date: "1 ноября 2024",
+  },
+  {
+    id: 8,
+    name: "Иван",
+    avatar: person8,
+    photo: karelia,
+    text: "Красивые пейзажи Карелии. Природа здесь просто потрясающая",
+    route: "Санкт-Петербург → Карелия",
+    date: "29 октября 2024",
+  },
+  {
+    id: 9,
+    name: "Татьяна",
+    avatar: person9,
+    photo: moscow,
+    text: "Быстро, удобно, без проблем. TudaSuda — мой выбор!",
+    route: "Санкт-Петербург → Москва",
+    date: "27 октября 2024",
+  },
+  {
+    id: 10,
+    name: "Михаил",
+    avatar: person10,
+    photo: stPetersburg,
+    text: "Белые ночи в Питере. Это нужно видеть своими глазами!",
+    route: "Москва → Санкт-Петербург",
+    date: "25 октября 2024",
+  },
+  {
+    id: 11,
+    name: "Наталья",
+    avatar: person11,
+    photo: sochi,
+    text: "Комфортная поездка, отличный сервис. Обязательно вернусь!",
+    route: "Москва → Сочи",
+    date: "23 октября 2024",
+  },
+];
 
 const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) => {
   const navigate = useNavigate();
@@ -46,108 +153,26 @@ const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) =>
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const mobileTrackRef = useRef<HTMLDivElement | null>(null);
+  const f = usePageSectionFields<TestimonialsFields>("testimonials");
+  const sectionTitle = f.title || "Живые истории путешествий";
+  const sectionSubtitle = f.subtitle || "Реальные люди, реальные эмоции, реальные путешествия";
 
-  const testimonials = [
-    {
-      id: 1,
-      name: "Марина",
-      avatar: person1,
-      photo: stPetersburg,
-      text: "Вот такой вид из окна поезда Москва — Санкт-Петербург",
-      route: "Москва → Санкт-Петербург",
-      date: "15 ноября 2024",
-    },
-    {
-      id: 2,
-      name: "Алексей",
-      avatar: person2,
-      photo: kazan,
-      text: "Поездка прошла идеально, буду ездить через TudaSuda!",
-      route: "Москва → Казань",
-      date: "12 ноября 2024",
-    },
-    {
-      id: 3,
-      name: "Елена",
-      avatar: person3,
-      photo: trainInterior,
-      text: "Удобные места, чисто, комфортно. Всё как на фото!",
-      route: "Санкт-Петербург → Москва",
-      date: "10 ноября 2024",
-    },
-    {
-      id: 4,
-      name: "Дмитрий",
-      avatar: person4,
-      photo: baikal1,
-      text: "Невероятные виды! Поездка на Байкал — это что-то особенное",
-      route: "Иркутск → Байкал",
-      date: "8 ноября 2024",
-    },
-    {
-      id: 5,
-      name: "Анна",
-      avatar: person5,
-      photo: novgorod,
-      text: "Отличная цена и сервис. Рекомендую всем друзьям!",
-      route: "Москва → Великий Новгород",
-      date: "5 ноября 2024",
-    },
-    {
-      id: 6,
-      name: "Сергей",
-      avatar: person6,
-      photo: vladivostok1,
-      text: "Дальневосточные приключения начались! Владивосток ждёт",
-      route: "Москва → Владивосток",
-      date: "3 ноября 2024",
-    },
-    {
-      id: 7,
-      name: "Ольга",
-      avatar: person7,
-      photo: kaliningrad1,
-      text: "Европейский колорит в России. Калининград — это магия!",
-      route: "Москва → Калининград",
-      date: "1 ноября 2024",
-    },
-    {
-      id: 8,
-      name: "Иван",
-      avatar: person8,
-      photo: karelia,
-      text: "Красивые пейзажи Карелии. Природа здесь просто потрясающая",
-      route: "Санкт-Петербург → Карелия",
-      date: "29 октября 2024",
-    },
-    {
-      id: 9,
-      name: "Татьяна",
-      avatar: person9,
-      photo: moscow,
-      text: "Быстро, удобно, без проблем. TudaSuda — мой выбор!",
-      route: "Санкт-Петербург → Москва",
-      date: "27 октября 2024",
-    },
-    {
-      id: 10,
-      name: "Михаил",
-      avatar: person10,
-      photo: stPetersburg,
-      text: "Белые ночи в Питере. Это нужно видеть своими глазами!",
-      route: "Москва → Санкт-Петербург",
-      date: "25 октября 2024",
-    },
-    {
-      id: 11,
-      name: "Наталья",
-      avatar: person11,
-      photo: sochi,
-      text: "Комфортная поездка, отличный сервис. Обязательно вернусь!",
-      route: "Москва → Сочи",
-      date: "23 октября 2024",
-    },
-  ];
+  const testimonials =
+    Array.isArray(f.items) && f.items.length > 0
+      ? f.items.map((item, i) => {
+          const def = DEFAULT_TESTIMONIALS[i] ?? DEFAULT_TESTIMONIALS[0];
+          const id = item.id ?? def.id;
+          return {
+            id: typeof id === "number" ? id : Number(id) || def.id,
+            name: item.name || def.name,
+            avatar: mediaOrFallback(item.avatar, def.avatar),
+            photo: mediaOrFallback(item.photo, def.photo),
+            text: item.text || def.text,
+            route: item.route || def.route,
+            date: item.date || def.date,
+          };
+        })
+      : DEFAULT_TESTIMONIALS;
 
   // Дублируем отзывы для бесконечной карусели
   const duplicatedTestimonials = [...testimonials, ...testimonials, ...testimonials];
@@ -258,6 +283,7 @@ const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) =>
   };
 
   return (
+    <CmsEditable sectionId="testimonials">
     <section className={sectionShellClass(surface, "py-20")}>
       {/* Декоративные желтые пятна */}
       {surface === "brand" && (
@@ -294,14 +320,22 @@ const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) =>
       <div className="container relative z-10">
         <div className="mb-12 text-center">
           <h2
-            className={cn(
-              "heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700 leading-tight pb-2 tracking-tight",
+            className={cmsHeadingClass(
+              f.titleColor,
+              "heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700 leading-tight pb-2 tracking-tight"
             )}
+            style={cmsColorStyle(f.titleColor)}
           >
-            Живые истории путешествий
+            {sectionTitle}
           </h2>
-          <p className={cn("text-lg md:text-xl max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150", sectionLeadClass(surface))}>
-            Реальные люди, реальные эмоции, реальные путешествия
+          <p
+            className={cn(
+              "text-lg md:text-xl max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150",
+              sectionLeadClass(surface)
+            )}
+            style={cmsColorStyle(f.subtitleColor)}
+          >
+            {sectionSubtitle}
           </p>
         </div>
 
@@ -545,6 +579,7 @@ const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) =>
         </div>
       </div>
     </section>
+    </CmsEditable>
   );
 };
 

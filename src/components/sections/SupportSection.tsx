@@ -7,6 +7,10 @@ import { cn } from "@/lib/utils";
 import { Loader2, Send } from "lucide-react";
 import type { SectionSurface } from "@/lib/sectionSurface";
 import { sectionShellClass } from "@/lib/sectionSurface";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import type { SupportFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle, cmsHeadingClass } from "@/lib/cmsStyle";
 
 interface ChatMessage {
   id: string;
@@ -31,6 +35,18 @@ interface SupportSectionProps {
 
 const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
   const { toast } = useToast();
+  const support = usePageSectionFields<SupportFields>("support");
+  const title = support.title || "Умный бот-помощник 24/7";
+  const subtitle =
+    support.subtitle || "Решаем вопросы быстро и эффективно, работаем круглосуточно";
+  const description1 =
+    support.description1 ||
+    "Наш умный бот-помощник использует технологии искусственного интеллекта для быстрого решения ваших вопросов. Он понимает контекст, помнит историю диалога и может помочь с выбором билетов, маршрутов и планированием путешествий.";
+  const description2 =
+    support.description2 ||
+    "Если бот не сможет решить вопрос самостоятельно, он мгновенно подключит живого оператора, который продолжит диалог без потери контекста. Все ваши данные защищены и обрабатываются в соответствии с требованиями безопасности.";
+  const contactHeading = support.contactHeading || "Выберите способ связи";
+  const chatCta = support.chatCta || "Открыть чат с ботом";
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [inputValue, setInputValue] = useState("");
@@ -145,6 +161,7 @@ const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
   };
 
   return (
+    <CmsEditable sectionId="support">
     <>
       <section className={sectionShellClass(surface, "py-16 md:py-24")}>
         {/* Декоративные желтые пятна */}
@@ -191,11 +208,20 @@ const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
             <div className="md:hidden space-y-6">
               {/* Заголовок */}
               <div className="text-center">
-                <h2 className="heading-gradient text-3xl md:text-4xl font-extrabold tracking-tight mb-4">
-                  Умный бот-помощник 24/7
+                <h2
+                  className={cmsHeadingClass(
+                    support.titleColor,
+                    "heading-gradient text-3xl md:text-4xl font-extrabold tracking-tight mb-4"
+                  )}
+                  style={cmsColorStyle(support.titleColor)}
+                >
+                  {title}
                 </h2>
-                <p className="text-lg text-muted-foreground">
-                  Решаем вопросы быстро и эффективно, работаем круглосуточно
+                <p
+                  className={cn("text-lg", !support.subtitleColor?.trim() && "text-muted-foreground")}
+                  style={cmsColorStyle(support.subtitleColor)}
+                >
+                  {subtitle}
                 </p>
               </div>
 
@@ -231,11 +257,23 @@ const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
               <div className="space-y-8">
                 {/* Заголовок */}
                 <div>
-                  <h2 className="heading-gradient text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4">
-                    Умный бот-помощник 24/7
+                  <h2
+                    className={cmsHeadingClass(
+                      support.titleColor,
+                      "heading-gradient text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4"
+                    )}
+                    style={cmsColorStyle(support.titleColor)}
+                  >
+                    {title}
                   </h2>
-                  <p className="text-lg md:text-xl text-muted-foreground">
-                    Решаем вопросы быстро и эффективно, работаем круглосуточно
+                  <p
+                    className={cn(
+                      "text-lg md:text-xl",
+                      !support.subtitleColor?.trim() && "text-muted-foreground"
+                    )}
+                    style={cmsColorStyle(support.subtitleColor)}
+                  >
+                    {subtitle}
                   </p>
                 </div>
 
@@ -287,11 +325,23 @@ const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
 
                 {/* Описание бота */}
                 <div className="space-y-3">
-                  <p className="text-sm text-foreground leading-relaxed">
-                    Наш умный бот-помощник использует технологии искусственного интеллекта для быстрого решения ваших вопросов. Он понимает контекст, помнит историю диалога и может помочь с выбором билетов, маршрутов и планированием путешествий.
+                  <p
+                    className={cn(
+                      "text-sm leading-relaxed",
+                      !support.textColor?.trim() && "text-foreground"
+                    )}
+                    style={cmsColorStyle(support.textColor)}
+                  >
+                    {description1}
                   </p>
-                  <p className="text-sm text-foreground leading-relaxed">
-                    Если бот не сможет решить вопрос самостоятельно, он мгновенно подключит живого оператора, который продолжит диалог без потери контекста. Все ваши данные защищены и обрабатываются в соответствии с требованиями безопасности.
+                  <p
+                    className={cn(
+                      "text-sm leading-relaxed",
+                      !support.textColor?.trim() && "text-foreground"
+                    )}
+                    style={cmsColorStyle(support.textColor)}
+                  >
+                    {description2}
                   </p>
                 </div>
               </div>
@@ -381,11 +431,11 @@ const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
             </div>
 
             {/* Десктопная версия */}
-            <div className="hidden md:block rounded-2xl bg-gradient-to-r from-primary/5 via-purple-500/5 to-primary/5 border border-primary/10 p-6 lg:p-8 shadow-sm">
+            <div className="hidden md:block mt-8 lg:mt-10 rounded-2xl bg-gradient-to-r from-primary/5 via-purple-500/5 to-primary/5 border border-primary/10 p-6 lg:p-8 shadow-sm">
               <div className="space-y-4">
                 <div className="text-center">
                   <h3 className="text-lg font-semibold text-foreground mb-2">
-                    Выберите способ связи
+                    {contactHeading}
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     Мы поможем решить ваш вопрос быстро и эффективно
@@ -401,7 +451,7 @@ const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
                     className="flex-1 rounded-full font-semibold shadow-md hover:shadow-lg transition-shadow"
                   >
                     <MessageCircle className="w-5 h-5 mr-2" />
-                    Открыть чат с ботом
+                    {chatCta}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
 
@@ -518,6 +568,7 @@ const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
         </DialogContent>
       </Dialog>
     </>
+    </CmsEditable>
   );
 };
 

@@ -2,70 +2,114 @@ import armenia from "@/assets/images/cities/armenia.jpg";
 import china from "@/assets/images/cities/china.jpg";
 import karelia from "@/assets/images/cities/karelia.jpg";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { SectionSurface } from "@/lib/sectionSurface";
 import {
   sectionLeadClass,
   sectionShellClass,
 } from "@/lib/sectionSurface";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import { mediaOrFallback } from "@/lib/pageContentMerge";
+import type { InspirationFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle, cmsHeadingClass } from "@/lib/cmsStyle";
 
 interface InspirationSectionProps {
   surface?: SectionSurface;
 }
 
+const DEFAULT_DESTINATIONS = [
+  {
+    name: "Душевная Армения",
+    description: "Ереван, Севан и древние монастыри",
+    image: armenia,
+  },
+  {
+    name: "Отпуск в Китае",
+    description: "Что стоит знать перед первой поездкой",
+    image: china,
+  },
+  {
+    name: "Маршрут по Карелии",
+    description: "Главные места для знакомства с республикой",
+    image: karelia,
+  },
+  {
+    name: "Золотое кольцо России",
+    description: "Древние города и православные святыни",
+    image: armenia,
+  },
+  {
+    name: "Байкал зимой",
+    description: "Невероятная красота ледяного озера",
+    image: china,
+  },
+  {
+    name: "Камчатка",
+    description: "Вулканы, гейзеры и дикая природа",
+    image: karelia,
+  },
+  {
+    name: "Алтай",
+    description: "Горы, озёра и бескрайние степи",
+    image: armenia,
+  },
+  {
+    name: "Крым",
+    description: "Южное побережье и горные тропы",
+    image: china,
+  },
+  {
+    name: "Якутия",
+    description: "Полюс холода и северное сияние",
+    image: karelia,
+  },
+  {
+    name: "Кавказ",
+    description: "Эльбрус и горные аулы",
+    image: armenia,
+  },
+];
+
+type InspirationCard = {
+  name: string;
+  description: string;
+  image: string;
+  href?: string;
+  titleColor?: string;
+  descriptionColor?: string;
+};
+
 const InspirationSection = ({ surface = "brand" }: InspirationSectionProps) => {
-  const destinations = [
-    {
-      name: "Душевная Армения",
-      description: "Ереван, Севан и древние монастыри",
-      image: armenia,
-    },
-    {
-      name: "Отпуск в Китае",
-      description: "Что стоит знать перед первой поездкой",
-      image: china,
-    },
-    {
-      name: "Маршрут по Карелии",
-      description: "Главные места для знакомства с республикой",
-      image: karelia,
-    },
-    {
-      name: "Золотое кольцо России",
-      description: "Древние города и православные святыни",
-      image: armenia,
-    },
-    {
-      name: "Байкал зимой",
-      description: "Невероятная красота ледяного озера",
-      image: china,
-    },
-    {
-      name: "Камчатка",
-      description: "Вулканы, гейзеры и дикая природа",
-      image: karelia,
-    },
-    {
-      name: "Алтай",
-      description: "Горы, озёра и бескрайние степи",
-      image: armenia,
-    },
-    {
-      name: "Крым",
-      description: "Южное побережье и горные тропы",
-      image: china,
-    },
-    {
-      name: "Якутия",
-      description: "Полюс холода и северное сияние",
-      image: karelia,
-    },
-    {
-      name: "Кавказ",
-      description: "Эльбрус и горные аулы",
-      image: armenia,
-    },
-  ];
+  const navigate = useNavigate();
+  const f = usePageSectionFields<InspirationFields>("inspiration");
+  const sectionTitle = f.title || "Вдохновение для следующей поездки";
+  const sectionSubtitle = f.subtitle || "Найдите идеи и направления";
+
+  const destinations: InspirationCard[] =
+    Array.isArray(f.items) && f.items.length > 0
+      ? f.items.map((item, i) => {
+          const def = DEFAULT_DESTINATIONS[i] ?? DEFAULT_DESTINATIONS[0];
+          return {
+            name: item.name || def.name,
+            description: item.description || def.description,
+            image: mediaOrFallback(item.image, def.image),
+            href: item.href,
+            titleColor: item.titleColor,
+            descriptionColor: item.descriptionColor,
+          };
+        })
+      : DEFAULT_DESTINATIONS;
+
+  const handleCardClick = (destination: InspirationCard) => {
+    if (!destination.href) return;
+    if (destination.href.startsWith("http")) {
+      window.open(destination.href, "_blank", "noopener,noreferrer");
+    } else {
+      navigate(destination.href);
+    }
+  };
 
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollContentRef = useRef<HTMLDivElement>(null);
@@ -269,6 +313,7 @@ const InspirationSection = ({ surface = "brand" }: InspirationSectionProps) => {
   };
 
   return (
+    <CmsEditable sectionId="inspiration">
     <section className={sectionShellClass(surface, "pt-20 pb-12 md:py-20")}>
       {/* Декоративные желтые пятна */}
       {surface === "brand" && (
@@ -303,11 +348,20 @@ const InspirationSection = ({ surface = "brand" }: InspirationSectionProps) => {
       )}
       <div className="container relative z-10">
         <div className="text-center mb-12">
-          <h2 className="heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-2 leading-tight pb-2 tracking-tight">
-            Вдохновение для следующей поездки
+          <h2
+            className={cmsHeadingClass(
+              f.titleColor,
+              "heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-2 leading-tight pb-2 tracking-tight"
+            )}
+            style={cmsColorStyle(f.titleColor)}
+          >
+            {sectionTitle}
           </h2>
-          <p className={cn("text-lg", sectionLeadClass(surface))}>
-            Найдите идеи и направления
+          <p
+            className={cn("text-lg", sectionLeadClass(surface))}
+            style={cmsColorStyle(f.subtitleColor)}
+          >
+            {sectionSubtitle}
           </p>
         </div>
 
@@ -323,6 +377,7 @@ const InspirationSection = ({ surface = "brand" }: InspirationSectionProps) => {
               <div 
                 key={index}
                 className="group cursor-pointer snap-start flex-shrink-0 w-[380px]"
+                onClick={() => handleCardClick(destination)}
               >
                 <div
                   className={cn(
@@ -342,6 +397,7 @@ const InspirationSection = ({ surface = "brand" }: InspirationSectionProps) => {
                     "text-2xl font-semibold mb-1",
                     surface === "light" ? "text-slate-900" : "text-white"
                   )}
+                  style={cmsColorStyle(destination.titleColor)}
                 >
                   {destination.name}
                 </h3>
@@ -350,6 +406,7 @@ const InspirationSection = ({ surface = "brand" }: InspirationSectionProps) => {
                     "text-base",
                     surface === "light" ? "text-slate-600" : "text-white"
                   )}
+                  style={cmsColorStyle(destination.descriptionColor)}
                 >
                   {destination.description}
                 </p>
@@ -362,6 +419,7 @@ const InspirationSection = ({ surface = "brand" }: InspirationSectionProps) => {
         .scrollbar-hide::-webkit-scrollbar { display: none; }
       `}</style>
     </section>
+    </CmsEditable>
   );
 };
 

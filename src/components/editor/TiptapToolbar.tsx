@@ -46,8 +46,10 @@ import {
   MousePointerClick,
   MapPin,
   Route,
+  Link2,
 } from "lucide-react";
 import type { CtaButtonVariant } from "@/types/blogContent";
+import { toggleAnchorOnActiveBlock } from "@/lib/tiptapAnchors";
 
 function Tip({
   children,
@@ -260,6 +262,24 @@ export function TiptapToolbar({ editor }: { editor: Editor }) {
             aria-label="Заголовок 3"
           >
             <Heading3 className="h-4 w-4" />
+          </Toggle>
+        </Tip>
+
+        <Tip
+          label="Якорь"
+          description="Помечает текущий абзац или заголовок якорем для навигации слева от статьи."
+        >
+          <Toggle
+            size="sm"
+            pressed={
+              editor.getAttributes("paragraph").anchor ||
+              editor.getAttributes("heading").anchor
+            }
+            disabled={!editor.isActive("paragraph") && !editor.isActive("heading")}
+            onPressedChange={() => toggleAnchorOnActiveBlock(editor)}
+            aria-label="Якорь"
+          >
+            <Link2 className="h-4 w-4" />
           </Toggle>
         </Tip>
 

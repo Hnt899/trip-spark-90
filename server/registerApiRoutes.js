@@ -15,6 +15,7 @@ import { registerBlogPublicRoutes } from "./blogRoutes.js";
 import { registerRoutePublicRoutes } from "./routePageRoutes.js";
 import { registerReferencePublicRoutes } from "./referenceRoutes.js";
 import { registerGuidePublicRoutes } from "./guideRoutes.js";
+import { registerPagePublicRoutes } from "./pageContentRoutes.js";
 import { sendExolveSms } from "./sendSms.js";
 import { sendEmailOtp } from "./emailOtp.js";
 import { registerRzdTrainSearchRoutes } from "./rzdTrainSearchRoutes.js";
@@ -695,5 +696,6 @@ export function registerApiRoutes(app) {
   registerRoutePublicRoutes(app);
   registerReferencePublicRoutes(app);
   registerGuidePublicRoutes(app);
+  registerPagePublicRoutes(app);
   registerAdminRoutes(app);
 }

@@ -7,10 +7,12 @@ import { Table, TableRow, TableHeader, TableCell } from "@tiptap/extension-table
 import { BlogImageExtension } from "./BlogImageExtension";
 import { BlogGalleryExtension } from "./BlogGalleryExtension";
 import { SoftEnterExtension } from "./SoftEnterExtension";
+import { AnchorAttributesExtension } from "./AnchorAttributesExtension";
 import { CtaButtonExtension } from "./CtaButtonExtension";
 import { DestinationCardExtension } from "./DestinationCardExtension";
 import { RouteDaysExtension } from "./RouteDaysExtension";
 import { TiptapToolbar } from "./TiptapToolbar";
+import { AnchorEditorSidebar } from "./AnchorEditorSidebar";
 import { uploadImages } from "@/lib/uploadImages";
 import type { BlogContentBlock } from "@/types/blogContent";
 import { blocksToTiptap, tiptapToBlocks } from "@/lib/tiptapBlockConverter";
@@ -48,6 +50,7 @@ export default function TiptapEditor({ initialBlocks, onChange }: Props) {
       CtaButtonExtension,
       DestinationCardExtension,
       RouteDaysExtension,
+      AnchorAttributesExtension,
     ],
     content: blocksToTiptap(initialBlocks),
     onUpdate: ({ editor: e }) => handleUpdate(e.getJSON()),
@@ -138,12 +141,15 @@ export default function TiptapEditor({ initialBlocks, onChange }: Props) {
   if (!editor) return null;
 
   return (
-    <div>
-      <div className="sticky top-0 z-30 min-h-12 rounded-t-xl border border-b-0 border-slate-200 bg-slate-50 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <TiptapToolbar editor={editor} />
-      </div>
-      <div className="rounded-b-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-        <EditorContent editor={editor} />
+    <div className="blog-tiptap-root flex flex-col items-stretch gap-4 sm:flex-row sm:items-start">
+      <AnchorEditorSidebar editor={editor} />
+      <div className="min-w-0 flex-1">
+        <div className="sticky top-0 z-30 min-h-12 rounded-t-xl border border-b-0 border-slate-200 bg-slate-50 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <TiptapToolbar editor={editor} />
+        </div>
+        <div className="rounded-b-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+          <EditorContent editor={editor} />
+        </div>
       </div>
     </div>
   );

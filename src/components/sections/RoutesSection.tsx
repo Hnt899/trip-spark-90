@@ -11,13 +11,20 @@ import {
   sectionLeadClass,
   sectionShellClass,
 } from "@/lib/sectionSurface";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import type { RoutesSectionFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle, cmsHeadingClass } from "@/lib/cmsStyle";
 
 interface PopularRoute {
   from: string;
   to: string;
   minPrice: number;
   isPopular: boolean;
-  duration?: string; // Время в пути, например "3ч 55м"
+  duration?: string;
+  borderColor?: string;
+  textColor?: string;
+  priceColor?: string;
 }
 
 interface TransportOption {
@@ -41,11 +48,38 @@ interface RoutesSectionProps {
   surface?: SectionSurface;
 }
 
+const DEFAULT_POPULAR_ROUTES: PopularRoute[] = [
+  { from: "Москва", to: "Санкт-Петербург", minPrice: 2950, isPopular: true, duration: "3ч 55м" },
+  { from: "Москва", to: "Казань", minPrice: 1850, isPopular: true, duration: "11ч 30м" },
+  { from: "Москва", to: "Нижний Новгород", minPrice: 650, isPopular: false, duration: "3ч 40м" },
+  { from: "Санкт-Петербург", to: "Москва", minPrice: 2950, isPopular: true, duration: "3ч 55м" },
+  { from: "Казань", to: "Москва", minPrice: 1850, isPopular: false, duration: "11ч 30м" },
+  { from: "Тверь", to: "Москва", minPrice: 550, isPopular: false, duration: "1ч 40м" },
+  { from: "Москва", to: "Сочи", minPrice: 2500, isPopular: true, duration: "24ч" },
+];
+
 const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
   const navigate = useNavigate();
   const [calcFrom, setCalcFrom] = useState("Москва");
   const [calcTo, setCalcTo] = useState("Сочи");
   const [selectedTransport, setSelectedTransport] = useState<"flight" | "train" | "bus" | null>(null);
+  const f = usePageSectionFields<RoutesSectionFields>("routesSection");
+  const sectionTitle = f.title || "Популярные направления";
+  const sectionSubtitle = f.subtitle || "Самые востребованные маршруты с актуальными ценами";
+
+  const popularRoutes: PopularRoute[] =
+    Array.isArray(f.routes) && f.routes.length > 0
+      ? f.routes.map((r) => ({
+          from: r.from || "",
+          to: r.to || "",
+          minPrice: typeof r.minPrice === "number" ? r.minPrice : Number(r.minPrice) || 0,
+          isPopular: Boolean(r.isPopular),
+          duration: r.duration,
+          borderColor: r.borderColor,
+          textColor: r.textColor,
+          priceColor: r.priceColor,
+        }))
+      : DEFAULT_POPULAR_ROUTES;
 
   // Данные для разных маршрутов
   const routeData: RouteData = {
@@ -166,17 +200,6 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
     setSelectedTransport(null);
   };
 
-  const popularRoutes: PopularRoute[] = [
-    { from: "Москва", to: "Санкт-Петербург", minPrice: 2950, isPopular: true, duration: "3ч 55м" },
-    { from: "Москва", to: "Казань", minPrice: 1850, isPopular: true, duration: "11ч 30м" },
-    { from: "Москва", to: "Нижний Новгород", minPrice: 650, isPopular: false, duration: "3ч 40м" },
-    { from: "Санкт-Петербург", to: "Москва", minPrice: 2950, isPopular: true, duration: "3ч 55м" },
-    { from: "Казань", to: "Москва", minPrice: 1850, isPopular: false, duration: "11ч 30м" },
-    { from: "Тверь", to: "Москва", minPrice: 550, isPopular: false, duration: "1ч 40м" },
-    { from: "Москва", to: "Сочи", minPrice: 2500, isPopular: true, duration: "24ч" },
-  ];
-
-
   const handleRouteClick = (from: string, to: string, transportType?: "train" | "flight" | "bus") => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -203,6 +226,7 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
   };
 
   return (
+    <CmsEditable sectionId="routesSection">
     <section className={sectionShellClass(surface, "py-16 md:py-24")}>
       {/* Декоративные желтые пятна */}
       {surface === "brand" && (
@@ -238,11 +262,20 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
       <div className="container relative z-10">
         {/* Заголовок секции */}
         <div className="mb-12 text-center">
-          <h2 className="heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight pb-2 tracking-tight">
-            Популярные направления
+          <h2
+            className={cmsHeadingClass(
+              f.titleColor,
+              "heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight pb-2 tracking-tight"
+            )}
+            style={cmsColorStyle(f.titleColor)}
+          >
+            {sectionTitle}
           </h2>
-          <p className={cn("text-lg md:text-xl max-w-2xl mx-auto", sectionLeadClass(surface))}>
-            Самые востребованные маршруты с актуальными ценами
+          <p
+            className={cn("text-lg md:text-xl max-w-2xl mx-auto", sectionLeadClass(surface))}
+            style={cmsColorStyle(f.subtitleColor)}
+          >
+            {sectionSubtitle}
           </p>
         </div>
 
@@ -262,17 +295,22 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
                       "cursor-pointer",
                       "lg:flex-1 lg:flex lg:flex-col lg:justify-center",
                       sectionCardLiftClass(surface),
-                      // Фиолетовая обводка для популярных маршрутов
-                      route.isPopular
+                      route.isPopular && !route.borderColor
                         ? "border-2 border-purple-600"
-                        : "border border-border/60"
+                        : !route.isPopular && !route.borderColor
+                          ? "border border-border/60"
+                          : "border-2"
                     )}
+                    style={route.borderColor ? { borderColor: route.borderColor } : undefined}
                   >
                     {/* Десктоп layout: левая колонка | центральная (фикс) | правая колонка | цена */}
                     <div className="hidden md:grid md:grid-cols-[1fr_200px_1fr_auto] gap-4 items-center">
                       {/* Левая колонка: город отправления */}
                       <div className="min-w-0">
-                        <span className="text-base md:text-lg font-semibold text-foreground">
+                        <span
+                          className="text-base md:text-lg font-semibold text-foreground"
+                          style={cmsColorStyle(route.textColor)}
+                        >
                           {route.from}
                         </span>
                       </div>
@@ -280,7 +318,10 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
                       {/* Центральная колонка (фиксированная ширина): линия/стрелка + время */}
                       <div className="flex flex-col items-center justify-center relative w-full">
                         {/* Время в пути над линией */}
-                        <div className="text-xs text-muted-foreground mb-1.5 whitespace-nowrap">
+                        <div
+                          className="text-xs text-muted-foreground mb-1.5 whitespace-nowrap"
+                          style={cmsColorStyle(route.textColor)}
+                        >
                           В пути: {route.duration || "—"}
                         </div>
                         {/* Линия со стрелкой - растягивается на всю ширину */}
@@ -293,14 +334,20 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
 
                       {/* Правая колонка: город прибытия */}
                       <div className="min-w-0 text-right">
-                        <span className="text-base md:text-lg font-semibold text-foreground">
+                        <span
+                          className="text-base md:text-lg font-semibold text-foreground"
+                          style={cmsColorStyle(route.textColor)}
+                        >
                           {route.to}
                         </span>
                       </div>
 
                       {/* Цена (отдельная колонка справа) */}
                       <div className="text-right flex-shrink-0 min-w-[120px]">
-                        <div className="text-lg md:text-xl font-bold text-foreground">
+                        <div
+                          className="text-lg md:text-xl font-bold text-foreground"
+                          style={cmsColorStyle(route.priceColor || route.textColor)}
+                        >
                           от {formatPrice(route.minPrice)} ₽
                         </div>
                       </div>
@@ -311,15 +358,24 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
                       {/* Верхняя строка: города и время */}
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="text-sm font-semibold text-foreground truncate">
+                          <span
+                            className="text-sm font-semibold text-foreground truncate"
+                            style={cmsColorStyle(route.textColor)}
+                          >
                             {route.from}
                           </span>
                           <ArrowRight className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                          <span className="text-sm font-semibold text-foreground truncate">
+                          <span
+                            className="text-sm font-semibold text-foreground truncate"
+                            style={cmsColorStyle(route.textColor)}
+                          >
                             {route.to}
                           </span>
                         </div>
-                        <div className="text-xs text-muted-foreground whitespace-nowrap">
+                        <div
+                          className="text-xs text-muted-foreground whitespace-nowrap"
+                          style={cmsColorStyle(route.textColor)}
+                        >
                           {route.duration || "—"}
                         </div>
                       </div>
@@ -333,7 +389,10 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
                       </div>
                       {/* Нижняя строка: цена */}
                       <div className="flex justify-end">
-                        <div className="text-base font-bold text-foreground">
+                        <div
+                          className="text-base font-bold text-foreground"
+                          style={cmsColorStyle(route.priceColor || route.textColor)}
+                        >
                           от {formatPrice(route.minPrice)} ₽
                         </div>
                       </div>
@@ -596,6 +655,7 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
         </div>
       </div>
     </section>
+    </CmsEditable>
   );
 };
 

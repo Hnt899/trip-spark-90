@@ -55,6 +55,7 @@ type Loaded = {
   editors_pick: boolean;
   partner_carousel: boolean;
   sponsored_grid: boolean;
+  related_post_ids?: string[];
 };
 
 type BlogTag = {
@@ -115,6 +116,8 @@ export default function AdminBlogEdit() {
   const [editorsPick, setEditorsPick] = useState(false);
   const [partnerCarousel, setPartnerCarousel] = useState(false);
   const [sponsoredGrid, setSponsoredGrid] = useState(false);
+  const [relatedPostIds, setRelatedPostIds] = useState<string[]>([]);
+  const [relatedSelectOpen, setRelatedSelectOpen] = useState(false);
 
   const hydratedPostIdRef = useRef<string | null>(null);
 
@@ -131,6 +134,14 @@ export default function AdminBlogEdit() {
   const tagsQ = useQuery({
     queryKey: ["admin-blog-tag-groups-for-edit"],
     queryFn: () => apiFetch<TagGroupsResponse>("/api/admin/blog/tag-groups?withTags=1"),
+    retry: false,
+  });
+  const postsListQ = useQuery({
+    queryKey: ["admin-blog-posts-for-related"],
+    queryFn: () =>
+      apiFetch<Array<{ id: string; slug: string; title: string; status: string }>>(
+        "/api/admin/blog/posts",
+      ),
     retry: false,
   });
 
@@ -152,6 +163,7 @@ export default function AdminBlogEdit() {
     setEditorsPick(false);
     setPartnerCarousel(false);
     setSponsoredGrid(false);
+    setRelatedPostIds([]);
     setEditorKey((k) => k + 1);
   }, [isNew, postId]);
 
@@ -178,6 +190,7 @@ export default function AdminBlogEdit() {
     setEditorsPick(!!row.editors_pick);
     setPartnerCarousel(!!row.partner_carousel);
     setSponsoredGrid(!!row.sponsored_grid);
+    setRelatedPostIds(Array.isArray(row.related_post_ids) ? row.related_post_ids : []);
     setEditorKey((k) => k + 1);
   }, [isNew, postId, loadQ.data]);
 
@@ -201,6 +214,12 @@ export default function AdminBlogEdit() {
     group.tags.map((tag) => ({ ...tag, groupName: group.name })),
   );
   const selectedTags = allTags.filter((tag) => selectedTagIds.includes(tag.slug));
+  const availableRelatedPosts = (postsListQ.data || []).filter(
+    (p) => p.id !== postId && !relatedPostIds.includes(p.id),
+  );
+  const selectedRelatedPosts = (postsListQ.data || []).filter((p) =>
+    relatedPostIds.includes(p.id),
+  );
 
   const saveMut = useMutation({
     mutationFn: async () => {
@@ -218,6 +237,7 @@ export default function AdminBlogEdit() {
         editors_pick: editorsPick,
         partner_carousel: partnerCarousel,
         sponsored_grid: sponsoredGrid,
+        related_post_ids: relatedPostIds.slice(0, 5),
       };
       if (isNew) {
         return apiFetch<Loaded>("/api/admin/blog/posts", {
@@ -272,7 +292,7 @@ export default function AdminBlogEdit() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold tracking-tight">
           {isNew ? "Новая статья" : "Редактирование"}
@@ -436,6 +456,74 @@ export default function AdminBlogEdit() {
               </p>
             ) : null}
           </div>
+          <div className="grid gap-2">
+            <Label>Похожие статьи (до 5)</Label>
+            <p className="text-xs text-muted-foreground">
+              Отображаются справа при чтении статьи. Выберите опубликованные материалы.
+            </p>
+            {selectedRelatedPosts.length ? (
+              <div className="flex flex-col gap-2">
+                {selectedRelatedPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    className="flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm"
+                  >
+                    <span className="line-clamp-1">{post.title}</span>
+                    <button
+                      type="button"
+                      className="shrink-0 rounded p-1 hover:bg-muted"
+                      onClick={() =>
+                        setRelatedPostIds((prev) => prev.filter((id) => id !== post.id))
+                      }
+                      aria-label="Убрать"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            <Popover open={relatedSelectOpen} onOpenChange={setRelatedSelectOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="justify-between"
+                  disabled={relatedPostIds.length >= 5}
+                >
+                  {relatedPostIds.length >= 5
+                    ? "Достигнут лимит (5)"
+                    : "Добавить похожую статью"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 opacity-60" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[360px] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Поиск по заголовку..." />
+                  <CommandList>
+                    <CommandEmpty>Ничего не найдено.</CommandEmpty>
+                    <CommandGroup heading="Статьи">
+                      {availableRelatedPosts.map((post) => (
+                        <CommandItem
+                          key={post.id}
+                          value={`${post.title} ${post.slug}`}
+                          onSelect={() => {
+                            if (relatedPostIds.length >= 5) return;
+                            setRelatedPostIds((prev) => [...prev, post.id]);
+                            setRelatedSelectOpen(false);
+                          }}
+                        >
+                          <span className="line-clamp-2">{post.title}</span>
+                          <span className="ml-auto text-xs text-muted-foreground">
+                            {post.status === "published" ? "опубл." : "черновик"}
+                          </span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
           <div className="space-y-2">
             <Label>Бейджи</Label>
             <div className="flex flex-wrap gap-4">
@@ -486,8 +574,8 @@ export default function AdminBlogEdit() {
         <CardHeader>
           <CardTitle>Текст статьи</CardTitle>
           <CardDescription>
-            Используйте тулбар для форматирования. Перетаскивайте изображения
-            прямо в редактор — они загрузятся автоматически.
+            Кнопка «Якорь» помечает абзац или заголовок фиолетовым и добавляет его в список
+            слева. Название якоря в списке можно менять отдельно от текста статьи.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0 sm:p-4">

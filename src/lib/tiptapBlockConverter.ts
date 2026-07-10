@@ -177,6 +177,10 @@ export function blocksToTiptap(blocks: BlogContentBlock[]): JSONContent {
       case "paragraph":
         content.push({
           type: "paragraph",
+          attrs: {
+            ...(block.anchor ? { anchor: true } : {}),
+            ...(block.anchorLabel ? { anchorLabel: block.anchorLabel } : {}),
+          },
           content: htmlToInline(block.text),
         });
         break;
@@ -184,7 +188,11 @@ export function blocksToTiptap(blocks: BlogContentBlock[]): JSONContent {
       case "heading":
         content.push({
           type: "heading",
-          attrs: { level: block.level || 2 },
+          attrs: {
+            level: block.level || 2,
+            ...(block.anchor ? { anchor: true } : {}),
+            ...(block.anchorLabel ? { anchorLabel: block.anchorLabel } : {}),
+          },
           content: htmlToInline(block.text),
         });
         break;
@@ -309,7 +317,10 @@ export function tiptapToBlocks(doc: JSONContent): BlogContentBlock[] {
       case "paragraph": {
         const text = inlineToHtml(node);
         if (text || blocks.length > 0) {
-          blocks.push({ type: "paragraph", text });
+          const block: BlogContentBlock = { type: "paragraph", text };
+          if (node.attrs?.anchor) block.anchor = true;
+          if (node.attrs?.anchorLabel) block.anchorLabel = String(node.attrs.anchorLabel);
+          blocks.push(block);
         }
         break;
       }
@@ -317,7 +328,10 @@ export function tiptapToBlocks(doc: JSONContent): BlogContentBlock[] {
       case "heading": {
         const text = inlineToHtml(node);
         const level = (node.attrs?.level as number) || 2;
-        blocks.push({ type: "heading", level, text });
+        const block: BlogContentBlock = { type: "heading", level, text };
+        if (node.attrs?.anchor) block.anchor = true;
+        if (node.attrs?.anchorLabel) block.anchorLabel = String(node.attrs.anchorLabel);
+        blocks.push(block);
         break;
       }
 

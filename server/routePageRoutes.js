@@ -228,7 +228,7 @@ export function registerAdminRouteRoutes(app) {
   app.get("/api/admin/routes", adminMiddleware, async (_req, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT id, legacy_id, slug, name, region, rating, status, updated_at
+        `SELECT id, legacy_id, slug, name, region, rating, cover_image_url, status, updated_at
          FROM route_pages
          ORDER BY updated_at DESC`
       );

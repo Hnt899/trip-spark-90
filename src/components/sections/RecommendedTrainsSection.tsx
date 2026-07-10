@@ -17,10 +17,98 @@ import {
   sectionLeadClass,
   sectionShellClass,
 } from "@/lib/sectionSurface";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import { mediaOrFallback } from "@/lib/pageContentMerge";
+import type { RecommendedTrainsFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle, cmsHeadingClass } from "@/lib/cmsStyle";
 
 interface RecommendedTrainsSectionProps {
   surface?: SectionSurface;
 }
+
+const DEFAULT_DESTINATIONS = [
+  {
+    from: "Москва",
+    to: "Санкт-Петербург",
+    image: stPetersburg,
+    oldPrice: "3 500 ₽",
+    newPrice: "2 800 ₽",
+    discount: 20,
+    tag: "Популярно",
+    description: "Быстрое и комфортное путешествие",
+  },
+  {
+    from: "Москва",
+    to: "Казань",
+    image: kazan,
+    oldPrice: "4 200 ₽",
+    newPrice: "2 940 ₽",
+    discount: 30,
+    tag: "Горящее",
+    description: "Скидка на билеты до конца месяца",
+  },
+  {
+    from: "Санкт-Петербург",
+    to: "Москва",
+    image: moscow,
+    oldPrice: "3 800 ₽",
+    newPrice: "3 040 ₽",
+    discount: 20,
+    tag: "Популярно",
+    description: "Ежедневные рейсы",
+  },
+  {
+    from: "Москва",
+    to: "Великий Новгород",
+    image: novgorod,
+    oldPrice: "2 500 ₽",
+    newPrice: "1 500 ₽",
+    discount: 40,
+    tag: "Бюджетно",
+    description: "Отличная цена для путешествия",
+  },
+  {
+    from: "Санкт-Петербург",
+    to: "Карелия",
+    image: karelia,
+    oldPrice: "3 200 ₽",
+    newPrice: "2 240 ₽",
+    discount: 30,
+    tag: "Экскурсии",
+    description: "Красивые пейзажи и природа",
+  },
+  {
+    from: "Москва",
+    to: "Сочи",
+    image: armenia,
+    oldPrice: "5 500 ₽",
+    newPrice: "3 850 ₽",
+    discount: 30,
+    tag: "Горящее",
+    description: "Отдых у моря по выгодной цене",
+  },
+  {
+    from: "Казань",
+    to: "Москва",
+    image: moscow,
+    oldPrice: "4 000 ₽",
+    newPrice: "2 800 ₽",
+    discount: 30,
+    tag: "Популярно",
+    description: "Комфортные поезда",
+  },
+  {
+    from: "Москва",
+    to: "Нижний Новгород",
+    image: novgorod,
+    oldPrice: "2 800 ₽",
+    newPrice: "1 680 ₽",
+    discount: 40,
+    tag: "Бюджетно",
+    description: "Экономия до 40%",
+  },
+];
 
 /** Единая палитра карточки (лого): #100A6F → #8A70F8 — без конкурирующих голубого/красного */
 const destinationTagClass =
@@ -36,6 +124,8 @@ const destinationCtaClass = cn(
   "transition-all duration-300"
 );
 
+type Destination = (typeof DEFAULT_DESTINATIONS)[number] & { href?: string };
+
 const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectionProps) => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -43,96 +133,46 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
   const isMobile = useIsMobile();
   const [currentMobileIndex, setCurrentMobileIndex] = useState(0);
   const mobileIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const f = usePageSectionFields<RecommendedTrainsFields>("recommendedTrains");
+  const sectionTitle = f.title || "Горящие направления";
+  const sectionSubtitle =
+    f.subtitle || "Специальные предложения и скидки на популярные маршруты";
 
-  const destinations = [
-    {
-      from: "Москва",
-      to: "Санкт-Петербург",
-      image: stPetersburg,
-      oldPrice: "3 500 ₽",
-      newPrice: "2 800 ₽",
-      discount: 20,
-      tag: "Популярно",
-      description: "Быстрое и комфортное путешествие",
-    },
-    {
-      from: "Москва",
-      to: "Казань",
-      image: kazan,
-      oldPrice: "4 200 ₽",
-      newPrice: "2 940 ₽",
-      discount: 30,
-      tag: "Горящее",
-      description: "Скидка на билеты до конца месяца",
-    },
-    {
-      from: "Санкт-Петербург",
-      to: "Москва",
-      image: moscow,
-      oldPrice: "3 800 ₽",
-      newPrice: "3 040 ₽",
-      discount: 20,
-      tag: "Популярно",
-      description: "Ежедневные рейсы",
-    },
-    {
-      from: "Москва",
-      to: "Великий Новгород",
-      image: novgorod,
-      oldPrice: "2 500 ₽",
-      newPrice: "1 500 ₽",
-      discount: 40,
-      tag: "Бюджетно",
-      description: "Отличная цена для путешествия",
-    },
-    {
-      from: "Санкт-Петербург",
-      to: "Карелия",
-      image: karelia,
-      oldPrice: "3 200 ₽",
-      newPrice: "2 240 ₽",
-      discount: 30,
-      tag: "Экскурсии",
-      description: "Красивые пейзажи и природа",
-    },
-    {
-      from: "Москва",
-      to: "Сочи",
-      image: armenia,
-      oldPrice: "5 500 ₽",
-      newPrice: "3 850 ₽",
-      discount: 30,
-      tag: "Горящее",
-      description: "Отдых у моря по выгодной цене",
-    },
-    {
-      from: "Казань",
-      to: "Москва",
-      image: moscow,
-      oldPrice: "4 000 ₽",
-      newPrice: "2 800 ₽",
-      discount: 30,
-      tag: "Популярно",
-      description: "Комфортные поезда",
-    },
-    {
-      from: "Москва",
-      to: "Нижний Новгород",
-      image: novgorod,
-      oldPrice: "2 800 ₽",
-      newPrice: "1 680 ₽",
-      discount: 40,
-      tag: "Бюджетно",
-      description: "Экономия до 40%",
-    },
-  ];
+  const destinations: Destination[] =
+    Array.isArray(f.items) && f.items.length > 0
+      ? f.items.map((item, i) => {
+          const def = DEFAULT_DESTINATIONS[i] ?? DEFAULT_DESTINATIONS[0];
+          const discountRaw = item.discount ?? def.discount;
+          const discount =
+            typeof discountRaw === "number" ? discountRaw : Number(discountRaw) || def.discount;
+          return {
+            from: item.from || def.from,
+            to: item.to || def.to,
+            image: mediaOrFallback(item.image, def.image),
+            oldPrice: item.oldPrice || def.oldPrice,
+            newPrice: item.newPrice || def.newPrice,
+            discount,
+            tag: item.tag || def.tag,
+            description: item.description || def.description,
+            href: item.href,
+          };
+        })
+      : DEFAULT_DESTINATIONS;
 
-  const handleSelectDates = (from: string, to: string) => {
+  const handleSelectDates = (destination: Destination) => {
+    if (destination.href) {
+      if (destination.href.startsWith("http")) {
+        window.open(destination.href, "_blank", "noopener,noreferrer");
+      } else {
+        navigate(destination.href);
+      }
+      return;
+    }
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const params = new URLSearchParams({
-      from,
-      to,
+      from: destination.from,
+      to: destination.to,
       date: tomorrow.toISOString().split("T")[0],
       passengers: "1",
       ticketType: "all",
@@ -268,6 +308,7 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
   };
 
   return (
+    <CmsEditable sectionId="recommendedTrains">
     <section className={sectionShellClass(surface, "pt-20 pb-8 md:py-20")}>
       {/* Декоративные желтые пятна */}
       {surface === "brand" && (
@@ -303,11 +344,20 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
 
       <div className="container relative z-10">
         <div className="mb-12 text-center">
-          <h2 className="heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight">
-            Горящие направления
+          <h2
+            className={cmsHeadingClass(
+              f.titleColor,
+              "heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight"
+            )}
+            style={cmsColorStyle(f.titleColor)}
+          >
+            {sectionTitle}
           </h2>
-          <p className={cn("text-lg md:text-xl max-w-2xl mx-auto", sectionLeadClass(surface))}>
-            Специальные предложения и скидки на популярные маршруты
+          <p
+            className={cn("text-lg md:text-xl max-w-2xl mx-auto", sectionLeadClass(surface))}
+            style={cmsColorStyle(f.subtitleColor)}
+          >
+            {sectionSubtitle}
           </p>
         </div>
 
@@ -344,7 +394,7 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
                   // Всегда 3 карточки
                   "w-[calc((100%-3rem)/3)] min-w-[calc((100%-3rem)/3)] max-w-[calc((100%-3rem)/3)] snap-start"
                 )}
-                onClick={() => handleSelectDates(destination.from, destination.to)}
+                onClick={() => handleSelectDates(destination)}
               >
                 {/* Изображение */}
                 <div className="relative h-64 overflow-hidden">
@@ -388,7 +438,7 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
                       className={destinationCtaClass}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleSelectDates(destination.from, destination.to);
+                        handleSelectDates(destination);
                       }}
                     >
                       <Calendar className="h-5 w-5 mr-2 text-white" strokeWidth={2.25} />
@@ -450,7 +500,7 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
               {destinations.map((destination, index) => (
                 <div
                   key={index}
-                  onClick={() => handleSelectDates(destination.from, destination.to)}
+                  onClick={() => handleSelectDates(destination)}
                   className={cn(
                     "flex-shrink-0 w-full",
                     "group relative rounded-3xl overflow-hidden",
@@ -501,7 +551,7 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
                         className={destinationCtaClass}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleSelectDates(destination.from, destination.to);
+                          handleSelectDates(destination);
                         }}
                       >
                         <Calendar className="h-5 w-5 mr-2 text-white" strokeWidth={2.25} />
@@ -564,6 +614,7 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
       </div>
 
     </section>
+    </CmsEditable>
   );
 };
 

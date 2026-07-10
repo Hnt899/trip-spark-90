@@ -40,4 +40,6 @@ export interface BlogArticle {
   sponsoredGrid: boolean;
   /** Для сортировки «Популярные» */
   views: number;
+  /** Похожие статьи (заполняется API при чтении) */
+  relatedPosts?: BlogArticle[];
 }

@@ -132,7 +132,7 @@ const ChatWidget = () => {
           type="button"
           aria-label="Открыть чат с помощником"
           onClick={() => setIsChatOpen(true)}
-          className="pointer-events-auto fixed bottom-6 right-6 z-[9999] flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-500 text-primary-foreground shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary animate-[chatPulse_5s_ease-in-out_infinite]"
+          className="chat-pulse-btn pointer-events-auto fixed bottom-6 right-6 z-[9999] flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-500 text-primary-foreground shadow-xl hover:scale-105 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
         >
           <MessageCircle className="h-7 w-7" />
           <span className="sr-only">Открыть чат</span>

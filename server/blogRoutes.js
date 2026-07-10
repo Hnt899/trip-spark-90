@@ -35,10 +35,20 @@ function sanitizeBlocks(raw) {
     const type = String(b.type || "");
     if (!ALLOWED_BLOCK_TYPES.has(type)) continue;
     if (type === "paragraph") {
-      out.push({ type, text: String(b.text ?? "").slice(0, 80000) });
+      const block = { type, text: String(b.text ?? "").slice(0, 80000) };
+      if (b.anchor) {
+        block.anchor = true;
+        if (b.anchorLabel) block.anchorLabel = String(b.anchorLabel).slice(0, 200);
+      }
+      out.push(block);
     } else if (type === "heading") {
       const level = [1, 2, 3].includes(Number(b.level)) ? Number(b.level) : 2;
-      out.push({ type, level, text: String(b.text ?? "").slice(0, 500) });
+      const block = { type, level, text: String(b.text ?? "").slice(0, 500) };
+      if (b.anchor) {
+        block.anchor = true;
+        if (b.anchorLabel) block.anchorLabel = String(b.anchorLabel).slice(0, 200);
+      }
+      out.push(block);
     } else if (type === "image") {
       out.push({
         type,
@@ -334,6 +344,30 @@ function normalizeBadges(arr) {
 function normalizeTagIds(arr) {
   if (!Array.isArray(arr)) return [];
   return arr.map((x) => String(x).trim().toLowerCase()).filter(Boolean);
+}
+
+function normalizeRelatedPostIds(arr) {
+  if (!Array.isArray(arr)) return [];
+  const uuids = arr
+    .map((x) => String(x).trim())
+    .filter((x) => /^[0-9a-f-]{36}$/i.test(x));
+  return [...new Set(uuids)].slice(0, 5);
+}
+
+async function fetchRelatedPosts(relatedIds, excludeId) {
+  const ids = normalizeRelatedPostIds(relatedIds).filter((id) => id !== excludeId);
+  if (!ids.length) return [];
+  const { rows } = await pool.query(
+    `SELECT id, slug, title, excerpt, cover_image_url, published_at, reading_minutes,
+            badges, channel, tag_ids, editors_pick, partner_carousel, sponsored_grid, views
+     FROM blog_posts
+     WHERE id = ANY($1::uuid[])
+       AND status = 'published'
+       AND published_at IS NOT NULL AND published_at <= NOW()
+     ORDER BY array_position($1::uuid[], id)`,
+    [ids],
+  );
+  return rows.map(rowToArticle);
 }
 
 function normalizeSlug(value) {
@@ -635,6 +669,7 @@ function parseCreateBody(body) {
       editors_pick: !!body.editors_pick,
       partner_carousel: !!body.partner_carousel,
       sponsored_grid: !!body.sponsored_grid,
+      related_post_ids: normalizeRelatedPostIds(body.related_post_ids),
     },
   };
 }
@@ -686,11 +721,14 @@ export function registerBlogPublicRoutes(app) {
         .query(`UPDATE blog_posts SET views = views + 1 WHERE id = $1`, [row.id])
         .catch(() => {});
 
+      const relatedPosts = await fetchRelatedPosts(row.related_post_ids, row.id);
+
       res.json({
         ...rowToArticle({ ...row, views: (row.views ?? 0) + 1 }),
         content_blocks: Array.isArray(row.content_blocks)
           ? row.content_blocks
           : [],
+        relatedPosts,
       });
     } catch (e) {
       console.error(e);
@@ -935,7 +973,7 @@ export function registerAdminBlogRoutes(app) {
   app.get("/api/admin/blog/posts", adminMiddleware, async (req, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT id, slug, title, excerpt, status, published_at, updated_at, channel, editors_pick
+        `SELECT id, slug, title, excerpt, cover_image_url, status, published_at, updated_at, channel, editors_pick
          FROM blog_posts
          ORDER BY updated_at DESC`
       );
@@ -974,8 +1012,8 @@ export function registerAdminBlogRoutes(app) {
       const { rows } = await pool.query(
         `INSERT INTO blog_posts (
           slug, title, excerpt, cover_image_url, content_blocks, status, published_at,
-          reading_minutes, badges, channel, tag_ids, editors_pick, partner_carousel, sponsored_grid, author_id
-        ) VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9::text[],$10,$11::text[],$12,$13,$14,$15)
+          reading_minutes, badges, channel, tag_ids, editors_pick, partner_carousel, sponsored_grid, related_post_ids, author_id
+        ) VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9::text[],$10,$11::text[],$12,$13,$14,$15::uuid[],$16)
         RETURNING *`,
         [
           d.slug,
@@ -992,6 +1030,7 @@ export function registerAdminBlogRoutes(app) {
           d.editors_pick,
           d.partner_carousel,
           d.sponsored_grid,
+          d.related_post_ids,
           req.userId,
         ]
       );
@@ -1075,6 +1114,7 @@ export function registerAdminBlogRoutes(app) {
             content_blocks = $6::jsonb, status = $7, published_at = $8,
             reading_minutes = $9, badges = $10::text[], channel = $11,
             tag_ids = $12::text[], editors_pick = $13, partner_carousel = $14, sponsored_grid = $15,
+            related_post_ids = $16::uuid[],
             updated_at = NOW()
           WHERE id = $1::uuid
           RETURNING *`,
@@ -1104,6 +1144,9 @@ export function registerAdminBlogRoutes(app) {
             b.sponsored_grid !== undefined
               ? !!b.sponsored_grid
               : cur.sponsored_grid,
+            b.related_post_ids !== undefined
+              ? normalizeRelatedPostIds(b.related_post_ids).filter((id) => id !== req.params.id)
+              : normalizeRelatedPostIds(cur.related_post_ids || []).filter((id) => id !== req.params.id),
           ]
         );
         res.json(rows[0]);

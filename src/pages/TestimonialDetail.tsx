@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -29,6 +29,9 @@ import karelia from "@/assets/images/cities/karelia.jpg";
 import moscow from "@/assets/images/cities/moscow.jpg";
 import sochi from "@/assets/images/cities/armenia.jpg";
 import белыеНочи from "@/assets/images/events/белые ночи.jpg";
+import { useMergedPublishedPage } from "@/hooks/usePageContent";
+import { getSectionFields, mediaOrFallback } from "@/lib/pageContentMerge";
+import type { TestimonialsFields, TestimonialsItemFields } from "@/types/pageContent";
 
 const testimonialsData = [
   {
@@ -223,7 +226,53 @@ const testimonialsData = [
 const TestimonialDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const testimonial = testimonialsData.find(t => t.id === Number(id));
+  const { content } = useMergedPublishedPage("home");
+
+  const hardcoded = testimonialsData.find((t) => t.id === Number(id));
+
+  const cmsItem = useMemo(() => {
+    const fields = getSectionFields<TestimonialsFields>(content, "testimonials");
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return items.find((item: TestimonialsItemFields) => String(item.id) === String(id));
+  }, [content, id]);
+
+  const testimonial = useMemo(() => {
+    if (!hardcoded && !cmsItem) return null;
+
+    const base = hardcoded || {
+      id: Number(id) || 0,
+      name: cmsItem?.name || "",
+      avatar: "",
+      route: cmsItem?.route || "",
+      date: cmsItem?.date || "",
+      photos: [] as string[],
+      review: "",
+    };
+
+    if (!cmsItem) return base;
+
+    const gallery =
+      Array.isArray(cmsItem.gallery) && cmsItem.gallery.length > 0
+        ? cmsItem.gallery.filter((g): g is string => typeof g === "string" && g.trim().length > 0)
+        : cmsItem.photo
+          ? [cmsItem.photo]
+          : [];
+
+    const photos =
+      gallery.length > 0
+        ? gallery.map((g, i) => mediaOrFallback(g, base.photos[i] || base.photos[0] || g))
+        : base.photos;
+
+    return {
+      ...base,
+      name: cmsItem.name || base.name,
+      avatar: mediaOrFallback(cmsItem.avatar, base.avatar),
+      route: cmsItem.route || base.route,
+      date: cmsItem.date || base.date,
+      photos,
+      review: cmsItem.body || cmsItem.text || base.review,
+    };
+  }, [hardcoded, cmsItem, id]);
 
   useEffect(() => {
     window.scrollTo(0, 0);

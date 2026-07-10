@@ -3,15 +3,19 @@ import { useEffect, useRef, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import karelia from "@/assets/images/cities/karelia.jpg";
-import kareliaGrafika from "@/assets/images/cities/graphics/karelia grafika.jpg";
+import type { SectionSurface } from "@/lib/sectionSurface";
+import { sectionHeadingAccentClass, sectionYellowGlow } from "@/lib/sectionSurface";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import { mediaOrFallback } from "@/lib/pageContentMerge";
+import type { HeroRoutesFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle } from "@/lib/cmsStyle";
 import moscow from "@/assets/images/cities/moscow.jpg";
 import moscowGrafika from "@/assets/images/cities/graphics/moscov grafika.jpg";
 import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
 import piterGrafika from "@/assets/images/cities/graphics/piter grafika.jpg";
 import kazan from "@/assets/images/cities/kazan.jpg";
 import kazanGrafika from "@/assets/images/cities/graphics/kazan grafika.jpg";
-import novgorod from "@/assets/images/cities/novgorod.jpg";
 import rostov from "@/assets/images/cities/rostov.jpg";
 import rostovGrafika from "@/assets/images/cities/graphics/rostov grafika.jpg";
 import sochi from "@/assets/images/cities/soci.jpg";
@@ -25,6 +29,7 @@ interface RouteCard {
   hoverImage?: string; // Графическое изображение при наведении
   rating?: number;
   href: string;
+  titleColor?: string;
   // Размеры в пикселях для lg
   lgWidth: number;
   lgHeight: number;
@@ -100,7 +105,7 @@ const routeCards: RouteCard[] = [
   },
 ];
 
-const HeroRoutes = () => {
+const HeroRoutes = ({ surface = "brand" }: { surface?: SectionSurface }) => {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
@@ -108,13 +113,27 @@ const HeroRoutes = () => {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const mobileTrackRef = useRef<HTMLDivElement | null>(null);
+  const f = usePageSectionFields<HeroRoutesFields>("heroRoutes");
+  const mobileTitleAccent = f.mobileTitleAccent || "Лучшие";
+  const mobileTitleRest = f.mobileTitleRest || "маршруты";
+  const cards: RouteCard[] = routeCards.map((card) => {
+    const cms = f.cards?.find((c) => c.id === card.id);
+    return {
+      ...card,
+      title: cms?.title || card.title,
+      description: cms?.description || card.description,
+      image: mediaOrFallback(cms?.image, card.image),
+      hoverImage: mediaOrFallback(cms?.hoverImage, card.hoverImage || ""),
+      href: cms?.href || card.href,
+      titleColor: cms?.titleColor || "",
+    };
+  });
 
   useEffect(() => {
     const updateCardSizes = () => {
       if (window.innerWidth >= 1024 && containerRef.current) {
-        const gap = 24; // Расстояние между карточками в пикселях
-        const cards = containerRef.current.querySelectorAll('[data-card-id]');
-        cards.forEach((card) => {
+        const els = containerRef.current.querySelectorAll('[data-card-id]');
+        els.forEach((card) => {
           const cardElement = card as HTMLElement;
           const cardId = cardElement.getAttribute('data-card-id');
           const routeCard = routeCards.find(c => c.id === cardId);
@@ -135,15 +154,16 @@ const HeroRoutes = () => {
   }, []);
 
   return (
+    <CmsEditable sectionId="heroRoutes">
     <section id="hero-section" className="relative w-full pt-24 pb-8 md:pt-52 md:pb-12 overflow-hidden">
       <div className="container px-4 md:px-6 relative z-10">
         {/* Заголовок только на мобилке */}
         <div className="md:hidden text-center mb-6">
           <h2 className="text-3xl font-extrabold">
-            <span className="text-[#FFD700]" style={{ textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4)' }}>
-              Лучшие
+            <span className={sectionHeadingAccentClass(surface)} style={surface === "brand" ? sectionYellowGlow : undefined}>
+              {mobileTitleAccent}
             </span>{" "}
-            <span className="text-white">маршруты</span>
+            <span className={surface === "light" ? "heading-gradient" : "text-white"}>{mobileTitleRest}</span>
           </h2>
         </div>
 
@@ -152,7 +172,7 @@ const HeroRoutes = () => {
           ref={containerRef}
           className="relative w-full h-[1200px] hidden lg:block z-10"
         >
-          {routeCards.map((card) => (
+          {cards.map((card) => (
             <Link
               key={card.id}
               to={card.href}
@@ -193,7 +213,10 @@ const HeroRoutes = () => {
               <div className="relative h-full flex flex-col p-4 md:p-6 lg:p-8 text-white z-30">
                 {/* Верхняя часть: название и рейтинг */}
                 <div className="flex items-start justify-between gap-4 mb-3">
-                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                  <h2
+                    className="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+                    style={cmsColorStyle(card.titleColor) || (!card.titleColor?.trim() ? { color: "#fff" } : undefined)}
+                  >
                     {card.title}
                   </h2>
                   {card.rating && (
@@ -219,7 +242,7 @@ const HeroRoutes = () => {
         
         {/* Мобильная версия - сетка для md */}
         <div className="hidden md:grid md:grid-cols-2 gap-4 md:gap-6 lg:hidden">
-          {routeCards.map((card) => (
+          {cards.map((card) => (
             <Link
               key={card.id}
               to={card.href}
@@ -255,7 +278,10 @@ const HeroRoutes = () => {
               <div className="relative h-full flex flex-col p-4 md:p-6 text-white z-20">
                 {/* Верхняя часть: название и рейтинг */}
                 <div className="flex items-start justify-between gap-4 mb-3">
-                  <h2 className="text-2xl md:text-3xl font-bold leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                  <h2
+                    className="text-2xl md:text-3xl font-bold leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+                    style={cmsColorStyle(card.titleColor) || (!card.titleColor?.trim() ? { color: "#fff" } : undefined)}
+                  >
                     {card.title}
                   </h2>
                   {card.rating && (
@@ -292,7 +318,7 @@ const HeroRoutes = () => {
               const minSwipeDistance = 50;
 
               if (distance > minSwipeDistance) {
-                setMobileCurrent((prev) => Math.min(routeCards.length - 1, prev + 1));
+                setMobileCurrent((prev) => Math.min(cards.length - 1, prev + 1));
               }
               
               if (distance < -minSwipeDistance) {
@@ -310,7 +336,7 @@ const HeroRoutes = () => {
                 transform: `translateX(-${mobileCurrent * 100}%)`,
               }}
             >
-              {routeCards.map((card, index) => (
+              {cards.map((card) => (
                 <Link
                   key={card.id}
                   to={card.href}
@@ -349,7 +375,10 @@ const HeroRoutes = () => {
                   <div className="relative h-full flex flex-col p-4 text-white z-20">
                     {/* Верхняя часть: название и рейтинг */}
                     <div className="flex items-start justify-between gap-4 mb-3">
-                      <h2 className="text-2xl font-bold leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                      <h2
+                        className="text-2xl font-bold leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+                        style={cmsColorStyle(card.titleColor) || (!card.titleColor?.trim() ? { color: "#fff" } : undefined)}
+                      >
                         {card.title}
                       </h2>
                       {card.rating && (
@@ -376,7 +405,7 @@ const HeroRoutes = () => {
 
           {/* Индикаторы для мобильной версии */}
           <div className="flex justify-center gap-2 mt-4 mb-6">
-            {routeCards.map((_, index) => (
+            {cards.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setMobileCurrent(index)}
@@ -403,6 +432,7 @@ const HeroRoutes = () => {
         </div>
       </div>
     </section>
+    </CmsEditable>
   );
 };
 

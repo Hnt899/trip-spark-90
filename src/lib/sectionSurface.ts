@@ -28,7 +28,7 @@ export function sectionLeadClass(surface: SectionSurface): string {
 export function sectionShellClass(surface: SectionSurface, paddingClass: string): string {
   return cn(
     paddingClass,
-    "relative overflow-hidden",
+    "relative overflow-x-hidden overflow-y-visible",
     surface === "light" ? "bg-white" : "bg-[#100A6F]/80 backdrop-blur-sm"
   );
 }

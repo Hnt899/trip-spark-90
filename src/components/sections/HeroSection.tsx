@@ -15,6 +15,11 @@ import busVideo from "@/assets/video/автобус.mp4";
 import { cn } from "@/lib/utils";
 import { cities } from "@/data/cities";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import { mediaOrFallback } from "@/lib/pageContentMerge";
+import type { HeroFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle } from "@/lib/cmsStyle";
 
 type TravelType = "train" | "flight" | "bus";
 
@@ -22,6 +27,12 @@ const HeroSection = () => {
   const navigate = useNavigate();
   const formRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const hero = usePageSectionFields<HeroFields>("hero");
+  const titleText = hero.title || "Путешествие это легко!";
+  const titleColor = hero.titleColor;
+  const trainSrc = mediaOrFallback(hero.videoTrain, trainVideo);
+  const flightSrc = mediaOrFallback(hero.videoFlight, flightVideo);
+  const busSrc = mediaOrFallback(hero.videoBus, busVideo);
   const [travelType, setTravelType] = useState<TravelType>("train");
   const [tripType, setTripType] = useState<"round" | "one">("round");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -63,11 +74,12 @@ const HeroSection = () => {
   };
 
   return (
+    <CmsEditable sectionId="hero">
     <section id="hero-section" className="relative min-h-screen flex items-center overflow-hidden">
       {/* Фон с видео и затемнением под формой */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <video
-          key={travelType}
+          key={`${travelType}-${travelType === "flight" ? flightSrc : travelType === "bus" ? busSrc : trainSrc}`}
           autoPlay
           loop
           muted
@@ -87,13 +99,13 @@ const HeroSection = () => {
           }
         >
           {travelType === "flight" && (
-            <source src={flightVideo} type="video/mp4" />
+            <source src={flightSrc} type="video/mp4" />
           )}
           {travelType === "bus" && (
-            <source src={busVideo} type="video/mp4" />
+            <source src={busSrc} type="video/mp4" />
           )}
           {travelType === "train" && (
-            <source src={trainVideo} type="video/mp4" />
+            <source src={trainSrc} type="video/mp4" />
           )}
         </video>
         {/* Затемнение фона под формой */}
@@ -104,13 +116,23 @@ const HeroSection = () => {
         <div className="max-w-4xl mx-auto">
           {/* H1 */}
           <div className="text-center mb-12">
-            <h1 className="text-white font-extrabold text-5xl md:text-6xl leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
-              {(() => {
-                const text = "Путешествие это легко!";
+            <h1
+              className={cn(
+                "font-extrabold text-5xl md:text-6xl leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.45)]",
+                !titleColor?.trim() && "text-white"
+              )}
+              style={cmsColorStyle(titleColor)}
+            >
+              {titleColor?.trim() ? (
+                titleText
+              ) : (
+                (() => {
+                const text = titleText;
                 const letters = text.split("");
                 const animationDuration = 0.23;
                 const totalCycleDuration = letters.length * animationDuration;
-                const firstWordEnd = "Путешествие".length;
+                const spaceIdx = text.indexOf(" ");
+                const firstWordEnd = spaceIdx > 0 ? spaceIdx : Math.min(text.length, 12);
                 
                 return (
                   <>
@@ -148,7 +170,8 @@ const HeroSection = () => {
                     })}
                   </>
                 );
-              })()}
+              })()
+              )}
             </h1>
           </div>
 
@@ -646,6 +669,7 @@ const HeroSection = () => {
         </div>
       </div>
     </section>
+    </CmsEditable>
   );
 };
 

@@ -4,6 +4,7 @@ import { registerAdminBlogRoutes } from "./blogRoutes.js";
 import { registerAdminRouteRoutes } from "./routePageRoutes.js";
 import { registerAdminReferenceRoutes } from "./referenceRoutes.js";
 import { registerAdminGuideRoutes } from "./guideRoutes.js";
+import { registerAdminPageRoutes } from "./pageContentRoutes.js";
 
 /**
  * @param {import('express').Express} app
@@ -115,4 +116,5 @@ export function registerAdminRoutes(app) {
   registerAdminRouteRoutes(app);
   registerAdminReferenceRoutes(app);
   registerAdminGuideRoutes(app);
+  registerAdminPageRoutes(app);
 }

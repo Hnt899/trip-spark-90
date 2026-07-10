@@ -1,8 +1,15 @@
 import { useState, useEffect } from "react";
 import video from "@/assets/video/video.mp4";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type { SectionSurface } from "@/lib/sectionSurface";
+import { cn } from "@/lib/utils";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import { mediaOrFallback } from "@/lib/pageContentMerge";
+import type { RoutesHeroFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle, cmsHeadingClass } from "@/lib/cmsStyle";
 
-const advantages = [
+const DEFAULT_ADVANTAGES = [
   {
     number: "50",
     title: "готовых маршрутов для путешествий",
@@ -20,8 +27,14 @@ const advantages = [
   },
 ];
 
-const RoutesHeroSection = () => {
+const RoutesHeroSection = ({ surface = "brand" }: { surface?: SectionSurface }) => {
   const isMobile = useIsMobile();
+  const f = usePageSectionFields<RoutesHeroFields>("routesHero");
+  const titleLine1 = f.titleLine1 || "Создавайте свои";
+  const titleLine2 = f.titleLine2 || "истории с TudaSuda";
+  const videoSrc = mediaOrFallback(f.videoUrl, video);
+  const advantages =
+    Array.isArray(f.advantages) && f.advantages.length > 0 ? f.advantages : DEFAULT_ADVANTAGES;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [nextCardReady, setNextCardReady] = useState(false);
@@ -48,12 +61,21 @@ const RoutesHeroSection = () => {
   }, []);
 
   return (
+    <CmsEditable sectionId="routesHero">
     <section id="routes-hero-section" className="relative py-20 pb-2 md:pb-20 overflow-hidden">
       <div className="container relative z-10">
         <div className="text-center mb-16">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4 text-white drop-shadow-lg">
-            <span className="block mb-1 md:mb-2">Создавайте свои</span>
-            <span className="block">истории с TudaSuda</span>
+          <h1
+            className={cmsHeadingClass(
+              f.titleColor,
+              surface === "light"
+                ? "heading-gradient text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4"
+                : "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4 text-white drop-shadow-lg"
+            )}
+            style={cmsColorStyle(f.titleColor)}
+          >
+            <span className="block mb-1 md:mb-2">{titleLine1}</span>
+            <span className="block">{titleLine2}</span>
           </h1>
         </div>
 
@@ -66,7 +88,7 @@ const RoutesHeroSection = () => {
               playsInline
               className="w-full h-auto"
             >
-              <source src={video} type="video/mp4" />
+              <source src={videoSrc} type="video/mp4" />
             </video>
           </div>
 
@@ -121,21 +143,32 @@ const RoutesHeroSection = () => {
                         ...initialStyle,
                       }}
                     >
-                      <div className="bg-white/15 backdrop-blur-lg border border-white/30 rounded-3xl px-6 py-6 md:px-12 md:py-10 shadow-2xl w-full" style={{ filter: 'brightness(1)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+                      <div className={cn(
+                        "backdrop-blur-lg rounded-3xl px-6 py-6 md:px-12 md:py-10 shadow-2xl w-full border",
+                        surface === "light"
+                          ? "bg-white border-slate-200/90 shadow-[0_16px_48px_rgba(16,10,111,0.12)]"
+                          : "bg-white/15 border-white/30",
+                      )} style={{ filter: 'brightness(1)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
                         <div className="text-center">
                           <div 
                             className="text-5xl md:text-7xl lg:text-8xl font-bold mb-2 md:mb-4"
                             style={{
                               color: '#867DFF',
-                              textShadow: '0 0 20px rgba(134, 125, 255, 0.6), 0 0 40px rgba(134, 125, 255, 0.4), 0 0 60px rgba(134, 125, 255, 0.2)',
+                              textShadow: surface === "light" ? undefined : '0 0 20px rgba(134, 125, 255, 0.6), 0 0 40px rgba(134, 125, 255, 0.4), 0 0 60px rgba(134, 125, 255, 0.2)',
                             }}
                           >
                             {advantage.number}
                           </div>
-                          <div className="text-white text-lg md:text-2xl lg:text-3xl font-semibold mb-2 md:mb-4 drop-shadow-md">
+                          <div className={cn(
+                            "text-lg md:text-2xl lg:text-3xl font-semibold mb-2 md:mb-4",
+                            surface === "light" ? "text-[#3F3F7F]" : "text-white drop-shadow-md",
+                          )}>
                             {advantage.title}
                           </div>
-                          <div className="text-white/90 text-sm md:text-base lg:text-lg leading-relaxed max-w-3xl mx-auto">
+                          <div className={cn(
+                            "text-sm md:text-base lg:text-lg leading-relaxed max-w-3xl mx-auto",
+                            surface === "light" ? "text-[#3F3F7F]/80" : "text-white/90",
+                          )}>
                             {advantage.description}
                           </div>
                         </div>
@@ -198,21 +231,32 @@ const RoutesHeroSection = () => {
                         ...initialStyle,
                       }}
                     >
-                      <div className="bg-white/15 backdrop-blur-lg border border-white/30 rounded-3xl px-6 py-6 md:px-12 md:py-10 shadow-2xl w-full" style={{ filter: 'brightness(1)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+                      <div className={cn(
+                        "backdrop-blur-lg rounded-3xl px-6 py-6 md:px-12 md:py-10 shadow-2xl w-full border",
+                        surface === "light"
+                          ? "bg-white border-slate-200/90 shadow-[0_16px_48px_rgba(16,10,111,0.12)]"
+                          : "bg-white/15 border-white/30",
+                      )} style={{ filter: 'brightness(1)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
                         <div className="text-center">
                           <div 
                             className="text-5xl md:text-7xl lg:text-8xl font-bold mb-2 md:mb-4"
                             style={{
                               color: '#867DFF',
-                              textShadow: '0 0 20px rgba(134, 125, 255, 0.6), 0 0 40px rgba(134, 125, 255, 0.4), 0 0 60px rgba(134, 125, 255, 0.2)',
+                              textShadow: surface === "light" ? undefined : '0 0 20px rgba(134, 125, 255, 0.6), 0 0 40px rgba(134, 125, 255, 0.4), 0 0 60px rgba(134, 125, 255, 0.2)',
                             }}
                           >
                             {advantage.number}
                           </div>
-                          <div className="text-white text-lg md:text-2xl lg:text-3xl font-semibold mb-2 md:mb-4 drop-shadow-md">
+                          <div className={cn(
+                            "text-lg md:text-2xl lg:text-3xl font-semibold mb-2 md:mb-4",
+                            surface === "light" ? "text-[#3F3F7F]" : "text-white drop-shadow-md",
+                          )}>
                             {advantage.title}
                           </div>
-                          <div className="text-white/90 text-sm md:text-base lg:text-lg leading-relaxed max-w-3xl mx-auto">
+                          <div className={cn(
+                            "text-sm md:text-base lg:text-lg leading-relaxed max-w-3xl mx-auto",
+                            surface === "light" ? "text-[#3F3F7F]/80" : "text-white/90",
+                          )}>
                             {advantage.description}
                           </div>
                         </div>
@@ -226,8 +270,8 @@ const RoutesHeroSection = () => {
         </div>
       </div>
     </section>
+    </CmsEditable>
   );
 };
 
 export default RoutesHeroSection;
-

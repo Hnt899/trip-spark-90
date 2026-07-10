@@ -2,6 +2,11 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { SectionSurface } from "@/lib/sectionSurface";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import { mediaOrFallback } from "@/lib/pageContentMerge";
+import type { VerifiedFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle, cmsHeadingClass } from "@/lib/cmsStyle";
 import moscow from "@/assets/images/cities/moscow.jpg";
 import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
 import kazan from "@/assets/images/cities/kazan.jpg";
@@ -102,8 +107,26 @@ interface VerifiedSectionProps {
 const VerifiedSection = ({ surface = "brand", omitOuterChrome = false }: VerifiedSectionProps) => {
   const navigate = useNavigate();
   const isLight = surface === "light";
+  const f = usePageSectionFields<VerifiedFields>("verified");
+  const badgeLeft = f.badgeLeft || "Проверено";
+  const badgeRight = f.badgeRight || "TudaSuda";
+  const title = f.title || "Готовые маршруты для путешествий";
+  const description =
+    f.description ||
+    "Проверенные тревел-блогерами и журналистами маршруты по всей России. Каждый маршрут включает подробную информацию о достопримечательностях и советы от опытных путешественников.";
+  const ctaLabel = f.ctaLabel || "Все маршруты";
+  const ctaHref = f.ctaHref || "/routes/list";
+  const polaroids = POLAROIDS.map((p, i) => {
+    const cms = f.polaroids?.[i];
+    return {
+      src: mediaOrFallback(cms?.image, p.src),
+      caption: cms?.caption || p.caption,
+      rotateClass: p.rotateClass,
+    };
+  });
 
   return (
+    <CmsEditable sectionId="verified">
     <section
       className={cn(
         "relative py-16 pb-24 md:py-24 md:pb-28 lg:pb-24",
@@ -171,10 +194,10 @@ const VerifiedSection = ({ surface = "brand", omitOuterChrome = false }: Verifie
       >
         <div className="relative h-full min-h-[560px] w-full xl:min-h-[580px]">
           {DESKTOP_POLAROID_LAYOUT.map(({ index, className, frameClass }) => {
-            const p = POLAROIDS[index];
+            const p = polaroids[index];
             return (
               <Polaroid
-                key={`desktop-${p.caption}`}
+                key={`desktop-${p.caption}-${index}`}
                 src={p.src}
                 caption={p.caption}
                 rotateClass={frameClass}
@@ -211,21 +234,30 @@ const VerifiedSection = ({ surface = "brand", omitOuterChrome = false }: Verifie
                       isLight ? "text-slate-700" : "text-white/90"
                     )}
                   >
-                    Проверено
+                    {badgeLeft}
                   </span>
                   <span className="text-base md:text-lg font-bold heading-gradient">
-                    TudaSuda
+                    {badgeRight}
                   </span>
                 </div>
 
                 {/* Заголовок */}
                 {isLight ? (
-                  <h2 className="heading-gradient text-3xl md:text-4xl lg:text-5xl font-bold mb-6 md:mb-8 leading-tight tracking-tight">
-                    Готовые маршруты для путешествий
+                  <h2
+                    className={cmsHeadingClass(
+                      f.titleColor,
+                      "heading-gradient text-3xl md:text-4xl lg:text-5xl font-bold mb-6 md:mb-8 leading-tight tracking-tight"
+                    )}
+                    style={cmsColorStyle(f.titleColor)}
+                  >
+                    {title}
                   </h2>
                 ) : (
-                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 md:mb-8 leading-tight">
-                    Готовые маршруты для путешествий
+                  <h2
+                    className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 md:mb-8 leading-tight"
+                    style={cmsColorStyle(f.titleColor)}
+                  >
+                    {title}
                   </h2>
                 )}
 
@@ -233,29 +265,29 @@ const VerifiedSection = ({ surface = "brand", omitOuterChrome = false }: Verifie
                 <p
                   className={cn(
                     "text-base md:text-lg mb-8 md:mb-10 max-w-2xl mx-auto",
-                    isLight ? "text-slate-600" : "text-white/80"
+                    !f.descriptionColor?.trim() && (isLight ? "text-slate-600" : "text-white/80")
                   )}
+                  style={cmsColorStyle(f.descriptionColor)}
                 >
-                  Проверенные тревел-блогерами и журналистами маршруты по всей России.
-                  Каждый маршрут включает подробную информацию о достопримечательностях и советы от опытных путешественников.
+                  {description}
                 </p>
 
                 {/* Кнопка */}
                 <Button
-                  onClick={() => navigate("/routes/list")}
+                  onClick={() => navigate(ctaHref)}
                   size="lg"
                   className="bg-gradient-to-r from-primary via-purple-600 to-primary hover:from-primary/90 hover:via-purple-600/90 hover:to-primary/90 text-white px-8 md:px-12 py-6 md:py-8 text-base md:text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  Все маршруты
+                  {ctaLabel}
                 </Button>
           </div>
 
           {/* Мобилка: поляроиды поверх карточки, заходят на неё у углов */}
           {MOBILE_CORNER_LAYOUT.map(({ index, className }) => {
-            const p = POLAROIDS[index];
+            const p = polaroids[index];
             return (
               <Polaroid
-                key={`mobile-corner-${p.caption}`}
+                key={`mobile-corner-${p.caption}-${index}`}
                 src={p.src}
                 caption={p.caption}
                 rotateClass={p.rotateClass}
@@ -268,6 +300,7 @@ const VerifiedSection = ({ surface = "brand", omitOuterChrome = false }: Verifie
         </div>
       </div>
     </section>
+    </CmsEditable>
   );
 };
 
