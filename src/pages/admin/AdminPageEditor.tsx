@@ -229,19 +229,21 @@ export default function AdminPageEditor() {
           Черновик
         </Button>
         <Button
-          size="sm"
-          disabled={lockedByOther || !draft || publishMut.isPending}
-          onClick={() => {
-            if (window.confirm("Опубликовать черновик на сайт?")) {
-              draft && publishMut.mutate(draft);
-            }
-          }}
-        >
-          {publishMut.isPending ? (
-            <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-          ) : null}
-          Опубликовать
-        </Button>
+  size="sm"
+  disabled={lockedByOther || !draft || publishMut.isPending}
+  onClick={() => {
+    if (window.confirm("Опубликовать черновик на сайт?")) {
+      if (draft) {
+        publishMut.mutate(draft);
+      }
+    }
+  }}
+>
+  {publishMut.isPending ? (
+    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+  ) : null}
+  Опубликовать
+</Button>
       </header>
 
       {lockedByOther && (
