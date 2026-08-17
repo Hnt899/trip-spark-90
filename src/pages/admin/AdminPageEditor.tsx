@@ -208,7 +208,7 @@ export default function AdminPageEditor() {
           size="sm"
           disabled={lockedByOther || resetMut.isPending}
           onClick={() => {
-            if (confirm("Сбросить всю страницу к дефолтам в коде?")) {
+            if (window.confirm("Сбросить всю страницу к дефолтам в коде?")) {
               resetMut.mutate({ scope: "page" });
             }
           }}
@@ -232,7 +232,7 @@ export default function AdminPageEditor() {
           size="sm"
           disabled={lockedByOther || !draft || publishMut.isPending}
           onClick={() => {
-            if (confirm("Опубликовать черновик на сайт?")) {
+            if (window.confirm("Опубликовать черновик на сайт?")) {
               draft && publishMut.mutate(draft);
             }
           }}
@@ -394,7 +394,7 @@ export default function AdminPageEditor() {
                   className="mb-4 w-full"
                   disabled={lockedByOther}
                   onClick={() => {
-                    if (confirm("Сбросить этот блок к дефолту?")) {
+                    if (window.confirm("Сбросить этот блок к дефолту?")) {
                       resetMut.mutate({
                         scope: "section",
                         sectionId: selectedSectionId,
@@ -456,7 +456,7 @@ export default function AdminPageEditor() {
                     className="mt-1 h-7 px-2 text-xs"
                     disabled={lockedByOther || restoreMut.isPending}
                     onClick={() => {
-                      if (confirm("Восстановить эту версию в черновик?")) {
+                      if (window.confirm("Восстановить эту версию в черновик?")) {
                         restoreMut.mutate(r.id);
                       }
                     }}

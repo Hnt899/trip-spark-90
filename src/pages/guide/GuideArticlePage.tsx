@@ -17,17 +17,14 @@ export default function GuideArticlePage() {
     window.scrollTo(0, 0);
   }, [category, slug]);
 
-  if (!category || !slug) {
-    return <Navigate to="/guide" replace />;
-  }
-
+  // ===== useQuery ПЕРЕД УСЛОВНЫМ ВОЗВРАТОМ =====
   const q = useQuery({
     queryKey: ["guide-post", category, slug],
     enabled: Boolean(category && slug),
     queryFn: async () => {
       try {
         return await apiFetch<GuidePost>(
-          `/api/guide/posts/by-category/${encodeURIComponent(category)}/${encodeURIComponent(slug)}`,
+          `/api/guide/posts/by-category/${encodeURIComponent(category || "")}/${encodeURIComponent(slug || "")}`,
         );
       } catch (e) {
         const err = e as Error & { status?: number };
@@ -36,6 +33,11 @@ export default function GuideArticlePage() {
       }
     },
   });
+
+  // ===== ТЕПЕРЬ УСЛОВИЕ ПОСЛЕ ХУКА =====
+  if (!category || !slug) {
+    return <Navigate to="/guide" replace />;
+  }
 
   if (q.isLoading) {
     return (
