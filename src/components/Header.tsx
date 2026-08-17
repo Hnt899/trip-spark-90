@@ -1,35 +1,24 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import NavDropdown from "@/components/NavDropdown";
 import { popularRoutes, faqTopics } from "@/data/navLinks";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Train, Plane, Bus, User, Search, Menu } from "lucide-react";
-import { format } from "date-fns";
-import { ru } from "date-fns/locale";
-import { DateRange } from "react-day-picker";
-import { cities } from "@/data/cities";
+import { Train, Bus, User, Search, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logoImage from "@/assets/images/logo/logo.png";
 import logoWhiteImage from "@/assets/images/logo/logo w.png";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-type TravelType = "train" | "flight" | "bus";
+import FlightSearchForm from "@/components/flight/FlightSearchForm";
 
 const Header = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [travelType, setTravelType] = useState<TravelType>("train");
-  const [fromCity, setFromCity] = useState<string | undefined>();
-  const [toCity, setToCity] = useState<string | undefined>();
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [fromLabel, setFromLabel] = useState<string | undefined>();
+  const [toLabel, setToLabel] = useState<string | undefined>();
   const [showStickySearch, setShowStickySearch] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [isHeroMode, setIsHeroMode] = useState(true);
@@ -196,40 +185,10 @@ const Header = () => {
     };
   }, [isHomePage, isRoutesPage, isBlogPage, showStickySearch, isMobile]);
 
-  const handleSearch = () => {
-    if (!fromCity || !toCity || !dateRange?.from) {
-      return;
-    }
-    const params = new URLSearchParams({
-      from: fromCity,
-      to: toCity,
-      date: format(dateRange.from, "yyyy-MM-dd"),
-      passengers: "1"
-    });
-    // Добавляем дату возврата, если она выбрана
-    if (dateRange?.to) {
-      params.set("returnDate", format(dateRange.to, "yyyy-MM-dd"));
-    }
-    if (travelType === "train") {
-      navigate(`/train-search?${params.toString()}`);
-    } else if (travelType === "flight") {
-      params.set("class", "economy");
-      navigate(`/flight-search?${params.toString()}`);
-    } else if (travelType === "bus") {
-      navigate(`/bus-search?${params.toString()}`);
-    }
-    if (isMobile) {
-      setMobileMenuOpen(false);
-      setMobileBookingOpen(false);
-    }
-  };
-
   type SearchFormVariant = "headerDesktop" | "headerMobileSheet";
 
   const renderSearchForm = (variant: SearchFormVariant) => {
     const isSheet = variant === "headerMobileSheet";
-    const isDesktop = variant === "headerDesktop";
-    const keyPrefix = isSheet ? "mobile" : "desktop";
     return (
       <div
         className={cn(
@@ -238,184 +197,24 @@ const Header = () => {
         )}
       >
         {isSheet && (
-          <p className="text-sm font-semibold text-foreground">Поиск билетов</p>
+          <p className="text-sm font-semibold text-foreground">Поиск авиабилетов</p>
         )}
-        <div
-          className={cn(
-            "flex flex-col gap-3",
-            isDesktop ? "lg:flex-row lg:items-stretch" : ""
-          )}
-        >
-          {/* Табы транспорта — как TabsList в HeroSection */}
-          <div
-            className={cn(
-              "grid grid-cols-3 gap-1.5 shrink-0",
-              isSheet ? "h-11 w-full" : isDesktop ? "h-10 w-full lg:w-auto lg:min-w-[156px]" : "h-10 w-full"
-            )}
-          >
-            <button
-              type="button"
-              onClick={() => setTravelType("train")}
-              className={cn(
-                "flex items-center justify-center rounded-md transition-all text-sm font-medium border",
-                travelType === "train"
-                  ? "travel-tab-gradient border-transparent text-white"
-                  : "border-border bg-background text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-              )}
-            >
-              <Train className={cn(isSheet ? "h-6 w-6" : "h-5 w-5")} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setTravelType("flight")}
-              className={cn(
-                "flex items-center justify-center rounded-md transition-all text-sm font-medium border",
-                travelType === "flight"
-                  ? "travel-tab-gradient border-transparent text-white"
-                  : "border-border bg-background text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-              )}
-            >
-              <Plane className={cn(isSheet ? "h-6 w-6" : "h-5 w-5")} />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setTravelType("bus");
-                if (dateRange?.to) {
-                  setDateRange({ from: dateRange.from, to: undefined });
-                }
-              }}
-              className={cn(
-                "flex items-center justify-center rounded-md transition-all text-sm font-medium border",
-                travelType === "bus"
-                  ? "travel-tab-gradient border-transparent text-white"
-                  : "border-border bg-background text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-              )}
-            >
-              <Bus className={cn(isSheet ? "h-6 w-6" : "h-5 w-5")} />
-            </button>
-          </div>
-
-          {/* Поля формы поиска */}
-          <div
-            className={cn(
-              "flex gap-2 flex-1",
-              isSheet ? "flex-col" : "flex-col sm:flex-row sm:items-stretch"
-            )}
-          >
-            <Select value={fromCity} onValueChange={setFromCity}>
-              <SelectTrigger
-                className={cn(
-                  "text-sm flex-1 w-full",
-                  isSheet ? "h-12 text-base" : "h-10",
-                  isDesktop && "min-w-[140px]"
-                )}
-              >
-                <SelectValue placeholder="Откуда" />
-              </SelectTrigger>
-              <SelectContent>
-                {cities.map((city) => (
-                  <SelectItem key={`${keyPrefix}-from-${city}`} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={toCity} onValueChange={setToCity}>
-              <SelectTrigger
-                className={cn(
-                  "text-sm flex-1 w-full",
-                  isSheet ? "h-12 text-base" : "h-10",
-                  isDesktop && "min-w-[140px]"
-                )}
-              >
-                <SelectValue placeholder="Куда" />
-              </SelectTrigger>
-              <SelectContent>
-                {cities.map((city) => (
-                  <SelectItem key={`${keyPrefix}-to-${city}`} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "px-3 justify-start text-left font-normal rounded-md w-full",
-                    isSheet ? "h-12 text-base" : "h-10 text-sm",
-                    !dateRange?.from && "text-muted-foreground",
-                    isDesktop && "min-w-[200px]"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-                  {travelType === "bus" ? (
-                    dateRange?.from ? (
-                      format(dateRange.from, "dd.MM", { locale: ru })
-                    ) : (
-                      <span>Дата поездки</span>
-                    )
-                  ) : (
-                    dateRange?.from && dateRange?.to ? (
-                      `${format(dateRange.from, "dd.MM", { locale: ru })} – ${format(dateRange.to, "dd.MM", { locale: ru })}`
-                    ) : dateRange?.from ? (
-                      format(dateRange.from, "dd.MM", { locale: ru })
-                    ) : (
-                      <span>Даты поездки</span>
-                    )
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className={cn("w-auto p-0", isSheet && "p-1 z-[200]")} align="start">
-                {travelType === "bus" ? (
-                  <Calendar
-                    mode="single"
-                    selected={dateRange?.from}
-                    onSelect={(date) => setDateRange(date ? { from: date, to: undefined } : undefined)}
-                    initialFocus
-                    disabled={(date) => date < new Date()}
-                    className={isSheet ? "p-1 [&_.rdp-month]:space-y-2 [&_.rdp-caption]:mb-1 [&_.rdp-cell]:h-8 [&_.rdp-cell]:w-8 [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-head_cell]:w-8" : ""}
-                  />
-                ) : (
-                  <Calendar
-                    mode="range"
-                    selected={dateRange}
-                    onSelect={setDateRange}
-                    initialFocus
-                    numberOfMonths={isSheet ? 1 : 2}
-                    disabled={(date) => date < new Date()}
-                    className={isSheet ? "p-1 [&_.rdp-month]:space-y-2 [&_.rdp-caption]:mb-1 [&_.rdp-cell]:h-8 [&_.rdp-cell]:w-8 [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-head_cell]:w-8" : ""}
-                  />
-                )}
-              </PopoverContent>
-            </Popover>
-
-            <Button
-              onClick={handleSearch}
-              className={cn(
-                "shrink-0 border-0 shadow-sm font-semibold",
-                isSheet
-                  ? "w-full h-12 rounded-xl text-base"
-                  : "h-10 px-4 rounded-md"
-              )}
-              disabled={!fromCity || !toCity || !dateRange?.from}
-              title={!fromCity || !toCity || !dateRange?.from ? "Заполните все поля" : ""}
-            >
-              <Search className={cn("mr-2", isSheet ? "h-5 w-5" : "h-4 w-4")} />
-              {isSheet ? (
-                "Найти билеты"
-              ) : (
-                <>
-                  <span className="hidden sm:inline">Найти</span>
-                </>
-              )}
-            </Button>
-          </div>
+        <div className="hidden" aria-hidden>
+          <button type="button"><Train /></button>
+          <button type="button"><Bus /></button>
         </div>
+        <FlightSearchForm
+  variant={isSheet ? "header-mobile" : "header-desktop"}
+  showTripTypeToggle={false}  // ← Меняем с !isSheet на false
+  onFromLabelChange={setFromLabel}
+  onToLabelChange={setToLabel}
+  onSearchComplete={() => {
+    if (isMobile) {
+      setMobileMenuOpen(false);
+      setMobileBookingOpen(false);
+    }
+  }}
+/>
       </div>
     );
   };
@@ -473,14 +272,14 @@ const Header = () => {
                   strokeWidth={2.25}
                 />
                 <span className="relative z-[1] flex min-w-0 flex-1 items-center gap-2 text-sm leading-tight font-semibold">
-                  {fromCity && toCity ? (
+                  {fromLabel && toLabel ? (
                     <>
-                      <span className="max-w-[42%] min-w-0 shrink truncate text-foreground">{fromCity}</span>
+                      <span className="max-w-[42%] min-w-0 shrink truncate text-foreground">{fromLabel}</span>
                       <span
                         className="h-[3px] min-h-[3px] min-w-6 flex-1 shrink-0 rounded-full bg-muted-foreground/45 self-center"
                         aria-hidden
                       />
-                      <span className="max-w-[42%] min-w-0 shrink truncate text-foreground">{toCity}</span>
+                      <span className="max-w-[42%] min-w-0 shrink truncate text-foreground">{toLabel}</span>
                     </>
                   ) : (
                     <>

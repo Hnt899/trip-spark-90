@@ -1,0 +1,71 @@
+I have a website built with TypeScript (Next.js/React). On the main page there is a search form that currently searches for buses and trains. I need to completely redesign this form for flight search with integration of Travelpayouts White Label.
+
+## What needs to be done:
+
+### 1. Keep only aviation
+- Hide (do not delete, but hide using CSS display: none or conditional rendering) all elements related to buses and trains.
+- Leave only the aviation part.
+
+### 2. Form fields (must remain):
+- "From" — text field with autocomplete
+- "To" — text field with autocomplete
+- "Departure date" — date picker (calendar)
+- "Return date" — date picker (optional, may be empty)
+- "Passengers" — with selection options:
+  - Adults (12+)
+  - Children (2-11 years)
+  - Infants (under 2 years, without seat)
+- "Flight class" — selection: Economy / Business class
+- "Search" button
+
+### 3. Autocomplete (like in White Label)
+Use Travelpayouts Autocomplete API:
+http://autocomplete.travelpayouts.com/places2?term=[text]&locale=en&types[]=city&types[]=airport
+
+text
+- When user types in the "From" or "To" field, send a request to the API.
+- Show a dropdown list under the field (city/airport, country, IATA code).
+- When a user selects an option, save the IATA code (from the `code` field in the API response).
+- If the user enters a city not found in the API response — show "Nothing found".
+- Implement debounce (300-500ms delay) to optimize API requests.
+
+### 4. Forming the White Label link
+When the "Search" button is clicked, collect form data and form a link in the following format:
+https://avia.ts-travel.online/?flightSearch=[IATA_code_from][departure_date_DDMM][IATA_code_to][number_of_adults]
+
+text
+
+Parameters:
+- `[IATA_code_from]` — three-letter airport/city code (e.g., MOW)
+- `[departure_date_DDMM]` — date in DDMM format (e.g., December 20 → 2012)
+- `[IATA_code_to]` — three-letter airport/city code (e.g., LED)
+- `[number_of_adults]` — number of adult passengers (e.g., 2)
+
+Example of a ready link:
+https://avia.ts-travel.online/?flightSearch=MOW2012LED2
+
+text
+
+### 5. Validation before submission
+- If the "From" field is empty — show error "Please select departure city".
+- If the "To" field is empty — show error "Please select destination city".
+- If "From" and "To" are the same — show error "Departure and destination cities cannot be the same".
+- If no date is selected — use current date + 1 day.
+- If passengers are not selected — default to 1 adult.
+- Children and infants should be passed as `children` and `infants` parameters if needed.
+
+### 6. Redirect
+- After successful validation, redirect the user to the generated link using window.location.href.
+- All form data should be passed to White Label (city, date, number of passengers).
+
+### 7. Additional requirements
+- The code should be clean and well-documented.
+- Handle all loading states (while API is loading).
+- Handle API errors.
+- The UI should be responsive and visually appealing.
+- Maintain the overall style of the site.
+
+### 8. My tech stack
+[Specify your stack here: React, Next.js, pure JS, Vue, etc.]
+
+Please write the complete component code or file that needs to be inserted into the project.
