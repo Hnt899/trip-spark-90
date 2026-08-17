@@ -299,47 +299,6 @@ const FlightSearchForm = ({
       
       <div className="flex flex-col gap-3 w-full">
         
-       {/* ===== ОДНА СТРОКА: Кнопка "Авиабилеты" + Переключатель ===== */}
-<div className="flex items-center justify-between w-full">
-  {/* Кнопка "Авиабилеты" (только одна!) */}
-  <button
-    type="button"
-    className="flex items-center justify-center text-sm font-medium px-3 py-1.5 rounded-md bg-gradient-to-r from-[#100877] to-[#887BFF] text-white shadow-sm whitespace-nowrap"
-  >
-    <Plane className="h-5 w-5 mr-2" />
-    Авиабилеты
-  </button>
-
-  {/* Переключатель "Туда — сюда / В одну сторону" */}
-  <div className="inline-flex items-center gap-1 rounded-md p-1 bg-white/10">
-    <button
-      type="button"
-      onClick={() => setTripType("round")}
-      className={cn(
-        "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
-        tripType === "round"
-          ? "bg-white/20"
-          : "text-white/70 hover:text-white"
-      )}
-    >
-      <span style={{ color: tripType === "round" ? "#100877" : "white" }}>Туда</span>
-      <span style={{ color: tripType === "round" ? "#887BFF" : "white" }}> — сюда</span>
-    </button>
-    <button
-      type="button"
-      onClick={() => { setTripType("one"); setReturnDate(undefined); }}
-      className={cn(
-        "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
-        tripType === "one"
-          ? "bg-white/20 text-white"
-          : "text-white/70 hover:text-white"
-      )}
-    >
-      В одну сторону
-    </button>
-  </div>
-</div>
-
         {/* ===== СТРОКА 2: Города ===== */}
         {errors.general && (
           <p className="text-sm text-red-400 rounded-md bg-red-500/10 px-3 py-2">{errors.general}</p>
