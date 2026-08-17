@@ -121,10 +121,10 @@ const HeroSection = () => {
                   {/* ===== ОДНА СТРОКА: Кнопка "Авиабилеты" + Переключатель ===== */}
                   <div className="flex items-center justify-between w-full">
                     {/* Кнопка "Авиабилеты" (только одна!) */}
-                    <TabsList className="flex items-center gap-1 bg-white/10 p-1 h-10">
+                    <TabsList className="flex items-center gap-1 bg-transparent p-1 h-10">
                       <TabsTrigger
                         value="flight"
-                        className="flex items-center justify-center text-sm font-medium px-3 py-1.5 rounded-md bg-gradient-to-r from-[#100877] to-[#887BFF] text-white shadow-sm whitespace-nowrap"
+                        className="flex items-center justify-center text-sm font-medium px-3 py-1.5 rounded-md bg-white text-[#100877] shadow-sm whitespace-nowrap hover:bg-white/90"
                       >
                         <Plane className="h-5 w-5 mr-2" />
                         Авиабилеты
