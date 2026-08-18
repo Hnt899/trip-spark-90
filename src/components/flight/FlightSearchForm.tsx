@@ -378,10 +378,10 @@ const FlightSearchForm = ({
           </Popover>
 
           <Select value={flightClass} onValueChange={(v) => setFlightClass(v as "economy" | "business")}>
-            <SelectTrigger className={cn(selectTriggerClass, isHeaderMobile ? "w-full" : "sm:w-36", isHero && "bg-white text-[#100877] border-white [&>svg]:text-[#100877]")}>
+            <SelectTrigger className={cn(selectTriggerClass, isHeaderMobile ? "w-full" : "sm:w-36", isHero && "bg-white/10 border-white/20 text-white [&>svg]:text-white")}>
               <SelectValue placeholder="Класс" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[#1a1a2e] border-white/20 text-white">
               <SelectItem value="economy">Эконом</SelectItem>
               <SelectItem value="business">Бизнес</SelectItem>
             </SelectContent>
