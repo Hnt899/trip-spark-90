@@ -1,4 +1,5 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Train, Plane, Bus } from "lucide-react";
 import { useRef, useState } from "react";
 import trainVideo from "@/assets/video/поезд.mp4";
