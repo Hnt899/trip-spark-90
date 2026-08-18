@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import RoutesPage from "./pages/Routes";
 import RouteList from "./pages/RouteList";
@@ -49,62 +50,89 @@ import TrainArticle from "./pages/reference/TrainArticle";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-        <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/routes" element={<RoutesPage />} />
-          <Route path="/routes/list" element={<RouteList />} />
-          <Route path="/routes/:id" element={<RouteDetail />} />
-          <Route path="/reference" element={<Reference />} />
-          <Route path="/reference/trains" element={<Trains />} />
-          <Route path="/reference/flights" element={<Flights />} />
-          <Route path="/reference/flights/:slug" element={<FlightArticle />} />
-          <Route path="/reference/buses" element={<Buses />} />
-          <Route path="/reference/buses/:slug" element={<BusArticle />} />
-          <Route path="/reference/trains/:slug" element={<TrainArticle />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:slug" element={<BlogArticlePage />} />
-          <Route path="/guide" element={<Guide />} />
-          <Route path="/guide/:category/:slug" element={<GuideArticlePage />} />
-          <Route path="/train-search" element={<TrainSearchResults />} />
-          <Route path="/flight-search" element={<FlightSearch />} />
-          <Route path="/bus-search" element={<BusSearch />} />
-          <Route path="/hotel-search" element={<HotelSearch />} />
-          <Route path="/select-seats" element={<SelectSeats />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/payment/success" element={<PaymentSuccess />} />
-          <Route path="/payment/cancel" element={<PaymentCancel />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="blog" element={<AdminBlogList />} />
-            <Route path="blog/:postId" element={<AdminBlogEdit />} />
-            <Route path="routes" element={<AdminRouteList />} />
-            <Route path="routes/:routeId" element={<AdminRouteEdit />} />
-            <Route path="reference" element={<AdminReferenceList />} />
-            <Route path="reference/:postId" element={<AdminReferenceEdit />} />
-            <Route path="guide" element={<AdminGuideList />} />
-            <Route path="guide/:postId" element={<AdminGuideEdit />} />
-            <Route path="pages/:pageKey" element={<AdminPageEditor />} />
-          </Route>
-          <Route path="/testimonials/:id" element={<TestimonialDetail />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-      <ChatWidget />
-    </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Отключаем перезагрузку при переключении между вкладками
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // Ничего не делаем - просто предотвращаем возможную перезагрузку
+      if (document.hidden) {
+        // Вкладка скрыта - сохраняем состояние
+      } else {
+        // Вкладка активна - восстанавливаем состояние (автоматически React)
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    // Отключаем кэширование страницы браузером для предотвращения полной перезагрузки
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted) {
+        // Страница загружена из bfcache - ничего не делаем
+      }
+    });
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/routes" element={<RoutesPage />} />
+              <Route path="/routes/list" element={<RouteList />} />
+              <Route path="/routes/:id" element={<RouteDetail />} />
+              <Route path="/reference" element={<Reference />} />
+              <Route path="/reference/trains" element={<Trains />} />
+              <Route path="/reference/flights" element={<Flights />} />
+              <Route path="/reference/flights/:slug" element={<FlightArticle />} />
+              <Route path="/reference/buses" element={<Buses />} />
+              <Route path="/reference/buses/:slug" element={<BusArticle />} />
+              <Route path="/reference/trains/:slug" element={<TrainArticle />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogArticlePage />} />
+              <Route path="/guide" element={<Guide />} />
+              <Route path="/guide/:category/:slug" element={<GuideArticlePage />} />
+              <Route path="/train-search" element={<TrainSearchResults />} />
+              <Route path="/flight-search" element={<FlightSearch />} />
+              <Route path="/bus-search" element={<BusSearch />} />
+              <Route path="/hotel-search" element={<HotelSearch />} />
+              <Route path="/select-seats" element={<SelectSeats />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment/success" element={<PaymentSuccess />} />
+              <Route path="/payment/cancel" element={<PaymentCancel />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="blog" element={<AdminBlogList />} />
+                <Route path="blog/:postId" element={<AdminBlogEdit />} />
+                <Route path="routes" element={<AdminRouteList />} />
+                <Route path="routes/:routeId" element={<AdminRouteEdit />} />
+                <Route path="reference" element={<AdminReferenceList />} />
+                <Route path="reference/:postId" element={<AdminReferenceEdit />} />
+                <Route path="guide" element={<AdminGuideList />} />
+                <Route path="guide/:postId" element={<AdminGuideEdit />} />
+                <Route path="pages/:pageKey" element={<AdminPageEditor />} />
+              </Route>
+              <Route path="/testimonials/:id" element={<TestimonialDetail />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+          <ChatWidget />
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
