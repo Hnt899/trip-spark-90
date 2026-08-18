@@ -1,4 +1,5 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Train, Plane, Bus } from "lucide-react";
 import { useRef, useState } from "react";
 import trainVideo from "@/assets/video/поезд.mp4";
@@ -138,8 +139,8 @@ const HeroSection = () => {
                       </TabsTrigger>
                     </TabsList>
 
-                    {/* Переключатель "Туда — сюда / В одну сторону" */}
-                    <div className="inline-flex items-center gap-1 rounded-md p-1 bg-white/10">
+                    {/* Переключатель "Туда — суда / В одну сторону" - только для десктопа */}
+                    <div className="hidden md:inline-flex items-center gap-1 rounded-md p-1 bg-white/10">
                       <button
                         type="button"
                         onClick={() => setTripType("round")}
@@ -151,7 +152,7 @@ const HeroSection = () => {
                         )}
                       >
                         <span style={{ color: tripType === "round" ? "#100877" : "white" }}>Туда</span>
-                        <span style={{ color: tripType === "round" ? "#887BFF" : "white" }}> — сюда</span>
+                        <span style={{ color: tripType === "round" ? "#887BFF" : "white" }}> — суда</span>
                       </button>
                       <button
                         type="button"
@@ -166,12 +167,29 @@ const HeroSection = () => {
                         В одну сторону
                       </button>
                     </div>
+
+                    {/* Dropdown для мобильной версии */}
+                    <div className="md:hidden">
+                      <Select value={tripType} onValueChange={(v) => setTripType(v as "round" | "one")}>
+                        <SelectTrigger className="h-10 w-[180px] bg-white/10 border-white/20 text-white [&>svg]:text-white">
+                          <SelectValue placeholder="Тип поездки" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1a1a2e] border-white/20 text-white">
+                          <SelectItem value="round">Туда — суда</SelectItem>
+                          <SelectItem value="one">В одну сторону</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
 
                 <TabsContent value="train" className="hidden" aria-hidden />
                 <TabsContent value="flight" className="mt-0">
-                  <FlightSearchForm variant="hero" showTripTypeToggle={false} />
+                  <FlightSearchForm 
+                    variant="hero" 
+                    showTripTypeToggle={false}
+                    tripType={tripType}
+                  />
                 </TabsContent>
                 <TabsContent value="bus" className="hidden" aria-hidden />
               </Tabs>
