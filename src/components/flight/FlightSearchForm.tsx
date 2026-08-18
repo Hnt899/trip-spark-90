@@ -14,6 +14,7 @@ export type FlightSearchFormVariant = "hero" | "header-desktop" | "header-mobile
 interface FlightSearchFormProps {
   variant?: FlightSearchFormVariant;
   showTripTypeToggle?: boolean;
+  tripType?: "round" | "one";
   onFromLabelChange?: (label: string | undefined) => void;
   onToLabelChange?: (label: string | undefined) => void;
   onSearchComplete?: () => void;
@@ -200,6 +201,7 @@ const PassengerRow = ({ label, hint, value, min, max, onChange, variant }: any) 
 const FlightSearchForm = ({
   variant = "hero",
   showTripTypeToggle = true,
+  tripType: externalTripType,
   onFromLabelChange,
   onToLabelChange,
   onSearchComplete,
@@ -208,7 +210,10 @@ const FlightSearchForm = ({
   const isHero = variant === "hero";
   const isHeaderMobile = variant === "header-mobile";
 
-  const [tripType, setTripType] = useState<"round" | "one">("round");
+  // Используем внешнее значение tripType если оно передано, иначе локальное состояние
+  const [internalTripType, setInternalTripType] = useState<"round" | "one">("round");
+  const tripType = externalTripType !== undefined ? externalTripType : internalTripType;
+  const setTripType = externalTripType !== undefined ? () => {} : setInternalTripType;
   const [fromText, setFromText] = useState("");
   const [toText, setToText] = useState("");
   const [fromCode, setFromCode] = useState<string | null>(null);
@@ -289,7 +294,7 @@ const FlightSearchForm = ({
   );
 
   const selectTriggerClass = cn(
-    isHero ? "h-11 bg-white/10 border-white/20 text-white text-sm [&>svg]:text-white/70" :
+    isHero ? "h-11 bg-white border-white/20 text-[#100877] text-sm [&>svg]:text-[#100877]" :
     isHeaderMobile ? "h-12 text-base" : "h-10 text-sm"
   );
 
@@ -328,7 +333,7 @@ const FlightSearchForm = ({
             <PopoverTrigger asChild>
               <Button variant="outline" className={cn(fieldTriggerClass, !departureDate && (isHero ? "text-white/50" : "text-muted-foreground"))}>
                 <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-                <span className="truncate">
+                <span className={cn(tripType === "one" && "sm:flex-1", "truncate")}>
                   {departureDate ? format(departureDate, "dd.MM.yyyy", { locale: ru }) : "Дата вылета"}
                 </span>
               </Button>
@@ -373,7 +378,7 @@ const FlightSearchForm = ({
           </Popover>
 
           <Select value={flightClass} onValueChange={(v) => setFlightClass(v as "economy" | "business")}>
-            <SelectTrigger className={cn(selectTriggerClass, isHeaderMobile ? "w-full" : "sm:w-36")}>
+            <SelectTrigger className={cn(selectTriggerClass, isHeaderMobile ? "w-full" : "sm:w-36", isHero && "bg-white text-[#100877] border-white [&>svg]:text-[#100877]")}>
               <SelectValue placeholder="Класс" />
             </SelectTrigger>
             <SelectContent>
