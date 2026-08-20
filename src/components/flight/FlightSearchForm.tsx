@@ -339,7 +339,7 @@ const FlightSearchForm = ({
 
     const flightSearch = `${fromCode}${dateToken}${toCode}${passengerToken}`;
 
-    const url = `https://avia.ts-travel.online/?flightSearch=${flightSearch}`;
+    const url = `https://avia.ts-trip.com/?flightSearch=${flightSearch}`;
     window.location.href = url;
     onSearchComplete?.();
   };

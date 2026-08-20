@@ -12,7 +12,7 @@ export interface TravelpayoutsPlace {
 
 // ===== ВАЖНО: ИСПОЛЬЗУЕМ HTTP, НЕ HTTPS! =====
 const AUTOCOMPLETE_URL = "/travelpayouts";
-const WHITE_LABEL_BASE = "https://avia.ts-travel.online/";
+const WHITE_LABEL_BASE = "https://avia.ts-trip.com/";
 
 export interface FlightPassengers {
   adults: number;
