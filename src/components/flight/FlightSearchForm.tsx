@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { CalendarIcon, Minus, Plus, Search, ChevronDown, MapPin, Plane } from "lucide-react";
+import { CalendarIcon, Minus, Plus, Search, ChevronDown, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -14,7 +14,7 @@ export type FlightSearchFormVariant = "hero" | "header-desktop" | "header-mobile
 interface FlightSearchFormProps {
   variant?: FlightSearchFormVariant;
   showTripTypeToggle?: boolean;
-  tripType?: "round" | "one";
+  tripType?: "round" | "one"; // добавляем проп для управления извне
   onFromLabelChange?: (label: string | undefined) => void;
   onToLabelChange?: (label: string | undefined) => void;
   onSearchComplete?: () => void;
@@ -62,6 +62,59 @@ const scrollbarStyles = `
   .city-dropdown-scroll {
     scrollbar-width: thin;
     scrollbar-color: #887BFF transparent;
+  }
+`;
+
+// ===== СТИЛИ ДЛЯ МОБИЛЬНОЙ АДАПТАЦИИ =====
+const mobileStyles = `
+  @media (max-width: 480px) {
+    /* Скрываем текст "Авиабилеты" в табе, оставляем только иконку */
+    .tab-text {
+      display: none;
+    }
+    
+    /* Форма на мобилках — колонка */
+    .flight-form-row {
+      flex-direction: column !important;
+      gap: 8px !important;
+    }
+    
+    /* Все поля — 100% ширины */
+    .flight-form-row .flex-1,
+    .flight-form-row .min-w-0 {
+      width: 100% !important;
+      flex: 1 1 100% !important;
+      min-width: 0 !important;
+    }
+    
+    /* Кнопка "Найти" — на всю ширину */
+    .flight-search-btn {
+      width: 100% !important;
+      justify-content: center !important;
+    }
+    
+    /* Даты, пассажиры, класс — каждый на отдельной строке */
+    .flight-form-extra {
+      flex-direction: column !important;
+      gap: 8px !important;
+    }
+    
+    .flight-form-extra > * {
+      width: 100% !important;
+      flex: 1 1 100% !important;
+    }
+    
+    /* Отступы внутри формы */
+    .flight-form-container {
+      padding-left: 12px !important;
+      padding-right: 12px !important;
+    }
+
+    /* Переключатель "Туда — сюда" на мобилках */
+    .trip-type-toggle {
+      flex-wrap: wrap !important;
+      justify-content: center !important;
+    }
   }
 `;
 
@@ -210,10 +263,7 @@ const FlightSearchForm = ({
   const isHero = variant === "hero";
   const isHeaderMobile = variant === "header-mobile";
 
-  // Используем внешнее значение tripType если оно передано, иначе локальное состояние
-  const [internalTripType, setInternalTripType] = useState<"round" | "one">("round");
-  const tripType = externalTripType !== undefined ? externalTripType : internalTripType;
-  const setTripType = externalTripType !== undefined ? () => {} : setInternalTripType;
+  const [tripType, setTripType] = useState<"round" | "one">(externalTripType || "round");
   const [fromText, setFromText] = useState("");
   const [toText, setToText] = useState("");
   const [fromCode, setFromCode] = useState<string | null>(null);
@@ -223,6 +273,13 @@ const FlightSearchForm = ({
   const [passengers, setPassengers] = useState({ adults: 1, children: 0, infants: 0 });
   const [flightClass, setFlightClass] = useState<"economy" | "business">("economy");
   const [errors, setErrors] = useState<{ from?: string; to?: string; general?: string }>({});
+
+  // Синхронизируем с внешним tripType
+  useEffect(() => {
+    if (externalTripType) {
+      setTripType(externalTripType);
+    }
+  }, [externalTripType]);
 
   const handleFromSelect = (city: string, code: string) => {
     setFromText(city);
@@ -294,21 +351,62 @@ const FlightSearchForm = ({
   );
 
   const selectTriggerClass = cn(
-    isHero ? "h-11 bg-white border-white/20 text-[#100877] text-sm [&>svg]:text-[#100877]" :
+    isHero ? "h-11 bg-white/10 border-white/20 text-white text-sm [&>svg]:text-white/70" :
     isHeaderMobile ? "h-12 text-base" : "h-10 text-sm"
   );
 
   return (
     <>
       <style>{scrollbarStyles}</style>
+      <style>{mobileStyles}</style>
       
-      <div className="flex flex-col gap-3 w-full">
+      <div className="flex flex-col gap-3 w-full flight-form-container">
         
+        {/* ===== ВЕРХНЯЯ СТРОКА: Заголовок "Авиабилеты" + Переключатель ===== */}
+        {showTripTypeToggle && (
+          <div className="flex items-center justify-between w-full">
+            {/* Заголовок слева */}
+            <h2 className="text-2xl font-bold text-white">
+              <span className="tab-text">Авиабилеты</span>
+              <span className="inline-block sm:hidden">✈️</span>
+            </h2>
+
+            {/* Переключатель справа */}
+            <div className="inline-flex items-center gap-1 rounded-md p-1 bg-white/10 trip-type-toggle">
+              <button
+                type="button"
+                onClick={() => setTripType("round")}
+                className={cn(
+                  "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
+                  tripType === "round"
+                    ? "bg-white/20"
+                    : "text-white/70 hover:text-white"
+                )}
+              >
+                <span style={{ color: tripType === "round" ? "#100877" : "white" }}>Туда</span>
+                <span style={{ color: tripType === "round" ? "#887BFF" : "white" }}> — сюда</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTripType("one"); setReturnDate(undefined); }}
+                className={cn(
+                  "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
+                  tripType === "one"
+                    ? "bg-white/20 text-white"
+                    : "text-white/70 hover:text-white"
+                )}
+              >
+                В одну сторону
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ===== СТРОКА 2: Города ===== */}
         {errors.general && (
           <p className="text-sm text-red-400 rounded-md bg-red-500/10 px-3 py-2">{errors.general}</p>
         )}
-        <div className={cn("flex gap-2", isHeaderMobile ? "flex-col" : "flex-col sm:flex-row")}>
+        <div className={cn("flex gap-2 flight-form-row", isHeaderMobile ? "flex-col" : "flex-col sm:flex-row")}>
           <CityDropdown
             value={fromText}
             onChange={setFromText}
@@ -328,12 +426,12 @@ const FlightSearchForm = ({
         </div>
 
         {/* ===== СТРОКА 3: Даты, Пассажиры, Класс, Кнопка ===== */}
-        <div className={cn("flex gap-2", isHeaderMobile ? "flex-col" : "flex-col sm:flex-row sm:items-stretch")}>
+        <div className={cn("flex gap-2 flight-form-extra", isHeaderMobile ? "flex-col" : "flex-col sm:flex-row sm:items-stretch")}>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className={cn(fieldTriggerClass, !departureDate && (isHero ? "text-white/50" : "text-muted-foreground"))}>
                 <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-                <span className={cn(tripType === "one" && "sm:flex-1", "truncate")}>
+                <span className="truncate">
                   {departureDate ? format(departureDate, "dd.MM.yyyy", { locale: ru }) : "Дата вылета"}
                 </span>
               </Button>
@@ -387,7 +485,7 @@ const FlightSearchForm = ({
             </SelectContent>
           </Select>
 
-          <Button type="button" onClick={handleSearch} className={cn("shrink-0 font-semibold", isHero ? "h-11 px-6 text-sm rounded-md" : isHeaderMobile ? "w-full h-12 rounded-xl text-base" : "h-10 px-4 rounded-md")}>
+          <Button type="button" onClick={handleSearch} className={cn("shrink-0 font-semibold flight-search-btn", isHero ? "h-11 px-6 text-sm rounded-md" : isHeaderMobile ? "w-full h-12 rounded-xl text-base" : "h-10 px-4 rounded-md")}>
             <Search className={cn("mr-2", isHeaderMobile ? "h-5 w-5" : "h-4 w-4")} />
             {isHeaderMobile ? "Найти билеты" : "Найти"}
           </Button>
