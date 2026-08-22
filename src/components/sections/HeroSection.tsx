@@ -118,21 +118,18 @@ const HeroSection = () => {
             {/* Форма поиска — только авиа (поезда и автобусы скрыты) */}
             <div ref={formRef} className="bg-black/40 backdrop-blur-xl rounded-lg ring-1 ring-white/10 ring-offset-0 p-4 md:p-5 space-y-4">
               <Tabs value={travelType} defaultValue="flight" className="w-full">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-3 pb-3 border-b border-white/10">
-                  
-                  {/* ===== ИЗМЕНЕНИЕ: ОДНА СТРОКА С ГИБКОЙ ШИРИНОЙ ===== */}
-                  <div className="flex items-center gap-2 w-full">
-                    
-                    {/* Кнопка "Авиабилеты" (на мобилке только иконка) */}
+                {/* ===== ВЕРХНЯЯ СТРОКА ===== */}
+                <div className="w-full pb-3 border-b border-white/10">
+                  <div className="flex items-center justify-between w-full gap-2">
+                    {/* Левая часть: кнопка "Авиабилеты" */}
                     <TabsList className="flex items-center gap-1 bg-white/10 p-1 h-10 flex-shrink-0">
                       <TabsTrigger
                         value="flight"
-                        className="flex items-center justify-center text-sm font-medium px-2 md:px-3 py-1.5 rounded-md bg-gradient-to-r from-[#100877] to-[#887BFF] text-white shadow-sm whitespace-nowrap"
+                        className="flex items-center justify-center text-sm font-medium px-3 py-1.5 rounded-md bg-gradient-to-r from-[#100877] to-[#887BFF] text-white shadow-sm whitespace-nowrap"
                         style={{ color: 'white' }}
                       >
-                        <Plane className="h-5 w-5 md:mr-2" />
-                        {/* Скрываем текст на мобильных экранах */}
-                        <span className="hidden md:inline tab-text">Авиабилеты</span>
+                        <Plane className="h-5 w-5 mr-2" />
+                        <span className="tab-text">Авиабилеты</span>
                       </TabsTrigger>
                       <TabsTrigger value="train" className="hidden" aria-hidden>
                         <Train className="h-5 w-5" />
@@ -142,47 +139,49 @@ const HeroSection = () => {
                       </TabsTrigger>
                     </TabsList>
 
-                    {/* Переключатель "Туда — суда / В одну сторону" - только для десктопа */}
-                    <div className="hidden md:inline-flex items-center gap-1 rounded-md p-1 bg-white/10">
-                      <button
-                        type="button"
-                        onClick={() => setTripType("round")}
-                        className={cn(
-                          "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
-                          tripType === "round"
-                            ? "bg-white/20"
-                            : "text-white/70 hover:text-white"
-                        )}
-                      >
-                        <span style={{ color: tripType === "round" ? "#100877" : "white" }}>Туда</span>
-                        <span style={{ color: tripType === "round" ? "#887BFF" : "white" }}> — суда</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setTripType("one"); }}
-                        className={cn(
-                          "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
-                          tripType === "one"
-                            ? "bg-white/20 text-white"
-                            : "text-white/70 hover:text-white"
-                        )}
-                      >
-                        В одну сторону
-                      </button>
-                    </div>
+                    {/* Правая часть: переключатели */}
+                    <div className="flex items-center gap-2">
+                      {/* Десктопная версия (от md) */}
+                      <div className="hidden md:flex items-center gap-1 rounded-md p-1 bg-white/10 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setTripType("round")}
+                          className={cn(
+                            "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
+                            tripType === "round"
+                              ? "bg-white/20"
+                              : "text-white/70 hover:text-white"
+                          )}
+                        >
+                          <span style={{ color: tripType === "round" ? "#100877" : "white" }}>Туда</span>
+                          <span style={{ color: tripType === "round" ? "#887BFF" : "white" }}> — суда</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setTripType("one"); }}
+                          className={cn(
+                            "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
+                            tripType === "one"
+                              ? "bg-white/20 text-white"
+                              : "text-white/70 hover:text-white"
+                          )}
+                        >
+                          В одну сторону
+                        </button>
+                      </div>
 
-                    {/* ИЗМЕНЕНИЕ: Dropdown для мобильной версии (растягивается на 100% свободного места) */}
-                    <div className="md:hidden flex-1">
-                      <Select value={tripType} onValueChange={(v) => setTripType(v as "round" | "one")}>
-                        {/* Убрали w-[180px], добавили w-full и flex-1 внутри контейнера выше */}
-                        <SelectTrigger className="w-full h-10 bg-white/10 border-white/20 text-white [&>svg]:text-white">
-                          <SelectValue placeholder="Тип поездки" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#1a1a2e] border-white/20 text-white">
-                          <SelectItem value="round">Туда — суда</SelectItem>
-                          <SelectItem value="one">В одну сторону</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {/* Мобильная версия (до md) */}
+                      <div className="md:hidden flex-1 min-w-0">
+                        <Select value={tripType} onValueChange={(v) => setTripType(v as "round" | "one")}>
+                          <SelectTrigger className="w-full h-10 bg-white/10 border-white/20 text-white [&>svg]:text-white">
+                            <SelectValue placeholder="Тип поездки" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#1a1a2e] border-white/20 text-white">
+                            <SelectItem value="round">Туда — суда</SelectItem>
+                            <SelectItem value="one">В одну сторону</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
                 </div>

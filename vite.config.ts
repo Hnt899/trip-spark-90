@@ -23,6 +23,8 @@ export default defineConfig(({ mode }) => ({
         target: "http://autocomplete.travelpayouts.com",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/travelpayouts/, "/places2"),
+        secure: false,        // ← добавляем
+        followRedirects: false, // ← добавляем
       },
     },
   },

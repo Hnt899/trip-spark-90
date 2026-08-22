@@ -4,6 +4,7 @@ import fetch from "node-fetch";
 import rateLimit from "express-rate-limit";
 import { registerApiRoutes } from "./registerApiRoutes.js";
 import { uploadRouter, UPLOAD_DIR } from "./uploadRoute.js";
+import travelpayoutsProxy from './travelpayoutsProxy.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -31,6 +32,7 @@ app.use(
 );
 app.use(express.json({ limit: "1mb" }));
 
+app.use("/travelpayouts", travelpayoutsProxy);
 // ============================================
 // RATE LIMITING - Ограничение частоты запросов
 // ============================================

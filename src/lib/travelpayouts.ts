@@ -11,7 +11,7 @@ export interface TravelpayoutsPlace {
 }
 
 // ===== ВАЖНО: ИСПОЛЬЗУЕМ HTTP, НЕ HTTPS! =====
-const AUTOCOMPLETE_URL = "/travelpayouts";
+const AUTOCOMPLETE_URL = "http://localhost:4000/travelpayouts";
 const WHITE_LABEL_BASE = "https://avia.ts-trip.com/";
 
 export interface FlightPassengers {
