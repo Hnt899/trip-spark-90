@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import PlaceAutocomplete, { type SelectedPlace } from "./PlaceAutocomplete";
 
 export type FlightSearchFormVariant = "hero" | "header-desktop" | "header-mobile";
 
@@ -19,27 +20,6 @@ interface FlightSearchFormProps {
   onToLabelChange?: (label: string | undefined) => void;
   onSearchComplete?: () => void;
 }
-
-// ===== ВАШ СПИСОК ГОРОДОВ =====
-const cityToIata: Record<string, string> = {
-  "Москва": "MOW",
-  "Санкт-Петербург": "LED",
-  "Казань": "KZN",
-  "Сочи": "AER",
-  "Екатеринбург": "SVX",
-  "Новосибирск": "OVB",
-  "Нижний Новгород": "GOJ",
-  "Самара": "KUF",
-  "Ростов-на-Дону": "ROV",
-  "Владивосток": "VVO",
-  "Краснодар": "KRR",
-  "Уфа": "UFA",
-  "Пермь": "PEE",
-  "Волгоград": "VOG",
-  "Воронеж": "VOZ",
-};
-
-const popularCities = Object.keys(cityToIata);
 
 // ===== СТИЛИ ДЛЯ КРАСИВОГО СКРОЛЛБАРА =====
 const scrollbarStyles = `
@@ -118,121 +98,6 @@ const mobileStyles = `
   }
 `;
 
-// ===== КРАСИВЫЙ ВЫПАДАЮЩИЙ СПИСОК =====
-const CityDropdown = ({
-  value,
-  onChange,
-  onSelect,
-  placeholder,
-  error,
-  variant,
-}: {
-  value: string;
-  onChange: (val: string) => void;
-  onSelect: (city: string, code: string) => void;
-  placeholder: string;
-  error?: string;
-  variant: FlightSearchFormVariant;
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const isHero = variant === "hero";
-
-  const filteredCities = popularCities.filter((city) =>
-    city.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleSelect = (city: string) => {
-    setSearchTerm("");
-    setIsOpen(false);
-    onSelect(city, cityToIata[city]);
-  };
-
-  return (
-    <div className="relative flex-1 min-w-0">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "w-full flex items-center justify-between rounded-md border px-3 py-2 text-left transition-colors",
-          isHero
-            ? "h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50"
-            : "h-10 bg-background border-input text-foreground",
-          error && "border-red-400 focus-visible:ring-red-400"
-        )}
-      >
-        <span className="truncate flex items-center gap-2">
-          <MapPin className={cn(
-            "h-4 w-4",
-            isHero ? "text-white/50" : "text-muted-foreground"
-          )} />
-          {value || placeholder}
-        </span>
-        <ChevronDown className={cn(
-          "h-4 w-4 transition-transform",
-          isOpen && "rotate-180",
-          isHero ? "text-white/50" : "text-muted-foreground"
-        )} />
-      </button>
-
-      {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
-
-      {isOpen && (
-        <div className={cn(
-          "absolute z-50 mt-1 w-full rounded-md border shadow-lg max-h-60 overflow-auto city-dropdown-scroll",
-          isHero
-            ? "bg-[#1a1a2e] border-white/20 text-white"
-            : "bg-white border-[#887BFF]/20 text-foreground",
-        )}>
-          <div className="sticky top-0 z-10 p-2 bg-inherit border-b border-[#887BFF]/10">
-            <input
-              type="text"
-              className={cn(
-                "w-full rounded-md px-3 py-1.5 text-sm outline-none",
-                isHero
-                  ? "bg-white/10 text-white placeholder:text-white/50"
-                  : "bg-[#F5F3FF] text-foreground placeholder:text-muted-foreground border border-[#887BFF]/20 focus:border-[#887BFF]"
-              )}
-              placeholder="Поиск города..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
-
-          {filteredCities.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-muted-foreground">Ничего не найдено</div>
-          ) : (
-            filteredCities.map((city) => (
-              <button
-                key={city}
-                className={cn(
-                  "w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-colors",
-                  isHero
-                    ? "hover:bg-white/10"
-                    : "hover:bg-[#F5F3FF] hover:text-[#100877]",
-                  value === city && (isHero ? "bg-white/5" : "bg-[#F0EDFF] text-[#100877]")
-                )}
-                onClick={() => handleSelect(city)}
-              >
-                <div>
-                  <p className="font-medium">{city}</p>
-                  <p className={cn(
-                    "text-xs",
-                    isHero ? "text-white/50" : "text-muted-foreground"
-                  )}>
-                    {cityToIata[city]} · {city === "Москва" || city === "Санкт-Петербург" ? "Россия" : "РФ"}
-                  </p>
-                </div>
-              </button>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
-
 const PassengerRow = ({ label, hint, value, min, max, onChange, variant }: any) => (
   <div className="flex items-center justify-between gap-3 py-2">
     <div>
@@ -264,10 +129,8 @@ const FlightSearchForm = ({
   const isHeaderMobile = variant === "header-mobile";
 
   const [tripType, setTripType] = useState<"round" | "one">(externalTripType || "round");
-  const [fromText, setFromText] = useState("");
-  const [toText, setToText] = useState("");
-  const [fromCode, setFromCode] = useState<string | null>(null);
-  const [toCode, setToCode] = useState<string | null>(null);
+  const [fromPlace, setFromPlace] = useState<SelectedPlace | null>(null);
+  const [toPlace, setToPlace] = useState<SelectedPlace | null>(null);
   const [departureDate, setDepartureDate] = useState<Date | undefined>();
   const [returnDate, setReturnDate] = useState<Date | undefined>();
   const [passengers, setPassengers] = useState({ adults: 1, children: 0, infants: 0 });
@@ -281,17 +144,19 @@ const FlightSearchForm = ({
     }
   }, [externalTripType]);
 
-  const handleFromSelect = (city: string, code: string) => {
-    setFromText(city);
-    setFromCode(code);
-    onFromLabelChange?.(city);
+  const handleFromChange = (place: SelectedPlace | null) => {
+    setFromPlace(place);
+    if (place) {
+      onFromLabelChange?.(place.label);
+    }
     if (errors.from) setErrors((prev) => ({ ...prev, from: undefined }));
   };
 
-  const handleToSelect = (city: string, code: string) => {
-    setToText(city);
-    setToCode(code);
-    onToLabelChange?.(city);
+  const handleToChange = (place: SelectedPlace | null) => {
+    setToPlace(place);
+    if (place) {
+      onToLabelChange?.(place.label);
+    }
     if (errors.to) setErrors((prev) => ({ ...prev, to: undefined }));
   };
 
@@ -304,24 +169,16 @@ const FlightSearchForm = ({
   };
 
   const handleSearch = () => {
-    if (!fromText.trim()) {
-      setErrors({ from: "Укажите город вылета" });
-      return;
-    }
-    if (!toText.trim()) {
-      setErrors({ to: "Укажите город прибытия" });
-      return;
-    }
-    if (fromText.trim().toLowerCase() === toText.trim().toLowerCase()) {
-      setErrors({ general: "Города вылета и прибытия не могут совпадать" });
-      return;
-    }
-    if (!fromCode) {
+    if (!fromPlace) {
       setErrors({ from: "Выберите город из списка" });
       return;
     }
-    if (!toCode) {
+    if (!toPlace) {
       setErrors({ to: "Выберите город из списка" });
+      return;
+    }
+    if (fromPlace.code === toPlace.code) {
+      setErrors({ general: "Города вылета и прибытия не могут совпадать" });
       return;
     }
 
@@ -337,7 +194,7 @@ const FlightSearchForm = ({
     const infants = Math.min(passengers.infants || 0, 9);
     const passengerToken = `${adults}${children}${infants}`;
 
-    const flightSearch = `${fromCode}${dateToken}${toCode}${passengerToken}`;
+    const flightSearch = `${fromPlace.code}${dateToken}${toPlace.code}${passengerToken}`;
 
     const url = `https://avia.ts-trip.com/?flightSearch=${flightSearch}`;
     window.location.href = url;
@@ -407,18 +264,16 @@ const FlightSearchForm = ({
           <p className="text-sm text-red-400 rounded-md bg-red-500/10 px-3 py-2">{errors.general}</p>
         )}
         <div className={cn("flex gap-2 flight-form-row", isHeaderMobile ? "flex-col" : "flex-col sm:flex-row")}>
-          <CityDropdown
-            value={fromText}
-            onChange={setFromText}
-            onSelect={handleFromSelect}
+          <PlaceAutocomplete
+            value={fromPlace}
+            onChange={handleFromChange}
             placeholder="Откуда"
             error={errors.from}
             variant={variant}
           />
-          <CityDropdown
-            value={toText}
-            onChange={setToText}
-            onSelect={handleToSelect}
+          <PlaceAutocomplete
+            value={toPlace}
+            onChange={handleToChange}
             placeholder="Куда"
             error={errors.to}
             variant={variant}
