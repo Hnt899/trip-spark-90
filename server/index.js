@@ -165,7 +165,7 @@ app.post("/api/support/chat", chatRateLimit, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server listening on http://localhost:${PORT}`);
   console.log(`Using HF Router model: ${HF_MODEL}`);
 });

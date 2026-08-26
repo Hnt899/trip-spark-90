@@ -20,11 +20,8 @@ export default defineConfig(({ mode }) => ({
       },
       // ===== НОВЫЙ ПРОКСИ ДЛЯ TRAVELPAYOUTS =====
       "/travelpayouts": {
-        target: "http://autocomplete.travelpayouts.com",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/travelpayouts/, "/places2"),
-        secure: false,        // ← добавляем
-        followRedirects: false, // ← добавляем
+       target: "http://app:4000",
+       changeOrigin: true,
       },
     },
   },

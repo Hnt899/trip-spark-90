@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <meta name="description" content="Поиск авиабилетов" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <meta property="og:title" content="Поиск авиабилетов" />
+  <meta property="og:description"
+    content="Сравниваем цены с сотен сайтов и позволяем вам выбрать самый дешевый вариант перелета." />
+  <meta content="ru_RU" property="og:locale">
+  <meta content="product.item" property="og:type">
+  <meta content="[:og_image:]" property="og:image">
+  <meta content="Поиск дешевых авиабилетов" name="twitter:title">
+  <meta content="Сравниваем цены с сотен сайтов и позволяем вам выбрать самый дешевый вариант перелета."
+    name="twitter:description">
+  <meta content="summary_large_image" name="twitter:card">
+  <title>Поиск авиабилетов[:route_info:]</title>
+
+  <!-- ===== СТИЛИ TRAVELPAYOUTS ===== -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      color: var(--tpwl-main-text);
+      background-color: var(--tpwl-search-result-background);
+      font-family: var(--tpwl-font-family), sans-serif;
+    }
+
+    body a {
+      color: var(--tpwl-links);
+      text-decoration: none;
+      cursor: pointer;
+      transition: 0.1s linear;
+    }
+
+    body a:hover,
+    body a:focus {
+      text-decoration: underline;
+    }
+
+    .tpwl-logo-header {
+      position: relative;
+      color: var(--tpwl-headline-text);
+      font-weight: 600;
+      background-color: var(--tpwl-search-form-background);
+      padding: 32px 100px 16px;
+      margin-bottom: -20px;
+      z-index: 101;
+      background-size: cover;
+      background-repeat: no-repeat;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+
+    .tpwl-logo-header h1 {
+      font-size: 48px;
+      margin: 0;
+    }
+
+    .tpwl-search-header {
+      padding: 24px 100px;
+      background-color: var(--tpwl-search-form-background);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      transition: all 0.3s linear;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+
+    .tpwl-logo__wrapper {
+      display: none;
+    }
+
+    .tpwl-search__wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tpwl__content {
+      flex: 1 0 auto;
+      max-width: 1240px;
+      min-width: 976px;
+    }
+
+    .tpwl-main {
+      background-color: var(--tpwl-search-result-background);
+    }
+
+    .tpwl-tickets__wrapper #tpwl-tickets:not(:empty) {
+      margin-bottom: 32px;
+    }
+
+    .tpwl-tickets__wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0px 100px;
+    }
+
+    .tpwl-widgets__wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 100px;
+      margin-bottom: 32px;
+    }
+
+    .tpwl-widgets__wrapper h3 {
+      text-align: center;
+      font-size: 36px;
+      margin: 0px;
+      margin-bottom: 32px;
+    }
+
+    .tpwl-widget-weedles {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+    }
+
+    .tpwl-widget-weedle {
+      display: flex;
+      justify-content: center;
+    }
+
+    .tpwl-footer__wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 100px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      background-color: var(--tpwl-search-result-background);
+    }
+
+    .tpwl-footer__copyright {
+      margin-bottom: 12px;
+    }
+
+    .tpwl-footer__links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    @media (max-width: 389px) {
+      .tpwl-footer__wrapper {
+        padding: 56px 16px;
+      }
+
+      .tpwl__content {
+        max-width: unset;
+        min-width: unset;
+      }
+
+      .tpwl-footer__copyright {
+        margin-bottom: 20px;
+      }
+
+      .tpwl-footer__links {
+        display: block;
+      }
+
+      .tpwl-footer__links a {
+        display: block;
+        margin-bottom: 16px;
+      }
+
+      .tpwl-footer__links a:last-child {
+        margin-bottom: 0px;
+      }
+    }
+
+    @media (max-width: 1175px) {
+      .tpwl-logo-header {
+        position: static;
+        padding: 32px 16px 6px;
+        margin-bottom: 0px;
+      }
+
+      .tpwl-logo-header h1 {
+        font-size: 36px;
+        max-width: 512px;
+      }
+
+      .tpwl__content {
+        max-width: unset;
+        min-width: unset;
+      }
+
+      .tpwl-search__wrapper {
+        display: block;
+      }
+
+      .tpwl-search-header {
+        padding: 24px 16px 24px;
+        position: static;
+      }
+
+      .tpwl-tickets__wrapper {
+        padding: 0px 16px;
+      }
+
+      .tpwl-widgets__wrapper {
+        padding: 56px 16px;
+      }
+
+      .tpwl-widgets__wrapper h3 {
+        font-size: 32px;
+      }
+
+      .tpwl-widgets__wrapper .tpwl__content {
+        flex: 1 0 100%;
+      }
+
+      .tpwl-widget-weedles {
+        grid-template-columns: 1fr;
+      }
+
+      .tpwl-footer__wrapper {
+        padding: 56px 16px;
+      }
+
+      .tpwl-footer__wrapper .tpwl__content {
+        flex: 1 1 auto;
+      }
+    }
+  </style>
+
+  <!-- ===== СТИЛИ ШАПКИ (повторяют дизайн шапки ts-trip.com) ===== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* Палитра и размеры — из дизайн-системы основного сайта:
+       фон шапки #E8ECF7, текст #062C47 (foreground), акцент #1D49AF (primary),
+       приглушённый фон #F3F4F6 (muted), рамки #E5E7EB,
+       высота шапки 56px на мобильных и 96px от 768px, контейнер 1400px. */
+    .ts-header * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .ts-header {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .ts-header .container {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    @media (max-width: 480px) {
+      .ts-header .container {
+        padding: 0 1rem;
+      }
+    }
+
+    .ts-header .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      width: 100%;
+      background-color: #E8ECF7;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(16, 10, 111, 0.1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .ts-header .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      height: 56px;
+      overflow: visible;
+    }
+
+    @media (min-width: 768px) {
+      .ts-header .header-inner {
+        height: 96px;
+        gap: 16px;
+      }
+    }
+
+    .ts-header .logo-link {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      margin-left: -8px;
+      transition: opacity 0.2s;
+    }
+
+    @media (min-width: 768px) {
+      .ts-header .logo-link {
+        margin-left: 0;
+      }
+    }
+
+    .ts-header .logo-link:hover {
+      opacity: 0.8;
+    }
+
+    .ts-header .logo-img {
+      height: 56px;
+      width: auto;
+      max-width: 100%;
+      object-fit: contain;
+      filter: brightness(1.1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+    }
+
+    @media (min-width: 768px) {
+      .ts-header .logo-img {
+        height: 84px;
+      }
+    }
+
+    .ts-header .nav-desktop {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex: 1;
+    }
+
+    @media (min-width: 1024px) {
+      .ts-header .nav-desktop {
+        display: flex;
+      }
+    }
+
+    .ts-header .nav-link {
+      font-size: 18px;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      color: rgba(6, 44, 71, 0.8);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .ts-header .nav-link:hover {
+      color: #1D49AF;
+      background-color: rgba(243, 244, 246, 0.5);
+    }
+
+    .ts-header .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .ts-header .login-btn {
+      display: none;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      color: rgba(6, 44, 71, 0.8);
+      background-color: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .ts-header .login-btn:hover {
+      color: #062C47;
+      background-color: rgba(243, 244, 246, 0.5);
+    }
+
+    @media (min-width: 768px) {
+      .ts-header .login-btn {
+        display: inline-block;
+        font-size: 18px;
+        padding: 8px 16px;
+      }
+    }
+
+    .ts-header .menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: rgba(6, 44, 71, 0.8);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .ts-header .menu-btn:hover {
+      background-color: rgba(243, 244, 246, 0.5);
+    }
+
+    @media (min-width: 768px) {
+      .ts-header .menu-btn {
+        display: none;
+      }
+    }
+
+    .ts-header .menu-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Отступ контента под фиксированной шапкой */
+    .ts-header .content-offset {
+      padding-top: 72px;
+    }
+
+    @media (min-width: 768px) {
+      .ts-header .content-offset {
+        padding-top: 112px;
+      }
+    }
+
+    /* ===== Мобильное бургер-меню (выдвижная панель справа, как на основном сайте) ===== */
+    .ts-header .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      background: rgba(0, 0, 0, 0.8);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .ts-header .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      width: min(100vw - 1rem, 320px);
+      padding: 56px 16px 32px;
+      background-color: #ffffff;
+      box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+      overflow-y: auto;
+      transform: translateX(100%);
+      visibility: hidden;
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), visibility 0.3s ease;
+    }
+
+    @media (min-width: 640px) {
+      .ts-header .drawer {
+        width: 360px;
+      }
+    }
+
+    .ts-header.is-menu-open .drawer-overlay {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .ts-header.is-menu-open .drawer {
+      transform: translateX(0);
+      visibility: visible;
+    }
+
+    .ts-header .drawer-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: rgba(6, 44, 71, 0.8);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .ts-header .drawer-close:hover {
+      background-color: rgba(243, 244, 246, 0.5);
+    }
+
+    .ts-header .drawer-login {
+      display: block;
+      width: 100%;
+      margin-top: 4px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: transparent;
+      font-size: 16px;
+      font-weight: 500;
+      color: rgba(6, 44, 71, 0.8);
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .ts-header .drawer-login:hover {
+      background-color: rgba(243, 244, 246, 0.5);
+      color: #062C47;
+    }
+
+    .ts-header .drawer-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(6, 44, 71, 0.1);
+    }
+
+    .ts-header .drawer-label {
+      margin-bottom: 12px;
+      padding: 0 4px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #65758B;
+    }
+
+    .ts-header .drawer-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .ts-header .drawer-link {
+      display: block;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      color: rgba(6, 44, 71, 0.8);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .ts-header .drawer-link:hover {
+      background-color: rgba(243, 244, 246, 0.5);
+      color: #1D49AF;
+    }
+
+    /* Блокировка прокрутки страницы при открытом бургер-меню (вешается на body/html) */
+    body.ts-no-scroll,
+    html.ts-no-scroll {
+      overflow: hidden;
+    }
+  </style>
+
+  <!-- ===== СТИЛИ ДЛЯ МОБИЛЬНОЙ АДАПТАЦИИ ===== -->
+  <style>
+    @media (max-width: 480px) {
+
+      /* Скрываем текст "Авиабилеты" в табе, оставляем только иконку */
+      .tab-text {
+        display: none;
+      }
+
+      /* Форма на мобилках — колонка */
+      .flight-form-row {
+        flex-direction: column !important;
+        gap: 8px !important;
+      }
+
+      /* Все поля — 100% ширины */
+      .flight-form-row .flex-1,
+      .flight-form-row .min-w-0 {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+      }
+
+      /* Кнопка "Найти" — на всю ширину */
+      .flight-search-btn {
+        width: 100% !important;
+        justify-content: center !important;
+      }
+
+      /* Даты, пассажиры, класс — каждый на отдельной строке */
+      .flight-form-extra {
+        flex-direction: column !important;
+        gap: 8px !important;
+      }
+
+      .flight-form-extra>* {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+      }
+
+      /* Отступы внутри формы */
+      .flight-form-container {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+      }
+
+      /* Переключатель "Туда — сюда" на мобилках */
+      .trip-type-toggle {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+      }
+    }
+  </style>
+
+  [:embed_script:]
+  [:cookie_policy_script:]
+</head>
+
+<body>
+  <!-- ===== ВАША ШАПКА (повторяет дизайн шапки ts-trip.com) ===== -->
+  <div class="ts-header" id="ts-header">
+    <header class="header">
+      <div class="container">
+        <div class="header-inner">
+          <!-- ЛОГОТИП -->
+          <a class="logo-link" href="https://ts-trip.com" target="_blank" rel="noopener">
+            <img src="https://i.postimg.cc/NFVWfk2D/logo.png" alt="TudaSuda" class="logo-img">
+          </a>
+
+          <!-- ДЕСКТОПНОЕ МЕНЮ -->
+          <nav class="nav-desktop">
+            <a class="nav-link" href="https://ts-trip.com" target="_blank" rel="noopener">Главная</a>
+            <a class="nav-link" href="https://ts-trip.com/routes" target="_blank" rel="noopener">Маршруты</a>
+            <a class="nav-link" href="https://ts-trip.com/reference" target="_blank" rel="noopener">Справочная</a>
+            <a class="nav-link" href="https://ts-trip.com/blog" target="_blank" rel="noopener">Блог</a>
+            <a class="nav-link" href="https://ts-trip.com/guide" target="_blank" rel="noopener">Путеводитель</a>
+          </nav>
+
+          <!-- ПРАВАЯ ЧАСТЬ -->
+          <div class="header-actions">
+            <a class="login-btn" href="https://ts-trip.com/login" target="_blank" rel="noopener">Войти</a>
+            <button class="menu-btn" type="button" id="ts-menu-btn" aria-label="Меню" aria-expanded="false"
+              aria-controls="ts-drawer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" x2="20" y1="6" y2="6"></line>
+                <line x1="4" x2="20" y1="12" y2="12"></line>
+                <line x1="4" x2="20" y1="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- МОБИЛЬНОЕ БУРГЕР-МЕНЮ -->
+    <div class="drawer-overlay" id="ts-overlay" hidden></div>
+    <aside class="drawer" id="ts-drawer" role="dialog" aria-modal="true" aria-label="Меню" hidden>
+      <button class="drawer-close" type="button" id="ts-drawer-close" aria-label="Закрыть меню">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </button>
+
+      <a class="drawer-login" href="https://ts-trip.com/login" target="_blank" rel="noopener">Войти</a>
+
+      <div class="drawer-section">
+        <p class="drawer-label">Разделы сайта</p>
+        <nav class="drawer-nav">
+          <a class="drawer-link" href="https://ts-trip.com" target="_blank" rel="noopener">Главная</a>
+          <a class="drawer-link" href="https://ts-trip.com/routes" target="_blank" rel="noopener">Маршруты</a>
+          <a class="drawer-link" href="https://ts-trip.com/reference" target="_blank" rel="noopener">Справочная</a>
+          <a class="drawer-link" href="https://ts-trip.com/blog" target="_blank" rel="noopener">Блог</a>
+          <a class="drawer-link" href="https://ts-trip.com/guide" target="_blank" rel="noopener">Путеводитель</a>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="content-offset"></div>
+  </div>
+  <!-- ===== КОНЕЦ ВАШЕЙ ШАПКИ ===== -->
+
+  <script>
+    (function () {
+      var root = document.getElementById('ts-header');
+      if (!root) return;
+      var btn = document.getElementById('ts-menu-btn');
+      var drawer = document.getElementById('ts-drawer');
+      var overlay = document.getElementById('ts-overlay');
+      var closeBtn = document.getElementById('ts-drawer-close');
+
+      function openMenu() {
+        overlay.hidden = false;
+        drawer.hidden = false;
+        // даём браузеру применить hidden=false до добавления класса для анимации
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            root.classList.add('is-menu-open');
+          });
+        });
+        btn.setAttribute('aria-expanded', 'true');
+        document.documentElement.classList.add('ts-no-scroll');
+        document.body.classList.add('ts-no-scroll');
+      }
+
+      function closeMenu() {
+        root.classList.remove('is-menu-open');
+        btn.setAttribute('aria-expanded', 'false');
+        document.documentElement.classList.remove('ts-no-scroll');
+        document.body.classList.remove('ts-no-scroll');
+        window.setTimeout(function () {
+          if (!root.classList.contains('is-menu-open')) {
+            overlay.hidden = true;
+            drawer.hidden = true;
+          }
+        }, 300);
+      }
+
+      btn.addEventListener('click', openMenu);
+      closeBtn.addEventListener('click', closeMenu);
+      overlay.addEventListener('click', closeMenu);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeMenu();
+      });
+
+      // Закрываем меню при возврате на вкладку после перехода по ссылке
+      window.addEventListener('pageshow', closeMenu);
+
+      // Меню не нужно на десктопе
+      window.addEventListener('resize', function () {
+        if (window.innerWidth >= 768) closeMenu();
+      });
+    })();
+  </script>
+
+  <!-- ===== КОД TRAVELPAYOUTS ===== -->
+  <header class="tpwl-logo-header">
+    <div class="tpwl-logo__wrapper">
+      <div class="tpwl-logo__logo"></div>
+      Поиск дешёвых авиабилетов
+    </div>
+    <div class="tpwl-search__wrapper">
+      <div class="tpwl__content">
+        <h1>Ваше путешествие начинается здесь</h1>
+      </div>
+    </div>
+  </header>
+
+  <header class="tpwl-search-header">
+    <div class="tpwl-search__wrapper">
+      <div class="tpwl__content">
+        <div id="tpwl-search"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="tpwl-main">
+    <div class="tpwl-tickets__wrapper">
+      <div class="tpwl__content">
+        <div id="tpwl-tickets"></div>
+      </div>
+    </div>
+    <div class="tpwl-widgets__wrapper">
+      <div class="tpwl__content">
+        <h3>Популярные направления перелётов</h3>
+        <div id="tpwl-widget-weedles" class="tpwl-widget-weedles">
+          <div class="tpwl-widget-weedle" data-destination="IST" is="weedle"></div>
+          <div class="tpwl-widget-weedle" data-destination="DXB" is="weedle"></div>
+          <div class="tpwl-widget-weedle" data-destination="MOW" is="weedle"></div>
+          <div class="tpwl-widget-weedle" data-destination="LAS" is="weedle"></div>
+          <div class="tpwl-widget-weedle" data-destination="NYC" is="weedle"></div>
+          <div class="tpwl-widget-weedle" data-destination="LON" is="weedle"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="tpwl-footer__wrapper">
+    <div class="tpwl__content">
+      <div class="tpwl-footer__copyright">Travelpayouts © 2008−[:current_year:]</div>
+      <div class="tpwl-footer__links">
+        <a href="#" target="_blank">Условия обслуживания</a>
+        <a href="#" target="_blank">Политика конфиденциальности</a>
+        <a href="#" target="_blank">Политика cookie</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="tpwl-cookie-banner" id="tpwl-cookie-banner">
+    <div class="tpwl-cookie-banner__logo"></div>
+    <div class="tpwl-cookie-banner__text">Мы используем cookie, чтобы запоминать вашу историю поиска и выбранные
+      фильтры. Продолжая пользоваться сайтом, вы соглашаетесь на их использование.</div>
+    <div class="tpwl-cookie-banner__actions">
+      <button class="tpwl-cookie-banner__base-button tpwl-cookie-banner__accept" id="tpwl-accept-cookie-btn">Принять</button>
+      <a class="tpwl-cookie-banner__base-button tpwl-cookie-banner__link" href="#" target="_blank">Политика cookie</a>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const container = document.getElementById('tpwl-widget-weedles');
+      const weedleElements = container.querySelectorAll('div[is="weedle"]');
+      weedleElements.forEach(element => {
+        if (!TPWL_EXTRA) return;
+        const destination = element.getAttribute('data-destination');
+        const scriptElement = document.createElement('script');
+        scriptElement.async = 1;
+        scriptElement.src = `https://[:widget_domain:]/content?currency=${String(TPWL_EXTRA.currency).toLowerCase()}&trs=${TPWL_EXTRA.trs}&shmarker=${TPWL_EXTRA.marker}&destination=${destination}&target_host=${TPWL_EXTRA.domain}&locale=${TPWL_EXTRA.locale}&limit=6&powered_by=false&primary=%23${TPWL_EXTRA.link_color}&promo_id=4044&campaign_id=100`;
+        element.appendChild(scriptElement);
+      });
+    })();
+  </script>
+</body>
+
+</html>

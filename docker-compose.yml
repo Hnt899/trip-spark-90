@@ -2,16 +2,14 @@ services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
-    env_file:
-      - .env.vps
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: trip_spark
+      POSTGRES_USER: trip_spark
+      POSTGRES_PASSWORD: DfzVD2paAkySm8hIO9bEdOzkG1AcbcLS
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U trip_spark -d trip_spark"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -21,18 +19,15 @@ services:
       context: .
       dockerfile: Dockerfile.app
     restart: unless-stopped
+    ports:
+      - "4000:4000"  # ← ЭТО ДОБАВЛЯЕМ
+    # Все переменные из .env.vps (JWT_SECRET, HF_*, RZD_*, SMTP_* и т.д.)
     env_file:
       - .env.vps
     environment:
       NODE_ENV: production
       PORT: 4000
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      RZD_FETCH_TIMEOUT_MS: ${RZD_FETCH_TIMEOUT_MS:-20000}
-      RZD_MAX_RID_ATTEMPTS: ${RZD_MAX_RID_ATTEMPTS:-12}
-      RZD_RID_DELAY_MS: ${RZD_RID_DELAY_MS:-900}
-      RZD_HTTPS_PROXY: ${RZD_HTTPS_PROXY:-}
-      RZD_CACHE_TTL_SEC: ${RZD_CACHE_TTL_SEC:-1800}
-      RZD_DEMO_FALLBACK: ${RZD_DEMO_FALLBACK:-1}
+      DATABASE_URL: postgresql://trip_spark:DfzVD2paAkySm8hIO9bEdOzkG1AcbcLS@db:5432/trip_spark
     depends_on:
       db:
         condition: service_healthy
@@ -46,10 +41,19 @@ services:
       context: .
       dockerfile: Dockerfile.web
     restart: unless-stopped
+    # Nginx резолвит upstream "app" на старте: сначала поднимаем app
     depends_on:
       - app
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      # Сертификат ts-trip.ru (SAN: ts-trip.ru, www.ts-trip.ru)
+      - /etc/letsencrypt/live/ts-trip.ru:/etc/letsencrypt/live/ts-trip.ru:ro
+      - /etc/letsencrypt/archive/ts-trip.ru:/etc/letsencrypt/archive/ts-trip.ru:ro
+      # Единый сертификат на остальные домены (SAN: ts-trip.com, www, ts-travel.by, www, ts-travel.online, www)
+      - /etc/letsencrypt/live/ts-trip.com-0001:/etc/letsencrypt/live/ts-trip.com-0001:ro
+      - /etc/letsencrypt/archive:/etc/letsencrypt/archive:ro
 
 volumes:
   postgres_data:

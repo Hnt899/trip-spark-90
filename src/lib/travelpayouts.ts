@@ -10,8 +10,9 @@ export interface TravelpayoutsPlace {
   city_name?: string;
 }
 
-// ===== ВАЖНО: ИСПОЛЬЗУЕМ HTTP, НЕ HTTPS! =====
-const AUTOCOMPLETE_URL = "http://localhost:4000/travelpayouts";
+// Относительный путь: запросы идут на тот же домен через Nginx (см. location /travelpayouts),
+// это исключает Mixed Content при HTTPS и 404 при смене хоста.
+const AUTOCOMPLETE_URL = "/travelpayouts";
 const WHITE_LABEL_BASE = "https://avia.ts-trip.com/";
 
 export interface FlightPassengers {

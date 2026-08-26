@@ -49,26 +49,25 @@ const Header = () => {
       const handleScroll = () => {
         const heroSection = document.getElementById("hero-section");
         const featuresSection = isHomePage ? document.getElementById("features-section") : null;
+        const heroRect = heroSection ? heroSection.getBoundingClientRect() : null;
 
-        if (heroSection && featuresSection) {
-          const heroRect = heroSection.getBoundingClientRect();
+        if (heroRect && featuresSection) {
           const nextSectionRect = featuresSection.getBoundingClientRect();
           const headerHeight = 56;
 
           const isHeroVisible = heroRect.bottom > 0;
           const isNextSectionReached = nextSectionRect.top <= headerHeight;
           setIsHeroMode(isHeroVisible && !isNextSectionReached);
-        } else if (heroSection) {
-          const heroRect = heroSection.getBoundingClientRect();
+        } else if (heroRect) {
           setIsHeroMode(heroRect.bottom > 0);
         } else {
           setIsHeroMode(false);
         }
 
         if (isRoutesPage) {
-          setShowStickySearch(true);
+          // Как на главной: hero-секция маршрутов ушла вверх → показываем компактную строку поиска
+          setShowStickySearch(heroRect && heroRect.bottom > 0 ? false : true);
           setIsAnimatingOut(false);
-          setIsHeroMode(false);
         } else if (isBlogPage) {
           setShowStickySearch(window.scrollY > 50);
           setIsAnimatingOut(false);
@@ -132,8 +131,8 @@ const Header = () => {
           // Показываем форму
           setIsAnimatingOut(false);
           setShowStickySearch(true);
-        } else if (!shouldShow && showStickySearch && isHomePage) {
-          // Начинаем анимацию исчезновения только на главной
+        } else if (!shouldShow && showStickySearch && (isHomePage || isRoutesPage)) {
+          // Начинаем анимацию исчезновения на главной и на /routes
           setIsAnimatingOut(true);
           // Убираем форму после завершения анимации
           setTimeout(() => {
@@ -143,15 +142,7 @@ const Header = () => {
         }
       }
 
-      // На routes страница белая — цветная шапка (не hero), форма поиска видна
-      if (isRoutesPage) {
-        setShowStickySearch(true);
-        setIsAnimatingOut(false);
-        setIsHeroMode(false);
-        return;
-      }
-
-      // Проверяем hero режим только для главной страницы
+      // Проверяем hero режим для главной и страницы маршрутов
       if (heroSection && featuresSection) {
         const heroRect = heroSection.getBoundingClientRect();
         const nextSectionRect = featuresSection.getBoundingClientRect();
@@ -223,7 +214,7 @@ const Header = () => {
     <>
       <header className={cn(
         "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300",
-        (isHomePage || isRoutesPage) && isHeroMode
+        isHomePage && isHeroMode
           ? "bg-transparent border-b border-white/20 backdrop-blur-md" 
             : "bg-[#E8ECF7] backdrop-blur-md border-b border-[#100A6F]/10 shadow-sm"
       )}>
@@ -232,11 +223,11 @@ const Header = () => {
           <div className="flex h-14 md:h-24 items-center justify-between gap-2 md:gap-4">
             <Link to="/" className="flex items-center hover:opacity-80 transition-opacity shrink-0 -ml-2 md:ml-0">
               <img 
-                src={(isHomePage || isRoutesPage) && isHeroMode ? logoWhiteImage : logoImage} 
+                src={isHomePage && isHeroMode ? logoWhiteImage : logoImage} 
                 alt="TudaSuda" 
                 className={cn(
                   "h-14 md:h-[84px] w-auto object-contain transition-all duration-300",
-                  (isHomePage || isRoutesPage) && isHeroMode 
+                  isHomePage && isHeroMode 
                     ? "drop-shadow-lg brightness-110" 
                     : "drop-shadow-sm brightness-110"
                 )}
@@ -302,10 +293,10 @@ const Header = () => {
                 className={cn(
                   "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
                   isActive("/") 
-                    ? (isHomePage || isRoutesPage) && isHeroMode 
+                    ? isHomePage && isHeroMode 
                       ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
                         : "text-primary bg-primary/10 border-transparent"
-                    : (isHomePage || isRoutesPage) && isHeroMode
+                    : isHomePage && isHeroMode
                       ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
                         : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
                 )}
@@ -317,24 +308,24 @@ const Header = () => {
                 items={popularRoutes}
                 href="/routes"
                 isActive={isActive("/routes") || location.pathname.startsWith("/routes/")}
-                isHomePage={(isHomePage || isRoutesPage) && isHeroMode}
+                isHomePage={isHomePage && isHeroMode}
               />
               <NavDropdown 
                 label="Справочная" 
                 items={faqTopics}
                 href="/reference"
                 isActive={isActive("/reference") || location.pathname.startsWith("/reference/")}
-                isHomePage={(isHomePage || isRoutesPage) && isHeroMode}
+                isHomePage={isHomePage && isHeroMode}
               />
               <Link 
                 to="/blog" 
                 className={cn(
                   "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
                   isBlogNavActive 
-                    ? (isHomePage || isRoutesPage) && isHeroMode 
+                    ? isHomePage && isHeroMode 
                       ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
                         : "text-primary bg-primary/10 border-transparent"
-                    : (isHomePage || isRoutesPage) && isHeroMode
+                    : isHomePage && isHeroMode
                       ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
                         : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
                 )}
@@ -346,10 +337,10 @@ const Header = () => {
                 className={cn(
                   "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
                   isActive("/guide") || location.pathname.startsWith("/guide/")
-                    ? (isHomePage || isRoutesPage) && isHeroMode 
+                    ? isHomePage && isHeroMode 
                       ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
                         : "text-primary bg-primary/10 border-transparent"
-                    : (isHomePage || isRoutesPage) && isHeroMode
+                    : isHomePage && isHeroMode
                       ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
                         : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
                 )}
@@ -368,7 +359,7 @@ const Header = () => {
                   title="Личный кабинет" 
                   className={cn(
                     "h-10 w-10 md:h-14 md:w-14 [&_svg]:!h-5 [&_svg]:!w-5 md:[&_svg]:!h-8 md:[&_svg]:!w-8 transition-colors rounded-lg",
-                    (isHomePage || isRoutesPage) && isHeroMode
+                    isHomePage && isHeroMode
                       ? "bg-black/40 backdrop-blur-md hover:bg-black/50 border-0 [&_svg]:text-white [&_svg]:stroke-white [&_svg]:fill-none"
                         : "bg-transparent hover:bg-white/50 border-0 [&_svg]:text-primary [&_svg]:stroke-primary [&_svg]:fill-none"
                   )}
@@ -383,7 +374,7 @@ const Header = () => {
                   variant="outline" 
                   className={cn(
                     "hidden md:inline-flex text-sm md:text-lg font-medium transition-colors px-3 md:px-4 py-1.5 md:py-2 rounded-md border h-auto",
-                    (isHomePage || isRoutesPage) && isHeroMode
+                    isHomePage && isHeroMode
                         ? "text-white/90 border-white/30 bg-white/10 hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
                         : "text-foreground/80 border-border bg-background/50 hover:bg-muted/50 hover:text-foreground"
                   )}
@@ -429,7 +420,7 @@ const Header = () => {
                     size="icon"
                     className={cn(
                       "md:hidden h-10 w-10 transition-colors",
-                      (isHomePage || isRoutesPage) && isHeroMode
+                      isHomePage && isHeroMode
                         ? "text-white/90 hover:bg-white/20"
                         : "text-foreground/80 hover:bg-muted/50"
                     )}
