@@ -13,7 +13,7 @@ export interface TravelpayoutsPlace {
 // Относительный путь: запросы идут на тот же домен через Nginx (см. location /travelpayouts),
 // это исключает Mixed Content при HTTPS и 404 при смене хоста.
 const AUTOCOMPLETE_URL = "/travelpayouts";
-const WHITE_LABEL_BASE = "https://avia.ts-trip.com/";
+const WHITE_LABEL_BASE = "https://avia.ts-trip.ru/";
 
 export interface FlightPassengers {
   adults: number;
