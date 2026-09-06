@@ -127,6 +127,7 @@ const FlightSearchForm = ({
   const isMobile = useIsMobile();
   const isHero = variant === "hero";
   const isHeaderMobile = variant === "header-mobile";
+  const isHeaderDesktop = variant === "header-desktop";
 
   const [tripType, setTripType] = useState<"round" | "one">(externalTripType || "round");
   const [fromPlace, setFromPlace] = useState<SelectedPlace | null>(null);
@@ -217,7 +218,7 @@ const FlightSearchForm = ({
       <style>{scrollbarStyles}</style>
       <style>{mobileStyles}</style>
       
-      <div className="flex flex-col gap-3 w-full flight-form-container">
+      <div className={cn("flex flex-col gap-3 w-full flight-form-container", isHeaderDesktop && "flight-form-header-desktop")}>
         
         {/* ===== ВЕРХНЯЯ СТРОКА: Заголовок "Авиабилеты" + Переключатель ===== */}
         {showTripTypeToggle && (
@@ -282,6 +283,73 @@ const FlightSearchForm = ({
 
         {/* ===== СТРОКА 3: Даты, Пассажиры, Класс, Кнопка ===== */}
         <div className={cn("flex gap-2 flight-form-extra", isHeaderMobile ? "flex-col" : "flex-col sm:flex-row sm:items-stretch")}>
+          {/* Для header-desktop: одна строка с компактным дропдауном пассажиров+класс */}
+          {isHeaderDesktop ? (
+            <>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn(fieldTriggerClass, "sm:min-w-[140px] h-10 text-xs")}>
+                    <span className="truncate">{passengersLabel()}, {flightClass === "economy" ? "Эконом" : "Бизнес"}</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72" align="start">
+                  <PassengerRow label="Взрослые" hint="12+ лет" value={passengers.adults} min={1} max={9} variant={variant} onChange={(adults: number) => setPassengers((prev) => ({ ...prev, adults }))} />
+                  <PassengerRow label="Дети" hint="2–11 лет" value={passengers.children} min={0} max={9} variant={variant} onChange={(children: number) => setPassengers((prev) => ({ ...prev, children }))} />
+                  <PassengerRow label="Младенцы" hint="до 2 лет, без места" value={passengers.infants} min={0} max={passengers.adults} variant={variant} onChange={(infants: number) => setPassengers((prev) => ({ ...prev, infants }))} />
+                  <div className="border-t border-border/40 pt-3 mt-1">
+                    <p className="text-sm font-medium mb-2">Класс обслуживания</p>
+                    <Select value={flightClass} onValueChange={(v) => setFlightClass(v as "economy" | "business")}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Класс" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="economy">Эконом</SelectItem>
+                        <SelectItem value="business">Бизнес</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn(fieldTriggerClass, !departureDate && (isHero ? "text-white/50" : "text-muted-foreground"))}>
+                    <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                    <span className="truncate">
+                      {departureDate ? format(departureDate, "dd.MM.yy", { locale: ru }) : "Туда"}
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className={cn("w-auto p-0", isHeaderMobile && "z-[200]")} align="start">
+                  <Calendar mode="single" selected={departureDate} onSelect={setDepartureDate} initialFocus numberOfMonths={isMobile || isHeaderMobile ? 1 : 2} disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} />
+                </PopoverContent>
+              </Popover>
+              {tripType === "round" && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn(fieldTriggerClass, !returnDate && (isHero ? "text-white/50" : "text-muted-foreground"))}>
+                      <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                      <span className="truncate">
+                        {returnDate ? format(returnDate, "dd.MM.yy", { locale: ru }) : "Обратно"}
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className={cn("w-auto p-0", isHeaderMobile && "z-[200]")} align="start">
+                    <Calendar mode="single" selected={returnDate} onSelect={setReturnDate} initialFocus numberOfMonths={isMobile || isHeaderMobile ? 1 : 2} disabled={(date) => {
+                      const today = new Date(new Date().setHours(0, 0, 0, 0));
+                      if (date < today) return true;
+                      if (departureDate && date < departureDate) return true;
+                      return false;
+                    }} />
+                  </PopoverContent>
+                </Popover>
+              )}
+              <Button type="button" onClick={handleSearch} className={cn("shrink-0 font-semibold flight-search-btn h-10 px-4 rounded-md")}>
+                <Search className="h-4 w-4 mr-2" />
+                Найти
+              </Button>
+            </>
+          ) : (
+            <>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className={cn(fieldTriggerClass, !departureDate && (isHero ? "text-white/50" : "text-muted-foreground"))}>
@@ -344,6 +412,8 @@ const FlightSearchForm = ({
             <Search className={cn("mr-2", isHeaderMobile ? "h-5 w-5" : "h-4 w-4")} />
             {isHeaderMobile ? "Найти билеты" : "Найти"}
           </Button>
+            </>
+          )}
         </div>
       </div>
     </>
