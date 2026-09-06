@@ -18,10 +18,35 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { uploadImages } from "@/lib/uploadImages";
 import type { RouteDayItem } from "@/types/blogContent";
 
 const DEFAULT_IMAGE = "/путь-no-bg-preview (carve.photos).png";
+
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
+async function uploadRouteImages(files: File[]): Promise<string[]> {
+  const fd = new FormData();
+  for (const f of files) fd.append("files", f);
+
+  const token = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("access_token="))
+    ?.split("=")[1];
+
+  const headers: HeadersInit = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const url = `${API_BASE}/api/upload/route`;
+  const res = await fetch(url, { method: "POST", headers, body: fd });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(
+      (data as { error?: string }).error || "Upload failed",
+    );
+  }
+  const data = (await res.json()) as { urls: string[] };
+  return data.urls;
+}
 
 export function RouteDaysView({
   node,
@@ -77,7 +102,7 @@ export function RouteDaysView({
     async (files: FileList | null) => {
       if (!files?.length) return;
       try {
-        const urls = await uploadImages([files[0]]);
+        const urls = await uploadRouteImages([files[0]]);
         if (urls[0]) updateAttributes({ image: urls[0] });
       } catch (e) {
         console.error("Route image upload failed", e);

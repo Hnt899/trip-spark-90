@@ -3,6 +3,7 @@ import multer from "multer";
 import crypto from "crypto";
 import path from "path";
 import fs from "fs";
+import sharp from "sharp";
 import { adminMiddleware } from "./authMiddleware.js";
 
 const UPLOAD_DIR = path.resolve("uploads");
@@ -47,6 +48,53 @@ const upload = multer({
 
 const router = Router();
 
+// Обработка изображений для маршрутов: обрезать/растянуть до 896x560
+async function processRouteImage(inputPath: string, outputPath: string): Promise<void> {
+  await sharp(inputPath)
+    .resize(896, 560, {
+      fit: "cover",
+      position: "center",
+    })
+    .toFile(outputPath);
+}
+
+router.post(
+  "/api/upload/route",
+  adminMiddleware,
+  upload.array("files", 20),
+  async (req, res) => {
+    const files = /** @type {Express.Multer.File[]} */ (req.files) || [];
+    
+    const urls: string[] = [];
+    
+    for (const file of files) {
+      if (ALLOWED_IMAGE_MIME.has(file.mimetype)) {
+        // Обрабатываем изображение: обрезаем/растягиваем до 896x560
+        const ext = path.extname(file.filename);
+        const processedFilename = `route_${crypto.randomUUID()}${ext}`;
+        const processedPath = path.join(UPLOAD_DIR, processedFilename);
+        
+        try {
+          await processRouteImage(file.path, processedPath);
+          // Удаляем оригинал
+          fs.unlinkSync(file.path);
+          urls.push(`/uploads/${processedFilename}`);
+        } catch (err) {
+          console.error("Error processing route image:", err);
+          // Если ошибка обработки, используем оригинал
+          urls.push(`/uploads/${file.filename}`);
+        }
+      } else {
+        // Видео или другие файлы оставляем как есть
+        urls.push(`/uploads/${file.filename}`);
+      }
+    }
+    
+    res.json({ urls });
+  },
+);
+
+// Старый эндпоинт для остальных загрузок (без обработки)
 router.post(
   "/api/upload",
   adminMiddleware,
