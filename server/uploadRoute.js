@@ -49,7 +49,7 @@ const upload = multer({
 const router = Router();
 
 // Обработка изображений для маршрутов: обрезать/растянуть до 896x560
-async function processRouteImage(inputPath: string, outputPath: string): Promise<void> {
+async function processRouteImage(inputPath, outputPath) {
   await sharp(inputPath)
     .resize(896, 560, {
       fit: "cover",
@@ -63,9 +63,9 @@ router.post(
   adminMiddleware,
   upload.array("files", 20),
   async (req, res) => {
-    const files = /** @type {Express.Multer.File[]} */ (req.files) || [];
+    const files = req.files || [];
     
-    const urls: string[] = [];
+    const urls = [];
     
     for (const file of files) {
       if (ALLOWED_IMAGE_MIME.has(file.mimetype)) {
@@ -100,7 +100,7 @@ router.post(
   adminMiddleware,
   upload.array("files", 20),
   (req, res) => {
-    const files = /** @type {Express.Multer.File[]} */ (req.files) || [];
+    const files = req.files || [];
     const urls = files.map((f) => `/uploads/${f.filename}`);
     res.json({ urls });
   },

@@ -74,12 +74,15 @@ function isBlock(x: unknown): x is BlogContentBlock {
 /*  Main renderer                                                      */
 /* ------------------------------------------------------------------ */
 
+// ===== ДОБАВЛЯЕМ ПРОПС isRoute =====
 export default function BlogBlockRenderer({
   blocks,
   className,
+  isRoute = false, // ← добавляем
 }: {
   blocks: unknown;
   className?: string;
+  isRoute?: boolean; // ← добавляем
 }) {
   const rawList = Array.isArray(blocks) ? blocks.filter(isBlock) : [];
   const list = expandRichParagraphBlocks(rawList as BlogContentBlock[]);
@@ -138,24 +141,24 @@ export default function BlogBlockRenderer({
             );
           }
           case "image":
-            if (!block.url?.trim()) return null;
-            return (
-              <figure key={key} className="my-6 flex flex-col items-center">
-                <div className="inline-flex max-w-full items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-transparent dark:border-slate-800">
-                  <img
-                    src={block.url}
-                    alt={block.alt || ""}
-                    referrerPolicy="no-referrer"
-                    className="mx-auto block h-auto max-h-[560px] w-auto max-w-full object-contain"
-                  />
-                </div>
-                {block.caption ? (
-                  <figcaption className="mt-2 whitespace-pre-wrap break-words text-center text-sm text-muted-foreground [overflow-wrap:anywhere]">
-                    {block.caption}
-                  </figcaption>
-                ) : null}
-              </figure>
-            );
+  if (!block.url?.trim()) return null;
+  return (
+    <figure key={key} className="my-6 flex flex-col items-center">
+      <div className="inline-flex max-w-full items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-transparent dark:border-slate-800">
+        <img
+          src={block.url}
+          alt={block.alt || ""}
+          referrerPolicy="no-referrer"
+          className="mx-auto block h-auto max-h-[560px] w-auto max-w-full object-contain"
+        />
+      </div>
+      {block.caption ? (
+        <figcaption className="mt-2 whitespace-pre-wrap break-words text-center text-sm text-muted-foreground [overflow-wrap:anywhere]">
+          {block.caption}
+        </figcaption>
+      ) : null}
+    </figure>
+  );
           case "carousel":
             if (!Array.isArray(block.slides) || block.slides.length === 0) {
               return null;
@@ -351,7 +354,12 @@ export default function BlogBlockRenderer({
                     <img
                       src={routeImage}
                       alt=""
-                      className="h-56 w-full object-contain md:absolute md:inset-0 md:h-full"
+                      // ===== ДЛЯ routeByDays ТОЖЕ МЕНЯЕМ =====
+                      className={
+                        isRoute
+                          ? "h-56 w-full object-cover md:absolute md:inset-0 md:h-full"
+                          : "h-56 w-full object-contain md:absolute md:inset-0 md:h-full"
+                      }
                     />
                   </div>
                   {/* Timeline right */}
@@ -370,7 +378,6 @@ export default function BlogBlockRenderer({
                           <div key={di} className="flex gap-4">
                             {/* Timeline column */}
                             <div className="flex w-5 shrink-0 flex-col items-center">
-                              {/* Dot */}
                               {isFirst ? (
                                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/15">
                                   <div className="h-2.5 w-2.5 rounded-full bg-primary" />
@@ -382,12 +389,10 @@ export default function BlogBlockRenderer({
                                   <div className="h-2 w-2 rounded-full border-2 border-primary bg-white dark:bg-background" />
                                 </div>
                               )}
-                              {/* Line segment */}
                               {!isLast && (
                                 <div className="my-1 w-px flex-1 border-l-2 border-dashed border-primary/30" />
                               )}
                             </div>
-                            {/* Content */}
                             <div className={cn("min-w-0 flex-1", !isLast && "pb-5")}>
                               <p className="text-[11px] font-semibold uppercase tracking-wider text-primary/70">
                                 {day.label}

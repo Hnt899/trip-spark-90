@@ -192,6 +192,32 @@ export function registerRoutePublicRoutes(app) {
     }
   });
 
+  // ===== НОВЫЙ ЭНДПОИНТ: похожие маршруты =====
+  app.get("/api/route-pages/related", async (req, res) => {
+    const { region, exclude, offset = 0 } = req.query;
+    if (!region) {
+      return res.status(400).json({ error: "region required" });
+    }
+
+    const limit = 3;
+    const off = parseInt(offset, 10) || 0;
+
+    try {
+      const { rows } = await pool.query(
+        `SELECT id, legacy_id, slug, name, region, rating, cover_image_url, excerpt
+         FROM route_pages
+         WHERE region = $1 AND status = 'published' AND id::text != $2
+         ORDER BY rating DESC, name ASC
+         LIMIT $3 OFFSET $4`,
+        [region, exclude || "0", limit, off]
+      );
+      res.json(rows);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Failed to fetch related routes" });
+    }
+  });
+
   app.get("/api/route-pages/by-id/:id", async (req, res) => {
     const id = String(req.params.id || "");
     if (!id) return res.status(400).json({ error: "id required" });

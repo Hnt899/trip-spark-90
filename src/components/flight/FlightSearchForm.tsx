@@ -15,7 +15,7 @@ export type FlightSearchFormVariant = "hero" | "header-desktop" | "header-mobile
 interface FlightSearchFormProps {
   variant?: FlightSearchFormVariant;
   showTripTypeToggle?: boolean;
-  tripType?: "round" | "one"; // добавляем проп для управления извне
+  tripType?: "round" | "one";
   onFromLabelChange?: (label: string | undefined) => void;
   onToLabelChange?: (label: string | undefined) => void;
   onSearchComplete?: () => void;
@@ -48,49 +48,35 @@ const scrollbarStyles = `
 // ===== СТИЛИ ДЛЯ МОБИЛЬНОЙ АДАПТАЦИИ =====
 const mobileStyles = `
   @media (max-width: 480px) {
-    /* Скрываем текст "Авиабилеты" в табе, оставляем только иконку */
     .tab-text {
       display: none;
     }
-    
-    /* Форма на мобилках — колонка */
     .flight-form-row {
       flex-direction: column !important;
       gap: 8px !important;
     }
-    
-    /* Все поля — 100% ширины */
     .flight-form-row .flex-1,
     .flight-form-row .min-w-0 {
       width: 100% !important;
       flex: 1 1 100% !important;
       min-width: 0 !important;
     }
-    
-    /* Кнопка "Найти" — на всю ширину */
     .flight-search-btn {
       width: 100% !important;
       justify-content: center !important;
     }
-    
-    /* Даты, пассажиры, класс — каждый на отдельной строке */
     .flight-form-extra {
       flex-direction: column !important;
       gap: 8px !important;
     }
-    
     .flight-form-extra > * {
       width: 100% !important;
       flex: 1 1 100% !important;
     }
-    
-    /* Отступы внутри формы */
     .flight-form-container {
       padding-left: 12px !important;
       padding-right: 12px !important;
     }
-
-    /* Переключатель "Туда — сюда" на мобилках */
     .trip-type-toggle {
       flex-wrap: wrap !important;
       justify-content: center !important;
@@ -138,7 +124,6 @@ const FlightSearchForm = ({
   const [flightClass, setFlightClass] = useState<"economy" | "business">("economy");
   const [errors, setErrors] = useState<{ from?: string; to?: string; general?: string }>({});
 
-  // Синхронизируем с внешним tripType
   useEffect(() => {
     if (externalTripType) {
       setTripType(externalTripType);
@@ -197,7 +182,7 @@ const FlightSearchForm = ({
 
     const flightSearch = `${fromPlace.code}${dateToken}${toPlace.code}${passengerToken}`;
 
-    const url = `https://avia.ts-trip.com/?flightSearch=${flightSearch}`;
+    const url = `https://avia.ts-trip.ru/?flightSearch=${flightSearch}`;
     window.location.href = url;
     onSearchComplete?.();
   };
@@ -217,19 +202,15 @@ const FlightSearchForm = ({
     <>
       <style>{scrollbarStyles}</style>
       <style>{mobileStyles}</style>
-      
+
       <div className={cn("flex flex-col gap-3 w-full flight-form-container", isHeaderDesktop && "flight-form-header-desktop")}>
-        
-        {/* ===== ВЕРХНЯЯ СТРОКА: Заголовок "Авиабилеты" + Переключатель ===== */}
+
         {showTripTypeToggle && (
           <div className="flex items-center justify-between w-full">
-            {/* Заголовок слева */}
             <h2 className="text-2xl font-bold text-white">
               <span className="tab-text">Авиабилеты</span>
               <span className="inline-block sm:hidden">✈️</span>
             </h2>
-
-            {/* Переключатель справа */}
             <div className="inline-flex items-center gap-1 rounded-md p-1 bg-white/10 trip-type-toggle">
               <button
                 type="button"
@@ -260,62 +241,129 @@ const FlightSearchForm = ({
           </div>
         )}
 
-        {/* ===== СТРОКА 2: Города ===== */}
         {errors.general && (
           <p className="text-sm text-red-400 rounded-md bg-red-500/10 px-3 py-2">{errors.general}</p>
         )}
-        <div className={cn("flex gap-2 flight-form-row", isHeaderMobile ? "flex-col" : "flex-col sm:flex-row")}>
-          <PlaceAutocomplete
-            value={fromPlace}
-            onChange={handleFromChange}
-            placeholder="Откуда"
-            error={errors.from}
-            variant={variant}
-          />
-          <PlaceAutocomplete
-            value={toPlace}
-            onChange={handleToChange}
-            placeholder="Куда"
-            error={errors.to}
-            variant={variant}
-          />
-        </div>
 
-        {/* ===== СТРОКА 3: Даты, Пассажиры, Класс, Кнопка ===== */}
-        <div className={cn("flex gap-2 flight-form-extra", isHeaderMobile ? "flex-col" : "flex-col sm:flex-row sm:items-stretch")}>
-          {/* Для header-desktop: одна строка с компактным дропдауном пассажиров+класс */}
-          {isHeaderDesktop ? (
-            <>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn(fieldTriggerClass, "sm:min-w-[140px] h-10 text-xs")}>
-                    <span className="truncate">{passengersLabel()}, {flightClass === "economy" ? "Эконом" : "Бизнес"}</span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-72" align="start">
-                  <PassengerRow label="Взрослые" hint="12+ лет" value={passengers.adults} min={1} max={9} variant={variant} onChange={(adults: number) => setPassengers((prev) => ({ ...prev, adults }))} />
-                  <PassengerRow label="Дети" hint="2–11 лет" value={passengers.children} min={0} max={9} variant={variant} onChange={(children: number) => setPassengers((prev) => ({ ...prev, children }))} />
-                  <PassengerRow label="Младенцы" hint="до 2 лет, без места" value={passengers.infants} min={0} max={passengers.adults} variant={variant} onChange={(infants: number) => setPassengers((prev) => ({ ...prev, infants }))} />
-                  <div className="border-t border-border/40 pt-3 mt-1">
-                    <p className="text-sm font-medium mb-2">Класс обслуживания</p>
-                    <Select value={flightClass} onValueChange={(v) => setFlightClass(v as "economy" | "business")}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Класс" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="economy">Эконом</SelectItem>
-                        <SelectItem value="business">Бизнес</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </PopoverContent>
-              </Popover>
+{isHeaderDesktop ? (
+  <div className="flex items-center gap-2 w-full">
+    {/* Откуда — без изменений */}
+    <PlaceAutocomplete
+      value={fromPlace}
+      onChange={handleFromChange}
+      placeholder="Откуда"
+      error={errors.from}
+      variant="header"
+      className="flex-1 min-w-0"
+    />
+
+    {/* Куда — без изменений */}
+    <PlaceAutocomplete
+      value={toPlace}
+      onChange={handleToChange}
+      placeholder="Куда"
+      error={errors.to}
+      variant="header"
+      className="flex-1 min-w-0"
+    />
+
+    {/* Пассажиры + Класс — ТАКОЕ ЖЕ СКРУГЛЕНИЕ, КАК У "ОТКУДА" */}
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "h-10 px-3 text-xs whitespace-nowrap flex-1 min-w-0",
+            "rounded-md", // ← добавляем явно rounded-md
+            isHero ? "bg-white/10 border-white/20 text-white" : "bg-background border-input text-foreground"
+          )}
+        >
+          {passengersLabel()}, {flightClass === "economy" ? "Эконом" : "Бизнес"}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72" align="start">
+        {/* ... содержимое ... */}
+      </PopoverContent>
+    </Popover>
+
+    {/* Дата туда — ТАКОЕ ЖЕ СКРУГЛЕНИЕ */}
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "h-10 px-3 text-xs whitespace-nowrap flex-1 min-w-0",
+            "rounded-md", // ← добавляем явно rounded-md
+            isHero ? "bg-white/10 border-white/20 text-white" : "bg-background border-input text-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-1 h-4 w-4" />
+          {departureDate ? format(departureDate, "dd.MM.yy", { locale: ru }) : "Туда"}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        {/* ... содержимое ... */}
+      </PopoverContent>
+    </Popover>
+
+    {/* Дата обратно — ТАКОЕ ЖЕ СКРУГЛЕНИЕ */}
+    {tripType === "round" && (
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              "h-10 px-3 text-xs whitespace-nowrap flex-1 min-w-0",
+              "rounded-md", // ← добавляем явно rounded-md
+              isHero ? "bg-white/10 border-white/20 text-white" : "bg-background border-input text-foreground"
+            )}
+          >
+            <CalendarIcon className="mr-1 h-4 w-4" />
+            {returnDate ? format(returnDate, "dd.MM.yy", { locale: ru }) : "Обратно"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          {/* ... содержимое ... */}
+        </PopoverContent>
+      </Popover>
+    )}
+
+    {/* Кнопка "Найти" — тоже можно сделать с rounded-md, если нужно */}
+    <Button
+      type="button"
+      onClick={handleSearch}
+      className="h-10 px-4 shrink-0 rounded-md"
+    >
+      <Search className="h-4 w-4 mr-1" />
+      Найти
+    </Button>
+  </div>
+) : (
+          // ===== ОБЫЧНАЯ ФОРМА (hero, header-mobile) =====
+          <>
+            <div className={cn("flex gap-2 flight-form-row", isHeaderMobile ? "flex-col" : "flex-col sm:flex-row")}>
+              <PlaceAutocomplete
+                value={fromPlace}
+                onChange={handleFromChange}
+                placeholder="Откуда"
+                error={errors.from}
+                variant={variant}
+              />
+              <PlaceAutocomplete
+                value={toPlace}
+                onChange={handleToChange}
+                placeholder="Куда"
+                error={errors.to}
+                variant={variant}
+              />
+            </div>
+            <div className={cn("flex gap-2 flight-form-extra", isHeaderMobile ? "flex-col" : "flex-col sm:flex-row sm:items-stretch")}>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className={cn(fieldTriggerClass, !departureDate && (isHero ? "text-white/50" : "text-muted-foreground"))}>
                     <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                     <span className="truncate">
-                      {departureDate ? format(departureDate, "dd.MM.yy", { locale: ru }) : "Туда"}
+                      {departureDate ? format(departureDate, "dd.MM.yyyy", { locale: ru }) : "Дата вылета"}
                     </span>
                   </Button>
                 </PopoverTrigger>
@@ -329,7 +377,7 @@ const FlightSearchForm = ({
                     <Button variant="outline" className={cn(fieldTriggerClass, !returnDate && (isHero ? "text-white/50" : "text-muted-foreground"))}>
                       <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                       <span className="truncate">
-                        {returnDate ? format(returnDate, "dd.MM.yy", { locale: ru }) : "Обратно"}
+                        {returnDate ? format(returnDate, "dd.MM.yyyy", { locale: ru }) : "Дата возврата"}
                       </span>
                     </Button>
                   </PopoverTrigger>
@@ -343,78 +391,34 @@ const FlightSearchForm = ({
                   </PopoverContent>
                 </Popover>
               )}
-              <Button type="button" onClick={handleSearch} className={cn("shrink-0 font-semibold flight-search-btn h-10 px-4 rounded-md")}>
-                <Search className="h-4 w-4 mr-2" />
-                Найти
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn(fieldTriggerClass, isHeaderMobile ? "w-full" : "sm:min-w-[160px]")}>
+                    <span className="truncate">{passengersLabel()}</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72" align="start">
+                  <PassengerRow label="Взрослые" hint="12+ лет" value={passengers.adults} min={1} max={9} variant={variant} onChange={(adults: number) => setPassengers((prev) => ({ ...prev, adults }))} />
+                  <PassengerRow label="Дети" hint="2–11 лет" value={passengers.children} min={0} max={9} variant={variant} onChange={(children: number) => setPassengers((prev) => ({ ...prev, children }))} />
+                  <PassengerRow label="Младенцы" hint="до 2 лет, без места" value={passengers.infants} min={0} max={passengers.adults} variant={variant} onChange={(infants: number) => setPassengers((prev) => ({ ...prev, infants }))} />
+                </PopoverContent>
+              </Popover>
+              <Select value={flightClass} onValueChange={(v) => setFlightClass(v as "economy" | "business")}>
+                <SelectTrigger className={cn(selectTriggerClass, isHeaderMobile ? "w-full" : "sm:w-36", isHero && "bg-white/10 border-white/20 text-white [&>svg]:text-white")}>
+                  <SelectValue placeholder="Класс" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1a2e] border-white/20 text-white">
+                  <SelectItem value="economy">Эконом</SelectItem>
+                  <SelectItem value="business">Бизнес</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button type="button" onClick={handleSearch} className={cn("shrink-0 font-semibold flight-search-btn", isHero ? "h-11 px-6 text-sm rounded-md" : isHeaderMobile ? "w-full h-12 rounded-xl text-base" : "h-10 px-4 rounded-md")}>
+                <Search className={cn("mr-2", isHeaderMobile ? "h-5 w-5" : "h-4 w-4")} />
+                {isHeaderMobile ? "Найти билеты" : "Найти"}
               </Button>
-            </>
-          ) : (
-            <>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={cn(fieldTriggerClass, !departureDate && (isHero ? "text-white/50" : "text-muted-foreground"))}>
-                <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-                <span className="truncate">
-                  {departureDate ? format(departureDate, "dd.MM.yyyy", { locale: ru }) : "Дата вылета"}
-                </span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className={cn("w-auto p-0", isHeaderMobile && "z-[200]")} align="start">
-              <Calendar mode="single" selected={departureDate} onSelect={setDepartureDate} initialFocus numberOfMonths={isMobile || isHeaderMobile ? 1 : 2} disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} />
-            </PopoverContent>
-          </Popover>
-
-          {tripType === "round" && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn(fieldTriggerClass, !returnDate && (isHero ? "text-white/50" : "text-muted-foreground"))}>
-                  <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-                  <span className="truncate">
-                    {returnDate ? format(returnDate, "dd.MM.yyyy", { locale: ru }) : "Дата возврата"}
-                  </span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className={cn("w-auto p-0", isHeaderMobile && "z-[200]")} align="start">
-                <Calendar mode="single" selected={returnDate} onSelect={setReturnDate} initialFocus numberOfMonths={isMobile || isHeaderMobile ? 1 : 2} disabled={(date) => {
-                  const today = new Date(new Date().setHours(0, 0, 0, 0));
-                  if (date < today) return true;
-                  if (departureDate && date < departureDate) return true;
-                  return false;
-                }} />
-              </PopoverContent>
-            </Popover>
-          )}
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={cn(fieldTriggerClass, isHeaderMobile ? "w-full" : "sm:min-w-[160px]")}>
-                <span className="truncate">{passengersLabel()}</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72" align="start">
-              <PassengerRow label="Взрослые" hint="12+ лет" value={passengers.adults} min={1} max={9} variant={variant} onChange={(adults: number) => setPassengers((prev) => ({ ...prev, adults }))} />
-              <PassengerRow label="Дети" hint="2–11 лет" value={passengers.children} min={0} max={9} variant={variant} onChange={(children: number) => setPassengers((prev) => ({ ...prev, children }))} />
-              <PassengerRow label="Младенцы" hint="до 2 лет, без места" value={passengers.infants} min={0} max={passengers.adults} variant={variant} onChange={(infants: number) => setPassengers((prev) => ({ ...prev, infants }))} />
-            </PopoverContent>
-          </Popover>
-
-          <Select value={flightClass} onValueChange={(v) => setFlightClass(v as "economy" | "business")}>
-            <SelectTrigger className={cn(selectTriggerClass, isHeaderMobile ? "w-full" : "sm:w-36", isHero && "bg-white/10 border-white/20 text-white [&>svg]:text-white")}>
-              <SelectValue placeholder="Класс" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#1a1a2e] border-white/20 text-white">
-              <SelectItem value="economy">Эконом</SelectItem>
-              <SelectItem value="business">Бизнес</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button type="button" onClick={handleSearch} className={cn("shrink-0 font-semibold flight-search-btn", isHero ? "h-11 px-6 text-sm rounded-md" : isHeaderMobile ? "w-full h-12 rounded-xl text-base" : "h-10 px-4 rounded-md")}>
-            <Search className={cn("mr-2", isHeaderMobile ? "h-5 w-5" : "h-4 w-4")} />
-            {isHeaderMobile ? "Найти билеты" : "Найти"}
-          </Button>
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </>
   );
