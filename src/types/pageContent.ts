@@ -165,6 +165,7 @@ export type BlogInviteFields = {
   paragraph2: string;
   ctaLabel: string;
   ctaHref: string;
+  image?: string;
 };
 
 export type SupportFields = {

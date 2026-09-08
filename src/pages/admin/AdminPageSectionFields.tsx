@@ -558,6 +558,7 @@ export function AdminPageSectionFields({
         <CmsColorField label="Цвет текста" value={str("textColor")} onChange={(v) => onPatch({ textColor: v })} />
         <Field label="Кнопка" value={str("ctaLabel")} onChange={(v) => onPatch({ ctaLabel: v })} />
         <Field label="Ссылка" value={str("ctaHref")} onChange={(v) => onPatch({ ctaHref: v })} />
+        <Field label="Картинка (путь)" value={str("image")} onChange={(v) => onPatch({ image: v })} placeholder="/path/to/image.png" />
       </div>
     );
   }
