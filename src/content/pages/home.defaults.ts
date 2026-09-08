@@ -1,4 +1,5 @@
 import type { PageContentDocument } from "@/types/pageContent";
+import blogImage from "@/assets/images/features/на блог.png";
 
 export const HOME_SECTION_ORDER = [
   "hero",
@@ -673,7 +674,7 @@ export const homePageDefaults: PageContentDocument = {
           "Блог дополняет справочник и путеводитель: здесь больше про идеи для поездок, обновления сервиса и практичные советы в одном месте.",
         ctaLabel: "Перейти в блог",
         ctaHref: "/blog",
-        image: "", // Вставьте путь к картинке, например: "/path/to/your/blog-image.png"
+        image: blogImage, // Вставьте путь к картинке, например: "/path/to/your/blog-image.png"
       },
     },
     verified: {
