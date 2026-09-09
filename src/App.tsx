@@ -38,7 +38,7 @@ import AdminPageEditor from "./pages/admin/AdminPageEditor";
 import NotFound from "./pages/NotFound";
 import TestimonialDetail from "./pages/TestimonialDetail";
 import ChatWidget from "./components/ChatWidget";
-import ScrollToTop from "./components/ScrollToTop";
+import ScrollToTop, { YandexMetrikaPageTracker } from "./components/ScrollToTop";
 
 // Reference pages
 import Trains from "./pages/reference/Trains";
@@ -84,6 +84,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <ScrollToTop />
+            <YandexMetrikaPageTracker />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/routes" element={<RoutesPage />} />
