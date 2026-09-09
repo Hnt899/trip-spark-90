@@ -282,7 +282,20 @@ const FlightSearchForm = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72" align="start">
-        {/* ... содержимое ... */}
+        <PassengerRow label="Взрослые" hint="12+ лет" value={passengers.adults} min={1} max={9} variant={variant} onChange={(adults: number) => setPassengers((prev) => ({ ...prev, adults }))} />
+        <PassengerRow label="Дети" hint="2–11 лет" value={passengers.children} min={0} max={9} variant={variant} onChange={(children: number) => setPassengers((prev) => ({ ...prev, children }))} />
+        <PassengerRow label="Младенцы" hint="до 2 лет, без места" value={passengers.infants} min={0} max={passengers.adults} variant={variant} onChange={(infants: number) => setPassengers((prev) => ({ ...prev, infants }))} />
+        <div className="mt-3 pt-3 border-t border-border">
+          <Select value={flightClass} onValueChange={(v) => setFlightClass(v as "economy" | "business")}>
+            <SelectTrigger className="h-9 w-full">
+              <SelectValue placeholder="Класс" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="economy">Эконом</SelectItem>
+              <SelectItem value="business">Бизнес</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </PopoverContent>
     </Popover>
 
@@ -302,7 +315,7 @@ const FlightSearchForm = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
-        {/* ... содержимое ... */}
+        <Calendar mode="single" selected={departureDate} onSelect={setDepartureDate} initialFocus numberOfMonths={1} disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} />
       </PopoverContent>
     </Popover>
 
@@ -323,7 +336,12 @@ const FlightSearchForm = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          {/* ... содержимое ... */}
+          <Calendar mode="single" selected={returnDate} onSelect={setReturnDate} initialFocus numberOfMonths={1} disabled={(date) => {
+            const today = new Date(new Date().setHours(0, 0, 0, 0));
+            if (date < today) return true;
+            if (departureDate && date < departureDate) return true;
+            return false;
+          }} />
         </PopoverContent>
       </Popover>
     )}
