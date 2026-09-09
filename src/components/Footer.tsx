@@ -2,7 +2,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import logoWhiteImage from "@/assets/images/logo/logo w.png";
-import { MessageCircle, Mail, Phone, ArrowRight } from "lucide-react";
+import { MessageCircle, Mail, ArrowRight } from "lucide-react";
 import { useState } from "react";
 
 const Footer = () => {
@@ -111,18 +111,11 @@ const Footer = () => {
             <h3 className="text-lg font-bold text-white mb-6">Поддержка</h3>
             <div className="flex flex-col gap-4">
               <a 
-                href="tel:+79853656924" 
-                className="flex items-center gap-3 text-muted-foreground hover:text-white transition-colors duration-200 text-sm group"
-              >
-                <Phone className="w-4 h-4 group-hover:text-primary transition-colors" />
-                <span>+7 (985) 365-69-24</span>
-              </a>
-              <a 
-                href="mailto:demyanovdi@mail.ru" 
+                href="mailto:ts-trip.info@ts-trip.ru" 
                 className="flex items-center gap-3 text-muted-foreground hover:text-white transition-colors duration-200 text-sm group"
               >
                 <Mail className="w-4 h-4 group-hover:text-primary transition-colors" />
-                <span>demyanovdi@mail.ru</span>
+                <span>ts-trip.info@ts-trip.ru</span>
               </a>
             </div>
           </div>
