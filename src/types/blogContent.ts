@@ -23,6 +23,7 @@ export type RouteDayItem = {
   label: string;
   title: string;
   description: string;
+  anchorIndex?: number; // индекс якоря для привязки (0-based)
 };
 
 export type BlogContentBlock =

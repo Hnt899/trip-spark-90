@@ -78,14 +78,23 @@ export function RouteDaysView({
 
   const addDay = useCallback(() => {
     const num = days.length + 1;
-    const next = [...days, { label: `День ${num}`, title: "", description: "" }];
+    const next = [...days, { 
+      label: `День ${num}`, 
+      title: "", 
+      description: "",
+      anchorIndex: days.length // автоматически присваиваем индекс якоря по порядку
+    }];
     updateAttributes({ days: next });
     setOpenDays((prev) => new Set([...prev, days.length]));
   }, [days, updateAttributes]);
 
   const removeDay = useCallback(
     (index: number) => {
-      updateAttributes({ days: days.filter((_, i) => i !== index) });
+      const newDays = days.filter((_, i) => i !== index).map((day, i) => ({
+        ...day,
+        anchorIndex: i // пересчитываем индексы якорей после удаления
+      }));
+      updateAttributes({ days: newDays });
       setOpenDays((prev) => {
         const next = new Set<number>();
         for (const v of prev) {
@@ -238,6 +247,22 @@ export function RouteDaysView({
                       placeholder="Прибытие в Калининград..."
                       className="min-h-[50px] resize-y text-xs"
                     />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Якорь (индекс) — привязка к якорю в тексте
+                    </Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={day.anchorIndex ?? i}
+                      onChange={(e) => updateDay(i, { anchorIndex: Number(e.target.value) || 0 })}
+                      placeholder={`По умолчанию: ${i}`}
+                      className="h-7 text-xs"
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      День {i + 1} будет прокручивать к якорю #{(day.anchorIndex ?? i) + 1} в тексте
+                    </p>
                   </div>
                 </div>
               </CollapsibleContent>

@@ -343,6 +343,16 @@ export default function BlogBlockRenderer({
             const DEFAULT_IMG = "/путь-no-bg-preview (carve.photos).png";
             const routeImage = block.image || DEFAULT_IMG;
             const totalDays = block.days.length;
+            
+            // Функция прокрутки к якорю по индексу
+            const scrollToDayAnchor = (anchorIndex: number) => {
+              const anchorId = `anchor-${anchorIndex}`;
+              const el = document.getElementById(anchorId);
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            };
+            
             return (
               <div
                 key={key}
@@ -354,7 +364,6 @@ export default function BlogBlockRenderer({
                     <img
                       src={routeImage}
                       alt=""
-                      // ===== ДЛЯ routeByDays ТОЖЕ МЕНЯЕМ =====
                       className={
                         isRoute
                           ? "h-56 w-full object-cover md:absolute md:inset-0 md:h-full"
@@ -374,8 +383,12 @@ export default function BlogBlockRenderer({
                       {block.days.map((day, di) => {
                         const isFirst = di === 0;
                         const isLast = di === totalDays - 1;
+                        const anchorIdx = day.anchorIndex ?? di; // индекс якоря
                         return (
-                          <div key={di} className="flex gap-4">
+                          <div 
+                            key={di} 
+                            className="flex gap-4"
+                          >
                             {/* Timeline column */}
                             <div className="flex w-5 shrink-0 flex-col items-center">
                               {isFirst ? (
@@ -394,12 +407,18 @@ export default function BlogBlockRenderer({
                               )}
                             </div>
                             <div className={cn("min-w-0 flex-1", !isLast && "pb-5")}>
-                              <p className="text-[11px] font-semibold uppercase tracking-wider text-primary/70">
-                                {day.label}
-                              </p>
-                              <h4 className="mt-0.5 text-base font-bold leading-snug text-foreground">
-                                {day.title}
-                              </h4>
+                              <button
+                                type="button"
+                                onClick={() => scrollToDayAnchor(anchorIdx)}
+                                className="text-left hover:underline focus:outline-none focus:underline"
+                              >
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-primary/70">
+                                  {day.label}
+                                </p>
+                                <h4 className="mt-0.5 text-base font-bold leading-snug text-foreground">
+                                  {day.title}
+                                </h4>
+                              </button>
                               {day.description && (
                                 <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
                                   {day.description}

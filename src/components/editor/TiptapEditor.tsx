@@ -11,6 +11,7 @@ import { AnchorAttributesExtension } from "./AnchorAttributesExtension";
 import { CtaButtonExtension } from "./CtaButtonExtension";
 import { DestinationCardExtension } from "./DestinationCardExtension";
 import { RouteDaysExtension } from "./RouteDaysExtension";
+import { QuickBookingExtension } from "./QuickBookingExtension";
 import { TiptapToolbar } from "./TiptapToolbar";
 import { AnchorEditorSidebar } from "./AnchorEditorSidebar";
 import { uploadImages } from "@/lib/uploadImages";
@@ -50,6 +51,7 @@ export default function TiptapEditor({ initialBlocks, onChange }: Props) {
       CtaButtonExtension,
       DestinationCardExtension,
       RouteDaysExtension,
+      QuickBookingExtension,
       AnchorAttributesExtension,
     ],
     content: blocksToTiptap(initialBlocks),

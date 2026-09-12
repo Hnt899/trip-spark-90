@@ -68,9 +68,9 @@ export const RouteDaysExtension = Node.create({
             attrs: {
               image: attrs?.image || "",
               days: attrs?.days || [
-                { label: "День 1", title: "", description: "" },
-                { label: "День 2", title: "", description: "" },
-                { label: "День 3", title: "", description: "" },
+                { label: "День 1", title: "", description: "", anchorIndex: 0 },
+                { label: "День 2", title: "", description: "", anchorIndex: 1 },
+                { label: "День 3", title: "", description: "", anchorIndex: 2 },
               ],
             },
           }),
