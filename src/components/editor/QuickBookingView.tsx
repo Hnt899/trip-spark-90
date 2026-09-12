@@ -25,6 +25,7 @@ export function QuickBookingView({
   const button2Text = (node.attrs.button2Text as string) || "Выбрать отель";
   const button2Url = (node.attrs.button2Url as string) || "";
   const image = (node.attrs.image as string) || "";
+  const imageAlt = (node.attrs.imageAlt as string) || "";
   const bgGradient = (node.attrs.bgGradient as string) || "from-[#8A70F8] to-[#9B82F8]";
 
   const [open, setOpen] = useState(false);
@@ -127,20 +128,26 @@ export function QuickBookingView({
             </div>
             <div className="flex justify-center lg:justify-end">
               {image ? (
-                <div className="group relative w-full max-w-[480px]">
-                  <img
-                    src={image}
-                    alt=""
-                    className="w-full rounded-2xl object-cover"
-                    draggable={false}
-                  />
-                  <button
+                                  <div className="group relative w-full max-w-[480px]">
+                                  <img
+                                    src={image}
+                                    alt={imageAlt}
+                                    className="w-full rounded-2xl object-cover"
+                                    draggable={false}
+                                  />
+                                                    <button
                     type="button"
                     className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-destructive text-white opacity-0 shadow transition-opacity group-hover:opacity-100"
                     onClick={() => updateAttributes({ image: "" })}
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
+                  <Input
+                    value={imageAlt}
+                    onChange={(e) => updateAttributes({ imageAlt: e.target.value })}
+                    placeholder="Alt-текст фото"
+                    className="mt-2 text-xs"
+                  />
                 </div>
               ) : (
                 <label className="flex w-full max-w-[480px] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/40 bg-white/5 py-12 text-white/80 transition-colors hover:border-white/70 hover:bg-white/10">

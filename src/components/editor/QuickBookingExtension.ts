@@ -12,6 +12,7 @@ declare module "@tiptap/core" {
         button2Text?: string;
         button2Url?: string;
         image?: string;
+        imageAlt?: string;
         bgGradient?: string;
       }) => ReturnType;
     };
@@ -32,6 +33,7 @@ export const QuickBookingExtension = Node.create({
       button2Text: { default: "Выбрать отель" },
       button2Url: { default: "" },
       image: { default: "" },
+      imageAlt: { default: "" },
       bgGradient: { default: "from-[#8A70F8] to-[#9B82F8]" },
     };
   },
@@ -65,6 +67,7 @@ export const QuickBookingExtension = Node.create({
               button2Text: attrs?.button2Text || "Выбрать отель",
               button2Url: attrs?.button2Url || "",
               image: attrs?.image || "",
+              imageAlt: attrs?.imageAlt || "",
               bgGradient: attrs?.bgGradient || "from-[#8A70F8] to-[#9B82F8]",
             },
           }),

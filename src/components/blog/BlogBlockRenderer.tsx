@@ -426,9 +426,9 @@ export default function BlogBlockRenderer({
               >
                 <div className="flex flex-col md:flex-row md:min-h-[420px]">
                   <div className="relative w-full shrink-0 md:w-[340px] lg:w-[400px]">
-                    <img
+                  <img
                       src={routeImage}
-                      alt=""
+                      alt={block.imageAlt || ""}
                       className={
                         isRoute
                           ? "h-56 w-full object-cover md:absolute md:inset-0 md:h-full"

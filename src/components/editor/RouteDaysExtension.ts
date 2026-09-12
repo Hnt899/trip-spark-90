@@ -8,6 +8,7 @@ declare module "@tiptap/core" {
     routeDays: {
       insertRouteDays: (attrs?: {
         image?: string;
+        imageAlt?: string;
         days?: RouteDayItem[];
       }) => ReturnType;
     };
@@ -23,6 +24,7 @@ export const RouteDaysExtension = Node.create({
   addAttributes() {
     return {
       image: { default: "" },
+      imageAlt: { default: "" },
       days: {
         default: [
           { label: "День 1", title: "", description: "" },
@@ -67,6 +69,7 @@ export const RouteDaysExtension = Node.create({
             type: this.name,
             attrs: {
               image: attrs?.image || "",
+              imageAlt: attrs?.imageAlt || "", 
               days: attrs?.days || [
                 { label: "День 1", title: "", description: "", anchorIndex: 0 },
                 { label: "День 2", title: "", description: "", anchorIndex: 1 },

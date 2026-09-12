@@ -1,0 +1,1255 @@
+﻿
+
+========== FILE: src\components\editor\BlogImageView.tsx ==========
+
+import { useCallback, useRef } from "react";
+import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
+import { ImagePlus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { uploadImages } from "@/lib/uploadImages";
+
+export function BlogImageView({ node, updateAttributes, deleteNode, selected }: NodeViewProps) {
+  const src = node.attrs.src as string;
+  const caption = node.attrs.caption as string;
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = useCallback(
+    async (files: FileList | null) => {
+      if (!files?.length) return;
+      try {
+        const urls = await uploadImages([files[0]]);
+        if (urls[0]) updateAttributes({ src: urls[0] });
+      } catch (e) {
+        console.error("Image upload failed", e);
+      }
+    },
+    [updateAttributes],
+  );
+
+  return (
+    <NodeViewWrapper
+      data-type="blog-image"
+      className={`my-4 rounded-lg border-2 transition-colors ${
+        selected ? "border-primary" : "border-transparent"
+      }`}
+      draggable
+      data-drag-handle=""
+    >
+      {src ? (
+        <figure className="group relative">
+          <div className="flex min-h-[220px] w-full items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-transparent dark:border-slate-800">
+            <img
+              src={src}
+              alt={node.attrs.alt as string}
+              className="mx-auto block h-auto max-h-[520px] w-auto max-w-full object-contain"
+              draggable={false}
+            />
+          </div>
+          <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <Button
+              type="button"
+              size="icon"
+              variant="secondary"
+              className="h-8 w-8"
+              onClick={() => fileRef.current?.click()}
+            >
+              <ImagePlus className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              variant="destructive"
+              className="h-8 w-8"
+              onClick={deleteNode}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+          <Input
+            value={caption}
+            onChange={(e) => updateAttributes({ caption: e.target.value })}
+            placeholder="РџРѕРґРїРёСЃСЊ Рє РёР·РѕР±СЂР°Р¶РµРЅРёСЋ (РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)"
+            className="mt-2 text-sm text-muted-foreground"
+          />
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFile(e.target.files)}
+          />
+        </figure>
+      ) : (
+        <div
+          className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-300 bg-muted/50 py-12 transition-colors hover:border-primary hover:bg-muted dark:border-slate-700"
+          onClick={() => fileRef.current?.click()}
+        >
+          <ImagePlus className="h-10 w-10 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            РќР°Р¶РјРёС‚Рµ РёР»Рё РїРµСЂРµС‚Р°С‰РёС‚Рµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ
+          </p>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFile(e.target.files)}
+          />
+        </div>
+      )}
+    </NodeViewWrapper>
+  );
+}
+
+
+
+========== FILE: src\components\editor\BlogImageExtension.ts ==========
+
+import { Node, mergeAttributes } from "@tiptap/react";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+import { BlogImageView } from "./BlogImageView";
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    blogImage: {
+      insertBlogImage: (attrs: {
+        src: string;
+        alt?: string;
+        caption?: string;
+      }) => ReturnType;
+    };
+  }
+}
+
+export const BlogImageExtension = Node.create({
+  name: "blogImage",
+  group: "block",
+  atom: true,
+  draggable: true,
+
+  addAttributes() {
+    return {
+      src: { default: "" },
+      alt: { default: "" },
+      caption: { default: "" },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'div[data-type="blog-image"]' }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, { "data-type": "blog-image" }),
+    ];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(BlogImageView);
+  },
+
+  addCommands() {
+    return {
+      insertBlogImage:
+        (attrs) =>
+        ({ commands }) =>
+          commands.insertContent({ type: this.name, attrs }),
+    };
+  },
+});
+
+
+
+========== FILE: src\components\editor\BlogGalleryView.tsx ==========
+
+import { useCallback, useRef } from "react";
+import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
+import { GalleryHorizontal, ImagePlus, Trash2, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { uploadImages } from "@/lib/uploadImages";
+import type { BlogCarouselMode, BlogCarouselSlide } from "@/types/blogContent";
+
+export function BlogGalleryView({
+  node,
+  updateAttributes,
+  deleteNode,
+  selected,
+}: NodeViewProps) {
+  const slides: BlogCarouselSlide[] = node.attrs.slides || [];
+  const mode: BlogCarouselMode = node.attrs.mode || "manual";
+  const intervalSec = Number(node.attrs.intervalSec) || 5;
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const addFiles = useCallback(
+    async (files: FileList | null) => {
+      if (!files?.length) return;
+      try {
+        const urls = await uploadImages(Array.from(files));
+        const newSlides: BlogCarouselSlide[] = urls.map((url) => ({
+          image: url,
+        }));
+        updateAttributes({ slides: [...slides, ...newSlides] });
+      } catch (e) {
+        console.error("Gallery upload failed", e);
+      }
+    },
+    [slides, updateAttributes],
+  );
+
+  const removeSlide = useCallback(
+    (index: number) => {
+      updateAttributes({ slides: slides.filter((_, i) => i !== index) });
+    },
+    [slides, updateAttributes],
+  );
+
+  const updateCaption = useCallback(
+    (index: number, caption: string) => {
+      const next = slides.map((s, i) =>
+        i === index ? { ...s, caption } : s,
+      );
+      updateAttributes({ slides: next });
+    },
+    [slides, updateAttributes],
+  );
+
+  return (
+    <NodeViewWrapper
+      data-type="blog-gallery"
+      className={`my-4 rounded-lg border-2 p-3 transition-colors ${
+        selected ? "border-primary" : "border-slate-200 dark:border-slate-800"
+      }`}
+      draggable
+      data-drag-handle=""
+    >
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <GalleryHorizontal className="h-4 w-4" />
+          Р“Р°Р»РµСЂРµСЏ ({slides.length} С„РѕС‚Рѕ)
+        </div>
+        <div className="flex flex-wrap items-center gap-1">
+          {(
+            [
+              { v: "manual", t: "Р’СЂСѓС‡РЅСѓСЋ" },
+              { v: "auto", t: "РђРІС‚Рѕ" },
+              { v: "hybrid", t: "РђРІС‚Рѕ + РІСЂСѓС‡РЅСѓСЋ" },
+            ] as const
+          ).map((x) => (
+            <Button
+              key={x.v}
+              type="button"
+              size="sm"
+              variant={mode === x.v ? "default" : "outline"}
+              className="h-8 px-2.5 text-xs"
+              onClick={() => updateAttributes({ mode: x.v as BlogCarouselMode })}
+            >
+              {x.t}
+            </Button>
+          ))}
+        </div>
+
+        {mode !== "manual" ? (
+          <div className="flex items-center gap-1">
+            <Input
+              type="number"
+              min={1}
+              max={30}
+              value={intervalSec}
+              onChange={(e) => {
+                const n = parseInt(e.target.value || "5", 10);
+                updateAttributes({
+                  intervalSec: Number.isFinite(n) ? Math.min(30, Math.max(1, n)) : 5,
+                });
+              }}
+              className="h-8 w-20 text-xs"
+              title="РРЅС‚РµСЂРІР°Р» Р°РІС‚РѕРїСЂРѕРєСЂСѓС‚РєРё РІ СЃРµРєСѓРЅРґР°С…"
+            />
+            <span className="text-xs text-muted-foreground">СЃРµРє</span>
+          </div>
+        ) : null}
+
+        <div className="ml-auto flex gap-1">
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={() => fileRef.current?.click()}
+          >
+            <ImagePlus className="mr-1 h-4 w-4" />
+            Р”РѕР±Р°РІРёС‚СЊ
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            onClick={deleteNode}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {slides.length === 0 ? (
+        <div
+          className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-muted/30 py-10 transition-colors hover:border-primary hover:bg-muted/50 dark:border-slate-700"
+          onClick={() => fileRef.current?.click()}
+        >
+          <GalleryHorizontal className="h-10 w-10 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            РќР°Р¶РјРёС‚Рµ РёР»Рё РїРµСЂРµС‚Р°С‰РёС‚Рµ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {slides.map((slide, i) => (
+            <div key={i} className="group relative">
+              <div className="flex items-center justify-center overflow-hidden rounded-lg border bg-transparent">
+                <img
+                  src={slide.image}
+                  alt=""
+                  className="aspect-[4/3] w-full object-contain"
+                  draggable={false}
+                />
+              </div>
+              <button
+                type="button"
+                className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-white opacity-0 transition-opacity group-hover:opacity-100"
+                onClick={() => removeSlide(i)}
+              >
+                <X className="h-3 w-3" />
+              </button>
+              <Input
+                value={slide.caption || ""}
+                onChange={(e) => updateCaption(i, e.target.value)}
+                placeholder="РџРѕРґРїРёСЃСЊ"
+                className="mt-1.5 h-7 text-xs"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => addFiles(e.target.files)}
+      />
+    </NodeViewWrapper>
+  );
+}
+
+
+
+========== FILE: src\components\editor\BlogGalleryExtension.ts ==========
+
+import { Node, mergeAttributes } from "@tiptap/react";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+import { BlogGalleryView } from "./BlogGalleryView";
+import type { BlogCarouselMode, BlogCarouselSlide } from "@/types/blogContent";
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    blogGallery: {
+      insertBlogGallery: (attrs?: {
+        slides?: BlogCarouselSlide[];
+        mode?: BlogCarouselMode;
+        intervalSec?: number;
+      }) => ReturnType;
+    };
+  }
+}
+
+export const BlogGalleryExtension = Node.create({
+  name: "blogGallery",
+  group: "block",
+  atom: true,
+  draggable: true,
+
+  addAttributes() {
+    return {
+      slides: {
+        default: [],
+        parseHTML: (el) => {
+          try {
+            return JSON.parse(el.getAttribute("data-slides") || "[]");
+          } catch {
+            return [];
+          }
+        },
+        renderHTML: (attrs) => ({
+          "data-slides": JSON.stringify(attrs.slides || []),
+        }),
+      },
+      mode: {
+        default: "manual",
+        parseHTML: (el) => {
+          const raw = String(el.getAttribute("data-mode") || "manual");
+          return raw === "auto" || raw === "hybrid" ? raw : "manual";
+        },
+        renderHTML: (attrs) => ({
+          "data-mode": attrs.mode || "manual",
+        }),
+      },
+      intervalSec: {
+        default: 5,
+        parseHTML: (el) => {
+          const n = parseInt(String(el.getAttribute("data-interval-sec") || "5"), 10);
+          return Number.isFinite(n) ? Math.min(30, Math.max(1, n)) : 5;
+        },
+        renderHTML: (attrs) => ({
+          "data-interval-sec": String(attrs.intervalSec || 5),
+        }),
+      },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'div[data-type="blog-gallery"]' }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, { "data-type": "blog-gallery" }),
+    ];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(BlogGalleryView);
+  },
+
+  addCommands() {
+    return {
+      insertBlogGallery:
+        (attrs) =>
+        ({ commands }) =>
+          commands.insertContent({
+            type: this.name,
+            attrs: {
+              slides: attrs?.slides || [],
+              mode: attrs?.mode || "manual",
+              intervalSec: attrs?.intervalSec || 5,
+            },
+          }),
+    };
+  },
+});
+
+
+
+========== FILE: src\components\admin\CoverUpload.tsx ==========
+
+import { useCallback, useRef, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { ImagePlus, Loader2, X } from "lucide-react";
+import { uploadImages } from "@/lib/uploadImages";
+
+interface Props {
+  value: string;
+  onChange: (url: string) => void;
+  label?: string;
+}
+
+export default function CoverUpload({
+  value,
+  onChange,
+  label = "РћР±Р»РѕР¶РєР°",
+}: Props) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleFile = useCallback(
+    async (file: File) => {
+      setError("");
+      setUploading(true);
+      try {
+        const [url] = await uploadImages([file]);
+        onChange(url);
+      } catch (e) {
+        setError((e as Error).message || "РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё");
+      } finally {
+        setUploading(false);
+      }
+    },
+    [onChange],
+  );
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+    e.target.value = "";
+  };
+
+  const onDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files?.[0];
+      if (file && file.type.startsWith("image/")) handleFile(file);
+    },
+    [handleFile],
+  );
+
+  return (
+    <div className="grid gap-2">
+      <Label>{label}</Label>
+
+      {value ? (
+        <div className="relative overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
+          <img
+            src={value}
+            alt="РћР±Р»РѕР¶РєР°"
+            className="h-40 w-full object-cover"
+          />
+          <Button
+            type="button"
+            variant="destructive"
+            size="icon"
+            className="absolute right-2 top-2 h-7 w-7"
+            onClick={() => onChange("")}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : (
+        <div
+          onDrop={onDrop}
+          onDragOver={(e) => e.preventDefault()}
+          className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50/50 px-4 py-8 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900/30"
+          onClick={() => inputRef.current?.click()}
+        >
+          {uploading ? (
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          ) : (
+            <ImagePlus className="h-8 w-8 text-slate-400" />
+          )}
+          <span>
+            {uploading
+              ? "Р—Р°РіСЂСѓР·РєР°вЂ¦"
+              : "РќР°Р¶РјРёС‚Рµ РёР»Рё РїРµСЂРµС‚Р°С‰РёС‚Рµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ"}
+          </span>
+        </div>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={onFileChange}
+      />
+
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="РёР»Рё РІСЃС‚Р°РІСЊС‚Рµ URL: https://..."
+        className="text-xs"
+      />
+
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
+}
+
+
+
+========== FILE: src\components\editor\RouteDaysView.tsx ==========
+
+import { useCallback, useRef, useState } from "react";
+import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
+import {
+  Route,
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  ImagePlus,
+  X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import type { RouteDayItem } from "@/types/blogContent";
+
+const DEFAULT_IMAGE = "/РїСѓС‚СЊ-no-bg-preview (carve.photos).png";
+
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
+async function uploadRouteImages(files: File[]): Promise<string[]> {
+  const fd = new FormData();
+  for (const f of files) fd.append("files", f);
+
+  const token = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("access_token="))
+    ?.split("=")[1];
+
+  const headers: HeadersInit = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const url = `${API_BASE}/api/upload/route`;
+  const res = await fetch(url, { method: "POST", headers, body: fd });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(
+      (data as { error?: string }).error || "Upload failed",
+    );
+  }
+  const data = (await res.json()) as { urls: string[] };
+  return data.urls;
+}
+
+export function RouteDaysView({
+  node,
+  updateAttributes,
+  deleteNode,
+  selected,
+}: NodeViewProps) {
+  const days: RouteDayItem[] = node.attrs.days || [];
+  const image = (node.attrs.image as string) || "";
+  const [openDays, setOpenDays] = useState<Set<number>>(new Set([0]));
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const toggleDay = (index: number) => {
+    setOpenDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
+
+  const updateDay = useCallback(
+    (index: number, patch: Partial<RouteDayItem>) => {
+      const next = days.map((d, i) => (i === index ? { ...d, ...patch } : d));
+      updateAttributes({ days: next });
+    },
+    [days, updateAttributes],
+  );
+
+  const addDay = useCallback(() => {
+    const num = days.length + 1;
+    const next = [
+      ...days,
+      {
+        label: `Р”РµРЅСЊ ${num}`,
+        title: "",
+        description: "",
+        anchorIndex: days.length,
+      },
+    ];
+    updateAttributes({ days: next });
+    setOpenDays((prev) => new Set([...prev, days.length]));
+  }, [days, updateAttributes]);
+
+  const removeDay = useCallback(
+    (index: number) => {
+      const newDays = days
+        .filter((_, i) => i !== index)
+        .map((day, i) => ({
+          ...day,
+          anchorIndex: i,
+        }));
+      updateAttributes({ days: newDays });
+      setOpenDays((prev) => {
+        const next = new Set<number>();
+        for (const v of prev) {
+          if (v < index) next.add(v);
+          else if (v > index) next.add(v - 1);
+        }
+        return next;
+      });
+    },
+    [days, updateAttributes],
+  );
+
+  const handleImageFile = useCallback(
+    async (files: FileList | null) => {
+      if (!files?.length) return;
+      try {
+        const urls = await uploadRouteImages([files[0]]);
+        if (urls[0]) updateAttributes({ image: urls[0] });
+      } catch (e) {
+        console.error("Route image upload failed", e);
+      }
+    },
+    [updateAttributes],
+  );
+
+  const displayImage = image || DEFAULT_IMAGE;
+
+  return (
+    <NodeViewWrapper
+      data-type="route-days"
+      className={`my-4 rounded-xl border-2 transition-colors ${
+        selected ? "border-primary" : "border-slate-200 dark:border-slate-800"
+      }`}
+      draggable
+      data-drag-handle=""
+    >
+      <div className="flex items-center justify-between rounded-t-xl border-b border-slate-200 bg-muted/50 px-4 py-2.5 dark:border-slate-800">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Route className="h-4 w-4" />
+          РњР°СЂС€СЂСѓС‚ РїРѕ РґРЅСЏРј ({days.length})
+        </div>
+        <div className="flex gap-1">
+          <Button type="button" size="sm" variant="secondary" onClick={addDay}>
+            <Plus className="mr-1 h-4 w-4" />
+            Р”РѕР±Р°РІРёС‚СЊ
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            onClick={deleteNode}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex gap-0">
+        <div className="relative w-48 shrink-0 border-r border-slate-200 dark:border-slate-800">
+          <div
+            className="group relative h-full min-h-[200px] cursor-pointer overflow-hidden bg-muted"
+            onClick={() => fileRef.current?.click()}
+          >
+            <img
+              src={displayImage}
+              alt=""
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+              <ImagePlus className="h-6 w-6 text-white" />
+            </div>
+          </div>
+          {image && (
+            <button
+              type="button"
+              className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-white shadow"
+              onClick={() => updateAttributes({ image: "" })}
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleImageFile(e.target.files)}
+          />
+        </div>
+
+        <div className="min-w-0 flex-1 divide-y divide-slate-200 dark:divide-slate-800">
+          {days.map((day, i) => (
+            <Collapsible key={i} open={openDays.has(i)} onOpenChange={() => toggleDay(i)}>
+              <div className="flex items-center gap-2 px-3 py-2">
+                <CollapsibleTrigger className="flex flex-1 items-center gap-2 text-left">
+                  {openDays.has(i) ? (
+                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                  <span className="text-xs font-medium text-primary">{day.label}</span>
+                  <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">
+                    {day.title || "(Р±РµР· Р·Р°РіРѕР»РѕРІРєР°)"}
+                  </span>
+                </CollapsibleTrigger>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6 text-destructive hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeDay(i);
+                  }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+              <CollapsibleContent>
+                <div className="flex flex-col gap-2 px-3 pb-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">РњРµС‚РєР°</Label>
+                    <Input
+                      value={day.label}
+                      onChange={(e) => updateDay(i, { label: e.target.value })}
+                      placeholder="Р”РµРЅСЊ 1"
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Р—Р°РіРѕР»РѕРІРѕРє</Label>
+                    <Input
+                      value={day.title}
+                      onChange={(e) => updateDay(i, { title: e.target.value })}
+                      placeholder="Р’СЂР°С‚Р° РІ РљС‘РЅРёРіСЃР±РµСЂРі"
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">РћРїРёСЃР°РЅРёРµ</Label>
+                    <Textarea
+                      value={day.description}
+                      onChange={(e) => updateDay(i, { description: e.target.value })}
+                      placeholder="РџСЂРёР±С‹С‚РёРµ РІ РљР°Р»РёРЅРёРЅРіСЂР°Рґ..."
+                      className="min-h-[50px] resize-y text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      РЇРєРѕСЂСЊ (РёРЅРґРµРєСЃ)
+                    </Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={day.anchorIndex ?? i}
+                      onChange={(e) =>
+                        updateDay(i, { anchorIndex: Number(e.target.value) || 0 })
+                      }
+                      placeholder={`РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ: ${i}`}
+                      className="h-7 text-xs"
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      Р”РµРЅСЊ {i + 1} в†’ СЏРєРѕСЂСЊ #{i + 1} РІ С‚РµРєСЃС‚Рµ
+                    </p>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          ))}
+
+          {days.length === 0 && (
+            <div
+              className="flex cursor-pointer flex-col items-center gap-2 py-8 text-muted-foreground"
+              onClick={addDay}
+            >
+              <Plus className="h-6 w-6" />
+              <p className="text-sm">Р”РѕР±Р°РІСЊС‚Рµ РїРµСЂРІС‹Р№ РґРµРЅСЊ</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </NodeViewWrapper>
+  );
+}
+
+
+========== FILE: src\components\editor\RouteDaysExtension.ts ==========
+
+import { Node, mergeAttributes } from "@tiptap/react";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+import { RouteDaysView } from "./RouteDaysView";
+import type { RouteDayItem } from "@/types/blogContent";
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    routeDays: {
+      insertRouteDays: (attrs?: {
+        image?: string;
+        days?: RouteDayItem[];
+      }) => ReturnType;
+    };
+  }
+}
+
+export const RouteDaysExtension = Node.create({
+  name: "routeDays",
+  group: "block",
+  atom: true,
+  draggable: true,
+
+  addAttributes() {
+    return {
+      image: { default: "" },
+      days: {
+        default: [
+          { label: "Р”РµРЅСЊ 1", title: "", description: "" },
+          { label: "Р”РµРЅСЊ 2", title: "", description: "" },
+          { label: "Р”РµРЅСЊ 3", title: "", description: "" },
+        ] as RouteDayItem[],
+        parseHTML: (el: HTMLElement) => {
+          try {
+            return JSON.parse(el.getAttribute("data-days") || "[]");
+          } catch {
+            return [];
+          }
+        },
+        renderHTML: (attrs: Record<string, unknown>) => ({
+          "data-days": JSON.stringify(attrs.days || []),
+        }),
+      },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'div[data-type="route-days"]' }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, { "data-type": "route-days" }),
+    ];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(RouteDaysView);
+  },
+
+  addCommands() {
+    return {
+      insertRouteDays:
+        (attrs) =>
+        ({ commands }) =>
+          commands.insertContent({
+            type: this.name,
+            attrs: {
+              image: attrs?.image || "",
+              days: attrs?.days || [
+                { label: "Р”РµРЅСЊ 1", title: "", description: "", anchorIndex: 0 },
+                { label: "Р”РµРЅСЊ 2", title: "", description: "", anchorIndex: 1 },
+                { label: "Р”РµРЅСЊ 3", title: "", description: "", anchorIndex: 2 },
+              ],
+            },
+          }),
+    };
+  },
+});
+
+
+
+========== FILE: src\components\editor\QuickBookingView.tsx ==========
+
+import { useState } from "react";
+import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
+import { Plane, BedDouble, Pencil, Trash2, ImagePlus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { uploadImages } from "@/lib/uploadImages";
+
+export function QuickBookingView({
+  node,
+  updateAttributes,
+  deleteNode,
+  selected,
+}: NodeViewProps) {
+  const title = (node.attrs.title as string) || "Р—Р°Р±СЂРѕРЅРёСЂРѕРІР°С‚СЊ Р¶РёР»СЊС‘ Рё РєСѓРїРёС‚СЊ Р±РёР»РµС‚С‹ РјРѕР¶РЅРѕ РЅР° TudaSuda";
+  const button1Text = (node.attrs.button1Text as string) || "РќР°Р№С‚Рё Р±РёР»РµС‚С‹";
+  const button1Url = (node.attrs.button1Url as string) || "";
+  const button2Text = (node.attrs.button2Text as string) || "Р’С‹Р±СЂР°С‚СЊ РѕС‚РµР»СЊ";
+  const button2Url = (node.attrs.button2Url as string) || "";
+  const image = (node.attrs.image as string) || "";
+  const bgGradient = (node.attrs.bgGradient as string) || "from-[#8A70F8] to-[#9B82F8]";
+
+  const [open, setOpen] = useState(false);
+  const [formTitle, setFormTitle] = useState(title);
+  const [formButton1Text, setFormButton1Text] = useState(button1Text);
+  const [formButton1Url, setFormButton1Url] = useState(button1Url);
+  const [formButton2Text, setFormButton2Text] = useState(button2Text);
+  const [formButton2Url, setFormButton2Url] = useState(button2Url);
+  const [uploading, setUploading] = useState(false);
+
+  const handleOpen = () => {
+    setFormTitle(title);
+    setFormButton1Text(button1Text);
+    setFormButton1Url(button1Url);
+    setFormButton2Text(button2Text);
+    setFormButton2Url(button2Url);
+    setOpen(true);
+  };
+
+  const handleSave = () => {
+    updateAttributes({
+      title: formTitle,
+      button1Text: formButton1Text,
+      button1Url: formButton1Url,
+      button2Text: formButton2Text,
+      button2Url: formButton2Url,
+    });
+    setOpen(false);
+  };
+
+  const handleImageUpload = async (files: FileList | null) => {
+    if (!files?.length) return;
+    setUploading(true);
+    try {
+      const urls = await uploadImages([files[0]]);
+      if (urls[0]) updateAttributes({ image: urls[0] });
+    } catch (e) {
+      console.error("Image upload failed", e);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <>
+      <NodeViewWrapper
+        data-type="quick-booking"
+        className={`my-6 rounded-2xl border-2 transition-colors ${
+          selected ? "border-primary" : "border-transparent"
+        }`}
+        draggable
+        data-drag-handle=""
+      >
+        <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-r ${bgGradient} p-6 md:p-8`}>
+          <div className="absolute right-2 top-2 z-10 flex gap-1 opacity-70 transition-opacity hover:opacity-100">
+            <Button
+              type="button"
+              size="icon"
+              variant="secondary"
+              className="h-8 w-8"
+              onClick={handleOpen}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 text-white hover:bg-white/20 hover:text-white"
+              onClick={deleteNode}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-2">
+            <div className="flex flex-col gap-5">
+              <h3 className="text-xl font-bold text-white md:text-2xl lg:text-3xl">
+                {title}
+              </h3>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button
+                  size="lg"
+                  className="w-full rounded-full bg-white px-4 py-4 text-base font-semibold text-[#8A70F8] hover:bg-white/90 sm:w-auto md:px-6 md:py-6 md:text-lg"
+                  onClick={() => button1Url && window.open(button1Url, "_blank")}
+                >
+                  <Plane className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                  {button1Text}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full rounded-full border-white bg-white/10 px-4 py-4 text-base font-semibold text-white hover:bg-white/20 hover:text-white sm:w-auto md:px-6 md:py-6 md:text-lg"
+                  onClick={() => button2Url && window.open(button2Url, "_blank")}
+                >
+                  <BedDouble className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                  {button2Text}
+                </Button>
+              </div>
+            </div>
+            <div className="flex justify-center lg:justify-end">
+              {image ? (
+                <div className="group relative w-full max-w-[480px]">
+                  <img
+                    src={image}
+                    alt=""
+                    className="w-full rounded-2xl object-cover"
+                    draggable={false}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-destructive text-white opacity-0 shadow transition-opacity group-hover:opacity-100"
+                    onClick={() => updateAttributes({ image: "" })}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex w-full max-w-[480px] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/40 bg-white/5 py-12 text-white/80 transition-colors hover:border-white/70 hover:bg-white/10">
+                  <ImagePlus className="h-8 w-8" />
+                  <span className="text-sm">
+                    {uploading ? "Р—Р°РіСЂСѓР·РєР°..." : "Р—Р°РіСЂСѓР·РёС‚СЊ С„РѕС‚Рѕ"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleImageUpload(e.target.files)}
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+        </div>
+      </NodeViewWrapper>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>РќР°СЃС‚СЂРѕР№РєРё Р±Р»РѕРєР° Р±С‹СЃС‚СЂРѕР№ РїРѕРєСѓРїРєРё</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="qb-title">Р—Р°РіРѕР»РѕРІРѕРє</Label>
+              <textarea
+                id="qb-title"
+                value={formTitle}
+                onChange={(e) => setFormTitle(e.target.value)}
+                rows={3}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                placeholder="Р—Р°Р±СЂРѕРЅРёСЂРѕРІР°С‚СЊ Р¶РёР»СЊС‘ Рё РєСѓРїРёС‚СЊ Р±РёР»РµС‚С‹ РјРѕР¶РЅРѕ РЅР° TudaSuda"
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="qb-btn1-text">РўРµРєСЃС‚ РєРЅРѕРїРєРё 1</Label>
+                <Input
+                  id="qb-btn1-text"
+                  value={formButton1Text}
+                  onChange={(e) => setFormButton1Text(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="qb-btn1-url">РЎСЃС‹Р»РєР° РєРЅРѕРїРєРё 1</Label>
+                <Input
+                  id="qb-btn1-url"
+                  value={formButton1Url}
+                  onChange={(e) => setFormButton1Url(e.target.value)}
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="qb-btn2-text">РўРµРєСЃС‚ РєРЅРѕРїРєРё 2</Label>
+                <Input
+                  id="qb-btn2-text"
+                  value={formButton2Text}
+                  onChange={(e) => setFormButton2Text(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="qb-btn2-url">РЎСЃС‹Р»РєР° РєРЅРѕРїРєРё 2</Label>
+                <Input
+                  id="qb-btn2-url"
+                  value={formButton2Url}
+                  onChange={(e) => setFormButton2Url(e.target.value)}
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Р¤РѕС‚Рѕ Р·Р°РіСЂСѓР¶Р°РµС‚СЃСЏ РєР»РёРєРѕРј РїРѕ Р±Р»РѕРєСѓ СЃРїСЂР°РІР° (РІ СЃР°РјРѕРј Р±Р»РѕРєРµ, РЅРµ РІ СЌС‚РѕРј РѕРєРЅРµ).
+            </p>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              РћС‚РјРµРЅР°
+            </Button>
+            <Button type="button" onClick={handleSave}>
+              РЎРѕС…СЂР°РЅРёС‚СЊ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+} 
+
+
+========== FILE: src\components\editor\QuickBookingExtension.ts ==========
+
+import { Node, mergeAttributes } from "@tiptap/react";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+import { QuickBookingView } from "./QuickBookingView";
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    quickBooking: {
+      insertQuickBooking: (attrs?: {
+        title?: string;
+        button1Text?: string;
+        button1Url?: string;
+        button2Text?: string;
+        button2Url?: string;
+        image?: string;
+        bgGradient?: string;
+      }) => ReturnType;
+    };
+  }
+}
+
+export const QuickBookingExtension = Node.create({
+  name: "quickBooking",
+  group: "block",
+  atom: true,
+  draggable: true,
+
+  addAttributes() {
+    return {
+      title: { default: "Р—Р°Р±СЂРѕРЅРёСЂРѕРІР°С‚СЊ Р¶РёР»СЊС‘ Рё РєСѓРїРёС‚СЊ Р±РёР»РµС‚С‹ РјРѕР¶РЅРѕ РЅР° TudaSuda" },
+      button1Text: { default: "РќР°Р№С‚Рё Р±РёР»РµС‚С‹" },
+      button1Url: { default: "" },
+      button2Text: { default: "Р’С‹Р±СЂР°С‚СЊ РѕС‚РµР»СЊ" },
+      button2Url: { default: "" },
+      image: { default: "" },
+      bgGradient: { default: "from-[#8A70F8] to-[#9B82F8]" },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'div[data-type="quick-booking"]' }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, { "data-type": "quick-booking" }),
+    ];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(QuickBookingView);
+  },
+
+  addCommands() {
+    return {
+      insertQuickBooking:
+        (attrs) =>
+        ({ commands }) =>
+          commands.insertContent({
+            type: this.name,
+            attrs: {
+              title: attrs?.title || "Р—Р°Р±СЂРѕРЅРёСЂРѕРІР°С‚СЊ Р¶РёР»СЊС‘ Рё РєСѓРїРёС‚СЊ Р±РёР»РµС‚С‹ РјРѕР¶РЅРѕ РЅР° TudaSuda",
+              button1Text: attrs?.button1Text || "РќР°Р№С‚Рё Р±РёР»РµС‚С‹",
+              button1Url: attrs?.button1Url || "",
+              button2Text: attrs?.button2Text || "Р’С‹Р±СЂР°С‚СЊ РѕС‚РµР»СЊ",
+              button2Url: attrs?.button2Url || "",
+              image: attrs?.image || "",
+              bgGradient: attrs?.bgGradient || "from-[#8A70F8] to-[#9B82F8]",
+            },
+          }),
+    };
+  },
+});

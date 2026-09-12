@@ -7,6 +7,7 @@ import { uploadImages } from "@/lib/uploadImages";
 
 export function BlogImageView({ node, updateAttributes, deleteNode, selected }: NodeViewProps) {
   const src = node.attrs.src as string;
+  const alt = (node.attrs.alt as string) || "";
   const caption = node.attrs.caption as string;
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -37,7 +38,7 @@ export function BlogImageView({ node, updateAttributes, deleteNode, selected }: 
           <div className="flex min-h-[220px] w-full items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-transparent dark:border-slate-800">
             <img
               src={src}
-              alt={node.attrs.alt as string}
+              alt={alt}
               className="mx-auto block h-auto max-h-[520px] w-auto max-w-full object-contain"
               draggable={false}
             />
@@ -62,12 +63,20 @@ export function BlogImageView({ node, updateAttributes, deleteNode, selected }: 
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-          <Input
-            value={caption}
-            onChange={(e) => updateAttributes({ caption: e.target.value })}
-            placeholder="Подпись к изображению (необязательно)"
-            className="mt-2 text-sm text-muted-foreground"
-          />
+          <div className="mt-2 flex flex-col gap-1.5">
+            <Input
+              value={alt}
+              onChange={(e) => updateAttributes({ alt: e.target.value })}
+              placeholder="Alt-текст для SEO и доступности (напр. «Поезд Сапсан на Красной площади»)"
+              className="text-sm"
+            />
+            <Input
+              value={caption}
+              onChange={(e) => updateAttributes({ caption: e.target.value })}
+              placeholder="Подпись к изображению (необязательно)"
+              className="text-sm text-muted-foreground"
+            />
+          </div>
           <input
             ref={fileRef}
             type="file"

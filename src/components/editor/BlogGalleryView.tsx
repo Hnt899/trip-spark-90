@@ -40,11 +40,9 @@ export function BlogGalleryView({
     [slides, updateAttributes],
   );
 
-  const updateCaption = useCallback(
-    (index: number, caption: string) => {
-      const next = slides.map((s, i) =>
-        i === index ? { ...s, caption } : s,
-      );
+  const updateSlideField = useCallback(
+    (index: number, patch: Partial<BlogCarouselSlide>) => {
+      const next = slides.map((s, i) => (i === index ? { ...s, ...patch } : s));
       updateAttributes({ slides: next });
     },
     [slides, updateAttributes],
@@ -138,29 +136,35 @@ export function BlogGalleryView({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {slides.map((slide, i) => (
-            <div key={i} className="group relative">
-              <div className="flex items-center justify-center overflow-hidden rounded-lg border bg-transparent">
+            <div key={i} className="group relative space-y-1.5">
+              <div className="relative flex items-center justify-center overflow-hidden rounded-lg border bg-transparent">
                 <img
                   src={slide.image}
-                  alt=""
+                  alt={slide.alt || ""}
                   className="aspect-[4/3] w-full object-contain"
                   draggable={false}
                 />
+                <button
+                  type="button"
+                  className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  onClick={() => removeSlide(i)}
+                >
+                  <X className="h-3 w-3" />
+                </button>
               </div>
-              <button
-                type="button"
-                className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-white opacity-0 transition-opacity group-hover:opacity-100"
-                onClick={() => removeSlide(i)}
-              >
-                <X className="h-3 w-3" />
-              </button>
+              <Input
+                value={slide.alt || ""}
+                onChange={(e) => updateSlideField(i, { alt: e.target.value })}
+                placeholder="Alt-текст (SEO)"
+                className="h-7 text-xs"
+              />
               <Input
                 value={slide.caption || ""}
-                onChange={(e) => updateCaption(i, e.target.value)}
+                onChange={(e) => updateSlideField(i, { caption: e.target.value })}
                 placeholder="Подпись"
-                className="mt-1.5 h-7 text-xs"
+                className="h-7 text-xs text-muted-foreground"
               />
             </div>
           ))}

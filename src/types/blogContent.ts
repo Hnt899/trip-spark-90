@@ -9,6 +9,7 @@ export type BlogCarouselSlide = {
   subtitle?: string;
   price?: string;
   oldPrice?: string;
+  alt?: string;
 };
 
 export type BlogCarouselMode = "manual" | "auto" | "hybrid";
@@ -53,6 +54,7 @@ export type QuickBookingBlock = {
   button2Text: string;
   button2Url: string;
   image: string;
+  imageAlt?: string;
   bgGradient?: string;
 };
 
@@ -74,4 +76,4 @@ export type BlogContentBlock =
   | { type: "ctaButton"; text: string; url: string; variant: CtaButtonVariant }
   | DestinationCardBlock
   | QuickBookingBlock
-  | { type: "routeByDays"; image: string; days: RouteDayItem[] };
+  | { type: "routeByDays"; image: string; imageAlt?: string; days: RouteDayItem[] };

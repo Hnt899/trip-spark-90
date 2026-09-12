@@ -56,6 +56,7 @@ export function RouteDaysView({
 }: NodeViewProps) {
   const days: RouteDayItem[] = node.attrs.days || [];
   const image = (node.attrs.image as string) || "";
+  const imageAlt = (node.attrs.imageAlt as string) || "";
   const [openDays, setOpenDays] = useState<Set<number>>(new Set([0]));
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -159,14 +160,14 @@ export function RouteDaysView({
       </div>
 
       <div className="flex gap-0">
-        <div className="relative w-48 shrink-0 border-r border-slate-200 dark:border-slate-800">
-          <div
-            className="group relative h-full min-h-[200px] cursor-pointer overflow-hidden bg-muted"
+        <div className="relative flex w-48 shrink-0 flex-col border-r border-slate-200 dark:border-slate-800">
+            <div
+            className="group relative min-h-[200px] flex-1 cursor-pointer overflow-hidden bg-muted"
             onClick={() => fileRef.current?.click()}
           >
             <img
               src={displayImage}
-              alt=""
+              alt={imageAlt}
               className="h-full w-full object-cover"
               draggable={false}
             />
@@ -183,13 +184,23 @@ export function RouteDaysView({
               <X className="h-3 w-3" />
             </button>
           )}
-          <input
+                    <input
             ref={fileRef}
             type="file"
             accept="image/*"
             className="hidden"
             onChange={(e) => handleImageFile(e.target.files)}
           />
+          {image && (
+            <div className="border-t border-slate-200 bg-muted/30 p-2 dark:border-slate-800">
+              <Input
+                value={imageAlt}
+                onChange={(e) => updateAttributes({ imageAlt: e.target.value })}
+                placeholder="Alt-текст фото"
+                className="h-7 text-[10px]"
+              />
+            </div>
+          )}
         </div>
 
         <div className="min-w-0 flex-1 divide-y divide-slate-200 dark:divide-slate-800">

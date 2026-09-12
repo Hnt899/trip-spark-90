@@ -9,12 +9,17 @@ interface Props {
   value: string;
   onChange: (url: string) => void;
   label?: string;
+  /** Alt-текст обложки (опционально) */
+  alt?: string;
+  onAltChange?: (alt: string) => void;
 }
 
 export default function CoverUpload({
   value,
   onChange,
   label = "Обложка",
+  alt,
+  onAltChange,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -51,6 +56,8 @@ export default function CoverUpload({
     [handleFile],
   );
 
+  const showAltField = typeof onAltChange === "function";
+
   return (
     <div className="grid gap-2">
       <Label>{label}</Label>
@@ -59,7 +66,7 @@ export default function CoverUpload({
         <div className="relative overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
           <img
             src={value}
-            alt="Обложка"
+            alt={alt || "Обложка"}
             className="h-40 w-full object-cover"
           />
           <Button
@@ -106,6 +113,15 @@ export default function CoverUpload({
         placeholder="или вставьте URL: https://..."
         className="text-xs"
       />
+
+      {showAltField ? (
+        <Input
+          value={alt || ""}
+          onChange={(e) => onAltChange!(e.target.value)}
+          placeholder="Alt-текст для SEO (напр. «Маршрут по Карелии — озеро у скал»)"
+          className="text-xs"
+        />
+      ) : null}
 
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
