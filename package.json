@@ -55,6 +55,7 @@
     "@tiptap/extension-dropcursor": "^3.22.3",
     "@tiptap/extension-heading": "^3.22.3",
     "@tiptap/extension-image": "^3.22.3",
+    "@tiptap/extension-link": "^3.31.3",
     "@tiptap/extension-placeholder": "^3.22.3",
     "@tiptap/extension-table": "^3.22.3",
     "@tiptap/pm": "^3.22.3",
