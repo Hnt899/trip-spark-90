@@ -247,21 +247,21 @@ const FlightSearchForm = ({
 
 {isHeaderDesktop ? (
   <div className="flex items-center gap-2 w-full">
-    {/* Откуда — без изменений */}
+    {/* Туда - Обратно */}
     <PlaceAutocomplete
       value={fromPlace}
       onChange={handleFromChange}
-      placeholder="Откуда"
+      placeholder="Туда"
       error={errors.from}
       variant="header"
       className="flex-1 min-w-0"
     />
 
-    {/* Куда — без изменений */}
+    {/* Обратно */}
     <PlaceAutocomplete
       value={toPlace}
       onChange={handleToChange}
-      placeholder="Куда"
+      placeholder="Обратно"
       error={errors.to}
       variant="header"
       className="flex-1 min-w-0"
@@ -363,14 +363,14 @@ const FlightSearchForm = ({
               <PlaceAutocomplete
                 value={fromPlace}
                 onChange={handleFromChange}
-                placeholder="Откуда"
+                placeholder="Туда"
                 error={errors.from}
                 variant={variant}
               />
               <PlaceAutocomplete
                 value={toPlace}
                 onChange={handleToChange}
-                placeholder="Куда"
+                placeholder="Обратно"
                 error={errors.to}
                 variant={variant}
               />

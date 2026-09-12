@@ -10,6 +10,14 @@ declare module "@tiptap/core" {
         format?: string;
         comfort?: string;
         uniqueness?: string;
+        season_label?: string;
+        format_label?: string;
+        comfort_label?: string;
+        uniqueness_label?: string;
+        season_emoji?: string;
+        format_emoji?: string;
+        comfort_emoji?: string;
+        uniqueness_emoji?: string;
       }) => ReturnType;
     };
   }
@@ -27,6 +35,14 @@ export const DestinationCardExtension = Node.create({
       format: { default: "" },
       comfort: { default: "" },
       uniqueness: { default: "" },
+      season_label: { default: "" },
+      format_label: { default: "" },
+      comfort_label: { default: "" },
+      uniqueness_label: { default: "" },
+      season_emoji: { default: "" },
+      format_emoji: { default: "" },
+      comfort_emoji: { default: "" },
+      uniqueness_emoji: { default: "" },
     };
   },
 

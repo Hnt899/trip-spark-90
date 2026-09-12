@@ -274,12 +274,12 @@ const Header = () => {
                     </>
                   ) : (
                     <>
-                      <span className="shrink-0 text-muted-foreground font-normal">откуда</span>
+                      <span className="shrink-0 text-muted-foreground font-normal">Туда</span>
                       <span
                         className="h-[3px] min-h-[3px] min-w-6 flex-1 shrink-0 rounded-full bg-muted-foreground/45 self-center"
                         aria-hidden
                       />
-                      <span className="shrink-0 text-muted-foreground font-normal">куда</span>
+                      <span className="shrink-0 text-muted-foreground font-normal">Обратно</span>
                     </>
                   )}
                 </span>
