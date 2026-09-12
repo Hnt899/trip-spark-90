@@ -6,7 +6,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { CarouselNavButton } from "@/components/ui/carousel-nav-button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function slideCaption(s: BlogCarouselSlide): string | undefined {
@@ -32,7 +32,6 @@ export default function BlogCarouselBlock({
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
-  /** Ручное переключение сбрасывает таймер автопрокрутки, чтобы слайд не «убегал» сразу после клика */
   const [autoplayKey, setAutoplayKey] = useState(0);
 
   const autoplayEnabled = mode === "auto" || mode === "hybrid";
@@ -52,7 +51,6 @@ export default function BlogCarouselBlock({
     };
   }, [api, onSelect]);
 
-  // Автопрокрутка с паузой при hover и сбросом после ручного клика
   useEffect(() => {
     if (!api || !autoplayEnabled || slides.length < 2 || paused) return;
     const ms = Math.min(30, Math.max(1, intervalSec || 5)) * 1000;
@@ -64,12 +62,12 @@ export default function BlogCarouselBlock({
 
   const handlePrev = () => {
     api?.scrollPrev();
-    setAutoplayKey((k) => k + 1); // сбрасываем таймер
+    setAutoplayKey((k) => k + 1);
   };
 
   const handleNext = () => {
     api?.scrollNext();
-    setAutoplayKey((k) => k + 1); // сбрасываем таймер
+    setAutoplayKey((k) => k + 1);
   };
 
   if (!slides.length) return null;
@@ -116,25 +114,50 @@ export default function BlogCarouselBlock({
         </CarouselContent>
       </Carousel>
 
-            {/* Стрелки вперёд/назад — внутри картинки, поверх неё */}
-            {showArrows ? (
+      {/* Стрелки — снаружи картинки, по вертикали на уровне центра фото */}
+      {showArrows ? (
         <>
-          <CarouselNavButton
-            direction="prev"
+          {/* Prev — слева, снаружи */}
+          <button
+            type="button"
             onClick={handlePrev}
-            className="left-4 top-1/2 !translate-x-0 !-translate-y-1/2 !bg-white/90 hover:!bg-white !shadow-lg !border-0"
-            showOnMobile
-          />
-          <CarouselNavButton
-            direction="next"
+            aria-label="Предыдущий слайд"
+            className="hidden md:flex absolute top-1/2 left-0 -translate-y-1/2 -translate-x-[calc(100%+12px)] h-12 w-12 items-center justify-center rounded-full bg-white shadow-md hover:bg-white transition-colors z-10"
+          >
+            <ChevronLeft className="h-5 w-5 text-primary" />
+          </button>
+
+          {/* Next — справа, снаружи */}
+          <button
+            type="button"
             onClick={handleNext}
-            className="right-4 top-1/2 !translate-x-0 !-translate-y-1/2 !bg-white/90 hover:!bg-white !shadow-lg !border-0"
-            showOnMobile
-          />
+            aria-label="Следующий слайд"
+            className="hidden md:flex absolute top-1/2 right-0 -translate-y-1/2 translate-x-[calc(100%+12px)] h-12 w-12 items-center justify-center rounded-full bg-white shadow-md hover:bg-white transition-colors z-10"
+          >
+            <ChevronRight className="h-5 w-5 text-primary" />
+          </button>
+
+          {/* Мобильные стрелки — внутри фото (снаружи нет места) */}
+          <button
+            type="button"
+            onClick={handlePrev}
+            aria-label="Предыдущий слайд"
+            className="flex md:hidden absolute top-1/2 left-3 -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-md hover:bg-white transition-colors z-10"
+          >
+            <ChevronLeft className="h-4 w-4 text-primary" />
+          </button>
+          <button
+            type="button"
+            onClick={handleNext}
+            aria-label="Следующий слайд"
+            className="flex md:hidden absolute top-1/2 right-3 -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-md hover:bg-white transition-colors z-10"
+          >
+            <ChevronRight className="h-4 w-4 text-primary" />
+          </button>
         </>
       ) : null}
 
-      {/* Точки-индикаторы (для наглядности) */}
+      {/* Точки-индикаторы */}
       {slides.length > 1 ? (
         <div
           className="mt-4 flex justify-center gap-2"
