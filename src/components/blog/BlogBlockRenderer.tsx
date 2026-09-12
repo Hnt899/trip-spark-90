@@ -34,9 +34,13 @@ function InlineHtml({ text, className }: { text: string; className?: string }) {
     const href = target.getAttribute("href");
     if (!href?.startsWith("#")) return;
     e.preventDefault();
+    e.stopPropagation();
     const id = href.slice(1);
     const el = document.getElementById(id);
-    if (!el) return;
+    if (!el) {
+      console.warn("[BlogBlockRenderer] anchor not found:", id);
+      return;
+    }
     el.scrollIntoView({ behavior: "smooth", block: "start" });
     el.classList.add("bg-yellow-200/70");
     window.setTimeout(() => el.classList.remove("bg-yellow-200/70"), 2000);
@@ -44,7 +48,10 @@ function InlineHtml({ text, className }: { text: string; className?: string }) {
 
   return (
     <span
-      className={className}
+      className={cn(
+        "[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_a]:font-medium [&_a]:cursor-pointer [&_a:hover]:opacity-80 [&_a]:transition-opacity",
+        className,
+      )}
       onClick={handleClick}
       dangerouslySetInnerHTML={{ __html: prepareHtml(text) }}
     />
@@ -63,7 +70,10 @@ function CellHtml({ text, className }: { text: string; className?: string }) {
   const html = sanitizeCellHtml(text.replace(/\n/g, "<br>"));
   return (
     <div
-      className={cn("cell-content [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1 [&_li]:my-0.5 [&_p]:my-0.5", className)}
+      className={cn(
+        "cell-content [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1 [&_li]:my-0.5 [&_p]:my-0.5 [&_a]:text-primary [&_a]:underline",
+        className,
+      )}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
@@ -250,16 +260,36 @@ export default function BlogBlockRenderer({
                 el.classList.remove("bg-yellow-200/70");
               }, 2000);
             };
+
+            const headerRow = block.hasHeader ? block.rows[0] : null;
+            const bodyRows = block.hasHeader ? block.rows.slice(1) : block.rows;
+
             return (
               <div key={key} className="my-6 overflow-x-auto">
                 <table className="w-full border-collapse overflow-hidden rounded-lg border border-border text-sm">
-                  {block.hasHeader && block.rows[0] && (
+                  {headerRow && (
                     <thead>
-                      <tr>
-                        {block.rows[0].cells
+                      <tr
+                        id={headerRow.tableAnchorId || undefined}
+                        className={cn(
+                          "transition-colors",
+                          headerRow.tableAnchorId
+                            ? "cursor-pointer hover:bg-primary/10"
+                            : "",
+                        )}
+                        onClick={
+                          headerRow.tableAnchorId
+                            ? (e) => {
+                                e.preventDefault();
+                                scrollToRow(headerRow.tableAnchorId!);
+                              }
+                            : undefined
+                        }
+                      >
+                        {headerRow.cells
                           .concat(
                             Array.from(
-                              { length: maxCols - block.rows[0].cells.length },
+                              { length: maxCols - headerRow.cells.length },
                               () => ({ text: "" }),
                             ),
                           )
@@ -275,7 +305,7 @@ export default function BlogBlockRenderer({
                     </thead>
                   )}
                   <tbody>
-                    {block.rows.slice(block.hasHeader ? 1 : 0).map((row, ri) => {
+                    {bodyRows.map((row, ri) => {
                       const anchorId = row.tableAnchorId;
                       return (
                         <tr
