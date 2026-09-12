@@ -20,13 +20,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Bold,
   Italic,
   Strikethrough,
@@ -48,8 +41,7 @@ import {
   Route,
   Link2,
 } from "lucide-react";
-import type { CtaButtonVariant } from "@/types/blogContent";
-import { toggleAnchorOnActiveBlock } from "@/lib/tiptapAnchors";
+import { toggleAnchorOnActiveBlock, countAnchors } from "@/lib/tiptapAnchors";
 
 function Tip({
   children,
@@ -163,7 +155,19 @@ function TableInsertButton({ editor }: { editor: Editor }) {
   );
 }
 
-export function TiptapToolbar({ editor }: { editor: Editor }) {
+export function TiptapToolbar({
+  editor,
+  anchorLimit,
+}: {
+  editor: Editor;
+  anchorLimit?: number;
+}) {
+  const anchorCount = countAnchors(editor);
+  const limitReached = anchorLimit != null && anchorCount >= anchorLimit;
+  const isAnchorActive =
+    editor.getAttributes("paragraph").anchor ||
+    editor.getAttributes("heading").anchor;
+
   return (
     <TooltipProvider delayDuration={600}>
       <div className="flex min-h-11 items-center gap-0.5 overflow-x-auto px-2 py-1.5">
@@ -267,19 +271,31 @@ export function TiptapToolbar({ editor }: { editor: Editor }) {
 
         <Tip
           label="Якорь"
-          description="Помечает текущий абзац или заголовок якорем для навигации слева от статьи."
+          description={
+            anchorLimit != null
+              ? `Помечает абзац или заголовок якорем. Максимум ${anchorLimit} (по числу дней маршрута). Уже использовано: ${anchorCount}.`
+              : "Помечает текущий абзац или заголовок якорем для навигации слева от статьи."
+          }
         >
           <Toggle
             size="sm"
-            pressed={
-              editor.getAttributes("paragraph").anchor ||
-              editor.getAttributes("heading").anchor
+            pressed={isAnchorActive}
+            disabled={
+              (!editor.isActive("paragraph") && !editor.isActive("heading")) ||
+              (limitReached && !isAnchorActive)
             }
-            disabled={!editor.isActive("paragraph") && !editor.isActive("heading")}
-            onPressedChange={() => toggleAnchorOnActiveBlock(editor)}
+            onPressedChange={() => {
+              if (limitReached && !isAnchorActive) return;
+              toggleAnchorOnActiveBlock(editor);
+            }}
             aria-label="Якорь"
           >
             <Link2 className="h-4 w-4" />
+            {anchorLimit != null && (
+              <span className="ml-1 text-[10px] tabular-nums opacity-70">
+                {anchorCount}/{anchorLimit}
+              </span>
+            )}
           </Toggle>
         </Tip>
 

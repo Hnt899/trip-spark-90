@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useEditor, EditorContent, type JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -21,12 +21,17 @@ import { blocksToTiptap, tiptapToBlocks } from "@/lib/tiptapBlockConverter";
 interface Props {
   initialBlocks: BlogContentBlock[];
   onChange: (blocks: BlogContentBlock[]) => void;
+  /** Если задано — в тулбаре ограничивает число якорей (для маршрутов: кол-во дней) */
+  anchorLimit?: number;
 }
 
-export default function TiptapEditor({ initialBlocks, onChange }: Props) {
+export default function TiptapEditor({ initialBlocks, onChange, anchorLimit }: Props) {
+  const [, forceTick] = useState(0);
+
   const handleUpdate = useCallback(
     (json: JSONContent) => {
       onChange(tiptapToBlocks(json));
+      forceTick((t) => t + 1);
     },
     [onChange],
   );
@@ -140,6 +145,18 @@ export default function TiptapEditor({ initialBlocks, onChange }: Props) {
     },
   });
 
+  // Подписываемся на обновления editor, чтобы тулбар видел актуальное кол-во якорей
+  useEffect(() => {
+    if (!editor) return;
+    const tick = () => forceTick((t) => t + 1);
+    editor.on("update", tick);
+    editor.on("selectionUpdate", tick);
+    return () => {
+      editor.off("update", tick);
+      editor.off("selectionUpdate", tick);
+    };
+  }, [editor]);
+
   if (!editor) return null;
 
   return (
@@ -147,7 +164,7 @@ export default function TiptapEditor({ initialBlocks, onChange }: Props) {
       <AnchorEditorSidebar editor={editor} />
       <div className="min-w-0 flex-1">
         <div className="sticky top-0 z-30 min-h-12 rounded-t-xl border border-b-0 border-slate-200 bg-slate-50 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <TiptapToolbar editor={editor} />
+          <TiptapToolbar editor={editor} anchorLimit={anchorLimit} />
         </div>
         <div className="rounded-b-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
           <EditorContent editor={editor} />

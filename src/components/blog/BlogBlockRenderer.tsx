@@ -75,8 +75,6 @@ export default function BlogBlockRenderer({
   const rawList = Array.isArray(blocks) ? blocks.filter(isBlock) : [];
   const list = expandRichParagraphBlocks(rawList as BlogContentBlock[]);
 
-  const anchorId = (blockIndex: number) => `anchor-${blockIndex}`;
-
   if (list.length === 0) {
     return (
       <p className={cn("text-muted-foreground", className)}>
@@ -99,7 +97,11 @@ export default function BlogBlockRenderer({
             return (
               <p
                 key={key}
-                id={block.anchor ? anchorId(i) : undefined}
+                id={
+                  block.anchor && block.anchorOrdinal
+                    ? `anchor-${block.anchorOrdinal}`
+                    : undefined
+                }
                 className="whitespace-pre-wrap break-words text-base leading-relaxed text-slate-700 [overflow-wrap:anywhere] dark:text-slate-200"
               >
                 <InlineHtml text={block.text} />
@@ -114,7 +116,10 @@ export default function BlogBlockRenderer({
                   ? "text-xl font-semibold mt-8 mb-3"
                   : "text-lg font-semibold mt-6 mb-2";
             const Tag = (L === 1 ? "h2" : L === 2 ? "h3" : "h4") as keyof JSX.IntrinsicElements;
-            const headingId = block.anchor ? anchorId(i) : `section-${i}`;
+            const headingId =
+              block.anchor && block.anchorOrdinal
+                ? `anchor-${block.anchorOrdinal}`
+                : `section-${i}`;
             return (
               <Tag
                 key={key}
@@ -336,7 +341,7 @@ export default function BlogBlockRenderer({
             const totalDays = block.days.length;
 
             const scrollToDayAnchor = (anchorIndex: number) => {
-              const id = `anchor-${anchorIndex}`;
+              const id = `anchor-${anchorIndex + 1}`;
               const el = document.getElementById(id);
               if (el) {
                 el.scrollIntoView({ behavior: "smooth", block: "start" });

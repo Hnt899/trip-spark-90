@@ -117,6 +117,14 @@ export default function AdminRouteEdit() {
     setContentBlocks(blocks);
   }, []);
 
+  // Лимит якорей = количество дней в блоке «Маршрут по дням»
+  const anchorLimit = (() => {
+    const routeBlock = contentBlocks.find((b) => b.type === "routeByDays") as
+      | { type: "routeByDays"; image: string; days: { label: string; title: string; description: string }[] }
+      | undefined;
+    return routeBlock?.days?.length || undefined;
+  })();
+
   const saveMut = useMutation({
     mutationFn: async () => {
       const payload = {
@@ -311,6 +319,7 @@ export default function AdminRouteEdit() {
               key={editorKey}
               initialBlocks={contentBlocks}
               onChange={handleEditorChange}
+              anchorLimit={anchorLimit}
             />
           </Suspense>
         </CardContent>

@@ -5,24 +5,41 @@ export type EditorAnchorItem = {
   nodeType: "paragraph" | "heading";
   anchorLabel: string;
   previewText: string;
+  ordinal: number;
 };
 
 export function collectDocAnchors(editor: Editor): EditorAnchorItem[] {
   const items: EditorAnchorItem[] = [];
+  let ordinal = 0;
   editor.state.doc.forEach((node, pos) => {
     if (
       (node.type.name === "paragraph" || node.type.name === "heading") &&
       node.attrs.anchor
     ) {
+      ordinal += 1;
       items.push({
         pos,
         nodeType: node.type.name as "paragraph" | "heading",
         anchorLabel: String(node.attrs.anchorLabel || node.textContent || "Якорь").trim(),
         previewText: node.textContent.trim().slice(0, 80),
+        ordinal,
       });
     }
   });
   return items;
+}
+
+export function countAnchors(editor: Editor): number {
+  let n = 0;
+  editor.state.doc.forEach((node) => {
+    if (
+      (node.type.name === "paragraph" || node.type.name === "heading") &&
+      node.attrs.anchor
+    ) {
+      n += 1;
+    }
+  });
+  return n;
 }
 
 export function getActiveBlockText(editor: Editor): string {

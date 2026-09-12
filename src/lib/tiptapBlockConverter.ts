@@ -284,6 +284,14 @@ export function blocksToTiptap(blocks: BlogContentBlock[]): JSONContent {
             format: block.format,
             comfort: block.comfort,
             uniqueness: block.uniqueness,
+            season_label: block.season_label || "",
+            format_label: block.format_label || "",
+            comfort_label: block.comfort_label || "",
+            uniqueness_label: block.uniqueness_label || "",
+            season_icon: block.season_icon || "Sun",
+            format_icon: block.format_icon || "Tent",
+            comfort_icon: block.comfort_icon || "Star",
+            uniqueness_icon: block.uniqueness_icon || "Sparkles",
           },
         });
         break;
@@ -312,13 +320,19 @@ export function tiptapToBlocks(doc: JSONContent): BlogContentBlock[] {
   const blocks: BlogContentBlock[] = [];
   if (!doc.content) return blocks;
 
+  let anchorOrdinal = 0;
+
   for (const node of doc.content) {
     switch (node.type) {
       case "paragraph": {
         const text = inlineToHtml(node);
         if (text || blocks.length > 0) {
           const block: BlogContentBlock = { type: "paragraph", text };
-          if (node.attrs?.anchor) block.anchor = true;
+          if (node.attrs?.anchor) {
+            anchorOrdinal += 1;
+            block.anchor = true;
+            block.anchorOrdinal = anchorOrdinal;
+          }
           if (node.attrs?.anchorLabel) block.anchorLabel = String(node.attrs.anchorLabel);
           blocks.push(block);
         }
@@ -329,7 +343,11 @@ export function tiptapToBlocks(doc: JSONContent): BlogContentBlock[] {
         const text = inlineToHtml(node);
         const level = (node.attrs?.level as number) || 2;
         const block: BlogContentBlock = { type: "heading", level, text };
-        if (node.attrs?.anchor) block.anchor = true;
+        if (node.attrs?.anchor) {
+          anchorOrdinal += 1;
+          block.anchor = true;
+          block.anchorOrdinal = anchorOrdinal;
+        }
         if (node.attrs?.anchorLabel) block.anchorLabel = String(node.attrs.anchorLabel);
         blocks.push(block);
         break;
@@ -425,6 +443,14 @@ export function tiptapToBlocks(doc: JSONContent): BlogContentBlock[] {
           format: (node.attrs?.format as string) || "",
           comfort: (node.attrs?.comfort as string) || "",
           uniqueness: (node.attrs?.uniqueness as string) || "",
+          season_label: (node.attrs?.season_label as string) || "",
+          format_label: (node.attrs?.format_label as string) || "",
+          comfort_label: (node.attrs?.comfort_label as string) || "",
+          uniqueness_label: (node.attrs?.uniqueness_label as string) || "",
+          season_icon: (node.attrs?.season_icon as string) || "Sun",
+          format_icon: (node.attrs?.format_icon as string) || "Tent",
+          comfort_icon: (node.attrs?.comfort_icon as string) || "Star",
+          uniqueness_icon: (node.attrs?.uniqueness_icon as string) || "Sparkles",
         });
         break;
       }

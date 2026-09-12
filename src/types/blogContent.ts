@@ -42,8 +42,8 @@ export type DestinationCardBlock = {
 };
 
 export type BlogContentBlock =
-  | { type: "paragraph"; text: string; anchor?: boolean; anchorLabel?: string }
-  | { type: "heading"; level: number; text: string; anchor?: boolean; anchorLabel?: string }
+  | { type: "paragraph"; text: string; anchor?: boolean; anchorLabel?: string; anchorOrdinal?: number }
+  | { type: "heading"; level: number; text: string; anchor?: boolean; anchorLabel?: string; anchorOrdinal?: number }
   | { type: "image"; url: string; alt?: string; caption?: string }
   | {
       type: "carousel";

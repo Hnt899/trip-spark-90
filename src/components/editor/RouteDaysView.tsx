@@ -78,22 +78,27 @@ export function RouteDaysView({
 
   const addDay = useCallback(() => {
     const num = days.length + 1;
-    const next = [...days, { 
-      label: `День ${num}`, 
-      title: "", 
-      description: "",
-      anchorIndex: days.length // автоматически присваиваем индекс якоря по порядку
-    }];
+    const next = [
+      ...days,
+      {
+        label: `День ${num}`,
+        title: "",
+        description: "",
+        anchorIndex: days.length,
+      },
+    ];
     updateAttributes({ days: next });
     setOpenDays((prev) => new Set([...prev, days.length]));
   }, [days, updateAttributes]);
 
   const removeDay = useCallback(
     (index: number) => {
-      const newDays = days.filter((_, i) => i !== index).map((day, i) => ({
-        ...day,
-        anchorIndex: i // пересчитываем индексы якорей после удаления
-      }));
+      const newDays = days
+        .filter((_, i) => i !== index)
+        .map((day, i) => ({
+          ...day,
+          anchorIndex: i,
+        }));
       updateAttributes({ days: newDays });
       setOpenDays((prev) => {
         const next = new Set<number>();
@@ -131,7 +136,6 @@ export function RouteDaysView({
       draggable
       data-drag-handle=""
     >
-      {/* Header */}
       <div className="flex items-center justify-between rounded-t-xl border-b border-slate-200 bg-muted/50 px-4 py-2.5 dark:border-slate-800">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <Route className="h-4 w-4" />
@@ -154,9 +158,7 @@ export function RouteDaysView({
         </div>
       </div>
 
-      {/* Layout: image left + days right */}
       <div className="flex gap-0">
-        {/* Image column */}
         <div className="relative w-48 shrink-0 border-r border-slate-200 dark:border-slate-800">
           <div
             className="group relative h-full min-h-[200px] cursor-pointer overflow-hidden bg-muted"
@@ -190,7 +192,6 @@ export function RouteDaysView({
           />
         </div>
 
-        {/* Days column */}
         <div className="min-w-0 flex-1 divide-y divide-slate-200 dark:divide-slate-800">
           {days.map((day, i) => (
             <Collapsible key={i} open={openDays.has(i)} onOpenChange={() => toggleDay(i)}>
@@ -250,18 +251,20 @@ export function RouteDaysView({
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">
-                      Якорь (индекс) — привязка к якорю в тексте
+                      Якорь (индекс)
                     </Label>
                     <Input
                       type="number"
                       min="0"
                       value={day.anchorIndex ?? i}
-                      onChange={(e) => updateDay(i, { anchorIndex: Number(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        updateDay(i, { anchorIndex: Number(e.target.value) || 0 })
+                      }
                       placeholder={`По умолчанию: ${i}`}
                       className="h-7 text-xs"
                     />
                     <p className="text-[10px] text-muted-foreground">
-                      День {i + 1} будет прокручивать к якорю #{(day.anchorIndex ?? i) + 1} в тексте
+                      День {i + 1} → якорь #{i + 1} в тексте
                     </p>
                   </div>
                 </div>
