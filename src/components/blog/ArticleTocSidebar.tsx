@@ -24,10 +24,17 @@ export function extractAnchors(blocks: BlogContentBlock[]): AnchorItem[] {
         block.anchorLabel?.trim() ||
         stripHtml(block.type === "paragraph" ? block.text : block.text);
       if (!plain) return;
+
+      // ВАЖНО: id должен совпадать с тем, что ставит BlogBlockRenderer:
+      // anchor-${block.anchorOrdinal} (порядковый номер якоря, 1-based)
+      const id = block.anchorOrdinal
+        ? `anchor-${block.anchorOrdinal}`
+        : `anchor-${blockIndex}`;
+
       manual.push({
         text: plain,
         index: blockIndex,
-        id: `anchor-${blockIndex}`,
+        id,
       });
     }
   });
