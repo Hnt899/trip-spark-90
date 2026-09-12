@@ -117,7 +117,12 @@ function sanitizeBlocks(raw) {
         const cells = row.cells.slice(0, 20).map((c) => ({
           text: String(c?.text ?? "").slice(0, 8000),
         }));
-        cleanRows.push({ cells });
+        const cleanRow = { cells };
+        if (row.tableAnchorId != null) {
+          const id = String(row.tableAnchorId).trim().slice(0, 100);
+          if (/^t-anchor-\d+$/.test(id)) cleanRow.tableAnchorId = id;
+        }
+        cleanRows.push(cleanRow);
       }
       if (cleanRows.length > 0) {
         out.push({ type: "table", rows: cleanRows, hasHeader: !!b.hasHeader });

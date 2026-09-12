@@ -15,6 +15,10 @@ function escapeHtml(t: string): string {
   return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function escapeAttr(t: string): string {
+  return t.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
 function inlineToHtml(node: JSONContent): string {
   if (!node.content) return "";
   return node.content
@@ -33,6 +37,11 @@ function inlineToHtml(node: JSONContent): string {
             case "strike":
               s = `<s>${s}</s>`;
               break;
+            case "link": {
+              const href = String(mark.attrs?.href || "");
+              if (href) s = `<a href="${escapeAttr(href)}">${s}</a>`;
+              break;
+            }
           }
         }
         return s;
@@ -63,6 +72,11 @@ function nodeToHtml(node: JSONContent): string {
               case "bold": s = `<strong>${s}</strong>`; break;
               case "italic": s = `<em>${s}</em>`; break;
               case "strike": s = `<s>${s}</s>`; break;
+              case "link": {
+                const href = String(mark.attrs?.href || "");
+                if (href) s = `<a href="${escapeAttr(href)}">${s}</a>`;
+                break;
+              }
             }
           }
           return s;
@@ -105,7 +119,7 @@ function htmlToInline(html: string): JSONContent[] | undefined {
   );
   const nodes: JSONContent[] = [];
 
-  function walk(el: Node, marks: Array<{ type: string }>) {
+  function walk(el: Node, marks: Array<{ type: string; attrs?: Record<string, unknown> }>) {
     for (const child of Array.from(el.childNodes)) {
       if (child.nodeType === Node.TEXT_NODE) {
         const text = child.textContent || "";
@@ -124,6 +138,10 @@ function htmlToInline(html: string): JSONContent[] | undefined {
         if (tag === "strong" || tag === "b") next.push({ type: "bold" });
         if (tag === "em" || tag === "i") next.push({ type: "italic" });
         if (tag === "s" || tag === "del") next.push({ type: "strike" });
+        if (tag === "a") {
+          const href = (child as Element).getAttribute("href") || "";
+          if (href) next.push({ type: "link", attrs: { href } });
+        }
         walk(child, next);
       }
     }
@@ -256,6 +274,9 @@ export function blocksToTiptap(blocks: BlogContentBlock[]): JSONContent {
         const rows = block.rows || [];
         const tableContent: JSONContent[] = rows.map((row, rowIdx) => ({
           type: "tableRow",
+          attrs: {
+            ...(row.tableAnchorId ? { tableAnchorId: row.tableAnchorId } : {}),
+          },
           content: row.cells.map((cell) => ({
             type: rowIdx === 0 && block.hasHeader ? "tableHeader" : "tableCell",
             content: htmlToCellContent(cell.text),
@@ -432,7 +453,12 @@ export function tiptapToBlocks(doc: JSONContent): BlogContentBlock[] {
               text: nodeToHtml(cell),
             }));
             if (row.content[0]?.type === "tableHeader") hasHeader = true;
-            tableRows.push({ cells });
+            const rowOut: BlogTableRow = { cells };
+            const anchorId = row.attrs?.tableAnchorId;
+            if (typeof anchorId === "string" && anchorId.trim()) {
+              rowOut.tableAnchorId = anchorId;
+            }
+            tableRows.push(rowOut);
           }
         }
         if (tableRows.length > 0) {

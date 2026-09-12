@@ -41,8 +41,10 @@ import {
   Route,
   Link2,
   Plane,
+  Link,
 } from "lucide-react";
 import { toggleAnchorOnActiveBlock, countAnchors } from "@/lib/tiptapAnchors";
+import { AnchorLinkDialog } from "./AnchorLinkDialog";
 
 function Tip({
   children,
@@ -163,6 +165,7 @@ export function TiptapToolbar({
   editor: Editor;
   anchorLimit?: number;
 }) {
+  const [anchorDialogOpen, setAnchorDialogOpen] = useState(false);
   const anchorCount = countAnchors(editor);
   const limitReached = anchorLimit != null && anchorCount >= anchorLimit;
   const isAnchorActive =
@@ -170,361 +173,384 @@ export function TiptapToolbar({
     editor.getAttributes("heading").anchor;
 
   return (
-    <TooltipProvider delayDuration={600}>
-      <div className="flex min-h-11 items-center gap-0.5 overflow-x-auto px-2 py-1.5">
-        <Tip
-          label="Жирный"
-          shortcut="Ctrl+B"
-          description="Выделяет текст жирным шрифтом для акцентов и важных фраз."
-        >
-          <Toggle
-            size="sm"
-            pressed={editor.isActive("bold")}
-            onPressedChange={() => editor.chain().focus().toggleBold().run()}
-            aria-label="Жирный"
-          >
-            <Bold className="h-4 w-4" />
-          </Toggle>
-        </Tip>
-
-        <Tip
-          label="Курсив"
-          shortcut="Ctrl+I"
-          description="Наклонный шрифт — для названий, терминов и мягких выделений."
-        >
-          <Toggle
-            size="sm"
-            pressed={editor.isActive("italic")}
-            onPressedChange={() => editor.chain().focus().toggleItalic().run()}
-            aria-label="Курсив"
-          >
-            <Italic className="h-4 w-4" />
-          </Toggle>
-        </Tip>
-
-        <Tip
-          label="Зачёркнутый"
-          shortcut="Ctrl+Shift+S"
-          description="Перечёркивает текст — для устаревшей или удалённой информации."
-        >
-          <Toggle
-            size="sm"
-            pressed={editor.isActive("strike")}
-            onPressedChange={() => editor.chain().focus().toggleStrike().run()}
-            aria-label="Зачёркнутый"
-          >
-            <Strikethrough className="h-4 w-4" />
-          </Toggle>
-        </Tip>
-
-        <Separator orientation="vertical" className="mx-1 h-6" />
-
-        <Tip
-          label="Заголовок 1"
-          shortcut="Ctrl+Alt+1"
-          description="Самый крупный заголовок — для основного названия раздела."
-        >
-          <Toggle
-            size="sm"
-            pressed={editor.isActive("heading", { level: 1 })}
-            onPressedChange={() =>
-              editor.chain().focus().toggleHeading({ level: 1 }).run()
-            }
-            aria-label="Заголовок 1"
-          >
-            <Heading1 className="h-4 w-4" />
-          </Toggle>
-        </Tip>
-
-        <Tip
-          label="Заголовок 2"
-          shortcut="Ctrl+Alt+2"
-          description="Средний заголовок — для подразделов внутри статьи."
-        >
-          <Toggle
-            size="sm"
-            pressed={editor.isActive("heading", { level: 2 })}
-            onPressedChange={() =>
-              editor.chain().focus().toggleHeading({ level: 2 }).run()
-            }
-            aria-label="Заголовок 2"
-          >
-            <Heading2 className="h-4 w-4" />
-          </Toggle>
-        </Tip>
-
-        <Tip
-          label="Заголовок 3"
-          shortcut="Ctrl+Alt+3"
-          description="Малый заголовок — для мелких подтем и пунктов."
-        >
-          <Toggle
-            size="sm"
-            pressed={editor.isActive("heading", { level: 3 })}
-            onPressedChange={() =>
-              editor.chain().focus().toggleHeading({ level: 3 }).run()
-            }
-            aria-label="Заголовок 3"
-          >
-            <Heading3 className="h-4 w-4" />
-          </Toggle>
-        </Tip>
-
-        <Tip
-          label="Якорь"
-          description={
-            anchorLimit != null
-              ? `Помечает абзац или заголовок якорем. Максимум ${anchorLimit} (по числу дней маршрута). Уже использовано: ${anchorCount}.`
-              : "Помечает текущий абзац или заголовок якорем для навигации слева от статьи."
-          }
-        >
-          <Toggle
-            size="sm"
-            pressed={isAnchorActive}
-            disabled={
-              (!editor.isActive("paragraph") && !editor.isActive("heading")) ||
-              (limitReached && !isAnchorActive)
-            }
-            onPressedChange={() => {
-              if (limitReached && !isAnchorActive) return;
-              toggleAnchorOnActiveBlock(editor);
-            }}
-            aria-label="Якорь"
-          >
-            <Link2 className="h-4 w-4" />
-            {anchorLimit != null && (
-              <span className="ml-1 text-[10px] tabular-nums opacity-70">
-                {anchorCount}/{anchorLimit}
-              </span>
-            )}
-          </Toggle>
-        </Tip>
-
-        <Separator orientation="vertical" className="mx-1 h-6" />
-
-        <Tip
-          label="Маркированный список"
-          shortcut="Ctrl+Shift+8"
-          description="Список с точками — для перечислений без порядка."
-        >
-          <Toggle
-            size="sm"
-            pressed={editor.isActive("bulletList")}
-            onPressedChange={() =>
-              editor.chain().focus().toggleBulletList().run()
-            }
-            aria-label="Маркированный список"
-          >
-            <List className="h-4 w-4" />
-          </Toggle>
-        </Tip>
-
-        <Tip
-          label="Нумерованный список"
-          shortcut="Ctrl+Shift+7"
-          description="Список с цифрами — для пошаговых инструкций и рейтингов."
-        >
-          <Toggle
-            size="sm"
-            pressed={editor.isActive("orderedList")}
-            onPressedChange={() =>
-              editor.chain().focus().toggleOrderedList().run()
-            }
-            aria-label="Нумерованный список"
-          >
-            <ListOrdered className="h-4 w-4" />
-          </Toggle>
-        </Tip>
-
-        <Tip
-          label="Цитата"
-          shortcut="Ctrl+Shift+B"
-          description="Выделенный блок цитаты — для важных высказываний и примечаний."
-        >
-          <Toggle
-            size="sm"
-            pressed={editor.isActive("blockquote")}
-            onPressedChange={() =>
-              editor.chain().focus().toggleBlockquote().run()
-            }
-            aria-label="Цитата"
-          >
-            <Quote className="h-4 w-4" />
-          </Toggle>
-        </Tip>
-
-        <Separator orientation="vertical" className="mx-1 h-6" />
-
-        <Tip
-          label="Разделитель"
-          description="Горизонтальная линия — визуально отделяет разделы статьи друг от друга."
-        >
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-9 px-2.5"
-            onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-        </Tip>
-
-        <Tip
-          label="Изображение"
-          description="Вставляет блок для одной картинки. Можно также перетащить файл прямо в текст."
-        >
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-9 px-2.5"
-            onClick={() =>
-              editor.commands.insertBlogImage({ src: "", alt: "", caption: "" })
-            }
-          >
-            <ImagePlus className="h-4 w-4" />
-          </Button>
-        </Tip>
-
-        <Tip
-          label="Галерея"
-          description="Блок с несколькими фотографиями в виде сетки. Загрузите изображения внутрь."
-        >
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-9 px-2.5"
-            onClick={() => editor.commands.insertBlogGallery({ slides: [] })}
-          >
-            <GalleryHorizontal className="h-4 w-4" />
-          </Button>
-        </Tip>
-
-        <Separator orientation="vertical" className="mx-1 h-6" />
-
-        <TableInsertButton editor={editor} />
-        {editor.isActive("table") ? (
+    <>
+      <TooltipProvider delayDuration={600}>
+        <div className="flex min-h-11 items-center gap-0.5 overflow-x-auto px-2 py-1.5">
           <Tip
-            label="Удалить таблицу"
-            shortcut="Delete"
-            description="Удаляет текущую таблицу целиком."
+            label="Жирный"
+            shortcut="Ctrl+B"
+            description="Выделяет текст жирным шрифтом для акцентов и важных фраз."
           >
-            <Button
-              type="button"
-              variant="ghost"
+            <Toggle
               size="sm"
-              className="h-9 px-2.5 text-destructive hover:text-destructive"
-              onClick={() => editor.chain().focus().deleteTable().run()}
+              pressed={editor.isActive("bold")}
+              onPressedChange={() => editor.chain().focus().toggleBold().run()}
+              aria-label="Жирный"
             >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+              <Bold className="h-4 w-4" />
+            </Toggle>
           </Tip>
-        ) : null}
 
-        <Tip
-          label="CTA-кнопка"
-          description="Кнопка призыва к действию с ссылкой. Стилизуется как primary или secondary."
-        >
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-9 px-2.5"
-            onClick={() =>
-              editor.commands.insertCtaButton({
-                text: "Подробнее",
-                url: "",
-                variant: "primary",
-              })
+          <Tip
+            label="Курсив"
+            shortcut="Ctrl+I"
+            description="Наклонный шрифт — для названий, терминов и мягких выделений."
+          >
+            <Toggle
+              size="sm"
+              pressed={editor.isActive("italic")}
+              onPressedChange={() => editor.chain().focus().toggleItalic().run()}
+              aria-label="Курсив"
+            >
+              <Italic className="h-4 w-4" />
+            </Toggle>
+          </Tip>
+
+          <Tip
+            label="Зачёркнутый"
+            shortcut="Ctrl+Shift+S"
+            description="Перечёркивает текст — для устаревшей или удалённой информации."
+          >
+            <Toggle
+              size="sm"
+              pressed={editor.isActive("strike")}
+              onPressedChange={() => editor.chain().focus().toggleStrike().run()}
+              aria-label="Зачёркнутый"
+            >
+              <Strikethrough className="h-4 w-4" />
+            </Toggle>
+          </Tip>
+
+          <Separator orientation="vertical" className="mx-1 h-6" />
+
+          <Tip
+            label="Заголовок 1"
+            shortcut="Ctrl+Alt+1"
+            description="Самый крупный заголовок — для основного названия раздела."
+          >
+            <Toggle
+              size="sm"
+              pressed={editor.isActive("heading", { level: 1 })}
+              onPressedChange={() =>
+                editor.chain().focus().toggleHeading({ level: 1 }).run()
+              }
+              aria-label="Заголовок 1"
+            >
+              <Heading1 className="h-4 w-4" />
+            </Toggle>
+          </Tip>
+
+          <Tip
+            label="Заголовок 2"
+            shortcut="Ctrl+Alt+2"
+            description="Средний заголовок — для подразделов внутри статьи."
+          >
+            <Toggle
+              size="sm"
+              pressed={editor.isActive("heading", { level: 2 })}
+              onPressedChange={() =>
+                editor.chain().focus().toggleHeading({ level: 2 }).run()
+              }
+              aria-label="Заголовок 2"
+            >
+              <Heading2 className="h-4 w-4" />
+            </Toggle>
+          </Tip>
+
+          <Tip
+            label="Заголовок 3"
+            shortcut="Ctrl+Alt+3"
+            description="Малый заголовок — для мелких подтем и пунктов."
+          >
+            <Toggle
+              size="sm"
+              pressed={editor.isActive("heading", { level: 3 })}
+              onPressedChange={() =>
+                editor.chain().focus().toggleHeading({ level: 3 }).run()
+              }
+              aria-label="Заголовок 3"
+            >
+              <Heading3 className="h-4 w-4" />
+            </Toggle>
+          </Tip>
+
+          <Tip
+            label="Якорь"
+            description={
+              anchorLimit != null
+                ? `Помечает абзац или заголовок якорем. Максимум ${anchorLimit}. Уже использовано: ${anchorCount}.`
+                : "Помечает текущий абзац или заголовок якорем для навигации слева от статьи."
             }
           >
-            <MousePointerClick className="h-4 w-4" />
-          </Button>
-        </Tip>
+            <Toggle
+              size="sm"
+              pressed={isAnchorActive}
+              disabled={
+                (!editor.isActive("paragraph") && !editor.isActive("heading")) ||
+                (limitReached && !isAnchorActive)
+              }
+              onPressedChange={() => {
+                if (limitReached && !isAnchorActive) return;
+                toggleAnchorOnActiveBlock(editor);
+              }}
+              aria-label="Якорь"
+            >
+              <Link2 className="h-4 w-4" />
+              {anchorLimit != null && (
+                <span className="ml-1 text-[10px] tabular-nums opacity-70">
+                  {anchorCount}/{anchorLimit}
+                </span>
+              )}
+            </Toggle>
+          </Tip>
 
-        <Tip
-          label="Карточка направления"
-          description="Блок с полями: сезон, формат, комфорт, уникальность."
-        >
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-9 px-2.5"
-            onClick={() => editor.commands.insertDestinationCard()}
-          >
-            <MapPin className="h-4 w-4" />
-          </Button>
-        </Tip>
-
-        <Tip
-          label="Маршрут по дням"
-          description="Блок маршрута с днями: заголовок, описание и фото для каждого дня."
-        >
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-9 px-2.5"
-            onClick={() => editor.commands.insertRouteDays()}
-          >
-            <Route className="h-4 w-4" />
-          </Button>
-        </Tip>
-
-        <Tip
-          label="Быстрая покупка"
-          description="Фиолетовый блок TudaSuda с заголовком, фото и двумя кнопками."
-        >
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-9 px-2.5"
-            onClick={() => editor.commands.insertQuickBooking()}
-          >
-            <Plane className="h-4 w-4" />
-          </Button>
-        </Tip>
-
-        <div className="ml-auto flex shrink-0 items-center gap-0.5">
           <Tip
-            label="Отменить"
-            shortcut="Ctrl+Z"
-            description="Возвращает последнее действие назад."
+            label="Ссылка"
+            description="Делает выделенный текст ссылкой на обычный или табличный якорь."
           >
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="h-9 px-2.5"
-              disabled={!editor.can().chain().focus().undo().run()}
-              onClick={() => editor.chain().focus().undo().run()}
+              onClick={() => setAnchorDialogOpen(true)}
             >
-              <Undo2 className="h-4 w-4" />
+              <Link className="h-4 w-4" />
             </Button>
           </Tip>
 
+          <Separator orientation="vertical" className="mx-1 h-6" />
+
           <Tip
-            label="Вернуть"
-            shortcut="Ctrl+Y / Ctrl+Shift+Z"
-            description="Возвращает последнее отменённое действие вперед."
+            label="Маркированный список"
+            shortcut="Ctrl+Shift+8"
+            description="Список с точками — для перечислений без порядка."
+          >
+            <Toggle
+              size="sm"
+              pressed={editor.isActive("bulletList")}
+              onPressedChange={() =>
+                editor.chain().focus().toggleBulletList().run()
+              }
+              aria-label="Маркированный список"
+            >
+              <List className="h-4 w-4" />
+            </Toggle>
+          </Tip>
+
+          <Tip
+            label="Нумерованный список"
+            shortcut="Ctrl+Shift+7"
+            description="Список с цифрами — для пошаговых инструкций и рейтингов."
+          >
+            <Toggle
+              size="sm"
+              pressed={editor.isActive("orderedList")}
+              onPressedChange={() =>
+                editor.chain().focus().toggleOrderedList().run()
+              }
+              aria-label="Нумерованный список"
+            >
+              <ListOrdered className="h-4 w-4" />
+            </Toggle>
+          </Tip>
+
+          <Tip
+            label="Цитата"
+            shortcut="Ctrl+Shift+B"
+            description="Выделенный блок цитаты — для важных высказываний и примечаний."
+          >
+            <Toggle
+              size="sm"
+              pressed={editor.isActive("blockquote")}
+              onPressedChange={() =>
+                editor.chain().focus().toggleBlockquote().run()
+              }
+              aria-label="Цитата"
+            >
+              <Quote className="h-4 w-4" />
+            </Toggle>
+          </Tip>
+
+          <Separator orientation="vertical" className="mx-1 h-6" />
+
+          <Tip
+            label="Разделитель"
+            description="Горизонтальная линия — визуально отделяет разделы статьи друг от друга."
           >
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="h-9 px-2.5"
-              disabled={!editor.can().chain().focus().redo().run()}
-              onClick={() => editor.chain().focus().redo().run()}
+              onClick={() => editor.chain().focus().setHorizontalRule().run()}
             >
-              <Redo2 className="h-4 w-4" />
+              <Minus className="h-4 w-4" />
             </Button>
           </Tip>
+
+          <Tip
+            label="Изображение"
+            description="Вставляет блок для одной картинки. Можно также перетащить файл прямо в текст."
+          >
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-9 px-2.5"
+              onClick={() =>
+                editor.commands.insertBlogImage({ src: "", alt: "", caption: "" })
+              }
+            >
+              <ImagePlus className="h-4 w-4" />
+            </Button>
+          </Tip>
+
+          <Tip
+            label="Галерея"
+            description="Блок с несколькими фотографиями в виде сетки. Загрузите изображения внутрь."
+          >
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-9 px-2.5"
+              onClick={() => editor.commands.insertBlogGallery({ slides: [] })}
+            >
+              <GalleryHorizontal className="h-4 w-4" />
+            </Button>
+          </Tip>
+
+          <Separator orientation="vertical" className="mx-1 h-6" />
+
+          <TableInsertButton editor={editor} />
+          {editor.isActive("table") ? (
+            <Tip
+              label="Удалить таблицу"
+              shortcut="Delete"
+              description="Удаляет текущую таблицу целиком."
+            >
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 px-2.5 text-destructive hover:text-destructive"
+                onClick={() => editor.chain().focus().deleteTable().run()}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </Tip>
+          ) : null}
+
+          <Tip
+            label="CTA-кнопка"
+            description="Кнопка призыва к действию с ссылкой. Стилизуется как primary или secondary."
+          >
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-9 px-2.5"
+              onClick={() =>
+                editor.commands.insertCtaButton({
+                  text: "Подробнее",
+                  url: "",
+                  variant: "primary",
+                })
+              }
+            >
+              <MousePointerClick className="h-4 w-4" />
+            </Button>
+          </Tip>
+
+          <Tip
+            label="Карточка направления"
+            description="Блок с полями: сезон, формат, комфорт, уникальность."
+          >
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-9 px-2.5"
+              onClick={() => editor.commands.insertDestinationCard()}
+            >
+              <MapPin className="h-4 w-4" />
+            </Button>
+          </Tip>
+
+          <Tip
+            label="Маршрут по дням"
+            description="Блок маршрута с днями: заголовок, описание и фото для каждого дня."
+          >
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-9 px-2.5"
+              onClick={() => editor.commands.insertRouteDays()}
+            >
+              <Route className="h-4 w-4" />
+            </Button>
+          </Tip>
+
+          <Tip
+            label="Быстрая покупка"
+            description="Фиолетовый блок TudaSuda с заголовком, фото и двумя кнопками."
+          >
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-9 px-2.5"
+              onClick={() => editor.commands.insertQuickBooking()}
+            >
+              <Plane className="h-4 w-4" />
+            </Button>
+          </Tip>
+
+          <div className="ml-auto flex shrink-0 items-center gap-0.5">
+            <Tip
+              label="Отменить"
+              shortcut="Ctrl+Z"
+              description="Возвращает последнее действие назад."
+            >
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 px-2.5"
+                disabled={!editor.can().chain().focus().undo().run()}
+                onClick={() => editor.chain().focus().undo().run()}
+              >
+                <Undo2 className="h-4 w-4" />
+              </Button>
+            </Tip>
+
+            <Tip
+              label="Вернуть"
+              shortcut="Ctrl+Y / Ctrl+Shift+Z"
+              description="Возвращает последнее отменённое действие вперед."
+            >
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 px-2.5"
+                disabled={!editor.can().chain().focus().redo().run()}
+                onClick={() => editor.chain().focus().redo().run()}
+              >
+                <Redo2 className="h-4 w-4" />
+              </Button>
+            </Tip>
+          </div>
         </div>
-      </div>
-    </TooltipProvider>
+      </TooltipProvider>
+
+      <AnchorLinkDialog
+        editor={editor}
+        open={anchorDialogOpen}
+        onOpenChange={setAnchorDialogOpen}
+      />
+    </>
   );
 }

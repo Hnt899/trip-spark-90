@@ -5,8 +5,8 @@ import type { BlogContentBlock } from "@/types/blogContent";
 import { ExternalLink, Sun, Tent, Star, Sparkles, MapPin } from "lucide-react";
 import { getIcon } from "@/components/editor/DestinationCardView";
 
-const ALLOWED_TAG_RE = /^\/?(strong|b|em|i|s|del|br|span)\b/i;
-const CELL_TAG_RE = /^\/?(strong|b|em|i|s|del|br|span|p|ul|ol|li)\b/i;
+const ALLOWED_TAG_RE = /^\/?(strong|b|em|i|s|del|br|span|a)\b/i;
+const CELL_TAG_RE = /^\/?(strong|b|em|i|s|del|br|span|p|ul|ol|li|a)\b/i;
 const ACCENT_RE =
   /<(?:акцент|accent)>\s*([\s\S]*?)\s*<\/\s*(?:акцент|accent)\s*>/gi;
 
@@ -28,9 +28,24 @@ function prepareHtml(text: string): string {
 }
 
 function InlineHtml({ text, className }: { text: string; className?: string }) {
+  const handleClick = (e: React.MouseEvent<HTMLSpanElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName !== "A") return;
+    const href = target.getAttribute("href");
+    if (!href?.startsWith("#")) return;
+    e.preventDefault();
+    const id = href.slice(1);
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    el.classList.add("bg-yellow-200/70");
+    window.setTimeout(() => el.classList.remove("bg-yellow-200/70"), 2000);
+  };
+
   return (
     <span
       className={className}
+      onClick={handleClick}
       dangerouslySetInnerHTML={{ __html: prepareHtml(text) }}
     />
   );
@@ -226,6 +241,15 @@ export default function BlogBlockRenderer({
           case "table": {
             if (!block.rows?.length) return null;
             const maxCols = Math.max(...block.rows.map((r) => r.cells.length));
+            const scrollToRow = (id: string) => {
+              const el = document.getElementById(id);
+              if (!el) return;
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+              el.classList.add("bg-yellow-200/70");
+              window.setTimeout(() => {
+                el.classList.remove("bg-yellow-200/70");
+              }, 2000);
+            };
             return (
               <div key={key} className="my-6 overflow-x-auto">
                 <table className="w-full border-collapse overflow-hidden rounded-lg border border-border text-sm">
@@ -251,25 +275,42 @@ export default function BlogBlockRenderer({
                     </thead>
                   )}
                   <tbody>
-                    {block.rows.slice(block.hasHeader ? 1 : 0).map((row, ri) => (
-                      <tr
-                        key={ri}
-                        className="border-b border-border transition-colors hover:bg-muted/50"
-                      >
-                        {row.cells
-                          .concat(
-                            Array.from(
-                              { length: maxCols - row.cells.length },
-                              () => ({ text: "" }),
-                            ),
-                          )
-                          .map((cell, ci) => (
-                            <td key={ci} className="border border-border px-4 py-2.5">
-                              <CellHtml text={cell.text} />
-                            </td>
-                          ))}
-                      </tr>
-                    ))}
+                    {block.rows.slice(block.hasHeader ? 1 : 0).map((row, ri) => {
+                      const anchorId = row.tableAnchorId;
+                      return (
+                        <tr
+                          key={ri}
+                          id={anchorId || undefined}
+                          className={cn(
+                            "border-b border-border transition-colors",
+                            anchorId
+                              ? "cursor-pointer hover:bg-primary/5"
+                              : "hover:bg-muted/50",
+                          )}
+                          onClick={
+                            anchorId
+                              ? (e) => {
+                                  e.preventDefault();
+                                  scrollToRow(anchorId);
+                                }
+                              : undefined
+                          }
+                        >
+                          {row.cells
+                            .concat(
+                              Array.from(
+                                { length: maxCols - row.cells.length },
+                                () => ({ text: "" }),
+                              ),
+                            )
+                            .map((cell, ci) => (
+                              <td key={ci} className="border border-border px-4 py-2.5">
+                                <CellHtml text={cell.text} />
+                              </td>
+                            ))}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

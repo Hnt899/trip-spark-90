@@ -16,6 +16,7 @@ const ALLOWED_BLOCK_TYPES = new Set([
   "table",
   "ctaButton",
   "destinationCard",
+  "quickBooking",
   "routeByDays",
 ]);
 
@@ -103,7 +104,12 @@ function sanitizeBlocks(raw) {
         const cells = row.cells.slice(0, 20).map((c) => ({
           text: String(c?.text ?? "").slice(0, 8000),
         }));
-        cleanRows.push({ cells });
+        const cleanRow = { cells };
+        if (row.tableAnchorId != null) {
+          const id = String(row.tableAnchorId).trim().slice(0, 100);
+          if (/^t-anchor-\d+$/.test(id)) cleanRow.tableAnchorId = id;
+        }
+        cleanRows.push(cleanRow);
       }
       if (cleanRows.length > 0) {
         out.push({ type: "table", rows: cleanRows, hasHeader: !!b.hasHeader });
@@ -130,6 +136,17 @@ function sanitizeBlocks(raw) {
         format_icon: b.format_icon != null ? String(b.format_icon).slice(0, 100) : "Tent",
         comfort_icon: b.comfort_icon != null ? String(b.comfort_icon).slice(0, 100) : "Star",
         uniqueness_icon: b.uniqueness_icon != null ? String(b.uniqueness_icon).slice(0, 100) : "Sparkles",
+      });
+    } else if (type === "quickBooking") {
+      out.push({
+        type: "quickBooking",
+        title: String(b.title ?? "").slice(0, 500),
+        button1Text: String(b.button1Text ?? "").slice(0, 200),
+        button1Url: String(b.button1Url ?? "").slice(0, 2000),
+        button2Text: String(b.button2Text ?? "").slice(0, 200),
+        button2Url: String(b.button2Url ?? "").slice(0, 2000),
+        image: String(b.image ?? "").slice(0, 2000),
+        bgGradient: String(b.bgGradient ?? "from-[#8A70F8] to-[#9B82F8]").slice(0, 200),
       });
     } else if (type === "routeByDays") {
       const days = Array.isArray(b.days) ? b.days.slice(0, 30) : [];
@@ -204,7 +221,6 @@ function parseBody(body) {
  * @param {import('express').Express} app
  */
 export function registerRoutePublicRoutes(app) {
-  // /api/route-pages — обход WAF на некоторых VPS, где /api/routes режется HTML Forbidden
   app.get("/api/route-pages", async (_req, res) => {
     try {
       const { rows } = await pool.query(
@@ -220,7 +236,6 @@ export function registerRoutePublicRoutes(app) {
     }
   });
 
-  // ===== НОВЫЙ ЭНДПОИНТ: похожие маршруты =====
   app.get("/api/route-pages/related", async (req, res) => {
     const { region, exclude, offset = 0 } = req.query;
     if (!region) {

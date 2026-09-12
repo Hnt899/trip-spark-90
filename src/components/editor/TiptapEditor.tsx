@@ -12,6 +12,7 @@ import { CtaButtonExtension } from "./CtaButtonExtension";
 import { DestinationCardExtension } from "./DestinationCardExtension";
 import { RouteDaysExtension } from "./RouteDaysExtension";
 import { QuickBookingExtension } from "./QuickBookingExtension";
+import { TableRowAnchorExtension } from "./TableRowAnchorExtension";
 import { TiptapToolbar } from "./TiptapToolbar";
 import { AnchorEditorSidebar } from "./AnchorEditorSidebar";
 import { uploadImages } from "@/lib/uploadImages";
@@ -57,6 +58,7 @@ export default function TiptapEditor({ initialBlocks, onChange, anchorLimit }: P
       DestinationCardExtension,
       RouteDaysExtension,
       QuickBookingExtension,
+      TableRowAnchorExtension,
       AnchorAttributesExtension,
     ],
     content: blocksToTiptap(initialBlocks),
@@ -145,7 +147,6 @@ export default function TiptapEditor({ initialBlocks, onChange, anchorLimit }: P
     },
   });
 
-  // Подписываемся на обновления editor, чтобы тулбар видел актуальное кол-во якорей
   useEffect(() => {
     if (!editor) return;
     const tick = () => forceTick((t) => t + 1);

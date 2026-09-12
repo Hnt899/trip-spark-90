@@ -14,7 +14,11 @@ export type BlogCarouselSlide = {
 export type BlogCarouselMode = "manual" | "auto" | "hybrid";
 
 export type BlogTableCell = { text: string };
-export type BlogTableRow = { cells: BlogTableCell[] };
+export type BlogTableRow = {
+  cells: BlogTableCell[];
+  /** id табличного якоря строки (t-anchor-N), глобальный счётчик по документу */
+  tableAnchorId?: string;
+};
 
 export type CtaButtonVariant = "primary" | "secondary";
 
