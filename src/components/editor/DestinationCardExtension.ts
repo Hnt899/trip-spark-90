@@ -14,10 +14,10 @@ declare module "@tiptap/core" {
         format_label?: string;
         comfort_label?: string;
         uniqueness_label?: string;
-        season_emoji?: string;
-        format_emoji?: string;
-        comfort_emoji?: string;
-        uniqueness_emoji?: string;
+        season_icon?: string;
+        format_icon?: string;
+        comfort_icon?: string;
+        uniqueness_icon?: string;
       }) => ReturnType;
     };
   }
@@ -39,10 +39,10 @@ export const DestinationCardExtension = Node.create({
       format_label: { default: "" },
       comfort_label: { default: "" },
       uniqueness_label: { default: "" },
-      season_emoji: { default: "" },
-      format_emoji: { default: "" },
-      comfort_emoji: { default: "" },
-      uniqueness_emoji: { default: "" },
+      season_icon: { default: "Sun" },
+      format_icon: { default: "Tent" },
+      comfort_icon: { default: "Star" },
+      uniqueness_icon: { default: "Sparkles" },
     };
   },
 
@@ -73,6 +73,14 @@ export const DestinationCardExtension = Node.create({
               format: attrs?.format || "",
               comfort: attrs?.comfort || "",
               uniqueness: attrs?.uniqueness || "",
+              season_label: attrs?.season_label || "",
+              format_label: attrs?.format_label || "",
+              comfort_label: attrs?.comfort_label || "",
+              uniqueness_label: attrs?.uniqueness_label || "",
+              season_icon: attrs?.season_icon || "Sun",
+              format_icon: attrs?.format_icon || "Tent",
+              comfort_icon: attrs?.comfort_icon || "Star",
+              uniqueness_icon: attrs?.uniqueness_icon || "Sparkles",
             },
           }),
     };

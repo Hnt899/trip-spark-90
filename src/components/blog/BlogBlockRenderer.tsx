@@ -3,10 +3,7 @@ import { expandRichParagraphBlocks } from "@/lib/blogBodyExpand";
 import BlogCarouselBlock from "@/components/blog/BlogCarouselBlock";
 import type { BlogContentBlock } from "@/types/blogContent";
 import { ExternalLink, Sun, Tent, Star, Sparkles, MapPin } from "lucide-react";
-
-/* ------------------------------------------------------------------ */
-/*  Inline HTML sanitizer + renderer                                   */
-/* ------------------------------------------------------------------ */
+import { getIcon } from "@/components/editor/DestinationCardView";
 
 const ALLOWED_TAG_RE = /^\/?(strong|b|em|i|s|del|br|span)\b/i;
 const CELL_TAG_RE = /^\/?(strong|b|em|i|s|del|br|span|p|ul|ol|li)\b/i;
@@ -57,10 +54,6 @@ function CellHtml({ text, className }: { text: string; className?: string }) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Block type guard                                                   */
-/* ------------------------------------------------------------------ */
-
 function isBlock(x: unknown): x is BlogContentBlock {
   return (
     typeof x === "object" &&
@@ -70,19 +63,14 @@ function isBlock(x: unknown): x is BlogContentBlock {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Main renderer                                                      */
-/* ------------------------------------------------------------------ */
-
-// ===== ДОБАВЛЯЕМ ПРОПС isRoute =====
 export default function BlogBlockRenderer({
   blocks,
   className,
-  isRoute = false, // ← добавляем
+  isRoute = false,
 }: {
   blocks: unknown;
   className?: string;
-  isRoute?: boolean; // ← добавляем
+  isRoute?: boolean;
 }) {
   const rawList = Array.isArray(blocks) ? blocks.filter(isBlock) : [];
   const list = expandRichParagraphBlocks(rawList as BlogContentBlock[]);
@@ -141,24 +129,24 @@ export default function BlogBlockRenderer({
             );
           }
           case "image":
-  if (!block.url?.trim()) return null;
-  return (
-    <figure key={key} className="my-6 flex flex-col items-center">
-      <div className="inline-flex max-w-full items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-transparent dark:border-slate-800">
-        <img
-          src={block.url}
-          alt={block.alt || ""}
-          referrerPolicy="no-referrer"
-          className="mx-auto block h-auto max-h-[560px] w-auto max-w-full object-contain"
-        />
-      </div>
-      {block.caption ? (
-        <figcaption className="mt-2 whitespace-pre-wrap break-words text-center text-sm text-muted-foreground [overflow-wrap:anywhere]">
-          {block.caption}
-        </figcaption>
-      ) : null}
-    </figure>
-  );
+            if (!block.url?.trim()) return null;
+            return (
+              <figure key={key} className="my-6 flex flex-col items-center">
+                <div className="inline-flex max-w-full items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-transparent dark:border-slate-800">
+                  <img
+                    src={block.url}
+                    alt={block.alt || ""}
+                    referrerPolicy="no-referrer"
+                    className="mx-auto block h-auto max-h-[560px] w-auto max-w-full object-contain"
+                  />
+                </div>
+                {block.caption ? (
+                  <figcaption className="mt-2 whitespace-pre-wrap break-words text-center text-sm text-muted-foreground [overflow-wrap:anywhere]">
+                    {block.caption}
+                  </figcaption>
+                ) : null}
+              </figure>
+            );
           case "carousel":
             if (!Array.isArray(block.slides) || block.slides.length === 0) {
               return null;
@@ -306,10 +294,10 @@ export default function BlogBlockRenderer({
           }
           case "destinationCard": {
             const fields = [
-              { label: "Идеальный сезон", value: block.season, icon: Sun },
-              { label: "Формат", value: block.format, icon: Tent },
-              { label: "Комфорт", value: block.comfort, icon: Star },
-              { label: "Уникальность", value: block.uniqueness, icon: Sparkles },
+              { label: block.season_label     || "Идеальный сезон", value: block.season,     iconName: block.season_icon     || "Sun",      fallback: Sun },
+              { label: block.format_label     || "Формат",          value: block.format,     iconName: block.format_icon     || "Tent",     fallback: Tent },
+              { label: block.comfort_label    || "Комфорт",         value: block.comfort,    iconName: block.comfort_icon    || "Star",     fallback: Star },
+              { label: block.uniqueness_label || "Уникальность",    value: block.uniqueness, iconName: block.uniqueness_icon || "Sparkles", fallback: Sparkles },
             ];
             return (
               <div
@@ -323,17 +311,20 @@ export default function BlogBlockRenderer({
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-4">
-                  {fields.map(({ label, value, icon: Icon }) => (
-                    <div key={label} className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Icon className="h-3.5 w-3.5" />
-                        {label}
+                  {fields.map(({ label, value, iconName, fallback }) => {
+                    const Icon = getIcon(iconName, fallback);
+                    return (
+                      <div key={label} className="space-y-1">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Icon className="h-3.5 w-3.5" />
+                          {label}
+                        </div>
+                        <p className="text-sm font-medium text-foreground">
+                          {value || "—"}
+                        </p>
                       </div>
-                      <p className="text-sm font-medium text-foreground">
-                        {value || "—"}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -343,23 +334,21 @@ export default function BlogBlockRenderer({
             const DEFAULT_IMG = "/путь-no-bg-preview (carve.photos).png";
             const routeImage = block.image || DEFAULT_IMG;
             const totalDays = block.days.length;
-            
-            // Функция прокрутки к якорю по индексу
+
             const scrollToDayAnchor = (anchorIndex: number) => {
-              const anchorId = `anchor-${anchorIndex}`;
-              const el = document.getElementById(anchorId);
+              const id = `anchor-${anchorIndex}`;
+              const el = document.getElementById(id);
               if (el) {
                 el.scrollIntoView({ behavior: "smooth", block: "start" });
               }
             };
-            
+
             return (
               <div
                 key={key}
                 className="my-8 overflow-hidden rounded-2xl bg-[hsl(var(--primary)/0.04)] dark:bg-[hsl(var(--primary)/0.08)]"
               >
                 <div className="flex flex-col md:flex-row md:min-h-[420px]">
-                  {/* Image left */}
                   <div className="relative w-full shrink-0 md:w-[340px] lg:w-[400px]">
                     <img
                       src={routeImage}
@@ -371,7 +360,6 @@ export default function BlogBlockRenderer({
                       }
                     />
                   </div>
-                  {/* Timeline right */}
                   <div className="min-w-0 flex-1 px-6 py-6 md:px-8 md:py-8">
                     <div className="mb-6 flex items-center gap-2.5">
                       <MapPin className="h-5 w-5 text-primary" />
@@ -383,13 +371,9 @@ export default function BlogBlockRenderer({
                       {block.days.map((day, di) => {
                         const isFirst = di === 0;
                         const isLast = di === totalDays - 1;
-                        const anchorIdx = day.anchorIndex ?? di; // индекс якоря
+                        const anchorIdx = day.anchorIndex ?? di;
                         return (
-                          <div 
-                            key={di} 
-                            className="flex gap-4"
-                          >
-                            {/* Timeline column */}
+                          <div key={di} className="flex gap-4">
                             <div className="flex w-5 shrink-0 flex-col items-center">
                               {isFirst ? (
                                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/15">

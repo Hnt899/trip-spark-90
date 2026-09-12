@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
-import { MapPin, Sun, Tent, Star, Sparkles, Trash2, Pencil } from "lucide-react";
+import {
+  MapPin, Sun, Tent, Star, Sparkles, Trash2, Pencil,
+  Calendar, Compass, Backpack, Heart, Camera, Utensils,
+  Mountain, Waves, TreePine, Cloud, Snowflake, Flame,
+  Award, Gem, Crown, Ticket, Clock, Users, Route,
+  type LucideIcon,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -12,35 +18,86 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+
+export const ICON_LIBRARY: Record<string, LucideIcon> = {
+  Sun, Tent, Star, Sparkles, MapPin, Calendar, Compass, Backpack,
+  Heart, Camera, Utensils, Mountain, Waves, TreePine, Cloud,
+  Snowflake, Flame, Award, Gem, Crown, Ticket, Clock, Users, Route,
+};
+
+export const ICON_KEYS = Object.keys(ICON_LIBRARY);
+
+export function getIcon(name: string | undefined | null, fallback: LucideIcon): LucideIcon {
+  if (!name) return fallback;
+  return ICON_LIBRARY[name] || fallback;
+}
 
 const DEFAULT_FIELDS = [
-  { key: "season", label: "Идеальный сезон", icon: Sun, placeholder: "Май — Сентябрь", emoji: "☀️" },
-  { key: "format", label: "Формат", icon: Tent, placeholder: "Активный отдых", emoji: "🏕️" },
-  { key: "comfort", label: "Комфорт", icon: Star, placeholder: "Высокий", emoji: "⭐" },
-  { key: "uniqueness", label: "Уникальность", icon: Sparkles, placeholder: "Редкое направление", emoji: "✨" },
+  { key: "season",     label: "Идеальный сезон", icon: "Sun",      iconFallback: Sun,      placeholder: "Май — Сентябрь" },
+  { key: "format",     label: "Формат",          icon: "Tent",     iconFallback: Tent,     placeholder: "Активный отдых" },
+  { key: "comfort",    label: "Комфорт",         icon: "Star",     iconFallback: Star,     placeholder: "Высокий" },
+  { key: "uniqueness", label: "Уникальность",    icon: "Sparkles", iconFallback: Sparkles, placeholder: "Редкое направление" },
 ] as const;
 
-const EMOJI_LIBRARY = [
-  "☀️", "🌤️", "⛅", "🌈", "❄️", "🌨️", "🌸", "🌺", "🍂", "🍁",
-  "🏕️", "⛺", "🏖️", "🏔️", "🏞️", "🏛️", "🗿", "🏰", "🏯", "🗼",
-  "⭐", "🌟", "💫", "🔥", "💎", "👑", "🏆", "🎯", "📍", "🧭",
-  "✨", "🎉", "🎊", "🎈", "🎁", "🏵️", "🌻", "🌷", "🌹", "💐",
-  "🚗", "🚙", "🚌", "🚐", "🚎", "🚂", "✈️", "🚁", "🚢", "🚲",
-  "👣", "🚶", "🧳", "🎒", "📸", "🗺️", "🧳", "🎫", "🏨", "🍽️",
-];
+function IconPicker({
+  value,
+  fallback,
+  onChange,
+}: {
+  value: string;
+  fallback: LucideIcon;
+  onChange: (name: string) => void;
+}) {
+  const Current = getIcon(value, fallback);
+  const [open, setOpen] = useState(false);
 
-interface FieldConfig {
-  key: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  placeholder: string;
-  emoji: string;
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-9 w-9 shrink-0"
+          aria-label="Выбрать иконку"
+        >
+          <Current className="h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[280px] p-2" align="start">
+        <div className="grid max-h-[280px] grid-cols-6 gap-1 overflow-y-auto">
+          {ICON_KEYS.map((name) => {
+            const Icon = ICON_LIBRARY[name];
+            const active = name === value;
+            return (
+              <button
+                key={name}
+                type="button"
+                title={name}
+                onClick={() => {
+                  onChange(name);
+                  setOpen(false);
+                }}
+                className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-md transition-colors",
+                  active
+                    ? "bg-primary/15 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <Icon className="h-4 w-4" />
+              </button>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 export function DestinationCardView({
@@ -50,48 +107,45 @@ export function DestinationCardView({
   selected,
 }: NodeViewProps) {
   const [open, setOpen] = useState(false);
-  const [formFields, setFormFields] = useState<Array<{ key: string; label: string; emoji: string }>>(
-    () => DEFAULT_FIELDS.map(f => ({
+
+  const buildForm = () =>
+    DEFAULT_FIELDS.map((f) => ({
       key: f.key,
       label: (node.attrs[`${f.key}_label`] as string) || f.label,
-      emoji: (node.attrs[`${f.key}_emoji`] as string) || f.emoji,
-    }))
-  );
+      icon:  (node.attrs[`${f.key}_icon`] as string) || f.icon,
+    }));
+
+  const [form, setForm] = useState(buildForm);
 
   const handleOpen = () => {
-    setFormFields(DEFAULT_FIELDS.map(f => ({
-      key: f.key,
-      label: (node.attrs[`${f.key}_label`] as string) || f.label,
-      emoji: (node.attrs[`${f.key}_emoji`] as string) || f.emoji,
-    })));
+    setForm(buildForm());
     setOpen(true);
   };
 
   const handleSave = () => {
-    const newAttrs: Record<string, string> = {};
-    formFields.forEach(field => {
-      newAttrs[`${field.key}_label`] = field.label;
-      newAttrs[`${field.key}_emoji`] = field.emoji;
+    const attrs: Record<string, string> = {};
+    form.forEach((f) => {
+      attrs[`${f.key}_label`] = f.label;
+      attrs[`${f.key}_icon`]  = f.icon;
     });
-    updateAttributes(newAttrs);
+    updateAttributes(attrs);
     setOpen(false);
   };
 
-  const getFieldLabel = (key: string) => {
-    return (node.attrs[`${key}_label`] as string) || DEFAULT_FIELDS.find(f => f.key === key)?.label || "";
-  };
+  const getLabel = (key: string, fallback: string) =>
+    (node.attrs[`${key}_label`] as string) || fallback;
 
-  const getFieldEmoji = (key: string) => {
-    return (node.attrs[`${key}_emoji`] as string) || DEFAULT_FIELDS.find(f => f.key === key)?.emoji || "";
-  };
+  const getIconName = (key: string, fallback: string) =>
+    (node.attrs[`${key}_icon`] as string) || fallback;
 
   return (
     <>
       <NodeViewWrapper
         data-type="destination-card"
-        className={`my-4 rounded-xl border-2 transition-colors ${
-          selected ? "border-primary" : "border-slate-200 dark:border-slate-800"
-        }`}
+        className={cn(
+          "my-4 rounded-xl border-2 transition-colors",
+          selected ? "border-primary" : "border-slate-200 dark:border-slate-800",
+        )}
         draggable
         data-drag-handle=""
       >
@@ -121,22 +175,25 @@ export function DestinationCardView({
             </Button>
           </div>
         </div>
+
         <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2">
-          {DEFAULT_FIELDS.map(({ key, icon: Icon, placeholder }) => (
-            <div key={key} className="space-y-1.5">
-              <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span className="text-sm">{getFieldEmoji(key)}</span>
-                <Icon className="h-3.5 w-3.5" />
-                {getFieldLabel(key)}
-              </Label>
-              <Input
-                value={(node.attrs[key] as string) || ""}
-                onChange={(e) => updateAttributes({ [key]: e.target.value })}
-                placeholder={placeholder}
-                className="h-9"
-              />
-            </div>
-          ))}
+          {DEFAULT_FIELDS.map((f) => {
+            const Icon = getIcon(getIconName(f.key, f.icon), f.iconFallback);
+            return (
+              <div key={f.key} className="space-y-1.5">
+                <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Icon className="h-3.5 w-3.5" />
+                  {getLabel(f.key, f.label)}
+                </Label>
+                <Input
+                  value={(node.attrs[f.key] as string) || ""}
+                  onChange={(e) => updateAttributes({ [f.key]: e.target.value })}
+                  placeholder={f.placeholder}
+                  className="h-9"
+                />
+              </div>
+            );
+          })}
         </div>
       </NodeViewWrapper>
 
@@ -146,53 +203,35 @@ export function DestinationCardView({
             <DialogTitle>Настройки карточки направления</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            {formFields.map((field, index) => (
-              <div key={field.key} className="space-y-2">
-                <Label>Поле {index + 1}</Label>
-                <div className="flex gap-2">
-                  <Select
-                    value={field.emoji}
-                    onValueChange={(emoji) => {
-                      const next = [...formFields];
-                      next[index].emoji = emoji;
-                      setFormFields(next);
-                    }}
-                  >
-                    <SelectTrigger className="w-[80px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <div className="grid grid-cols-6 gap-1 p-2 max-h-[200px] overflow-y-auto">
-                        {EMOJI_LIBRARY.map((emoji) => (
-                          <button
-                            key={emoji}
-                            type="button"
-                            className="flex h-8 w-8 items-center justify-center rounded hover:bg-muted"
-                            onClick={() => {
-                              const next = [...formFields];
-                              next[index].emoji = emoji;
-                              setFormFields(next);
-                            }}
-                          >
-                            {emoji}
-                          </button>
-                        ))}
-                      </div>
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    value={field.label}
-                    onChange={(e) => {
-                      const next = [...formFields];
-                      next[index].label = e.target.value;
-                      setFormFields(next);
-                    }}
-                    placeholder="Название поля"
-                    className="flex-1"
-                  />
+            {form.map((f, index) => {
+              const fallback = DEFAULT_FIELDS[index].iconFallback;
+              return (
+                <div key={f.key} className="space-y-2">
+                  <Label>Поле {index + 1}</Label>
+                  <div className="flex gap-2">
+                    <IconPicker
+                      value={f.icon}
+                      fallback={fallback}
+                      onChange={(name) => {
+                        const next = [...form];
+                        next[index] = { ...next[index], icon: name };
+                        setForm(next);
+                      }}
+                    />
+                    <Input
+                      value={f.label}
+                      onChange={(e) => {
+                        const next = [...form];
+                        next[index] = { ...next[index], label: e.target.value };
+                        setForm(next);
+                      }}
+                      placeholder="Название поля"
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
@@ -206,4 +245,4 @@ export function DestinationCardView({
       </Dialog>
     </>
   );
-}
+} 
