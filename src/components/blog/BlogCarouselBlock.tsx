@@ -116,19 +116,19 @@ export default function BlogCarouselBlock({
         </CarouselContent>
       </Carousel>
 
-      {/* Стрелки вперёд/назад по бокам — показываем всегда, если >1 слайда */}
-      {showArrows ? (
+            {/* Стрелки вперёд/назад — внутри картинки, поверх неё */}
+            {showArrows ? (
         <>
           <CarouselNavButton
             direction="prev"
             onClick={handlePrev}
-            className="left-2 md:-left-4 lg:-left-6 !translate-x-0"
+            className="left-4 top-[42%] !translate-x-0 !-translate-y-1/2 !bg-white/90 hover:!bg-white !shadow-lg !border-0"
             showOnMobile
           />
           <CarouselNavButton
             direction="next"
             onClick={handleNext}
-            className="right-2 md:-right-4 lg:-right-6 !translate-x-0"
+            className="right-4 top-[42%] !translate-x-0 !-translate-y-1/2 !bg-white/90 hover:!bg-white !shadow-lg !border-0"
             showOnMobile
           />
         </>
