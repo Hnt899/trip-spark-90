@@ -33,11 +33,26 @@ function sanitizeBlocks(raw) {
     if (!b || typeof b !== "object") continue;
     const type = String(b.type || "");
     if (!ALLOWED_BLOCK_TYPES.has(type)) continue;
+
     if (type === "paragraph") {
-      out.push({ type, text: String(b.text ?? "").slice(0, 80000) });
+      const block = { type, text: String(b.text ?? "").slice(0, 80000) };
+      if (b.anchor === true) block.anchor = true;
+      if (b.anchorLabel != null) block.anchorLabel = String(b.anchorLabel).slice(0, 500);
+      if (b.anchorOrdinal != null) {
+        const n = parseInt(String(b.anchorOrdinal), 10);
+        if (Number.isFinite(n) && n > 0) block.anchorOrdinal = n;
+      }
+      out.push(block);
     } else if (type === "heading") {
       const level = [1, 2, 3].includes(Number(b.level)) ? Number(b.level) : 2;
-      out.push({ type, level, text: String(b.text ?? "").slice(0, 500) });
+      const block = { type, level, text: String(b.text ?? "").slice(0, 500) };
+      if (b.anchor === true) block.anchor = true;
+      if (b.anchorLabel != null) block.anchorLabel = String(b.anchorLabel).slice(0, 500);
+      if (b.anchorOrdinal != null) {
+        const n = parseInt(String(b.anchorOrdinal), 10);
+        if (Number.isFinite(n) && n > 0) block.anchorOrdinal = n;
+      }
+      out.push(block);
     } else if (type === "image") {
       out.push({
         type,
@@ -107,17 +122,30 @@ function sanitizeBlocks(raw) {
         format: String(b.format ?? "").slice(0, 500),
         comfort: String(b.comfort ?? "").slice(0, 500),
         uniqueness: String(b.uniqueness ?? "").slice(0, 500),
+        season_label: b.season_label != null ? String(b.season_label).slice(0, 200) : "",
+        format_label: b.format_label != null ? String(b.format_label).slice(0, 200) : "",
+        comfort_label: b.comfort_label != null ? String(b.comfort_label).slice(0, 200) : "",
+        uniqueness_label: b.uniqueness_label != null ? String(b.uniqueness_label).slice(0, 200) : "",
+        season_icon: b.season_icon != null ? String(b.season_icon).slice(0, 100) : "Sun",
+        format_icon: b.format_icon != null ? String(b.format_icon).slice(0, 100) : "Tent",
+        comfort_icon: b.comfort_icon != null ? String(b.comfort_icon).slice(0, 100) : "Star",
+        uniqueness_icon: b.uniqueness_icon != null ? String(b.uniqueness_icon).slice(0, 100) : "Sparkles",
       });
     } else if (type === "routeByDays") {
       const days = Array.isArray(b.days) ? b.days.slice(0, 30) : [];
       const cleanDays = [];
       for (const d of days) {
         if (!d || typeof d !== "object") continue;
-        cleanDays.push({
+        const day = {
           label: String(d.label ?? "").slice(0, 200),
           title: String(d.title ?? "").slice(0, 500),
           description: String(d.description ?? "").slice(0, 8000),
-        });
+        };
+        if (d.anchorIndex != null) {
+          const n = parseInt(String(d.anchorIndex), 10);
+          if (Number.isFinite(n) && n >= 0) day.anchorIndex = n;
+        }
+        cleanDays.push(day);
       }
       if (cleanDays.length > 0) {
         out.push({
