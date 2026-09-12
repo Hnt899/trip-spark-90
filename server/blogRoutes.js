@@ -17,6 +17,7 @@ const ALLOWED_BLOCK_TYPES = new Set([
   "table",
   "ctaButton",
   "destinationCard",
+  "quickBooking",
   "routeByDays",
 ]);
 
@@ -135,6 +136,17 @@ function sanitizeBlocks(raw) {
         format: String(b.format ?? "").slice(0, 500),
         comfort: String(b.comfort ?? "").slice(0, 500),
         uniqueness: String(b.uniqueness ?? "").slice(0, 500),
+      });
+    } else if (type === "quickBooking") {
+      out.push({
+        type: "quickBooking",
+        title: String(b.title ?? "").slice(0, 500),
+        button1Text: String(b.button1Text ?? "").slice(0, 200),
+        button1Url: String(b.button1Url ?? "").slice(0, 2000),
+        button2Text: String(b.button2Text ?? "").slice(0, 200),
+        button2Url: String(b.button2Url ?? "").slice(0, 2000),
+        image: b.image ? String(b.image).slice(0, 2000) : "",
+        bgGradient: String(b.bgGradient ?? "from-[#8A70F8] to-[#9B82F8]").slice(0, 200),
       });
     } else if (type === "routeByDays") {
       const days = Array.isArray(b.days) ? b.days.slice(0, 30) : [];

@@ -296,6 +296,21 @@ export function blocksToTiptap(blocks: BlogContentBlock[]): JSONContent {
         });
         break;
 
+      case "quickBooking":
+        content.push({
+          type: "quickBooking",
+          attrs: {
+            title: block.title || "",
+            button1Text: block.button1Text || "",
+            button1Url: block.button1Url || "",
+            button2Text: block.button2Text || "",
+            button2Url: block.button2Url || "",
+            image: block.image || "",
+            bgGradient: block.bgGradient || "from-[#8A70F8] to-[#9B82F8]",
+          },
+        });
+        break;
+
       case "routeByDays":
         content.push({
           type: "routeDays",
@@ -451,6 +466,20 @@ export function tiptapToBlocks(doc: JSONContent): BlogContentBlock[] {
           format_icon: (node.attrs?.format_icon as string) || "Tent",
           comfort_icon: (node.attrs?.comfort_icon as string) || "Star",
           uniqueness_icon: (node.attrs?.uniqueness_icon as string) || "Sparkles",
+        });
+        break;
+      }
+
+      case "quickBooking": {
+        blocks.push({
+          type: "quickBooking",
+          title: (node.attrs?.title as string) || "",
+          button1Text: (node.attrs?.button1Text as string) || "",
+          button1Url: (node.attrs?.button1Url as string) || "",
+          button2Text: (node.attrs?.button2Text as string) || "",
+          button2Url: (node.attrs?.button2Url as string) || "",
+          image: (node.attrs?.image as string) || "",
+          bgGradient: (node.attrs?.bgGradient as string) || "from-[#8A70F8] to-[#9B82F8]",
         });
         break;
       }

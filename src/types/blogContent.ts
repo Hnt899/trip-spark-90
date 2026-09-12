@@ -41,6 +41,17 @@ export type DestinationCardBlock = {
   uniqueness_icon?: string;
 };
 
+export type QuickBookingBlock = {
+  type: "quickBooking";
+  title: string;
+  button1Text: string;
+  button1Url: string;
+  button2Text: string;
+  button2Url: string;
+  image: string;
+  bgGradient?: string;
+};
+
 export type BlogContentBlock =
   | { type: "paragraph"; text: string; anchor?: boolean; anchorLabel?: string; anchorOrdinal?: number }
   | { type: "heading"; level: number; text: string; anchor?: boolean; anchorLabel?: string; anchorOrdinal?: number }
@@ -58,4 +69,5 @@ export type BlogContentBlock =
   | { type: "table"; rows: BlogTableRow[]; hasHeader: boolean }
   | { type: "ctaButton"; text: string; url: string; variant: CtaButtonVariant }
   | DestinationCardBlock
+  | QuickBookingBlock
   | { type: "routeByDays"; image: string; days: RouteDayItem[] };
