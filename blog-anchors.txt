@@ -1,3 +1,7 @@
+﻿
+
+========== FILE: server\blogRoutes.js ==========
+
 import express from "express";
 import { pool } from "./db.js";
 import { adminMiddleware } from "./authMiddleware.js";
@@ -40,10 +44,6 @@ function sanitizeBlocks(raw) {
       if (b.anchor) {
         block.anchor = true;
         if (b.anchorLabel) block.anchorLabel = String(b.anchorLabel).slice(0, 200);
-        if (b.anchorOrdinal != null) {
-          const n = parseInt(String(b.anchorOrdinal), 10);
-          if (Number.isFinite(n) && n > 0) block.anchorOrdinal = n;
-        }
       }
       out.push(block);
     } else if (type === "heading") {
@@ -52,13 +52,9 @@ function sanitizeBlocks(raw) {
       if (b.anchor) {
         block.anchor = true;
         if (b.anchorLabel) block.anchorLabel = String(b.anchorLabel).slice(0, 200);
-        if (b.anchorOrdinal != null) {
-          const n = parseInt(String(b.anchorOrdinal), 10);
-          if (Number.isFinite(n) && n > 0) block.anchorOrdinal = n;
-        }
       }
       out.push(block);
-    }else if (type === "image") {
+    } else if (type === "image") {
       out.push({
         type,
         url: String(b.url ?? "").slice(0, 2000),
@@ -138,7 +134,7 @@ function sanitizeBlocks(raw) {
     } else if (type === "ctaButton") {
       out.push({
         type: "ctaButton",
-        text: String(b.text ?? "Подробнее").slice(0, 200),
+        text: String(b.text ?? "РџРѕРґСЂРѕР±РЅРµРµ").slice(0, 200),
         url: String(b.url ?? "").slice(0, 2000),
         variant: b.variant === "secondary" ? "secondary" : "primary",
       });
@@ -184,7 +180,7 @@ function sanitizeBlocks(raw) {
   return out;
 }
 
-/** Абзацы — блоки paragraph; <фото>, <карусель> — см. src/lib/blogBodyExpand.ts */
+/** РђР±Р·Р°С†С‹ вЂ” Р±Р»РѕРєРё paragraph; <С„РѕС‚Рѕ>, <РєР°СЂСѓСЃРµР»СЊ> вЂ” СЃРј. src/lib/blogBodyExpand.ts */
 function paragraphsFromPlain(fragment) {
   return String(fragment)
     .split(/\n\s*\n/)
@@ -295,7 +291,7 @@ function splitPhotosInText(fragment) {
   const t = String(fragment);
   if (!t.trim()) return [];
   const re =
-    /<(?:[фФ]ото|photo)>\s*([\s\S]*?)\s*<\/\s*(?:[фФ]ото|photo)\s*>/gi;
+    /<(?:[С„Р¤]РѕС‚Рѕ|photo)>\s*([\s\S]*?)\s*<\/\s*(?:[С„Р¤]РѕС‚Рѕ|photo)\s*>/gi;
   const blocks = [];
   let last = 0;
   let m;
@@ -331,7 +327,7 @@ function bodyTextToBlocks(text) {
   const t = String(text ?? "").replace(/^\uFEFF/, "").trim();
   if (!t) return [];
   const carouselRe =
-    /<(?:[кК]арусель|carousel)>\s*([\s\S]*?)\s*<\/\s*(?:[кК]арусель|carousel)\s*>/gi;
+    /<(?:[РєРљ]Р°СЂСѓСЃРµР»СЊ|carousel)>\s*([\s\S]*?)\s*<\/\s*(?:[РєРљ]Р°СЂСѓСЃРµР»СЊ|carousel)\s*>/gi;
   const blocks = [];
   let last = 0;
   let m;
@@ -420,51 +416,51 @@ function normalizeUuidArray(arr) {
 const DEFAULT_BLOG_TAG_GROUPS = [
   {
     slug: "content-type",
-    name: "По типу контента",
+    name: "РџРѕ С‚РёРїСѓ РєРѕРЅС‚РµРЅС‚Р°",
     sort_order: 10,
     tags: [
-      { slug: "instructions", name: "Инструкции" },
-      { slug: "lifehacks", name: "Лайфхаки" },
-      { slug: "destinations", name: "Обзоры направлений" },
+      { slug: "instructions", name: "РРЅСЃС‚СЂСѓРєС†РёРё" },
+      { slug: "lifehacks", name: "Р›Р°Р№С„С…Р°РєРё" },
+      { slug: "destinations", name: "РћР±Р·РѕСЂС‹ РЅР°РїСЂР°РІР»РµРЅРёР№" },
     ],
   },
   {
     slug: "travel-themes",
-    name: "По темам путешествий",
+    name: "РџРѕ С‚РµРјР°Рј РїСѓС‚РµС€РµСЃС‚РІРёР№",
     sort_order: 20,
     tags: [
-      { slug: "flights", name: "Авиабилеты" },
-      { slug: "trains", name: "Ж/д билеты" },
-      { slug: "buses", name: "Автобусы" },
-      { slug: "hotels", name: "Отели" },
-      { slug: "visas", name: "Визы и документы" },
-      { slug: "budget", name: "Бюджетные поездки" },
-      { slug: "family", name: "Семейный отдых" },
-      { slug: "solo", name: "Соло-тревел" },
-      { slug: "eco", name: "Экотуризм" },
-      { slug: "ski", name: "Горнолыжные курорты" },
+      { slug: "flights", name: "РђРІРёР°Р±РёР»РµС‚С‹" },
+      { slug: "trains", name: "Р–/Рґ Р±РёР»РµС‚С‹" },
+      { slug: "buses", name: "РђРІС‚РѕР±СѓСЃС‹" },
+      { slug: "hotels", name: "РћС‚РµР»Рё" },
+      { slug: "visas", name: "Р’РёР·С‹ Рё РґРѕРєСѓРјРµРЅС‚С‹" },
+      { slug: "budget", name: "Р‘СЋРґР¶РµС‚РЅС‹Рµ РїРѕРµР·РґРєРё" },
+      { slug: "family", name: "РЎРµРјРµР№РЅС‹Р№ РѕС‚РґС‹С…" },
+      { slug: "solo", name: "РЎРѕР»Рѕ-С‚СЂРµРІРµР»" },
+      { slug: "eco", name: "Р­РєРѕС‚СѓСЂРёР·Рј" },
+      { slug: "ski", name: "Р“РѕСЂРЅРѕР»С‹Р¶РЅС‹Рµ РєСѓСЂРѕСЂС‚С‹" },
     ],
   },
   {
     slug: "regions",
-    name: "По регионам",
+    name: "РџРѕ СЂРµРіРёРѕРЅР°Рј",
     sort_order: 30,
     tags: [
-      { slug: "russia", name: "Россия" },
-      { slug: "europe", name: "Европа" },
-      { slug: "asia", name: "Азия" },
-      { slug: "turkey", name: "Турция" },
-      { slug: "cis", name: "СНГ" },
+      { slug: "russia", name: "Р РѕСЃСЃРёСЏ" },
+      { slug: "europe", name: "Р•РІСЂРѕРїР°" },
+      { slug: "asia", name: "РђР·РёСЏ" },
+      { slug: "turkey", name: "РўСѓСЂС†РёСЏ" },
+      { slug: "cis", name: "РЎРќР“" },
     ],
   },
   {
     slug: "service",
-    name: "Новости и сервис",
+    name: "РќРѕРІРѕСЃС‚Рё Рё СЃРµСЂРІРёСЃ",
     sort_order: 40,
     tags: [
-      { slug: "service-news", name: "Новости сервиса TudaSuda" },
-      { slug: "about-service", name: "О сервисе" },
-      { slug: "for-partners", name: "Для партнёров" },
+      { slug: "service-news", name: "РќРѕРІРѕСЃС‚Рё СЃРµСЂРІРёСЃР° TudaSuda" },
+      { slug: "about-service", name: "Рћ СЃРµСЂРІРёСЃРµ" },
+      { slug: "for-partners", name: "Р”Р»СЏ РїР°СЂС‚РЅС‘СЂРѕРІ" },
     ],
   },
 ];
@@ -1210,11 +1206,11 @@ function blocksToPlainText(blocks) {
       const cap = b.caption ? String(b.caption).trim() : "";
       parts.push(
         cap
-          ? `<фото>\n${u}\n${cap}\n</фото>`
-          : `<фото>\n${u}\n</фото>`,
+          ? `<С„РѕС‚Рѕ>\n${u}\n${cap}\n</С„РѕС‚Рѕ>`
+          : `<С„РѕС‚Рѕ>\n${u}\n</С„РѕС‚Рѕ>`,
       );
     } else if (b.type === "carousel" && Array.isArray(b.slides) && b.slides.length) {
-      const lines = ["<карусель>"];
+      const lines = ["<РєР°СЂСѓСЃРµР»СЊ>"];
       for (const s of b.slides) {
         lines.push(String(s.image || "").trim());
         const cap =
@@ -1232,9 +1228,215 @@ function blocksToPlainText(blocks) {
             .trim();
         if (cap) lines.push(cap);
       }
-      lines.push("</карусель>");
+      lines.push("</РєР°СЂСѓСЃРµР»СЊ>");
       parts.push(lines.join("\n"));
     }
   }
   return parts.join("\n\n");
 }
+
+
+
+========== FILE: src\pages\BlogArticlePage.tsx ==========
+
+import { Link, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { getBlogArticleBySlug } from "@/data/blogArticles";
+import { apiFetch } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import type { BlogArticle, BlogBadge } from "@/types/blogArticle";
+import type { BlogContentBlock } from "@/types/blogContent";
+import BlogBlockRenderer from "@/components/blog/BlogBlockRenderer";
+import ArticleTocSidebar from "@/components/blog/ArticleTocSidebar";
+import SimilarArticlesSidebar, {
+  SimilarArticlesMobile,
+} from "@/components/blog/SimilarArticlesSidebar";
+import { Loader2 } from "lucide-react";
+
+const BADGE_LABEL: Record<BlogBadge, string> = {
+  own: "РќР°С€Р° СЃС‚Р°С‚СЊСЏ",
+  partner: "РџР°СЂС‚РЅС‘СЂ",
+  ad: "Р РµРєР»Р°РјР°",
+};
+
+type RemotePost = BlogArticle & {
+  content_blocks: BlogContentBlock[];
+  relatedPosts?: BlogArticle[];
+};
+
+const BlogArticlePage = () => {
+  const { slug } = useParams<{ slug: string }>();
+
+  const remoteQ = useQuery({
+    queryKey: ["blog-post", slug],
+    enabled: !!slug,
+    queryFn: async () => {
+      try {
+        return await apiFetch<RemotePost>(
+          `/api/blog/posts/by-slug/${encodeURIComponent(slug!)}`,
+        );
+      } catch (e) {
+        const err = e as Error & { status?: number };
+        if (err.status === 404) return null;
+        throw e;
+      }
+    },
+  });
+
+  const staticArticle = slug ? getBlogArticleBySlug(slug) : undefined;
+  const article = remoteQ.data ?? undefined;
+  const meta: BlogArticle | undefined = article ?? staticArticle;
+  const relatedPosts = article?.relatedPosts ?? [];
+
+  if (remoteQ.isLoading) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-background">
+        <Header />
+        <main className="flex min-h-[50vh] items-center justify-center px-4 pt-[calc(var(--site-header-height)+2rem)]">
+          <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (remoteQ.isError) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-background">
+        <Header />
+        <main className="mx-auto max-w-xl px-4 py-[calc(var(--site-header-height)+3rem)] text-center">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+            РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё
+          </h1>
+          <p className="mt-2 text-muted-foreground">РџРѕРїСЂРѕР±СѓР№С‚Рµ РѕР±РЅРѕРІРёС‚СЊ СЃС‚СЂР°РЅРёС†Сѓ.</p>
+          <Button asChild className="mt-6">
+            <Link to="/blog">Рљ Р±Р»РѕРіСѓ</Link>
+          </Button>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!meta) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-background">
+        <Header />
+        <main className="mx-auto max-w-xl px-4 py-[calc(var(--site-header-height)+3rem)] text-center">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+            РЎС‚Р°С‚СЊСЏ РЅРµ РЅР°Р№РґРµРЅР°
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            РџСЂРѕРІРµСЂСЊС‚Рµ СЃСЃС‹Р»РєСѓ РёР»Рё РІРµСЂРЅРёС‚РµСЃСЊ Рє СЃРїРёСЃРєСѓ РјР°С‚РµСЂРёР°Р»РѕРІ.
+          </p>
+          <Button asChild className="mt-6">
+            <Link to="/blog">Рљ Р±Р»РѕРіСѓ</Link>
+          </Button>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const dateRu = new Date(meta.publishedAt).toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const contentBlocks = article?.content_blocks ?? [];
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-background">
+      <Header />
+      <main className="px-4 py-[calc(var(--site-header-height)+1.5rem)] pb-16 md:px-6">
+        <div className="mx-auto w-full max-w-[1440px]">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,720px)_minmax(220px,280px)] lg:gap-x-0 xl:grid-cols-[minmax(0,1fr)_minmax(0,720px)_minmax(240px,300px)]">
+            {/* sticky РЅР° grid-item + self-start вЂ” РµРґРµС‚ РІРјРµСЃС‚Рµ СЃ РїСЂРѕРєСЂСѓС‚РєРѕР№ */}
+            <div className="sticky top-[calc(var(--site-header-height)+1.25rem)] z-20 hidden self-start lg:block lg:justify-self-end lg:pr-10 lg:pt-28 xl:pr-16 xl:pt-32">
+              <ArticleTocSidebar blocks={contentBlocks} />
+            </div>
+
+            {/* Р¦РµРЅС‚СЂ вЂ” СЃС‚Р°С‚СЊСЏ */}
+            <article className="min-w-0 w-full max-w-[720px] justify-self-center break-words lg:px-6 xl:px-8">
+              <div className="mb-6 flex flex-wrap gap-2">
+                {meta.badges.map((b) => (
+                  <span
+                    key={b}
+                    className={cn(
+                      "rounded-full border px-2.5 py-0.5 text-xs font-medium",
+                      b === "own" &&
+                        "border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))]",
+                      b === "partner" &&
+                        "border-violet-200 bg-violet-100 text-violet-900 dark:border-violet-800 dark:bg-violet-950/50 dark:text-violet-200",
+                      b === "ad" &&
+                        "border-amber-300 bg-amber-100 text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100",
+                    )}
+                  >
+                    {BADGE_LABEL[b]}
+                  </span>
+                ))}
+              </div>
+              <h1 className="heading-gradient break-words text-3xl font-bold tracking-tight md:text-4xl">
+                {meta.title}
+              </h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {dateRu} В· {meta.readingMinutes} РјРёРЅ С‡С‚РµРЅРёСЏ
+              </p>
+              {meta.coverImage ? (
+                <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-muted dark:border-slate-800">
+                  <img
+                    src={meta.coverImage}
+                    alt=""
+                    className="aspect-[16/9] w-full object-cover"
+                  />
+                </div>
+              ) : null}
+              <p className="mt-8 break-words text-lg leading-relaxed text-slate-700 dark:text-slate-200">
+                {meta.excerpt}
+              </p>
+
+              {article ? (
+                <div className="mt-10 min-w-0">
+                  <ArticleTocSidebar
+                    blocks={contentBlocks}
+                    variant="top"
+                    className="lg:hidden"
+                  />
+                  <BlogBlockRenderer blocks={contentBlocks} />
+                  <SimilarArticlesMobile articles={relatedPosts} className="mt-10" />
+                </div>
+              ) : (
+                <div className="mt-10 rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-6 text-center text-muted-foreground dark:border-slate-700 dark:bg-slate-900/40">
+                  РџРѕР»РЅС‹Р№ С‚РµРєСЃС‚ СЌС‚РѕР№ СЃС‚Р°С‚СЊРё РїРѕРєР° С‚РѕР»СЊРєРѕ РІ СЃС‚Р°С‚РёС‡РµСЃРєРѕР№ РІРµСЂСЃРёРё РїСЂРѕРµРєС‚Р°. РћС‚РєСЂРѕР№С‚Рµ
+                  РјР°С‚РµСЂРёР°Р» РёР·{" "}
+                  <Link to="/blog" className="text-primary underline-offset-2 hover:underline">
+                    Р±Р»РѕРіР°
+                  </Link>{" "}
+                  РїРѕСЃР»Рµ РїРµСЂРµРЅРѕСЃР° РІ CMS РёР»Рё СЃРѕР·РґР°Р№С‚Рµ СЃС‚Р°С‚СЊСЋ СЃ С‚РµРј Р¶Рµ slug РІ Р°РґРјРёРЅРєРµ.
+                </div>
+              )}
+              <div className="mt-10">
+                <Button variant="outline" asChild>
+                  <Link to="/blog">Р’СЃРµ СЃС‚Р°С‚СЊРё Р±Р»РѕРіР°</Link>
+                </Button>
+              </div>
+            </article>
+
+            {/* РџСЂР°РІР°СЏ РєРѕР»РѕРЅРєР° вЂ” РїРѕС…РѕР¶РёРµ СЃС‚Р°С‚СЊРё */}
+            <div className="sticky top-[calc(var(--site-header-height)+1.25rem)] z-20 hidden self-start lg:block lg:pl-4 lg:pt-28 xl:pt-32">
+              <SimilarArticlesSidebar articles={relatedPosts} />
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default BlogArticlePage;
+
