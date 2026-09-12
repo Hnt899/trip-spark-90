@@ -1,0 +1,1250 @@
+﻿
+
+========== FILE: src\components\sections\BlogInviteSection.tsx ==========
+
+import { Link } from "react-router-dom";
+import { BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { sectionShellClass } from "@/lib/sectionSurface";
+import { logoGradientText } from "@/lib/sectionSurface";
+import type { SectionSurface } from "@/lib/sectionSurface";
+import { cn } from "@/lib/utils";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import type { BlogInviteFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle, cmsHeadingClass } from "@/lib/cmsStyle";
+
+interface BlogInviteSectionProps {
+  surface?: SectionSurface;
+}
+
+const BlogInviteSection = ({ surface = "light" }: BlogInviteSectionProps) => {
+  const f = usePageSectionFields<BlogInviteFields>("blogInvite");
+  const badge = f.badge || "Р”Р»СЏ С‡РёС‚Р°С‚РµР»РµР№";
+  const title = f.title || "Р—Р°С‡РµРј С‡РёС‚Р°С‚СЊ Р±Р»РѕРі TudaSuda";
+  const p1 =
+    f.paragraph1 ||
+    "РњС‹ РїРёС€РµРј Рѕ С‚РѕРј, РєР°Рє РїСЂРѕС‰Рµ РїР»Р°РЅРёСЂРѕРІР°С‚СЊ РїРѕРµР·РґРєРё РїРѕ Р РѕСЃСЃРёРё Рё Р·Р° РµС‘ РїСЂРµРґРµР»Р°С…: РѕС‚ РІС‹Р±РѕСЂР° Р±РёР»РµС‚РѕРІ Рё РѕС‚РµР»РµР№ РґРѕ РґРѕРєСѓРјРµРЅС‚РѕРІ Рё Р±СЋРґР¶РµС‚Р°. РЎС‚Р°С‚СЊРё СЂРµРґР°РєС†РёРё РѕСЃРЅРѕРІР°РЅС‹ РЅР° РѕРїС‹С‚Рµ РєРѕРјР°РЅРґС‹ Рё РѕР±СЂР°С‚РЅРѕР№ СЃРІСЏР·Рё РїР°СЃСЃР°Р¶РёСЂРѕРІ.";
+  const p2 =
+    f.paragraph2 ||
+    "Р‘Р»РѕРі РґРѕРїРѕР»РЅСЏРµС‚ СЃРїСЂР°РІРѕС‡РЅРёРє Рё РїСѓС‚РµРІРѕРґРёС‚РµР»СЊ: Р·РґРµСЃСЊ Р±РѕР»СЊС€Рµ РїСЂРѕ РёРґРµРё РґР»СЏ РїРѕРµР·РґРѕРє, РѕР±РЅРѕРІР»РµРЅРёСЏ СЃРµСЂРІРёСЃР° Рё РїСЂР°РєС‚РёС‡РЅС‹Рµ СЃРѕРІРµС‚С‹ РІ РѕРґРЅРѕРј РјРµСЃС‚Рµ.";
+  const ctaLabel = f.ctaLabel || "РџРµСЂРµР№С‚Рё РІ Р±Р»РѕРі";
+  const ctaHref = f.ctaHref || "/blog";
+  const blogImage = f.image;
+
+  return (
+    <CmsEditable sectionId="blogInvite">
+      <section className={sectionShellClass(surface, "py-16 md:py-24")}>
+        <div className="container relative z-10">
+          <div
+            className="w-full min-w-0 rounded-3xl border border-[hsl(var(--primary)/0.14)] bg-gradient-to-br from-slate-50/98 via-white to-[hsl(var(--primary)/0.05)] px-6 py-7 shadow-[0_12px_44px_rgba(16,10,111,0.07)] md:px-8 md:py-9"
+            aria-label="РџСЂРёРіР»Р°С€РµРЅРёРµ РІ Р±Р»РѕРі"
+          >
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:gap-8">
+              <div className="flex-1">
+                <header className="mb-6 border-l-4 border-primary pl-4">
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-[hsl(var(--primary)/0.08)] px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
+                    <BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    {badge}
+                  </div>
+                  <h2
+                    className={cn(
+                      cmsHeadingClass(f.titleColor, "text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl " + logoGradientText)
+                    )}
+                    style={cmsColorStyle(f.titleColor)}
+                  >
+                    {title}
+                  </h2>
+                </header>
+                <div
+                  className="space-y-4 text-sm leading-relaxed md:text-base"
+                  style={cmsColorStyle(f.textColor) || undefined}
+                >
+                  <p className={f.textColor?.trim() ? undefined : "text-slate-600"}>{p1}</p>
+                  <p className={f.textColor?.trim() ? undefined : "text-slate-600"}>{p2}</p>
+                </div>
+                <div className="mt-8">
+                  <Button asChild size="lg" className="rounded-full font-semibold">
+                    <Link to={ctaHref}>{ctaLabel}</Link>
+                  </Button>
+                </div>
+              </div>
+              {blogImage && (
+                <div className="shrink-0 md:w-[280px] lg:w-[320px]">
+                  <div className="overflow-hidden rounded-2xl border border-[hsl(var(--primary)/0.14)] bg-white shadow-lg">
+                    <img
+                      src={blogImage}
+                      alt=""
+                      className="h-auto w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    </CmsEditable>
+  );
+};
+
+export default BlogInviteSection;
+
+
+
+========== FILE: src\pages\admin\AdminPageSectionFields.tsx ==========
+
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { uploadImages } from "@/lib/uploadImages";
+import { CmsColorField } from "@/components/cms/CmsColorField";
+import { apiFetch } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { Upload } from "lucide-react";
+
+function Field({
+  label,
+  value,
+  onChange,
+  multiline,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  multiline?: boolean;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      {multiline ? (
+        <Textarea value={value} onChange={(e) => onChange(e.target.value)} rows={3} />
+      ) : (
+        <Input value={value} onChange={(e) => onChange(e.target.value)} />
+      )}
+    </div>
+  );
+}
+
+function MediaField({
+  label,
+  value,
+  onChange,
+  accept,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  accept: string;
+}) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="URL РёР»Рё Р·Р°РіСЂСѓР·РёС‚Рµ С„Р°Р№Р»"
+      />
+      <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-primary">
+        <Upload className="h-3.5 w-3.5" />
+        {busy ? "Р—Р°РіСЂСѓР·РєР°вЂ¦" : "Р—Р°РіСЂСѓР·РёС‚СЊ С„Р°Р№Р»"}
+        <input
+          type="file"
+          accept={accept}
+          className="hidden"
+          disabled={busy}
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setBusy(true);
+            try {
+              const urls = await uploadImages([file]);
+              if (urls[0]) onChange(urls[0]);
+            } catch (err) {
+              console.error(err);
+              alert(err instanceof Error ? err.message : "РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё");
+            } finally {
+              setBusy(false);
+              e.target.value = "";
+            }
+          }}
+        />
+      </label>
+    </div>
+  );
+}
+
+/** Double-click header to rename (updates the underlying string). */
+function DblRename({
+  value,
+  onChange,
+  hint = "Р”РІРѕР№РЅРѕР№ РєР»РёРє вЂ” РїРµСЂРµРёРјРµРЅРѕРІР°С‚СЊ",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  hint?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  useEffect(() => {
+    if (!editing) setDraft(value);
+  }, [value, editing]);
+
+  if (editing) {
+    return (
+      <Input
+        autoFocus
+        value={draft}
+        className="h-7 text-xs font-semibold"
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => {
+          onChange(draft.trim() || value);
+          setEditing(false);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            onChange(draft.trim() || value);
+            setEditing(false);
+          }
+          if (e.key === "Escape") setEditing(false);
+        }}
+      />
+    );
+  }
+
+  return (
+    <p
+      title={hint}
+      onDoubleClick={() => {
+        setDraft(value);
+        setEditing(true);
+      }}
+      className="cursor-text rounded px-0.5 text-xs font-semibold hover:bg-muted"
+    >
+      {value || "Р‘РµР· РЅР°Р·РІР°РЅРёСЏ"}
+    </p>
+  );
+}
+
+function patchItem(
+  items: unknown[],
+  i: number,
+  patch: Record<string, unknown>,
+  onPatch: (p: Record<string, unknown>) => void,
+  key = "items"
+) {
+  const next = [...items] as Record<string, unknown>[];
+  next[i] = { ...(next[i] as object), ...patch };
+  onPatch({ [key]: next });
+}
+
+type AdminRouteRow = {
+  id: string;
+  legacy_id: string | null;
+  slug: string;
+  name: string;
+  rating: number;
+  cover_image_url: string | null;
+  status?: string;
+};
+
+type AdminBlogRow = {
+  id: string;
+  slug: string;
+  title: string;
+  cover_image_url: string | null;
+};
+
+function DayItemLinkPicker({
+  kind,
+  refId,
+  onPick,
+}: {
+  kind: string;
+  refId: string;
+  onPick: (patch: Record<string, unknown>) => void;
+}) {
+  const routesQ = useQuery({
+    queryKey: ["admin-routes-picker"],
+    queryFn: () => apiFetch<AdminRouteRow[]>("/api/admin/routes"),
+  });
+  const blogQ = useQuery({
+    queryKey: ["admin-blog-picker"],
+    queryFn: () => apiFetch<AdminBlogRow[]>("/api/admin/blog/posts"),
+  });
+
+  const mode = kind === "route" || kind === "blog" ? kind : "custom";
+
+  return (
+    <div className="space-y-2 rounded-md bg-muted/40 p-2">
+      <Label className="text-xs text-muted-foreground">РџСЂРёРІСЏР·РєР°</Label>
+      <Select
+        value={mode}
+        onValueChange={(v) => {
+          if (v === "custom") {
+            onPick({ kind: "custom", refId: "" });
+          } else {
+            onPick({ kind: v, refId: "" });
+          }
+        }}
+      >
+        <SelectTrigger className="h-8">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="custom">РЎРІРѕСЏ СЃСЃС‹Р»РєР°</SelectItem>
+          <SelectItem value="route">РњР°СЂС€СЂСѓС‚ РёР· CMS</SelectItem>
+          <SelectItem value="blog">РЎС‚Р°С‚СЊСЏ Р±Р»РѕРіР°</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {mode === "route" && (
+        <Select
+          value={refId || undefined}
+          onValueChange={(id) => {
+            const row = (routesQ.data || []).find((r) => r.id === id);
+            if (!row) return;
+            const pathId = row.legacy_id || row.slug || row.id;
+            onPick({
+              kind: "route",
+              refId: row.id,
+              name: row.name,
+              href: `/routes/${pathId}`,
+              rating: row.rating ?? 0,
+              image: row.cover_image_url || "",
+            });
+          }}
+        >
+          <SelectTrigger className="h-8">
+            <SelectValue placeholder={routesQ.isLoading ? "Р—Р°РіСЂСѓР·РєР°вЂ¦" : "Р’С‹Р±РµСЂРёС‚Рµ РјР°СЂС€СЂСѓС‚"} />
+          </SelectTrigger>
+          <SelectContent>
+            {(routesQ.data || []).map((r) => (
+              <SelectItem key={r.id} value={r.id}>
+                {r.name}
+                {r.status === "published" ? "" : " (С‡РµСЂРЅРѕРІРёРє)"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {mode === "blog" && (
+        <Select
+          value={refId || undefined}
+          onValueChange={(id) => {
+            const row = (blogQ.data || []).find((r) => r.id === id);
+            if (!row) return;
+            onPick({
+              kind: "blog",
+              refId: row.id,
+              name: row.title,
+              href: `/blog/${row.slug}`,
+              image: row.cover_image_url || "",
+            });
+          }}
+        >
+          <SelectTrigger className="h-8">
+            <SelectValue placeholder={blogQ.isLoading ? "Р—Р°РіСЂСѓР·РєР°вЂ¦" : "Р’С‹Р±РµСЂРёС‚Рµ СЃС‚Р°С‚СЊСЋ"} />
+          </SelectTrigger>
+          <SelectContent>
+            {(blogQ.data || []).map((r) => (
+              <SelectItem key={r.id} value={r.id}>
+                {r.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      <p className="text-[10px] text-muted-foreground leading-snug">
+        Р’С‹Р±РµСЂРёС‚Рµ РјР°СЂС€СЂСѓС‚ РёР»Рё СЃС‚Р°С‚СЊСЋ вЂ” РЅР°Р·РІР°РЅРёРµ, СЃСЃС‹Р»РєР° Рё С„РѕС‚Рѕ РїРѕРґСЃС‚Р°РІСЏС‚СЃСЏ СЃР°РјРё. Р›РёР±Рѕ СЂРµР¶РёРј В«РЎРІРѕСЏ
+        СЃСЃС‹Р»РєР°В» Рё СѓРєР°Р¶РёС‚Рµ URL РІСЂСѓС‡РЅСѓСЋ.
+      </p>
+    </div>
+  );
+}
+
+export function AdminPageSectionFields({
+  sectionId,
+  fields,
+  onPatch,
+}: {
+  sectionId: string;
+  fields: Record<string, unknown>;
+  onPatch: (patch: Record<string, unknown>) => void;
+}) {
+  const str = (key: string) => String(fields[key] ?? "");
+
+  if (sectionId === "hero") {
+    return (
+      <div className="space-y-3">
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <MediaField label="Р’РёРґРµРѕ: РїРѕРµР·Рґ" value={str("videoTrain")} onChange={(v) => onPatch({ videoTrain: v })} accept="video/mp4,video/webm" />
+        <MediaField label="Р’РёРґРµРѕ: СЃР°РјРѕР»С‘С‚" value={str("videoFlight")} onChange={(v) => onPatch({ videoFlight: v })} accept="video/mp4,video/webm" />
+        <MediaField label="Р’РёРґРµРѕ: Р°РІС‚РѕР±СѓСЃ" value={str("videoBus")} onChange={(v) => onPatch({ videoBus: v })} accept="video/mp4,video/webm" />
+      </div>
+    );
+  }
+
+  if (sectionId === "features") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="РџРѕРґР·Р°РіРѕР»РѕРІРѕРє" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Р¦РІРµС‚ РїРѕРґР·Р°РіРѕР»РѕРІРєР°" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        {items.map((raw, i) => {
+          const it = raw as Record<string, string>;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <p className="text-xs font-semibold text-muted-foreground">РљР°СЂС‚РѕС‡РєР° {i + 1}</p>
+              <DblRename
+                value={it.title || `РљР°СЂС‚РѕС‡РєР° ${i + 1}`}
+                onChange={(v) => patchItem(items, i, { title: v }, onPatch)}
+              />
+              <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={it.title || ""} onChange={(v) => patchItem(items, i, { title: v }, onPatch)} />
+              <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={it.titleColor || ""} onChange={(v) => patchItem(items, i, { titleColor: v }, onPatch)} />
+              <Field label="РћРїРёСЃР°РЅРёРµ" value={it.description || ""} onChange={(v) => patchItem(items, i, { description: v }, onPatch)} multiline />
+              <CmsColorField label="Р¦РІРµС‚ РѕРїРёСЃР°РЅРёСЏ" value={it.descriptionColor || ""} onChange={(v) => patchItem(items, i, { descriptionColor: v }, onPatch)} />
+              <Field label="РџРѕР»РЅС‹Р№ С‚РµРєСЃС‚ (РјРѕРґР°Р»РєР°)" value={it.fullDescription || ""} onChange={(v) => patchItem(items, i, { fullDescription: v }, onPatch)} multiline />
+              <CmsColorField label="Р¦РІРµС‚ С„РѕРЅР° РєР°СЂС‚РѕС‡РєРё" value={it.bgColor || ""} onChange={(v) => patchItem(items, i, { bgColor: v }, onPatch)} />
+              <CmsColorField label="Р¦РІРµС‚ РёРєРѕРЅРєРё" value={it.iconBgColor || ""} onChange={(v) => patchItem(items, i, { iconBgColor: v }, onPatch)} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "recommendedTrains") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="РџРѕРґР·Р°РіРѕР»РѕРІРѕРє" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Р¦РІРµС‚ РїРѕРґР·Р°РіРѕР»РѕРІРєР°" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        {items.map((raw, i) => {
+          const it = raw as Record<string, string | number>;
+          const pairLabel = `${String(it.from || "")} в†’ ${String(it.to || "")}`;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <DblRename
+                value={pairLabel}
+                onChange={(v) => {
+                  const parts = v.split(/\s*в†’\s*|\s*->\s*/);
+                  if (parts.length >= 2) {
+                    patchItem(items, i, {
+                      from: parts[0].trim(),
+                      to: parts.slice(1).join("в†’").trim(),
+                    }, onPatch);
+                  } else {
+                    patchItem(items, i, { from: v.trim() }, onPatch);
+                  }
+                }}
+              />
+              <Field label="РћС‚РєСѓРґР°" value={String(it.from || "")} onChange={(v) => patchItem(items, i, { from: v }, onPatch)} />
+              <Field label="РљСѓРґР°" value={String(it.to || "")} onChange={(v) => patchItem(items, i, { to: v }, onPatch)} />
+              <Field label="РћРїРёСЃР°РЅРёРµ" value={String(it.description || "")} onChange={(v) => patchItem(items, i, { description: v }, onPatch)} />
+              <Field label="РўРµРі" value={String(it.tag || "")} onChange={(v) => patchItem(items, i, { tag: v }, onPatch)} />
+              <Field label="РЎРєРёРґРєР° %" value={String(it.discount ?? "")} onChange={(v) => patchItem(items, i, { discount: Number(v) || 0 }, onPatch)} />
+              <Field label="РЎС‚Р°СЂР°СЏ С†РµРЅР°" value={String(it.oldPrice || "")} onChange={(v) => patchItem(items, i, { oldPrice: v }, onPatch)} />
+              <Field label="РќРѕРІР°СЏ С†РµРЅР°" value={String(it.newPrice || "")} onChange={(v) => patchItem(items, i, { newPrice: v }, onPatch)} />
+              <Field label="РЎСЃС‹Р»РєР° (РѕРїС†.)" value={String(it.href || "")} onChange={(v) => patchItem(items, i, { href: v }, onPatch)} />
+              <MediaField label="Р¤РѕС‚Рѕ" value={String(it.image || "")} accept="image/*" onChange={(v) => patchItem(items, i, { image: v }, onPatch)} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "routesSection") {
+    const routes = Array.isArray(fields.routes) ? fields.routes : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="РџРѕРґР·Р°РіРѕР»РѕРІРѕРє" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Р¦РІРµС‚ РїРѕРґР·Р°РіРѕР»РѕРІРєР°" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        {routes.map((raw, i) => {
+          const it = raw as Record<string, string | number | boolean>;
+          const pairLabel = `${String(it.from || "")} в†’ ${String(it.to || "")}`;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <DblRename
+                value={pairLabel}
+                onChange={(v) => {
+                  const parts = v.split(/\s*в†’\s*|\s*->\s*/);
+                  if (parts.length >= 2) {
+                    patchItem(
+                      routes,
+                      i,
+                      { from: parts[0].trim(), to: parts.slice(1).join("в†’").trim() },
+                      onPatch,
+                      "routes"
+                    );
+                  } else {
+                    patchItem(routes, i, { from: v.trim() }, onPatch, "routes");
+                  }
+                }}
+              />
+              <Field label="РћС‚РєСѓРґР°" value={String(it.from || "")} onChange={(v) => patchItem(routes, i, { from: v }, onPatch, "routes")} />
+              <Field label="РљСѓРґР°" value={String(it.to || "")} onChange={(v) => patchItem(routes, i, { to: v }, onPatch, "routes")} />
+              <Field label="Р’ РїСѓС‚Рё" value={String(it.duration || "")} onChange={(v) => patchItem(routes, i, { duration: v }, onPatch, "routes")} />
+              <Field label="Р¦РµРЅР° РѕС‚" value={String(it.minPrice ?? "")} onChange={(v) => patchItem(routes, i, { minPrice: Number(v) || 0 }, onPatch, "routes")} />
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={it.isPopular === true}
+                  onCheckedChange={(c) => patchItem(routes, i, { isPopular: c === true }, onPatch, "routes")}
+                  id={`pop-${i}`}
+                />
+                <Label htmlFor={`pop-${i}`} className="text-xs">
+                  РџРѕРїСѓР»СЏСЂРЅС‹Р№ (РѕР±РІРѕРґРєР°)
+                </Label>
+              </div>
+              <CmsColorField label="Р¦РІРµС‚ РѕР±РІРѕРґРєРё" value={String(it.borderColor || "")} onChange={(v) => patchItem(routes, i, { borderColor: v }, onPatch, "routes")} />
+              <CmsColorField label="Р¦РІРµС‚ С‚РµРєСЃС‚Р°" value={String(it.textColor || "")} onChange={(v) => patchItem(routes, i, { textColor: v }, onPatch, "routes")} />
+              <CmsColorField label="Р¦РІРµС‚ С†РµРЅС‹" value={String(it.priceColor || "")} onChange={(v) => patchItem(routes, i, { priceColor: v }, onPatch, "routes")} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "events") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="РџРѕРґР·Р°РіРѕР»РѕРІРѕРє" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Р¦РІРµС‚ РїРѕРґР·Р°РіРѕР»РѕРІРєР°" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        <Field label="РљРЅРѕРїРєР° В«Р•С‰С‘В»" value={str("moreLabel")} onChange={(v) => onPatch({ moreLabel: v })} />
+        <Field label="РЎСЃС‹Р»РєР° В«Р•С‰С‘В»" value={str("moreHref")} onChange={(v) => onPatch({ moreHref: v })} />
+        {items.map((raw, i) => {
+          const it = raw as Record<string, string>;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <p className="text-xs font-semibold">{it.city || `РЎРѕР±С‹С‚РёРµ ${i + 1}`}</p>
+              <Field label="Р“РѕСЂРѕРґ" value={it.city || ""} onChange={(v) => patchItem(items, i, { city: v }, onPatch)} />
+              <Field label="Р’РѕР·СЂР°СЃС‚" value={it.age || ""} onChange={(v) => patchItem(items, i, { age: v }, onPatch)} />
+              <Field label="Р¦РµРЅР°" value={it.price || ""} onChange={(v) => patchItem(items, i, { price: v }, onPatch)} />
+              <Field label="РђСЂС‚РёСЃС‚ / СЃРѕР±С‹С‚РёРµ" value={it.artist || ""} onChange={(v) => patchItem(items, i, { artist: v }, onPatch)} />
+              <Field label="Р”Р°С‚Р°" value={it.date || ""} onChange={(v) => patchItem(items, i, { date: v }, onPatch)} />
+              <Field label="РџР»РѕС‰Р°РґРєР°" value={it.venue || ""} onChange={(v) => patchItem(items, i, { venue: v }, onPatch)} />
+              <Field label="РЎСЃС‹Р»РєР° (РєР»РёРє)" value={it.href || ""} onChange={(v) => patchItem(items, i, { href: v }, onPatch)} />
+              <Field label="Р“СЂР°РґРёРµРЅС‚ (tailwind, Р·Р°РїР°СЃРЅРѕР№)" value={it.color || ""} onChange={(v) => patchItem(items, i, { color: v }, onPatch)} />
+              <CmsColorField label="Р¦РІРµС‚ Р·Р°СЃС‚Р°РІРєРё" value={it.bgColor || ""} onChange={(v) => patchItem(items, i, { bgColor: v }, onPatch)} />
+              <MediaField label="Р¤РѕС‚Рѕ Р·Р°СЃС‚Р°РІРєРё" value={it.image || ""} accept="image/*" onChange={(v) => patchItem(items, i, { image: v }, onPatch)} />
+              <CmsColorField label="Р¦РІРµС‚ С‚РµРєСЃС‚Р°" value={it.textColor || ""} onChange={(v) => patchItem(items, i, { textColor: v }, onPatch)} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "inspiration") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="РџРѕРґР·Р°РіРѕР»РѕРІРѕРє" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Р¦РІРµС‚ РїРѕРґР·Р°РіРѕР»РѕРІРєР°" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        {items.map((raw, i) => {
+          const it = raw as Record<string, string>;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <p className="text-xs font-semibold">{it.name || `РњР°СЂС€СЂСѓС‚ ${i + 1}`}</p>
+              <Field label="РќР°Р·РІР°РЅРёРµ" value={it.name || ""} onChange={(v) => patchItem(items, i, { name: v }, onPatch)} />
+              <CmsColorField label="Р¦РІРµС‚ РЅР°Р·РІР°РЅРёСЏ" value={it.titleColor || ""} onChange={(v) => patchItem(items, i, { titleColor: v }, onPatch)} />
+              <Field label="РћРїРёСЃР°РЅРёРµ" value={it.description || ""} onChange={(v) => patchItem(items, i, { description: v }, onPatch)} multiline />
+              <CmsColorField label="Р¦РІРµС‚ РѕРїРёСЃР°РЅРёСЏ" value={it.descriptionColor || ""} onChange={(v) => patchItem(items, i, { descriptionColor: v }, onPatch)} />
+              <Field label="РЎСЃС‹Р»РєР°" value={it.href || ""} onChange={(v) => patchItem(items, i, { href: v }, onPatch)} />
+              <MediaField label="Р¤РѕС‚Рѕ" value={it.image || ""} accept="image/*" onChange={(v) => patchItem(items, i, { image: v }, onPatch)} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "testimonials") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="РџРѕРґР·Р°РіРѕР»РѕРІРѕРє" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Р¦РІРµС‚ РїРѕРґР·Р°РіРѕР»РѕРІРєР°" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        {items.map((raw, i) => {
+          const it = raw as Record<string, unknown>;
+          const gallery = Array.isArray(it.gallery) ? (it.gallery as string[]) : [];
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <p className="text-xs font-semibold">{String(it.name || `РћС‚Р·С‹РІ ${i + 1}`)}</p>
+              <Field label="ID" value={String(it.id ?? "")} onChange={(v) => patchItem(items, i, { id: Number(v) || v }, onPatch)} />
+              <Field label="РРјСЏ" value={String(it.name || "")} onChange={(v) => patchItem(items, i, { name: v }, onPatch)} />
+              <Field label="РўРµРєСЃС‚ РЅР° РєР°СЂС‚РѕС‡РєРµ" value={String(it.text || "")} onChange={(v) => patchItem(items, i, { text: v }, onPatch)} multiline />
+              <Field label="РњР°СЂС€СЂСѓС‚" value={String(it.route || "")} onChange={(v) => patchItem(items, i, { route: v }, onPatch)} />
+              <Field label="Р”Р°С‚Р°" value={String(it.date || "")} onChange={(v) => patchItem(items, i, { date: v }, onPatch)} />
+              <MediaField label="РђРІР°С‚Р°СЂ" value={String(it.avatar || "")} accept="image/*" onChange={(v) => patchItem(items, i, { avatar: v }, onPatch)} />
+              <MediaField label="Р¤РѕС‚Рѕ РєР°СЂС‚РѕС‡РєРё" value={String(it.photo || "")} accept="image/*" onChange={(v) => patchItem(items, i, { photo: v }, onPatch)} />
+              <Field label="РўРµРєСЃС‚ РІРЅСѓС‚СЂРё РѕС‚Р·С‹РІР°" value={String(it.body || "")} onChange={(v) => patchItem(items, i, { body: v }, onPatch)} multiline />
+              <MediaField
+                label="Р”РѕРї. С„РѕС‚Рѕ РІ РѕС‚Р·С‹РІРµ (РґРѕР±Р°РІРёС‚СЊ)"
+                value=""
+                accept="image/*"
+                onChange={(v) => patchItem(items, i, { gallery: [...gallery, v] }, onPatch)}
+              />
+              {gallery.length > 0 && (
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  {gallery.map((g, gi) => (
+                    <li key={gi} className="flex items-center gap-2">
+                      <span className="truncate flex-1">{g}</span>
+                      <button
+                        type="button"
+                        className="text-destructive"
+                        onClick={() =>
+                          patchItem(
+                            items,
+                            i,
+                            { gallery: gallery.filter((_, x) => x !== gi) },
+                            onPatch
+                          )
+                        }
+                      >
+                        СѓРґР°Р»РёС‚СЊ
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "blogInvite") {
+    return (
+      <div className="space-y-3">
+        <Field label="Р‘РµР№РґР¶" value={str("badge")} onChange={(v) => onPatch({ badge: v })} />
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="РђР±Р·Р°С† 1" value={str("paragraph1")} onChange={(v) => onPatch({ paragraph1: v })} multiline />
+        <Field label="РђР±Р·Р°С† 2" value={str("paragraph2")} onChange={(v) => onPatch({ paragraph2: v })} multiline />
+        <CmsColorField label="Р¦РІРµС‚ С‚РµРєСЃС‚Р°" value={str("textColor")} onChange={(v) => onPatch({ textColor: v })} />
+        <Field label="РљРЅРѕРїРєР°" value={str("ctaLabel")} onChange={(v) => onPatch({ ctaLabel: v })} />
+        <Field label="РЎСЃС‹Р»РєР°" value={str("ctaHref")} onChange={(v) => onPatch({ ctaHref: v })} />
+        <Field label="РљР°СЂС‚РёРЅРєР° (РїСѓС‚СЊ)" value={str("image")} onChange={(v) => onPatch({ image: v })} placeholder="/path/to/image.png" />
+      </div>
+    );
+  }
+
+  if (sectionId === "support") {
+    return (
+      <div className="space-y-3">
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="РџРѕРґР·Р°РіРѕР»РѕРІРѕРє" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} />
+        <CmsColorField label="Р¦РІРµС‚ РїРѕРґР·Р°РіРѕР»РѕРІРєР°" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        <Field label="РћРїРёСЃР°РЅРёРµ 1" value={str("description1")} onChange={(v) => onPatch({ description1: v })} multiline />
+        <Field label="РћРїРёСЃР°РЅРёРµ 2" value={str("description2")} onChange={(v) => onPatch({ description2: v })} multiline />
+        <CmsColorField label="Р¦РІРµС‚ РѕРїРёСЃР°РЅРёР№" value={str("textColor")} onChange={(v) => onPatch({ textColor: v })} />
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє РєРѕРЅС‚Р°РєС‚РѕРІ" value={str("contactHeading")} onChange={(v) => onPatch({ contactHeading: v })} />
+        <Field label="CTA С‡Р°С‚Р°" value={str("chatCta")} onChange={(v) => onPatch({ chatCta: v })} />
+      </div>
+    );
+  }
+
+  if (sectionId === "verified") {
+    return (
+      <div className="space-y-3">
+        <Field label="Р‘РµР№РґР¶ СЃР»РµРІР°" value={str("badgeLeft")} onChange={(v) => onPatch({ badgeLeft: v })} />
+        <Field label="Р‘РµР№РґР¶ СЃРїСЂР°РІР°" value={str("badgeRight")} onChange={(v) => onPatch({ badgeRight: v })} />
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="РћРїРёСЃР°РЅРёРµ" value={str("description")} onChange={(v) => onPatch({ description: v })} multiline />
+        <CmsColorField label="Р¦РІРµС‚ РѕРїРёСЃР°РЅРёСЏ" value={str("descriptionColor")} onChange={(v) => onPatch({ descriptionColor: v })} />
+        <Field label="РљРЅРѕРїРєР°" value={str("ctaLabel")} onChange={(v) => onPatch({ ctaLabel: v })} />
+        <Field label="РЎСЃС‹Р»РєР°" value={str("ctaHref")} onChange={(v) => onPatch({ ctaHref: v })} />
+      </div>
+    );
+  }
+
+  if (sectionId === "routesHero") {
+    const advantages = Array.isArray(fields.advantages) ? fields.advantages : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє, СЃС‚СЂРѕРєР° 1" value={str("titleLine1")} onChange={(v) => onPatch({ titleLine1: v })} />
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє, СЃС‚СЂРѕРєР° 2" value={str("titleLine2")} onChange={(v) => onPatch({ titleLine2: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <MediaField label="Р’РёРґРµРѕ РёР»Рё URL" value={str("videoUrl")} onChange={(v) => onPatch({ videoUrl: v })} accept="video/mp4,video/webm" />
+        {advantages.map((adv, i) => {
+          const a = adv as Record<string, string>;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <p className="text-xs font-semibold">РџР»Р°С€РєР° {i + 1}</p>
+              <Field label="Р§РёСЃР»Рѕ" value={a.number || ""} onChange={(v) => patchItem(advantages, i, { number: v }, onPatch, "advantages")} />
+              <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={a.title || ""} onChange={(v) => patchItem(advantages, i, { title: v }, onPatch, "advantages")} />
+              <Field label="РћРїРёСЃР°РЅРёРµ" value={a.description || ""} multiline onChange={(v) => patchItem(advantages, i, { description: v }, onPatch, "advantages")} />
+              <CmsColorField label="Р¦РІРµС‚ С‚РµРєСЃС‚Р°" value={a.textColor || ""} onChange={(v) => patchItem(advantages, i, { textColor: v }, onPatch, "advantages")} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "heroRoutes") {
+    const cards = Array.isArray(fields.cards) ? fields.cards : [];
+    return (
+      <div className="space-y-3">
+        <Field label="РњРѕР±РёР»СЊРЅС‹Р№ Р·Р°РіРѕР»РѕРІРѕРє (Р°РєС†РµРЅС‚)" value={str("mobileTitleAccent")} onChange={(v) => onPatch({ mobileTitleAccent: v })} />
+        <Field label="РњРѕР±РёР»СЊРЅС‹Р№ Р·Р°РіРѕР»РѕРІРѕРє (РѕСЃС‚Р°Р»СЊРЅРѕРµ)" value={str("mobileTitleRest")} onChange={(v) => onPatch({ mobileTitleRest: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р°РєС†РµРЅС‚Р°" value={str("accentColor")} onChange={(v) => onPatch({ accentColor: v })} />
+        {cards.map((card, i) => {
+          const c = card as Record<string, string>;
+          return (
+            <div key={c.id || i} className="space-y-2 rounded-md border p-3">
+              <DblRename
+                value={c.title || c.id || `РљР°СЂС‚РѕС‡РєР° ${i + 1}`}
+                onChange={(v) => patchItem(cards, i, { title: v }, onPatch, "cards")}
+              />
+              <Field label="РќР°Р·РІР°РЅРёРµ" value={c.title || ""} onChange={(v) => patchItem(cards, i, { title: v }, onPatch, "cards")} />
+              <CmsColorField label="Р¦РІРµС‚ РЅР°Р·РІР°РЅРёСЏ" value={c.titleColor || ""} onChange={(v) => patchItem(cards, i, { titleColor: v }, onPatch, "cards")} />
+              <Field label="РћРїРёСЃР°РЅРёРµ" value={c.description || ""} multiline onChange={(v) => patchItem(cards, i, { description: v }, onPatch, "cards")} />
+              <Field label="РЎСЃС‹Р»РєР°" value={c.href || ""} onChange={(v) => patchItem(cards, i, { href: v }, onPatch, "cards")} />
+              <MediaField label="Р¤РѕС‚Рѕ" value={c.image || ""} accept="image/*" onChange={(v) => patchItem(cards, i, { image: v }, onPatch, "cards")} />
+              <MediaField label="Р¤РѕС‚Рѕ hover" value={c.hoverImage || ""} accept="image/*" onChange={(v) => patchItem(cards, i, { hoverImage: v }, onPatch, "cards")} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "regionsDay") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="РџСЂРµС„РёРєСЃ" value={str("titlePrefix")} onChange={(v) => onPatch({ titlePrefix: v })} />
+        <Field label="РђРєС†РµРЅС‚" value={str("titleAccent")} onChange={(v) => onPatch({ titleAccent: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р°РєС†РµРЅС‚Р°" value={str("accentColor")} onChange={(v) => onPatch({ accentColor: v })} />
+        {items.map((item, i) => {
+          const it = item as Record<string, string | number>;
+          return (
+            <div key={String(it.id || i)} className="space-y-2 rounded-md border p-3">
+              <DblRename
+                value={String(it.name || `РљР°СЂС‚РѕС‡РєР° ${i + 1}`)}
+                onChange={(v) => patchItem(items, i, { name: v }, onPatch)}
+              />
+              <DayItemLinkPicker
+                kind={String(it.kind || "custom")}
+                refId={String(it.refId || "")}
+                onPick={(patch) => patchItem(items, i, patch, onPatch)}
+              />
+              <Field label="РќР°Р·РІР°РЅРёРµ" value={String(it.name || "")} onChange={(v) => patchItem(items, i, { name: v }, onPatch)} />
+              <Field label="Р РµР№С‚РёРЅРі" value={String(it.rating ?? "")} onChange={(v) => patchItem(items, i, { rating: Number(v) || 0 }, onPatch)} />
+              <Field
+                label="РЎСЃС‹Р»РєР°"
+                value={String(it.href || "")}
+                onChange={(v) => patchItem(items, i, { href: v, kind: "custom" }, onPatch)}
+              />
+              <MediaField label="Р¤РѕС‚Рѕ" value={String(it.image || "")} accept="image/*" onChange={(v) => patchItem(items, i, { image: v }, onPatch)} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "process") {
+    return (
+      <div className="space-y-3">
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={str("title")} onChange={(v) => onPatch({ title: v })} multiline />
+        <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="РђР±Р·Р°С†" value={str("paragraph")} onChange={(v) => onPatch({ paragraph: v })} multiline />
+        <CmsColorField label="Р¦РІРµС‚ Р°Р±Р·Р°С†Р°" value={str("paragraphColor")} onChange={(v) => onPatch({ paragraphColor: v })} />
+        <Field label="РљРЅРѕРїРєР°" value={str("ctaLabel")} onChange={(v) => onPatch({ ctaLabel: v })} />
+        <Field label="РЎСЃС‹Р»РєР°" value={str("ctaHref")} onChange={(v) => onPatch({ ctaHref: v })} />
+        <MediaField label="РР·РѕР±СЂР°Р¶РµРЅРёРµ" value={str("image")} onChange={(v) => onPatch({ image: v })} accept="image/*" />
+        <Field label="РќРёР¶РЅРёР№ С‚РµРєСЃС‚" value={str("bottomText")} onChange={(v) => onPatch({ bottomText: v })} multiline />
+        <CmsColorField label="Р¦РІРµС‚ РЅРёР¶РЅРµРіРѕ С‚РµРєСЃС‚Р°" value={str("bottomColor")} onChange={(v) => onPatch({ bottomColor: v })} />
+      </div>
+    );
+  }
+
+  if (sectionId === "photographers") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Eyebrow" value={str("eyebrow")} onChange={(v) => onPatch({ eyebrow: v })} />
+        <CmsColorField label="Р¦РІРµС‚ eyebrow" value={str("eyebrowColor")} onChange={(v) => onPatch({ eyebrowColor: v })} />
+        <Field label="Р—Р°РіРѕР»РѕРІРѕРє" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Р¦РІРµС‚ Р·Р°РіРѕР»РѕРІРєР°" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="РџРѕРґР·Р°РіРѕР»РѕРІРѕРє" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Р¦РІРµС‚ РїРѕРґР·Р°РіРѕР»РѕРІРєР°" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        {items.map((item, i) => {
+          const it = item as Record<string, string>;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <p className="text-xs font-semibold">Р¤РѕС‚РѕРіСЂР°С„ {i + 1}</p>
+              <Field label="РРјСЏ" value={it.name || ""} onChange={(v) => patchItem(items, i, { name: v }, onPatch)} />
+              <Field label="РҐСЌРЅРґР»" value={it.handle || ""} onChange={(v) => patchItem(items, i, { handle: v }, onPatch)} />
+              <Field label="РЎСЃС‹Р»РєР°" value={it.href || ""} onChange={(v) => patchItem(items, i, { href: v }, onPatch)} />
+              <MediaField label="РђРІР°С‚Р°СЂ" value={it.avatar || ""} accept="image/*" onChange={(v) => patchItem(items, i, { avatar: v }, onPatch)} />
+              <MediaField label="Р¤РѕС‚Рѕ" value={it.image || ""} accept="image/*" onChange={(v) => patchItem(items, i, { image: v }, onPatch)} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <p className="text-sm text-muted-foreground">
+      Р”Р»СЏ СЌС‚РѕРіРѕ Р±Р»РѕРєР° РїРѕРєР° РґРѕСЃС‚СѓРїРЅС‹ С‚РѕР»СЊРєРѕ РїРѕРєР°Р·/СЃРєСЂС‹С‚РёРµ Рё РїРѕСЂСЏРґРѕРє.
+    </p>
+  );
+}
+
+
+
+========== FILE: src\types\blogArticle.ts ==========
+
+/**
+ * РњРѕРґРµР»СЊ СЃС‚Р°С‚СЊРё Р±Р»РѕРіР° вЂ” СЂР°СЃСЃС‡РёС‚Р°РЅР° РЅР° РїРѕСЃР»РµРґСѓСЋС‰СѓСЋ РїРѕРґСЃС‚Р°РЅРѕРІРєСѓ РёР· API/Р°РґРјРёРЅРєРё.
+ * РњР°СЂС€СЂСѓС‚С‹ (/routes) РїРѕР·Р¶Рµ РјРѕР¶РЅРѕ РІС‹РЅРµСЃС‚Рё РІ РѕС‚РґРµР»СЊРЅС‹Р№ С‚РёРї СЃ РѕР±С‰РёРј Р±Р°Р·РѕРІС‹Рј РёРЅС‚РµСЂС„РµР№СЃРѕРј.
+ */
+export type BlogBadge = "own" | "partner" | "ad";
+
+/** Р’РєР»Р°РґРєР° Р»РµРЅС‚С‹: С‡РµРјСѓ РїСЂРёРЅР°РґР»РµР¶РёС‚ РјР°С‚РµСЂРёР°Р» РїРѕ СЃРјС‹СЃР»Сѓ */
+export type BlogChannelTab = "all" | "tudasuda" | "partners" | "special";
+
+export type BlogSortMode = "new" | "popular";
+
+export interface BlogTagDefinition {
+  id: string;
+  label: string;
+}
+
+export interface BlogTagGroup {
+  id: string;
+  title: string;
+  tags: BlogTagDefinition[];
+}
+
+export interface BlogArticle {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  coverImage: string;
+  /** ISO 8601 */
+  publishedAt: string;
+  readingMinutes: number;
+  badges: BlogBadge[];
+  /** Р’РєР»Р°РґРєР° Р»РµРЅС‚С‹ (РґР»СЏ С„РёР»СЊС‚СЂР°С†РёРё) */
+  channel: Exclude<BlogChannelTab, "all">;
+  tagIds: string[];
+  editorsPick: boolean;
+  /** РџРѕРєР°Р·Р°С‚СЊ РІ Р±Р»РѕРєРµ В«Р РµРєРѕРјРµРЅРґСѓСЋС‚ РїР°СЂС‚РЅС‘СЂС‹В» */
+  partnerCarousel: boolean;
+  /** РџРѕРєР°Р·Р°С‚СЊ РІ Р±Р»РѕРєРµ СЃРїРµС†РїСЂРѕРµРєС‚РѕРІ */
+  sponsoredGrid: boolean;
+  /** Р”Р»СЏ СЃРѕСЂС‚РёСЂРѕРІРєРё В«РџРѕРїСѓР»СЏСЂРЅС‹РµВ» */
+  views: number;
+  /** РџРѕС…РѕР¶РёРµ СЃС‚Р°С‚СЊРё (Р·Р°РїРѕР»РЅСЏРµС‚СЃСЏ API РїСЂРё С‡С‚РµРЅРёРё) */
+  relatedPosts?: BlogArticle[];
+}
+
+
+
+========== FILE: server\pageContentRoutes.js ==========
+
+import { pool } from "./db.js";
+import { adminMiddleware } from "./authMiddleware.js";
+
+const PAGE_KEYS = new Set(["home", "routes"]);
+const LOCK_TTL_MS = 30 * 60 * 1000;
+
+function isPageKey(key) {
+  return PAGE_KEYS.has(key);
+}
+
+function isPlainObject(v) {
+  return v !== null && typeof v === "object" && !Array.isArray(v);
+}
+
+/** Shallow-sanitize page JSON: keep version, sectionOrder, sections */
+function sanitizePageJson(input) {
+  if (!isPlainObject(input)) return {};
+  const out = {};
+  if (typeof input.version === "number") out.version = input.version;
+  if (Array.isArray(input.sectionOrder)) {
+    out.sectionOrder = input.sectionOrder
+      .filter((id) => typeof id === "string" && id.length > 0 && id.length < 64)
+      .slice(0, 40);
+  }
+  if (isPlainObject(input.sections)) {
+    out.sections = {};
+    for (const [id, sec] of Object.entries(input.sections)) {
+      if (typeof id !== "string" || id.length > 64 || !isPlainObject(sec)) continue;
+      const section = {};
+      if (typeof sec.visible === "boolean") section.visible = sec.visible;
+      if (isPlainObject(sec.fields)) {
+        section.fields = sec.fields;
+      }
+      out.sections[id] = section;
+    }
+  }
+  return out;
+}
+
+async function ensureRow(pageKey) {
+  await pool.query(
+    `INSERT INTO page_contents (page_key) VALUES ($1)
+     ON CONFLICT (page_key) DO NOTHING`,
+    [pageKey]
+  );
+}
+
+async function getRow(pageKey) {
+  await ensureRow(pageKey);
+  const { rows } = await pool.query(
+    `SELECT page_key, draft_json, published_json, locked_by, locked_at, updated_by, updated_at
+     FROM page_contents WHERE page_key = $1`,
+    [pageKey]
+  );
+  return rows[0];
+}
+
+function lockActive(row) {
+  if (!row?.locked_by || !row?.locked_at) return false;
+  const age = Date.now() - new Date(row.locked_at).getTime();
+  return age < LOCK_TTL_MS;
+}
+
+async function insertRevision(pageKey, snapshot, action, userId, sectionId = null) {
+  await pool.query(
+    `INSERT INTO page_content_revisions (page_key, snapshot, action, section_id, user_id)
+     VALUES ($1, $2::jsonb, $3, $4, $5)`,
+    [pageKey, JSON.stringify(snapshot), action, sectionId, userId]
+  );
+}
+
+/**
+ * @param {import('express').Express} app
+ */
+export function registerPagePublicRoutes(app) {
+  app.get("/api/pages/:key", async (req, res) => {
+    const key = String(req.params.key || "");
+    if (!isPageKey(key)) {
+      return res.status(404).json({ error: "Unknown page" });
+    }
+    try {
+      const row = await getRow(key);
+      res.json({
+        pageKey: key,
+        content: row.published_json || {},
+        updatedAt: row.updated_at,
+      });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Failed to load page" });
+    }
+  });
+}
+
+/**
+ * @param {import('express').Express} app
+ */
+export function registerAdminPageRoutes(app) {
+  app.get("/api/admin/pages/:key", adminMiddleware, async (req, res) => {
+    const key = String(req.params.key || "");
+    if (!isPageKey(key)) {
+      return res.status(404).json({ error: "Unknown page" });
+    }
+    try {
+      const row = await getRow(key);
+      let lockUser = null;
+      if (row.locked_by) {
+        const u = await pool.query(
+          `SELECT id, email FROM users WHERE id = $1`,
+          [row.locked_by]
+        );
+        lockUser = u.rows[0] || null;
+      }
+      const active = lockActive(row);
+      res.json({
+        pageKey: key,
+        draft: row.draft_json || {},
+        published: row.published_json || {},
+        lock: active
+          ? {
+              lockedBy: row.locked_by,
+              lockedAt: row.locked_at,
+              email: lockUser?.email || null,
+              isMine: row.locked_by === req.userId,
+            }
+          : null,
+        updatedAt: row.updated_at,
+      });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Failed to load page" });
+    }
+  });
+
+  app.post("/api/admin/pages/:key/lock", adminMiddleware, async (req, res) => {
+    const key = String(req.params.key || "");
+    if (!isPageKey(key)) {
+      return res.status(404).json({ error: "Unknown page" });
+    }
+    try {
+      const row = await getRow(key);
+      if (lockActive(row) && row.locked_by !== req.userId) {
+        return res.status(409).json({
+          error: "РЎС‚СЂР°РЅРёС†Р° СѓР¶Рµ СЂРµРґР°РєС‚РёСЂСѓРµС‚СЃСЏ РґСЂСѓРіРёРј Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂРѕРј",
+          lockedBy: row.locked_by,
+        });
+      }
+      await pool.query(
+        `UPDATE page_contents
+         SET locked_by = $2, locked_at = NOW(), updated_by = $2
+         WHERE page_key = $1`,
+        [key, req.userId]
+      );
+      res.json({ ok: true });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Lock failed" });
+    }
+  });
+
+  app.post("/api/admin/pages/:key/unlock", adminMiddleware, async (req, res) => {
+    const key = String(req.params.key || "");
+    if (!isPageKey(key)) {
+      return res.status(404).json({ error: "Unknown page" });
+    }
+    try {
+      const row = await getRow(key);
+      if (lockActive(row) && row.locked_by !== req.userId) {
+        return res.status(409).json({ error: "РќРµР»СЊР·СЏ СЃРЅСЏС‚СЊ С‡СѓР¶СѓСЋ Р±Р»РѕРєРёСЂРѕРІРєСѓ" });
+      }
+      await pool.query(
+        `UPDATE page_contents
+         SET locked_by = NULL, locked_at = NULL
+         WHERE page_key = $1`,
+        [key]
+      );
+      res.json({ ok: true });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Unlock failed" });
+    }
+  });
+
+  app.put("/api/admin/pages/:key/draft", adminMiddleware, async (req, res) => {
+    const key = String(req.params.key || "");
+    if (!isPageKey(key)) {
+      return res.status(404).json({ error: "Unknown page" });
+    }
+    try {
+      const row = await getRow(key);
+      if (lockActive(row) && row.locked_by !== req.userId) {
+        return res.status(409).json({
+          error: "РЎС‚СЂР°РЅРёС†Р° Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅР° РґСЂСѓРіРёРј Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂРѕРј",
+        });
+      }
+      const draft = sanitizePageJson(req.body?.draft ?? req.body ?? {});
+      await pool.query(
+        `UPDATE page_contents
+         SET draft_json = $2::jsonb,
+             locked_by = $3,
+             locked_at = NOW(),
+             updated_by = $3
+         WHERE page_key = $1`,
+        [key, JSON.stringify(draft), req.userId]
+      );
+      await insertRevision(key, draft, "save_draft", req.userId);
+      res.json({ ok: true, draft });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Save draft failed" });
+    }
+  });
+
+  app.post("/api/admin/pages/:key/publish", adminMiddleware, async (req, res) => {
+    const key = String(req.params.key || "");
+    if (!isPageKey(key)) {
+      return res.status(404).json({ error: "Unknown page" });
+    }
+    try {
+      const row = await getRow(key);
+      if (lockActive(row) && row.locked_by !== req.userId) {
+        return res.status(409).json({
+          error: "РЎС‚СЂР°РЅРёС†Р° Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅР° РґСЂСѓРіРёРј Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂРѕРј",
+        });
+      }
+      const useBody = req.body?.draft != null;
+      const draft = useBody
+        ? sanitizePageJson(req.body.draft)
+        : row.draft_json || {};
+      await pool.query(
+        `UPDATE page_contents
+         SET draft_json = $2::jsonb,
+             published_json = $2::jsonb,
+             locked_by = $3,
+             locked_at = NOW(),
+             updated_by = $3
+         WHERE page_key = $1`,
+        [key, JSON.stringify(draft), req.userId]
+      );
+      await insertRevision(key, draft, "publish", req.userId);
+      res.json({ ok: true, published: draft });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Publish failed" });
+    }
+  });
+
+  app.post("/api/admin/pages/:key/reset", adminMiddleware, async (req, res) => {
+    const key = String(req.params.key || "");
+    if (!isPageKey(key)) {
+      return res.status(404).json({ error: "Unknown page" });
+    }
+    try {
+      const row = await getRow(key);
+      if (lockActive(row) && row.locked_by !== req.userId) {
+        return res.status(409).json({
+          error: "РЎС‚СЂР°РЅРёС†Р° Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅР° РґСЂСѓРіРёРј Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂРѕРј",
+        });
+      }
+      const scope = req.body?.scope === "section" ? "section" : "page";
+      const sectionId =
+        typeof req.body?.sectionId === "string" ? req.body.sectionId : null;
+
+      let draft = isPlainObject(row.draft_json) ? { ...row.draft_json } : {};
+      if (scope === "page") {
+        draft = {};
+      } else {
+        if (!sectionId) {
+          return res.status(400).json({ error: "sectionId required" });
+        }
+        draft = {
+          ...draft,
+          sections: { ...(draft.sections || {}) },
+        };
+        delete draft.sections[sectionId];
+      }
+
+      const action = scope === "page" ? "reset_page" : "reset_section";
+      await pool.query(
+        `UPDATE page_contents
+         SET draft_json = $2::jsonb,
+             locked_by = $3,
+             locked_at = NOW(),
+             updated_by = $3
+         WHERE page_key = $1`,
+        [key, JSON.stringify(draft), req.userId]
+      );
+      await insertRevision(key, draft, action, req.userId, sectionId);
+      res.json({ ok: true, draft });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Reset failed" });
+    }
+  });
+
+  app.get("/api/admin/pages/:key/revisions", adminMiddleware, async (req, res) => {
+    const key = String(req.params.key || "");
+    if (!isPageKey(key)) {
+      return res.status(404).json({ error: "Unknown page" });
+    }
+    try {
+      const limit = Math.min(
+        100,
+        Math.max(1, parseInt(String(req.query.limit || "40"), 10) || 40)
+      );
+      const { rows } = await pool.query(
+        `SELECT r.id, r.page_key, r.action, r.section_id, r.user_id, r.created_at,
+                u.email AS user_email
+         FROM page_content_revisions r
+         LEFT JOIN users u ON u.id = r.user_id
+         WHERE r.page_key = $1
+         ORDER BY r.created_at DESC
+         LIMIT $2`,
+        [key, limit]
+      );
+      res.json({ revisions: rows });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Revisions failed" });
+    }
+  });
+
+  app.post(
+    "/api/admin/pages/:key/revisions/:id/restore",
+    adminMiddleware,
+    async (req, res) => {
+      const key = String(req.params.key || "");
+      const id = String(req.params.id || "");
+      if (!isPageKey(key)) {
+        return res.status(404).json({ error: "Unknown page" });
+      }
+      try {
+        const row = await getRow(key);
+        if (lockActive(row) && row.locked_by !== req.userId) {
+          return res.status(409).json({
+            error: "РЎС‚СЂР°РЅРёС†Р° Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅР° РґСЂСѓРіРёРј Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂРѕРј",
+          });
+        }
+        const { rows } = await pool.query(
+          `SELECT snapshot FROM page_content_revisions
+           WHERE id = $1 AND page_key = $2`,
+          [id, key]
+        );
+        if (!rows[0]) {
+          return res.status(404).json({ error: "Revision not found" });
+        }
+        const draft = sanitizePageJson(rows[0].snapshot);
+        await pool.query(
+          `UPDATE page_contents
+           SET draft_json = $2::jsonb,
+               locked_by = $3,
+               locked_at = NOW(),
+               updated_by = $3
+           WHERE page_key = $1`,
+          [key, JSON.stringify(draft), req.userId]
+        );
+        await insertRevision(key, draft, "restore", req.userId);
+        res.json({ ok: true, draft });
+      } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message || "Restore failed" });
+      }
+    }
+  );
+}
+

@@ -159,13 +159,17 @@ export type TestimonialsFields = {
 export type BlogInviteFields = {
   badge: string;
   title: string;
+  subtitle: string;              // ← ДОБАВИЛИ (для слайдера)
   titleColor?: string;
+  subtitleColor?: string;         // ← ДОБАВИЛИ
   textColor?: string;
   paragraph1: string;
   paragraph2: string;
   ctaLabel: string;
   ctaHref: string;
   image?: string;
+  /** Массив id статей блога для слайдера (до 10). Если пусто — показать последние 6. */
+  articleIds: string[];          // ← ДОБАВИЛИ
 };
 
 export type SupportFields = {

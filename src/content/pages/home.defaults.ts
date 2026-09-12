@@ -665,16 +665,17 @@ export const homePageDefaults: PageContentDocument = {
       visible: true,
       fields: {
         badge: "Для читателей",
-        title: "Зачем читать блог TudaSuda",
+        title: "Актуальные новости для путешественников",
+        subtitle: "Свежие статьи редакции: советы, лайфхаки и обзоры направлений",
         titleColor: "",
+        subtitleColor: "",
         textColor: "",
-        paragraph1:
-          "Мы пишем о том, как проще планировать поездки по России и за её пределах: от выбора билетов и отелей до документов и бюджета. Статьи редакции основаны на опыте команды и обратной связи пассажиров.",
-        paragraph2:
-          "Блог дополняет справочник и путеводитель: здесь больше про идеи для поездок, обновления сервиса и практичные советы в одном месте.",
+        paragraph1: "",
+        paragraph2: "",
         ctaLabel: "Перейти в блог",
         ctaHref: "/blog",
-        image: blogImage, // Вставьте путь к картинке, например: "/path/to/your/blog-image.png"
+        image: "",
+        articleIds: [],
       },
     },
     verified: {

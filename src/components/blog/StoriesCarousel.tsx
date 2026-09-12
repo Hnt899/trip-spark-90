@@ -1,18 +1,34 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { StoryData } from "@/data/blogData";
 import { CarouselNavButton } from "@/components/ui/carousel-nav-button";
 import StoryModal from "./StoryModal";
 import { cn } from "@/lib/utils";
 
+export type CarouselStory = {
+  id: string | number;
+  /** Заголовок / название (для отображения) */
+  city?: string;
+  title?: string;
+  /** Текст под карточкой (капсула снизу) */
+  text: string;
+  /** Картинки */
+  images: string[];
+  /** Ссылка (если есть — ведёт вместо модалки) */
+  href?: string;
+  /** Дата (опционально) */
+  date?: string;
+  /** Маршрут (опционально) */
+  route?: string;
+};
+
 interface StoriesCarouselProps {
-  stories: StoryData[];
+  stories: CarouselStory[];
 }
 
 const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
-  const [selectedStory, setSelectedStory] = useState<StoryData | null>(null);
+  const [selectedStory, setSelectedStory] = useState<CarouselStory | null>(null);
   const [visibleCount, setVisibleCount] = useState(3);
   const [slideWidthPx, setSlideWidthPx] = useState(0);
-  const [current, setCurrent] = useState(visibleCount); // Начинаем с visibleCount (первый оригинальный элемент)
+  const [current, setCurrent] = useState(visibleCount);
   const [isAnimating, setIsAnimating] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
@@ -32,8 +48,8 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
     };
 
     updateVisibleCount();
-    window.addEventListener('resize', updateVisibleCount);
-    return () => window.removeEventListener('resize', updateVisibleCount);
+    window.addEventListener("resize", updateVisibleCount);
+    return () => window.removeEventListener("resize", updateVisibleCount);
   }, []);
 
   // Вычисляем ширину слайда
@@ -47,7 +63,7 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
     return () => window.removeEventListener("resize", update);
   }, [visibleCount]);
 
-  // Создаем клоны для бесконечного цикла: [tail, ...original, head]
+  // Создаём клоны для бесконечного цикла: [tail, ...original, head]
   const trackItems = useMemo(() => {
     const head = stories.slice(0, visibleCount);
     const tail = stories.slice(-visibleCount);
@@ -55,7 +71,7 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
   }, [stories, visibleCount]);
 
   const totalOriginal = stories.length;
-  const startAt = visibleCount; // Начальная позиция (первый оригинальный элемент)
+  const startAt = visibleCount;
 
   // Обновляем current при изменении visibleCount
   useEffect(() => {
@@ -70,7 +86,7 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
   const handlePrev = () => goTo(current - 1);
   const handleNext = () => goTo(current + 1);
 
-  // Вычисляем текущий индекс для отображения точек (нормализованный)
+  // Вычисляем текущий индекс для отображения точек
   const getCurrentIndex = () => {
     if (current < visibleCount) {
       return current + stories.length;
@@ -92,20 +108,18 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const minSwipeDistance = 50;
 
     if (distance > minSwipeDistance) {
-      // Swipe left - следующая карточка
       handleNext();
     }
-    
+
     if (distance < -minSwipeDistance) {
-      // Swipe right - предыдущая карточка
       handlePrev();
     }
-    
+
     setTouchStart(0);
     setTouchEnd(0);
   };
@@ -117,37 +131,45 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
   const handleTransitionEnd = () => {
     setIsAnimating(false);
     if (current < visibleCount) {
-      // Перешли в левые клоны -> переключаемся на соответствующий оригинальный элемент
       const snap = current + totalOriginal;
       setCurrent(snap);
       if (trackRef.current) {
         trackRef.current.style.transition = "none";
         trackRef.current.style.transform = `translateX(-${(snap - startAt) * slideWidthPx}px)`;
-        void trackRef.current.offsetHeight; // Принудительный reflow
+        void trackRef.current.offsetHeight;
         trackRef.current.style.transition = "transform 500ms ease";
       }
     } else if (current >= totalOriginal + visibleCount) {
-      // Перешли в правые клоны -> переключаемся на соответствующий оригинальный элемент
       const snap = current - totalOriginal;
       setCurrent(snap);
       if (trackRef.current) {
         trackRef.current.style.transition = "none";
         trackRef.current.style.transform = `translateX(-${(snap - startAt) * slideWidthPx}px)`;
-        void trackRef.current.offsetHeight; // Принудительный reflow
+        void trackRef.current.offsetHeight;
         trackRef.current.style.transition = "transform 500ms ease";
       }
     }
   };
 
+  const handleStoryClick = (story: CarouselStory) => {
+    if (story.href) {
+      window.location.href = story.href;
+    } else {
+      setSelectedStory(story);
+    }
+  };
+
   const cardWidthPercent = 100.1 / visibleCount;
+
+  if (!stories || stories.length === 0) return null;
 
   return (
     <>
       <div className="relative">
-        <div 
-          className="overflow-hidden" 
-          ref={containerRef} 
-          style={{ padding: '4px 0' }}
+        <div
+          className="overflow-hidden"
+          ref={containerRef}
+          style={{ padding: "4px 0" }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -165,24 +187,23 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
               <div
                 key={`${story.id}-${index}`}
                 className="pr-4 flex-shrink-0 cursor-pointer group"
-                style={{ 
+                style={{
                   width: `${cardWidthPercent}%`,
                   minWidth: `${cardWidthPercent}%`,
                 }}
-                onClick={() => setSelectedStory(story)}
+                onClick={() => handleStoryClick(story)}
               >
                 <div className="story-card-border">
                   <div className="relative w-full h-[500px] rounded-3xl overflow-hidden bg-white">
                     <img
                       src={story.images[0]}
-                      alt={story.city}
+                      alt={story.city || story.title || ""}
                       className="w-full h-full object-cover"
                     />
-                    {/* Капсула с текстом */}
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 max-w-[calc(100%-2rem)]">
                       <div className="rounded-full bg-white/90 backdrop-blur-sm px-4 py-2">
-                        <p className="text-sm font-medium text-foreground whitespace-nowrap">
-                          {story.text}
+                        <p className="text-sm font-medium text-foreground whitespace-nowrap overflow-hidden text-ellipsis max-w-[400px]">
+                          {story.text || story.city || story.title}
                         </p>
                       </div>
                     </div>
@@ -193,11 +214,9 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
           </div>
         </div>
 
-        {/* Навигационные кнопки */}
         <CarouselNavButton direction="prev" onClick={handlePrev} />
         <CarouselNavButton direction="next" onClick={handleNext} />
 
-        {/* Индикаторы для сторис */}
         <div className="flex justify-center gap-2 mt-4 mb-4">
           {stories.map((_, index) => (
             <button
@@ -207,7 +226,7 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
                 "h-2 rounded-full transition-all duration-300",
                 index === currentIndex
                   ? "bg-primary w-8"
-                  : "bg-primary/50 w-2"
+                  : "bg-primary/50 w-2",
               )}
               aria-label={`Перейти к истории ${index + 1}`}
             />
@@ -215,10 +234,9 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
         </div>
       </div>
 
-      {/* Модальное окно сториса */}
       {selectedStory && (
         <StoryModal
-          story={selectedStory}
+          story={selectedStory as any}
           onClose={() => setSelectedStory(null)}
         />
       )}
@@ -227,4 +245,3 @@ const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
 };
 
 export default StoriesCarousel;
-

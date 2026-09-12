@@ -1,0 +1,2480 @@
+﻿
+
+========== FILE: src\components\sections\EventsSection.tsx ==========
+
+import { Button } from "@/components/ui/button";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { CarouselNavButton, CarouselNavButtonsMobile } from "@/components/ui/carousel-nav-button";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+import type { SectionSurface } from "@/lib/sectionSurface";
+import {
+  carouselDotClass,
+  sectionCardLiftClass,
+  sectionLeadClass,
+  sectionShellClass,
+} from "@/lib/sectionSurface";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import { mediaOrFallback } from "@/lib/pageContentMerge";
+import type { EventsFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle, cmsHeadingClass, cmsBgStyle } from "@/lib/cmsStyle";
+
+interface EventsSectionProps {
+  surface?: SectionSurface;
+}
+
+const DEFAULT_EVENTS = [
+  {
+    city: "РљСЂР°СЃРЅРѕРґР°СЂ",
+    age: "12+",
+    price: "РѕС‚ 2500",
+    artist: "ARTIC & ASTI",
+    date: "23 РѕРєС‚СЏР±СЂСЏ",
+    venue: "Р›РµРґРѕРІС‹Р№ РґРІРѕСЂРµС†",
+    color: "from-red-900 to-red-700",
+  },
+  {
+    city: "РљР°Р·Р°РЅСЊ",
+    age: "18+",
+    price: "РѕС‚ 2500",
+    artist: "Anna Asti. РЁРѕСѓ В«Р¦Р°СЂРёС†Р°В»",
+    date: "9 РЅРѕСЏР±СЂСЏ",
+    venue: "РўР°С‚РЅРµС„С‚СЊ РђСЂРµРЅР°",
+    color: "from-pink-700 to-pink-500",
+  },
+  {
+    city: "РџРµС‚РµСЂР±СѓСЂРі",
+    age: "12+",
+    price: "РѕС‚ 2500",
+    artist: "Р‘Р°СЃС‚Р°",
+    date: "20 РґРµРєР°Р±СЂСЏ",
+    venue: "Р“Р°Р·РїСЂРѕРј РђСЂРµРЅР°",
+    color: "from-orange-800 to-blue-900",
+  },
+  {
+    city: "РњРѕСЃРєРІР°",
+    age: "16+",
+    price: "РѕС‚ 3000",
+    artist: "РЎРµСЂРіРµР№ Р›Р°Р·Р°СЂРµРІ",
+    date: "5 РЅРѕСЏР±СЂСЏ",
+    venue: "Crocus City Hall",
+    color: "from-purple-900 to-purple-600",
+  },
+  {
+    city: "Р•РєР°С‚РµСЂРёРЅР±СѓСЂРі",
+    age: "18+",
+    price: "РѕС‚ 2800",
+    artist: "РњР°РєСЃ РљРѕСЂР¶",
+    date: "15 РЅРѕСЏР±СЂСЏ",
+    venue: "РљР Рљ РЈСЂР°Р»РµС†",
+    color: "from-blue-900 to-blue-600",
+  },
+  {
+    city: "РќРёР¶РЅРёР№ РќРѕРІРіРѕСЂРѕРґ",
+    age: "12+",
+    price: "РѕС‚ 2200",
+    artist: "Р—РµРјС„РёСЂР°",
+    date: "18 РЅРѕСЏР±СЂСЏ",
+    venue: "РљР— РќР°РіРѕСЂРЅС‹Р№",
+    color: "from-green-900 to-green-600",
+  },
+  {
+    city: "РќРѕРІРѕСЃРёР±РёСЂСЃРє",
+    age: "16+",
+    price: "РѕС‚ 2600",
+    artist: "Р‘Рё-2",
+    date: "25 РЅРѕСЏР±СЂСЏ",
+    venue: "Р”РІРѕСЂРµС† РЎРїРѕСЂС‚Р°",
+    color: "from-yellow-900 to-yellow-600",
+  },
+  {
+    city: "РЎРѕС‡Рё",
+    age: "18+",
+    price: "РѕС‚ 3500",
+    artist: "РњРѕС‚",
+    date: "1 РґРµРєР°Р±СЂСЏ",
+    venue: "Р¤РµСЃС‚РёРІР°Р»СЊРЅС‹Р№",
+    color: "from-teal-900 to-teal-600",
+  },
+  {
+    city: "РЈС„Р°",
+    age: "12+",
+    price: "РѕС‚ 2400",
+    artist: "РџРѕР»РёРЅР° Р“Р°РіР°СЂРёРЅР°",
+    date: "8 РґРµРєР°Р±СЂСЏ",
+    venue: "РљРѕРЅРіСЂРµСЃСЃ-РҐРѕР»Р»",
+    color: "from-indigo-900 to-indigo-600",
+  },
+  {
+    city: "Р’Р»Р°РґРёРІРѕСЃС‚РѕРє",
+    age: "16+",
+    price: "РѕС‚ 2900",
+    artist: "РњРѕРЅРµС‚РѕС‡РєР°",
+    date: "12 РґРµРєР°Р±СЂСЏ",
+    venue: "Р¤РµС‚РёСЃРѕРІ РђСЂРµРЅР°",
+    color: "from-rose-900 to-rose-600",
+  },
+];
+
+type EventCard = (typeof DEFAULT_EVENTS)[number] & {
+  bgColor?: string;
+  image?: string;
+  href?: string;
+  textColor?: string;
+};
+
+const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const f = usePageSectionFields<EventsFields>("events");
+  const sectionTitle = f.title || "РџРѕРІРѕРґ РґР»СЏ РїСѓС‚РµС€РµСЃС‚РІРёСЏ";
+  const sectionSubtitle = f.subtitle || "10 СЃРѕР±С‹С‚РёР№, СЂР°РґРё РєРѕС‚РѕСЂС‹С… СЃС‚РѕРёС‚ СЂРѕРІРЅСѓС‚СЊ РІ РїСѓС‚СЊ";
+  const moreLabel = f.moreLabel || "Р•С‰С‘";
+  const moreHref = f.moreHref || "/blog";
+
+  const events: EventCard[] =
+    Array.isArray(f.items) && f.items.length > 0
+      ? f.items.map((item, i) => {
+          const def = DEFAULT_EVENTS[i] ?? DEFAULT_EVENTS[0];
+          return {
+            city: item.city || def.city,
+            age: item.age || def.age,
+            price: item.price || def.price,
+            artist: item.artist || def.artist,
+            date: item.date || def.date,
+            venue: item.venue || def.venue,
+            color: item.color || def.color,
+            bgColor: item.bgColor,
+            image: item.image,
+            href: item.href,
+            textColor: item.textColor,
+          };
+        })
+      : DEFAULT_EVENTS;
+
+  const handleEventClick = (event: EventCard) => {
+    if (!event.href) return;
+    if (event.href.startsWith("http")) {
+      window.open(event.href, "_blank", "noopener,noreferrer");
+    } else {
+      navigate(event.href);
+    }
+  };
+
+  const eventBgStyle = (event: EventCard) => {
+    const img = typeof event.image === "string" ? event.image.trim() : "";
+    if (img) return cmsBgStyle(undefined, mediaOrFallback(img, img));
+    if (event.bgColor?.trim()) return { background: event.bgColor.trim() };
+    return undefined;
+  };
+
+  const eventBgClass = (event: EventCard) => {
+    if (event.image?.trim() || event.bgColor?.trim()) return undefined;
+    return `bg-gradient-to-br ${event.color}`;
+  };
+
+  // Р”РµСЃРєС‚РѕРї РєРѕРЅС„РёРі
+  const desktopVisibleCount = 3;
+  const desktopCardWidthPercent = 100.1 / desktopVisibleCount;
+  
+  // Build clones for seamless loop: tail + original + head (РґР»СЏ РґРµСЃРєС‚РѕРїР°)
+  const desktopTrackItems = useMemo(() => {
+    const head = events.slice(0, desktopVisibleCount);
+    const tail = events.slice(-desktopVisibleCount);
+    return [...tail, ...events, ...head];
+  }, [events]);
+
+  const totalOriginal = events.length;
+  const desktopStartAt = desktopVisibleCount;
+  
+  // Р”РµСЃРєС‚РѕРї СЃРѕСЃС‚РѕСЏРЅРёРµ
+  const [desktopCurrent, setDesktopCurrent] = useState(desktopStartAt);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [slideWidthPx, setSlideWidthPx] = useState(0);
+
+  // РњРѕР±РёР»СЊРЅРѕРµ СЃРѕСЃС‚РѕСЏРЅРёРµ - РїСЂРѕСЃС‚Р°СЏ Р»РѕРіРёРєР°
+  const [mobileCurrent, setMobileCurrent] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const mobileTrackRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      if (containerRef.current) {
+        const w = containerRef.current.offsetWidth;
+        setSlideWidthPx(w / desktopVisibleCount);
+      }
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const goToDesktop = (next: number) => {
+    setIsAnimating(true);
+    setDesktopCurrent(next);
+  };
+
+  const handlePrev = () => {
+    if (isMobile) {
+      setMobileCurrent((prev) => Math.max(0, prev - 1));
+    } else {
+      goToDesktop(desktopCurrent - 1);
+    }
+  };
+  
+  const handleNext = () => {
+    if (isMobile) {
+      setMobileCurrent((prev) => Math.min(events.length - 1, prev + 1));
+    } else {
+      goToDesktop(desktopCurrent + 1);
+    }
+  };
+
+  // РћР±СЂР°Р±РѕС‚С‡РёРєРё РґР»СЏ swipe РЅР° РјРѕР±РёР»СЊРЅРѕР№ РІРµСЂСЃРёРё
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const minSwipeDistance = 50; // РњРёРЅРёРјР°Р»СЊРЅРѕРµ СЂР°СЃСЃС‚РѕСЏРЅРёРµ РґР»СЏ СЃРІР°Р№РїР°
+
+    if (distance > minSwipeDistance) {
+      // Swipe left - СЃР»РµРґСѓСЋС‰Р°СЏ РєР°СЂС‚РѕС‡РєР°
+      setMobileCurrent((prev) => Math.min(events.length - 1, prev + 1));
+    }
+    
+    if (distance < -minSwipeDistance) {
+      // Swipe right - РїСЂРµРґС‹РґСѓС‰Р°СЏ РєР°СЂС‚РѕС‡РєР°
+      setMobileCurrent((prev) => Math.max(0, prev - 1));
+    }
+    
+    // РЎР±СЂР°СЃС‹РІР°РµРј Р·РЅР°С‡РµРЅРёСЏ
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
+  const handleTransitionEnd = () => {
+    setIsAnimating(false);
+    if (!isMobile) {
+      // Р”РµСЃРєС‚РѕРї Р»РѕРіРёРєР°
+      if (desktopCurrent < desktopVisibleCount) {
+        const snap = desktopCurrent + totalOriginal;
+        setDesktopCurrent(snap);
+        if (trackRef.current) {
+          trackRef.current.style.transition = "none";
+          trackRef.current.style.transform = `translateX(-${(snap - desktopStartAt) * slideWidthPx}px)`;
+          void trackRef.current.offsetHeight;
+          trackRef.current.style.transition = "transform 500ms ease";
+        }
+      } else if (desktopCurrent >= totalOriginal + desktopVisibleCount) {
+        const snap = desktopCurrent - totalOriginal;
+        setDesktopCurrent(snap);
+        if (trackRef.current) {
+          trackRef.current.style.transition = "none";
+          trackRef.current.style.transform = `translateX(-${(snap - desktopStartAt) * slideWidthPx}px)`;
+          void trackRef.current.offsetHeight;
+          trackRef.current.style.transition = "transform 500ms ease";
+        }
+      }
+    }
+  };
+
+  return (
+    <CmsEditable sectionId="events">
+    <section className={sectionShellClass(surface, "pt-20 pb-12 md:py-20")}>
+      {/* Р”РµРєРѕСЂР°С‚РёРІРЅС‹Рµ Р¶РµР»С‚С‹Рµ РїСЏС‚РЅР° */}
+      {surface === "brand" && (
+      <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
+        {/* Р›РµРІРѕРµ РїСЏС‚РЅРѕ - РѕС‚ С†РµРЅС‚СЂР° РїРѕРґРЅРёРјР°РµРјСЃСЏ РІРІРµСЂС… РЅР° 30px */}
+        <div 
+          className="absolute rounded-full blur-3xl"
+          style={{
+            width: '400px',
+            height: '400px',
+            left: '-150px',
+            top: 'calc(50% - 30px)',
+            transform: 'translateY(-50%)',
+            background: '#F9B84F',
+            opacity: 0.3,
+          }}
+        />
+        {/* РџСЂР°РІРѕРµ РїСЏС‚РЅРѕ - РѕС‚ С†РµРЅС‚СЂР° РѕРїСѓСЃРєР°РµРјСЃСЏ РІРЅРёР· РЅР° 30px */}
+        <div 
+          className="absolute rounded-full blur-3xl"
+          style={{
+            width: '400px',
+            height: '400px',
+            right: '-100px',
+            top: 'calc(50% + 30px)',
+            transform: 'translateY(-50%)',
+            background: '#F9B84F',
+            opacity: 0.3,
+          }}
+        />
+      </div>
+      )}
+      <div className="container relative z-10">
+        <div className="text-center md:flex md:justify-between md:items-center mb-8">
+          <div className="md:text-left">
+            <h2
+              className={cmsHeadingClass(
+                f.titleColor,
+                "heading-gradient text-3xl md:text-4xl lg:text-5xl font-extrabold mb-2 leading-tight pb-2 tracking-tight"
+              )}
+              style={cmsColorStyle(f.titleColor)}
+            >
+              {sectionTitle}
+            </h2>
+            <p className={sectionLeadClass(surface)} style={cmsColorStyle(f.subtitleColor)}>
+              {sectionSubtitle}
+            </p>
+          </div>
+          <Button 
+            variant="ghost" 
+            className={cn(
+              "hidden md:flex items-center gap-2",
+              surface === "light" && "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+            )}
+            onClick={() => {
+              if (moreHref.startsWith("http")) {
+                window.open(moreHref, "_blank", "noopener,noreferrer");
+              } else {
+                navigate(moreHref);
+              }
+            }}
+          >
+            {moreLabel} <ArrowRight className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Р”РµСЃРєС‚РѕРї РІРµСЂСЃРёСЏ - 3 РєР°СЂС‚РѕС‡РєРё (РќР• РўР РћР“РђР•Рњ) */}
+        <div className="hidden md:block relative">
+          <div className="overflow-hidden" ref={containerRef}>
+            <div
+              ref={trackRef}
+              className="flex"
+              style={{
+                transform: `translateX(-${(desktopCurrent - desktopStartAt) * slideWidthPx}px)`,
+                transition: isAnimating ? "transform 500ms ease" : undefined,
+              }}
+              onTransitionEnd={handleTransitionEnd}
+            >
+              {desktopTrackItems.map((event, index) => (
+                <div
+                  key={`${event.city}-${index}`}
+                  className="pr-6 flex-shrink-0"
+                  style={{ minWidth: `${desktopCardWidthPercent}%` }}
+                >
+                  <div 
+                    className="group relative overflow-hidden rounded-2xl aspect-[3/4] cursor-pointer transition-transform duration-300"
+                    onClick={() => handleEventClick(event)}
+                  >
+                    <div
+                      className={cn("absolute inset-0", eventBgClass(event))}
+                      style={eventBgStyle(event)}
+                    >
+                      <div className="absolute inset-0 bg-black/20"></div>
+                    </div>
+
+                    <div
+                      className="relative h-full p-6 flex flex-col justify-between text-white"
+                      style={cmsColorStyle(event.textColor)}
+                    >
+                      <div className="flex justify-between items-start">
+                        <h3 className="text-3xl font-bold">{event.city}</h3>
+                        <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm">{event.age}</span>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-4xl font-bold">{event.price}</p>
+                        <p className="text-xl font-semibold">{event.artist}</p>
+                        <p className="text-sm opacity-90">{event.date} вЂў {event.venue}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <CarouselNavButton direction="prev" onClick={handlePrev} />
+          <CarouselNavButton direction="next" onClick={handleNext} />
+        </div>
+
+        {/* РњРѕР±РёР»СЊРЅР°СЏ РІРµСЂСЃРёСЏ - РєР°СЂСѓСЃРµР»СЊ РўРћР›Р¬РљРћ РґР»СЏ РјРѕР±РёР»СЊРЅС‹С… (РѕРґРЅР° РєР°СЂС‚РѕС‡РєР°) */}
+        <div className="md:hidden relative overflow-hidden px-2">
+          <div 
+            className="relative w-full overflow-hidden"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div 
+              ref={mobileTrackRef}
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{
+                transform: `translateX(-${mobileCurrent * 100}%)`,
+              }}
+            >
+              {events.map((event, index) => (
+                <div
+                  key={`${event.city}-${index}`}
+                  onClick={() => handleEventClick(event)}
+                  className={cn(
+                    "flex-shrink-0 w-full",
+                    "group relative rounded-3xl overflow-hidden",
+                    "bg-card border-2 border-transparent",
+                    "transition-all duration-500 ease-out",
+                    "cursor-pointer",
+                    sectionCardLiftClass(surface)
+                  )}
+                >
+                  {/* РР·РѕР±СЂР°Р¶РµРЅРёРµ/РіСЂР°РґРёРµРЅС‚ */}
+                  <div className="relative h-64 overflow-hidden">
+                    <div
+                      className={cn("absolute inset-0", eventBgClass(event))}
+                      style={eventBgStyle(event)}
+                    >
+                      <div className="absolute inset-0 bg-black/30"></div>
+                    </div>
+                    
+                    {/* Р’РѕР·СЂР°СЃС‚РЅРѕРµ РѕРіСЂР°РЅРёС‡РµРЅРёРµ */}
+                    <div className="absolute top-4 right-4">
+                      <span className="bg-white/90 text-foreground px-3 py-1.5 rounded-full text-sm font-medium shadow-lg">{event.age}</span>
+                    </div>
+                  </div>
+
+                  {/* РљРѕРЅС‚РµРЅС‚ */}
+                  <div className="p-6" style={cmsColorStyle(event.textColor)}>
+                    {/* Р“РѕСЂРѕРґ */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-lg font-semibold text-foreground">
+                        {event.city}
+                      </span>
+                    </div>
+
+                    {/* РђСЂС‚РёСЃС‚ */}
+                    <p className="text-base text-foreground mb-4">
+                      {event.artist}
+                    </p>
+
+                    {/* Р”Р°С‚Р° Рё РјРµСЃС‚Рѕ */}
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {event.date} вЂў {event.venue}
+                    </p>
+
+                    {/* Р¦РµРЅР° */}
+                    <div className="flex items-baseline gap-3">
+                      <span className="text-2xl font-extrabold text-foreground">
+                        {event.price} в‚Ѕ
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* РРЅРґРёРєР°С‚РѕСЂС‹ РґР»СЏ РјРѕР±РёР»СЊРЅРѕР№ РІРµСЂСЃРёРё */}
+          <div className="flex justify-center gap-2 mt-4 mb-4">
+            {events.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setMobileCurrent(index)}
+                className={carouselDotClass(surface, index === mobileCurrent)}
+                aria-label={`РџРµСЂРµР№С‚Рё Рє РєР°СЂС‚РѕС‡РєРµ ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+    </CmsEditable>
+  );
+};
+
+export default EventsSection;
+
+
+========== FILE: src\components\blog\StoriesCarousel.tsx ==========
+
+import { useState, useEffect, useMemo, useRef } from "react";
+import { StoryData } from "@/data/blogData";
+import { CarouselNavButton } from "@/components/ui/carousel-nav-button";
+import StoryModal from "./StoryModal";
+import { cn } from "@/lib/utils";
+
+interface StoriesCarouselProps {
+  stories: StoryData[];
+}
+
+const StoriesCarousel = ({ stories }: StoriesCarouselProps) => {
+  const [selectedStory, setSelectedStory] = useState<StoryData | null>(null);
+  const [visibleCount, setVisibleCount] = useState(3);
+  const [slideWidthPx, setSlideWidthPx] = useState(0);
+  const [current, setCurrent] = useState(visibleCount); // РќР°С‡РёРЅР°РµРј СЃ visibleCount (РїРµСЂРІС‹Р№ РѕСЂРёРіРёРЅР°Р»СЊРЅС‹Р№ СЌР»РµРјРµРЅС‚)
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // РћРїСЂРµРґРµР»СЏРµРј РєРѕР»РёС‡РµСЃС‚РІРѕ РІРёРґРёРјС‹С… РєР°СЂС‚РѕС‡РµРє РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ СЂР°Р·РјРµСЂР° СЌРєСЂР°РЅР°
+  useEffect(() => {
+    const updateVisibleCount = () => {
+      if (window.innerWidth < 768) {
+        setVisibleCount(1);
+      } else if (window.innerWidth < 1024) {
+        setVisibleCount(2);
+      } else {
+        setVisibleCount(3);
+      }
+    };
+
+    updateVisibleCount();
+    window.addEventListener('resize', updateVisibleCount);
+    return () => window.removeEventListener('resize', updateVisibleCount);
+  }, []);
+
+  // Р’С‹С‡РёСЃР»СЏРµРј С€РёСЂРёРЅСѓ СЃР»Р°Р№РґР°
+  useEffect(() => {
+    const update = () => {
+      const w = containerRef.current?.offsetWidth ?? 0;
+      setSlideWidthPx(w / visibleCount);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [visibleCount]);
+
+  // РЎРѕР·РґР°РµРј РєР»РѕРЅС‹ РґР»СЏ Р±РµСЃРєРѕРЅРµС‡РЅРѕРіРѕ С†РёРєР»Р°: [tail, ...original, head]
+  const trackItems = useMemo(() => {
+    const head = stories.slice(0, visibleCount);
+    const tail = stories.slice(-visibleCount);
+    return [...tail, ...stories, ...head];
+  }, [stories, visibleCount]);
+
+  const totalOriginal = stories.length;
+  const startAt = visibleCount; // РќР°С‡Р°Р»СЊРЅР°СЏ РїРѕР·РёС†РёСЏ (РїРµСЂРІС‹Р№ РѕСЂРёРіРёРЅР°Р»СЊРЅС‹Р№ СЌР»РµРјРµРЅС‚)
+
+  // РћР±РЅРѕРІР»СЏРµРј current РїСЂРё РёР·РјРµРЅРµРЅРёРё visibleCount
+  useEffect(() => {
+    setCurrent(visibleCount);
+  }, [visibleCount]);
+
+  const goTo = (next: number) => {
+    setIsAnimating(true);
+    setCurrent(next);
+  };
+
+  const handlePrev = () => goTo(current - 1);
+  const handleNext = () => goTo(current + 1);
+
+  // Р’С‹С‡РёСЃР»СЏРµРј С‚РµРєСѓС‰РёР№ РёРЅРґРµРєСЃ РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ С‚РѕС‡РµРє (РЅРѕСЂРјР°Р»РёР·РѕРІР°РЅРЅС‹Р№)
+  const getCurrentIndex = () => {
+    if (current < visibleCount) {
+      return current + stories.length;
+    } else if (current >= stories.length + visibleCount) {
+      return current - stories.length;
+    }
+    return current - visibleCount;
+  };
+
+  const currentIndex = getCurrentIndex();
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance) {
+      // Swipe left - СЃР»РµРґСѓСЋС‰Р°СЏ РєР°СЂС‚РѕС‡РєР°
+      handleNext();
+    }
+    
+    if (distance < -minSwipeDistance) {
+      // Swipe right - РїСЂРµРґС‹РґСѓС‰Р°СЏ РєР°СЂС‚РѕС‡РєР°
+      handlePrev();
+    }
+    
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
+  const goToIndex = (index: number) => {
+    goTo(index + visibleCount);
+  };
+
+  const handleTransitionEnd = () => {
+    setIsAnimating(false);
+    if (current < visibleCount) {
+      // РџРµСЂРµС€Р»Рё РІ Р»РµРІС‹Рµ РєР»РѕРЅС‹ -> РїРµСЂРµРєР»СЋС‡Р°РµРјСЃСЏ РЅР° СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РёР№ РѕСЂРёРіРёРЅР°Р»СЊРЅС‹Р№ СЌР»РµРјРµРЅС‚
+      const snap = current + totalOriginal;
+      setCurrent(snap);
+      if (trackRef.current) {
+        trackRef.current.style.transition = "none";
+        trackRef.current.style.transform = `translateX(-${(snap - startAt) * slideWidthPx}px)`;
+        void trackRef.current.offsetHeight; // РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅС‹Р№ reflow
+        trackRef.current.style.transition = "transform 500ms ease";
+      }
+    } else if (current >= totalOriginal + visibleCount) {
+      // РџРµСЂРµС€Р»Рё РІ РїСЂР°РІС‹Рµ РєР»РѕРЅС‹ -> РїРµСЂРµРєР»СЋС‡Р°РµРјСЃСЏ РЅР° СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РёР№ РѕСЂРёРіРёРЅР°Р»СЊРЅС‹Р№ СЌР»РµРјРµРЅС‚
+      const snap = current - totalOriginal;
+      setCurrent(snap);
+      if (trackRef.current) {
+        trackRef.current.style.transition = "none";
+        trackRef.current.style.transform = `translateX(-${(snap - startAt) * slideWidthPx}px)`;
+        void trackRef.current.offsetHeight; // РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅС‹Р№ reflow
+        trackRef.current.style.transition = "transform 500ms ease";
+      }
+    }
+  };
+
+  const cardWidthPercent = 100.1 / visibleCount;
+
+  return (
+    <>
+      <div className="relative">
+        <div 
+          className="overflow-hidden" 
+          ref={containerRef} 
+          style={{ padding: '4px 0' }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div
+            ref={trackRef}
+            className="flex"
+            style={{
+              transform: `translateX(-${(current - startAt) * slideWidthPx}px)`,
+              transition: isAnimating ? "transform 500ms ease" : undefined,
+            }}
+            onTransitionEnd={handleTransitionEnd}
+          >
+            {trackItems.map((story, index) => (
+              <div
+                key={`${story.id}-${index}`}
+                className="pr-4 flex-shrink-0 cursor-pointer group"
+                style={{ 
+                  width: `${cardWidthPercent}%`,
+                  minWidth: `${cardWidthPercent}%`,
+                }}
+                onClick={() => setSelectedStory(story)}
+              >
+                <div className="story-card-border">
+                  <div className="relative w-full h-[500px] rounded-3xl overflow-hidden bg-white">
+                    <img
+                      src={story.images[0]}
+                      alt={story.city}
+                      className="w-full h-full object-cover"
+                    />
+                    {/* РљР°РїСЃСѓР»Р° СЃ С‚РµРєСЃС‚РѕРј */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+                      <div className="rounded-full bg-white/90 backdrop-blur-sm px-4 py-2">
+                        <p className="text-sm font-medium text-foreground whitespace-nowrap">
+                          {story.text}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* РќР°РІРёРіР°С†РёРѕРЅРЅС‹Рµ РєРЅРѕРїРєРё */}
+        <CarouselNavButton direction="prev" onClick={handlePrev} />
+        <CarouselNavButton direction="next" onClick={handleNext} />
+
+        {/* РРЅРґРёРєР°С‚РѕСЂС‹ РґР»СЏ СЃС‚РѕСЂРёСЃ */}
+        <div className="flex justify-center gap-2 mt-4 mb-4">
+          {stories.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToIndex(index)}
+              className={cn(
+                "h-2 rounded-full transition-all duration-300",
+                index === currentIndex
+                  ? "bg-primary w-8"
+                  : "bg-primary/50 w-2"
+              )}
+              aria-label={`РџРµСЂРµР№С‚Рё Рє РёСЃС‚РѕСЂРёРё ${index + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* РњРѕРґР°Р»СЊРЅРѕРµ РѕРєРЅРѕ СЃС‚РѕСЂРёСЃР° */}
+      {selectedStory && (
+        <StoryModal
+          story={selectedStory}
+          onClose={() => setSelectedStory(null)}
+        />
+      )}
+    </>
+  );
+};
+
+export default StoriesCarousel;
+
+
+
+
+========== FILE: src\components\blog\StoryModal.tsx ==========
+
+import { useEffect, useState } from "react";
+import { StoryData } from "@/data/blogData";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface StoryModalProps {
+  story: StoryData;
+  onClose: () => void;
+}
+
+const StoryModal = ({ story, onClose }: StoryModalProps) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    // РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРµ РїРµСЂРµР»РёСЃС‚С‹РІР°РЅРёРµ
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          // РџРµСЂРµС…РѕРґ Рє СЃР»РµРґСѓСЋС‰РµРјСѓ РёР·РѕР±СЂР°Р¶РµРЅРёСЋ
+          setCurrentImageIndex((idx) => {
+            const next = idx + 1;
+            if (next >= story.images.length) {
+              // Р•СЃР»Рё РїРѕСЃР»РµРґРЅРµРµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ, Р·Р°РєСЂС‹РІР°РµРј РјРѕРґР°Р»РєСѓ
+              onClose();
+              return 0;
+            }
+            return next;
+          });
+          return 0;
+        }
+        return prev + (100 / 30); // 3 СЃРµРєСѓРЅРґС‹ = 30 РёРЅС‚РµСЂРІР°Р»РѕРІ РїРѕ 100ms
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [story.images.length, onClose]);
+
+  // РЎР±СЂРѕСЃ РїСЂРѕРіСЂРµСЃСЃР° РїСЂРё СЃРјРµРЅРµ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
+  useEffect(() => {
+    setProgress(0);
+  }, [currentImageIndex]);
+
+  const handleNext = () => {
+    if (currentImageIndex < story.images.length - 1) {
+      setCurrentImageIndex((prev) => prev + 1);
+    } else {
+      onClose();
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentImageIndex > 0) {
+      setCurrentImageIndex((prev) => prev - 1);
+    }
+  };
+
+  const handleProgressClick = (index: number) => {
+    setCurrentImageIndex(index);
+    setProgress(0);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div className="relative w-full max-w-[420px] aspect-[9/16]">
+        {/* РљРЅРѕРїРєР° Р·Р°РєСЂС‹С‚РёСЏ - РІС‹РЅРµСЃРµРЅР° Р·Р° РїСЂРµРґРµР»С‹ СЃС‚РѕСЂРёСЃР° */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute -top-12 right-0 bg-black/60 hover:bg-black/80 rounded-full p-2 text-white z-10"
+          onClick={onClose}
+        >
+          <X className="w-5 h-5" />
+        </Button>
+
+        <div
+          className="relative w-full h-full rounded-3xl overflow-hidden bg-black"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Р¤РѕРЅРѕРІРѕРµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ СЃ СЂР°Р·РјС‹С‚РёРµРј */}
+          <div className="absolute inset-0">
+            <img
+              src={story.images[currentImageIndex]}
+              alt={story.city}
+              className="w-full h-full object-cover blur-lg opacity-50"
+            />
+          </div>
+
+          {/* РћСЃРЅРѕРІРЅРѕР№ РєРѕРЅС‚РµР№РЅРµСЂ */}
+          <div className="relative w-full h-full flex flex-col">
+            {/* РРЅРґРёРєР°С‚РѕСЂ РїСЂРѕРіСЂРµСЃСЃР° СЃ РіСЂР°РґРёРµРЅС‚РѕРј */}
+            <div className="flex gap-1 p-3">
+              {story.images.map((_, index) => (
+                <div
+                  key={index}
+                  className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden cursor-pointer"
+                  onClick={() => handleProgressClick(index)}
+                >
+                  <div
+                    className="h-full transition-all duration-100 story-progress-gradient"
+                    style={{
+                      width: index === currentImageIndex ? `${progress}%` : index < currentImageIndex ? '100%' : '0%',
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* РћСЃРЅРѕРІРЅРѕРµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ */}
+            <div className="flex-1 relative">
+              <img
+                src={story.images[currentImageIndex]}
+                alt={story.city}
+                className="w-full h-full object-cover"
+              />
+              
+              {/* Р“СЂР°РґРёРµРЅС‚ СЃРЅРёР·Сѓ */}
+              <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+              
+              {/* РўРµРєСЃС‚ */}
+              <div className="absolute bottom-6 left-4 right-4 text-white">
+                <h3 className="text-xl font-bold mb-1">{story.city}</h3>
+                <p className="text-sm opacity-90">{story.text}</p>
+              </div>
+            </div>
+
+            {/* РќР°РІРёРіР°С†РёСЏ РїРѕ РєР»РёРєСѓ */}
+            <div className="absolute inset-0 flex">
+              <div
+                className="flex-1 cursor-pointer"
+                onClick={handlePrev}
+              />
+              <div
+                className="flex-1 cursor-pointer"
+                onClick={handleNext}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default StoryModal;
+
+
+
+
+========== FILE: src\pages\Index.tsx ==========
+
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { PageCmsProvider } from "@/contexts/PageCmsContext";
+import { useMergedPublishedPage } from "@/hooks/usePageContent";
+import { renderPageSections } from "@/components/cms/PageSectionRenderer";
+import { Loader2 } from "lucide-react";
+
+const Index = () => {
+  const { content, isLoading } = useMergedPublishedPage("home");
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" aria-hidden />
+      </div>
+    );
+  }
+
+  return (
+    <PageCmsProvider pageKey="home" content={content}>
+      <div className="min-h-screen bg-white">
+        <Header />
+        <main className="hero-under-header">{renderPageSections("home", content)}</main>
+        <Footer />
+      </div>
+    </PageCmsProvider>
+  );
+};
+
+export default Index;
+
+
+
+========== FILE: src\content\pages\home.defaults.ts ==========
+
+import type { PageContentDocument } from "@/types/pageContent";
+import blogImage from "@/assets/images/features/РЅР° Р±Р»РѕРі.png";
+
+export const HOME_SECTION_ORDER = [
+  "hero",
+  "features",
+  "recommendedTrains",
+  "routesSection",
+  "events",
+  "inspiration",
+  "testimonials",
+  "support",
+  "blogInvite",
+  "verified",
+] as const;
+
+export const homePageDefaults: PageContentDocument = {
+  version: 1,
+  sectionOrder: [...HOME_SECTION_ORDER],
+  sections: {
+    hero: {
+      visible: true,
+      fields: {
+        title: "РџСѓС‚РµС€РµСЃС‚РІРёРµ СЌС‚Рѕ Р»РµРіРєРѕ!",
+        titleColor: "",
+        videoTrain: "",
+        videoFlight: "",
+        videoBus: "",
+      },
+    },
+    features: {
+      visible: true,
+      fields: {
+        title: "РџРѕС‡РµРјСѓ РІС‹Р±РёСЂР°СЋС‚ TudaSuda?",
+        subtitle: "Р’СЃС‘ РґР»СЏ РєРѕРјС„РѕСЂС‚РЅРѕРіРѕ РїСѓС‚РµС€РµСЃС‚РІРёСЏ С‚СѓРґР° Рё РѕР±СЂР°С‚РЅРѕ",
+        titleColor: "",
+        subtitleColor: "",
+        items: [
+          {
+            title: "Р’СЃС‘ РІ РѕРґРЅРѕРј РјРµСЃС‚Рµ",
+            description: "РџРѕРёСЃРє, Р±СЂРѕРЅРёСЂРѕРІР°РЅРёРµ Рё РѕРїР»Р°С‚Р° Р·Р° РјРёРЅСѓС‚С‹",
+            fullDescription:
+              "TudaSuda РѕР±СЉРµРґРёРЅСЏРµС‚ РІСЃРµ РЅРµРѕР±С…РѕРґРёРјС‹Рµ С„СѓРЅРєС†РёРё РґР»СЏ РїСѓС‚РµС€РµСЃС‚РІРёР№ РІ РѕРґРЅРѕРј СѓРґРѕР±РЅРѕРј РёРЅС‚РµСЂС„РµР№СЃРµ. Р’С‹ РјРѕР¶РµС‚Рµ РЅР°Р№С‚Рё Р±РёР»РµС‚С‹, РІС‹Р±СЂР°С‚СЊ РјРµСЃС‚Р°, РѕРїР»Р°С‚РёС‚СЊ Р·Р°РєР°Р· Рё РїРѕР»СѓС‡РёС‚СЊ СЌР»РµРєС‚СЂРѕРЅРЅС‹Рµ Р±РёР»РµС‚С‹ вЂ” РІСЃС‘ СЌС‚Рѕ Р±РµР· РїРµСЂРµС…РѕРґР° РЅР° РґСЂСѓРіРёРµ СЃР°Р№С‚С‹. РќР°С€ СЃРµСЂРІРёСЃ СЂР°Р±РѕС‚Р°РµС‚ СЃ Р¶/Рґ, Р°РІРёР° Рё Р°РІС‚РѕР±СѓСЃРЅС‹РјРё РїРµСЂРµРІРѕР·С‡РёРєР°РјРё, РїСЂРµРґРѕСЃС‚Р°РІР»СЏСЏ РµРґРёРЅСѓСЋ С‚РѕС‡РєСѓ РґРѕСЃС‚СѓРїР° РєРѕ РІСЃРµРј РІРёРґР°Рј С‚СЂР°РЅСЃРїРѕСЂС‚Р°.",
+            bgColor: "",
+            iconBgColor: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            title: "Р›СѓС‡С€Р°СЏ С†РµРЅР°",
+            description: "Р“Р°СЂР°РЅС‚РёСЂСѓРµРј РІС‹РіРѕРґРЅС‹Рµ С‚Р°СЂРёС„С‹ Р±РµР· СЃРєСЂС‹С‚С‹С… РїР»Р°С‚РµР¶РµР№",
+            fullDescription:
+              "РњС‹ СЃСЂР°РІРЅРёРІР°РµРј С†РµРЅС‹ СЃРѕ РІСЃРµС… РґРѕСЃС‚СѓРїРЅС‹С… РёСЃС‚РѕС‡РЅРёРєРѕРІ Рё РіР°СЂР°РЅС‚РёСЂСѓРµРј, С‡С‚Рѕ РІС‹ РїРѕР»СѓС‡РёС‚Рµ Р»СѓС‡С€СѓСЋ С†РµРЅСѓ РЅР° СЂС‹РЅРєРµ. РџСЂРѕР·СЂР°С‡РЅС‹Рµ С‚Р°СЂРёС„С‹ Р±РµР· СЃРєСЂС‹С‚С‹С… РєРѕРјРёСЃСЃРёР№ Рё РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… РїР»Р°С‚РµР¶РµР№. Р•СЃР»Рё РІС‹ РЅР°Р№РґС‘С‚Рµ РґРµС€РµРІР»Рµ РЅР° РґСЂСѓРіРѕРј СЃР°Р№С‚Рµ вЂ” РјС‹ РІРµСЂРЅС‘Рј СЂР°Р·РЅРёС†Сѓ. РќР°С€Р° СЃРёСЃС‚РµРјР° Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РѕС‚СЃР»РµР¶РёРІР°РµС‚ РёР·РјРµРЅРµРЅРёСЏ С†РµРЅ Рё РїСЂРµРґР»Р°РіР°РµС‚ РЅР°РёР±РѕР»РµРµ РІС‹РіРѕРґРЅС‹Рµ РІР°СЂРёР°РЅС‚С‹.",
+            bgColor: "",
+            iconBgColor: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            title: "РџРѕРґРґРµСЂР¶РєР° 24/7",
+            description: "РџРѕРјРѕРіР°РµРј РІ Р»СЋР±РѕРµ РІСЂРµРјСЏ, РѕС‚РІРµС‡Р°РµРј Р·Р° 2 РјРёРЅСѓС‚С‹",
+            fullDescription:
+              "РќР°С€Р° СЃР»СѓР¶Р±Р° РїРѕРґРґРµСЂР¶РєРё СЂР°Р±РѕС‚Р°РµС‚ РєСЂСѓРіР»РѕСЃСѓС‚РѕС‡РЅРѕ, СЃРµРјСЊ РґРЅРµР№ РІ РЅРµРґРµР»СЋ. РњС‹ РїРѕРјРѕРіР°РµРј СЃ Р±СЂРѕРЅРёСЂРѕРІР°РЅРёРµРј, РёР·РјРµРЅРµРЅРёСЏРјРё, РІРѕР·РІСЂР°С‚Р°РјРё Рё Р»СЋР±С‹РјРё РІРѕРїСЂРѕСЃР°РјРё. РЎСЂРµРґРЅРµРµ РІСЂРµРјСЏ РѕС‚РІРµС‚Р° вЂ” РјРµРЅРµРµ 2 РјРёРЅСѓС‚. РЎ РЅР°РјРё РјРѕР¶РЅРѕ СЃРІСЏР·Р°С‚СЊСЃСЏ С‡РµСЂРµР· С‡Р°С‚, С‚РµР»РµС„РѕРЅ РёР»Рё email. РќР°С€Рё СЃРїРµС†РёР°Р»РёСЃС‚С‹ РІСЃРµРіРґР° РіРѕС‚РѕРІС‹ РїРѕРјРѕС‡СЊ РІР°Рј СЃ Р»СЋР±С‹РјРё РІРѕРїСЂРѕСЃР°РјРё, СЃРІСЏР·Р°РЅРЅС‹РјРё СЃ РїСѓС‚РµС€РµСЃС‚РІРёСЏРјРё.",
+            bgColor: "",
+            iconBgColor: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            title: "Р­Р»РµРєС‚СЂРѕРЅРЅС‹Рµ Р±РёР»РµС‚С‹",
+            description: "РњРіРЅРѕРІРµРЅРЅР°СЏ РІС‹РґР°С‡Р° Рё Р±С‹СЃС‚СЂР°СЏ СЂРµРіРёСЃС‚СЂР°С†РёСЏ",
+            fullDescription:
+              "РџРѕР»СѓС‡РёС‚Рµ СЌР»РµРєС‚СЂРѕРЅРЅС‹Рµ Р±РёР»РµС‚С‹ РјРіРЅРѕРІРµРЅРЅРѕ РїРѕСЃР»Рµ РѕРїР»Р°С‚С‹. РќРµ РЅСѓР¶РЅРѕ Р¶РґР°С‚СЊ РґРѕСЃС‚Р°РІРєРё РёР»Рё РёРґС‚Рё РІ РєР°СЃСЃСѓ вЂ” Р±РёР»РµС‚С‹ РїСЂРёС…РѕРґСЏС‚ РЅР° РІР°С€Сѓ РїРѕС‡С‚Сѓ Рё СЃРѕС…СЂР°РЅСЏСЋС‚СЃСЏ РІ Р»РёС‡РЅРѕРј РєР°Р±РёРЅРµС‚Рµ. Р‘С‹СЃС‚СЂР°СЏ СЂРµРіРёСЃС‚СЂР°С†РёСЏ РЅР° СЂРµР№СЃ РїСЂСЏРјРѕ С‡РµСЂРµР· РЅР°С€ СЃРµСЂРІРёСЃ. Р’СЃРµ РґРѕРєСѓРјРµРЅС‚С‹ С…СЂР°РЅСЏС‚СЃСЏ РІ Р±РµР·РѕРїР°СЃРЅРѕРј РѕР±Р»Р°С‡РЅРѕРј С…СЂР°РЅРёР»РёС‰Рµ, РґРѕСЃС‚СѓРї Рє РєРѕС‚РѕСЂРѕРјСѓ Сѓ РІР°СЃ РµСЃС‚СЊ РІ Р»СЋР±РѕРµ РІСЂРµРјСЏ.",
+            bgColor: "",
+            iconBgColor: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            title: "Р“РѕС‚РѕРІС‹Рµ РјР°СЂС€СЂСѓС‚С‹",
+            description: "РџСЂРѕРІРµСЂРµРЅРЅС‹Рµ РјР°СЂС€СЂСѓС‚С‹ РїРѕ РІСЃРµР№ Р РѕСЃСЃРёРё",
+            fullDescription:
+              "РњС‹ РїСЂРµРґР»Р°РіР°РµРј РіРѕС‚РѕРІС‹Рµ РјР°СЂС€СЂСѓС‚С‹ РїРѕ СЂРµРіРёРѕРЅР°Рј Р РѕСЃСЃРёРё, РєРѕС‚РѕСЂС‹Рµ Р±С‹Р»Рё РїСЂРѕРІРµСЂРµРЅС‹ С‚СЂРµРІРµР»-Р±Р»РѕРіРµСЂР°РјРё Рё Р¶СѓСЂРЅР°Р»РёСЃС‚Р°РјРё. РљР°Р¶РґС‹Р№ РјР°СЂС€СЂСѓС‚ РІРєР»СЋС‡Р°РµС‚ РїРѕРґСЂРѕР±РЅСѓСЋ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ РґРѕСЃС‚РѕРїСЂРёРјРµС‡Р°С‚РµР»СЊРЅРѕСЃС‚СЏС…, СѓРґРѕР±СЃС‚РІР°С… Рё СЃРѕРІРµС‚С‹ РѕС‚ РѕРїС‹С‚РЅС‹С… РїСѓС‚РµС€РµСЃС‚РІРµРЅРЅРёРєРѕРІ. Р’С‹ РјРѕР¶РµС‚Рµ РІС‹Р±СЂР°С‚СЊ РіРѕС‚РѕРІС‹Р№ РјР°СЂС€СЂСѓС‚ РёР»Рё СЃРѕР·РґР°С‚СЊ СЃРІРѕР№ СЃРѕР±СЃС‚РІРµРЅРЅС‹Р№ РЅР° РѕСЃРЅРѕРІРµ РЅР°С€РёС… СЂРµРєРѕРјРµРЅРґР°С†РёР№.",
+            bgColor: "",
+            iconBgColor: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            title: "РџСѓС‚РµРІРѕРґРёС‚РµР»Рё",
+            description: "РџРѕРґСЂРѕР±РЅС‹Рµ РѕР±Р·РѕСЂС‹ РіРѕСЂРѕРґРѕРІ Рё РґРѕСЃС‚РѕРїСЂРёРјРµС‡Р°С‚РµР»СЊРЅРѕСЃС‚РµР№",
+            fullDescription:
+              "РџРѕРґСЂРѕР±РЅС‹Рµ РїСѓС‚РµРІРѕРґРёС‚РµР»Рё СЃ РѕР±Р·РѕСЂР°РјРё РіРѕСЂРѕРґРѕРІ Рё РґРѕСЃС‚РѕРїСЂРёРјРµС‡Р°С‚РµР»СЊРЅРѕСЃС‚РµР№ РїРѕРјРѕРіСѓС‚ РІР°Рј СЃРїР»Р°РЅРёСЂРѕРІР°С‚СЊ РёРґРµР°Р»СЊРЅРѕРµ РїСѓС‚РµС€РµСЃС‚РІРёРµ. РњС‹ СЃРѕР±СЂР°Р»Рё РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ Р»СѓС‡С€РёС… РјРµСЃС‚Р°С… РґР»СЏ РїРѕСЃРµС‰РµРЅРёСЏ, СЂРµСЃС‚РѕСЂР°РЅР°С…, РѕС‚РµР»СЏС… Рё СЂР°Р·РІР»РµС‡РµРЅРёСЏС…. РќР°С€Рё РїСѓС‚РµРІРѕРґРёС‚РµР»Рё СЂРµРіСѓР»СЏСЂРЅРѕ РѕР±РЅРѕРІР»СЏСЋС‚СЃСЏ Рё СЃРѕРґРµСЂР¶Р°С‚ Р°РєС‚СѓР°Р»СЊРЅСѓСЋ РёРЅС„РѕСЂРјР°С†РёСЋ РѕС‚ РјРµСЃС‚РЅС‹С… СЌРєСЃРїРµСЂС‚РѕРІ Рё РїСѓС‚РµС€РµСЃС‚РІРµРЅРЅРёРєРѕРІ.",
+            bgColor: "",
+            iconBgColor: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+        ],
+      },
+    },
+    recommendedTrains: {
+      visible: true,
+      fields: {
+        title: "Р“РѕСЂСЏС‰РёРµ РЅР°РїСЂР°РІР»РµРЅРёСЏ",
+        subtitle: "РЎРїРµС†РёР°Р»СЊРЅС‹Рµ РїСЂРµРґР»РѕР¶РµРЅРёСЏ Рё СЃРєРёРґРєРё РЅР° РїРѕРїСѓР»СЏСЂРЅС‹Рµ РјР°СЂС€СЂСѓС‚С‹",
+        titleColor: "",
+        subtitleColor: "",
+        items: [
+          {
+            from: "РњРѕСЃРєРІР°",
+            to: "РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі",
+            image: "",
+            oldPrice: "3 500 в‚Ѕ",
+            newPrice: "2 800 в‚Ѕ",
+            discount: 20,
+            tag: "РџРѕРїСѓР»СЏСЂРЅРѕ",
+            description: "Р‘С‹СЃС‚СЂРѕРµ Рё РєРѕРјС„РѕСЂС‚РЅРѕРµ РїСѓС‚РµС€РµСЃС‚РІРёРµ",
+            href: "",
+          },
+          {
+            from: "РњРѕСЃРєРІР°",
+            to: "РљР°Р·Р°РЅСЊ",
+            image: "",
+            oldPrice: "4 200 в‚Ѕ",
+            newPrice: "2 940 в‚Ѕ",
+            discount: 30,
+            tag: "Р“РѕСЂСЏС‰РµРµ",
+            description: "РЎРєРёРґРєР° РЅР° Р±РёР»РµС‚С‹ РґРѕ РєРѕРЅС†Р° РјРµСЃСЏС†Р°",
+            href: "",
+          },
+          {
+            from: "РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі",
+            to: "РњРѕСЃРєРІР°",
+            image: "",
+            oldPrice: "3 800 в‚Ѕ",
+            newPrice: "3 040 в‚Ѕ",
+            discount: 20,
+            tag: "РџРѕРїСѓР»СЏСЂРЅРѕ",
+            description: "Р•Р¶РµРґРЅРµРІРЅС‹Рµ СЂРµР№СЃС‹",
+            href: "",
+          },
+          {
+            from: "РњРѕСЃРєРІР°",
+            to: "Р’РµР»РёРєРёР№ РќРѕРІРіРѕСЂРѕРґ",
+            image: "",
+            oldPrice: "2 500 в‚Ѕ",
+            newPrice: "1 500 в‚Ѕ",
+            discount: 40,
+            tag: "Р‘СЋРґР¶РµС‚РЅРѕ",
+            description: "РћС‚Р»РёС‡РЅР°СЏ С†РµРЅР° РґР»СЏ РїСѓС‚РµС€РµСЃС‚РІРёСЏ",
+            href: "",
+          },
+          {
+            from: "РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі",
+            to: "РљР°СЂРµР»РёСЏ",
+            image: "",
+            oldPrice: "3 200 в‚Ѕ",
+            newPrice: "2 240 в‚Ѕ",
+            discount: 30,
+            tag: "Р­РєСЃРєСѓСЂСЃРёРё",
+            description: "РљСЂР°СЃРёРІС‹Рµ РїРµР№Р·Р°Р¶Рё Рё РїСЂРёСЂРѕРґР°",
+            href: "",
+          },
+          {
+            from: "РњРѕСЃРєРІР°",
+            to: "РЎРѕС‡Рё",
+            image: "",
+            oldPrice: "5 500 в‚Ѕ",
+            newPrice: "3 850 в‚Ѕ",
+            discount: 30,
+            tag: "Р“РѕСЂСЏС‰РµРµ",
+            description: "РћС‚РґС‹С… Сѓ РјРѕСЂСЏ РїРѕ РІС‹РіРѕРґРЅРѕР№ С†РµРЅРµ",
+            href: "",
+          },
+          {
+            from: "РљР°Р·Р°РЅСЊ",
+            to: "РњРѕСЃРєРІР°",
+            image: "",
+            oldPrice: "4 000 в‚Ѕ",
+            newPrice: "2 800 в‚Ѕ",
+            discount: 30,
+            tag: "РџРѕРїСѓР»СЏСЂРЅРѕ",
+            description: "РљРѕРјС„РѕСЂС‚РЅС‹Рµ РїРѕРµР·РґР°",
+            href: "",
+          },
+          {
+            from: "РњРѕСЃРєРІР°",
+            to: "РќРёР¶РЅРёР№ РќРѕРІРіРѕСЂРѕРґ",
+            image: "",
+            oldPrice: "2 800 в‚Ѕ",
+            newPrice: "1 680 в‚Ѕ",
+            discount: 40,
+            tag: "Р‘СЋРґР¶РµС‚РЅРѕ",
+            description: "Р­РєРѕРЅРѕРјРёСЏ РґРѕ 40%",
+            href: "",
+          },
+        ],
+      },
+    },
+    routesSection: {
+      visible: true,
+      fields: {
+        title: "РџРѕРїСѓР»СЏСЂРЅС‹Рµ РЅР°РїСЂР°РІР»РµРЅРёСЏ",
+        subtitle: "РЎР°РјС‹Рµ РІРѕСЃС‚СЂРµР±РѕРІР°РЅРЅС‹Рµ РјР°СЂС€СЂСѓС‚С‹ СЃ Р°РєС‚СѓР°Р»СЊРЅС‹РјРё С†РµРЅР°РјРё",
+        titleColor: "",
+        subtitleColor: "",
+        routes: [
+          {
+            from: "РњРѕСЃРєРІР°",
+            to: "РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі",
+            minPrice: 2950,
+            isPopular: true,
+            duration: "3С‡ 55Рј",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+          {
+            from: "РњРѕСЃРєРІР°",
+            to: "РљР°Р·Р°РЅСЊ",
+            minPrice: 1850,
+            isPopular: true,
+            duration: "11С‡ 30Рј",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+          {
+            from: "РњРѕСЃРєРІР°",
+            to: "РќРёР¶РЅРёР№ РќРѕРІРіРѕСЂРѕРґ",
+            minPrice: 650,
+            isPopular: false,
+            duration: "3С‡ 40Рј",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+          {
+            from: "РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі",
+            to: "РњРѕСЃРєРІР°",
+            minPrice: 2950,
+            isPopular: true,
+            duration: "3С‡ 55Рј",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+          {
+            from: "РљР°Р·Р°РЅСЊ",
+            to: "РњРѕСЃРєРІР°",
+            minPrice: 1850,
+            isPopular: false,
+            duration: "11С‡ 30Рј",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+          {
+            from: "РўРІРµСЂСЊ",
+            to: "РњРѕСЃРєРІР°",
+            minPrice: 550,
+            isPopular: false,
+            duration: "1С‡ 40Рј",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+          {
+            from: "РњРѕСЃРєРІР°",
+            to: "РЎРѕС‡Рё",
+            minPrice: 2500,
+            isPopular: true,
+            duration: "24С‡",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+        ],
+      },
+    },
+    events: {
+      visible: true,
+      fields: {
+        title: "РџРѕРІРѕРґ РґР»СЏ РїСѓС‚РµС€РµСЃС‚РІРёСЏ",
+        subtitle: "10 СЃРѕР±С‹С‚РёР№, СЂР°РґРё РєРѕС‚РѕСЂС‹С… СЃС‚РѕРёС‚ СЂРѕРІРЅСѓС‚СЊ РІ РїСѓС‚СЊ",
+        moreLabel: "Р•С‰С‘",
+        moreHref: "/blog",
+        titleColor: "",
+        subtitleColor: "",
+        items: [
+          {
+            city: "РљСЂР°СЃРЅРѕРґР°СЂ",
+            age: "12+",
+            price: "РѕС‚ 2500",
+            artist: "ARTIC & ASTI",
+            date: "23 РѕРєС‚СЏР±СЂСЏ",
+            venue: "Р›РµРґРѕРІС‹Р№ РґРІРѕСЂРµС†",
+            color: "from-red-900 to-red-700",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "РљР°Р·Р°РЅСЊ",
+            age: "18+",
+            price: "РѕС‚ 2500",
+            artist: "Anna Asti. РЁРѕСѓ В«Р¦Р°СЂРёС†Р°В»",
+            date: "9 РЅРѕСЏР±СЂСЏ",
+            venue: "РўР°С‚РЅРµС„С‚СЊ РђСЂРµРЅР°",
+            color: "from-pink-700 to-pink-500",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "РџРµС‚РµСЂР±СѓСЂРі",
+            age: "12+",
+            price: "РѕС‚ 2500",
+            artist: "Р‘Р°СЃС‚Р°",
+            date: "20 РґРµРєР°Р±СЂСЏ",
+            venue: "Р“Р°Р·РїСЂРѕРј РђСЂРµРЅР°",
+            color: "from-orange-800 to-blue-900",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "РњРѕСЃРєРІР°",
+            age: "16+",
+            price: "РѕС‚ 3000",
+            artist: "РЎРµСЂРіРµР№ Р›Р°Р·Р°СЂРµРІ",
+            date: "5 РЅРѕСЏР±СЂСЏ",
+            venue: "Crocus City Hall",
+            color: "from-purple-900 to-purple-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "Р•РєР°С‚РµСЂРёРЅР±СѓСЂРі",
+            age: "18+",
+            price: "РѕС‚ 2800",
+            artist: "РњР°РєСЃ РљРѕСЂР¶",
+            date: "15 РЅРѕСЏР±СЂСЏ",
+            venue: "РљР Рљ РЈСЂР°Р»РµС†",
+            color: "from-blue-900 to-blue-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "РќРёР¶РЅРёР№ РќРѕРІРіРѕСЂРѕРґ",
+            age: "12+",
+            price: "РѕС‚ 2200",
+            artist: "Р—РµРјС„РёСЂР°",
+            date: "18 РЅРѕСЏР±СЂСЏ",
+            venue: "РљР— РќР°РіРѕСЂРЅС‹Р№",
+            color: "from-green-900 to-green-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "РќРѕРІРѕСЃРёР±РёСЂСЃРє",
+            age: "16+",
+            price: "РѕС‚ 2600",
+            artist: "Р‘Рё-2",
+            date: "25 РЅРѕСЏР±СЂСЏ",
+            venue: "Р”РІРѕСЂРµС† РЎРїРѕСЂС‚Р°",
+            color: "from-yellow-900 to-yellow-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "РЎРѕС‡Рё",
+            age: "18+",
+            price: "РѕС‚ 3500",
+            artist: "РњРѕС‚",
+            date: "1 РґРµРєР°Р±СЂСЏ",
+            venue: "Р¤РµСЃС‚РёРІР°Р»СЊРЅС‹Р№",
+            color: "from-teal-900 to-teal-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "РЈС„Р°",
+            age: "12+",
+            price: "РѕС‚ 2400",
+            artist: "РџРѕР»РёРЅР° Р“Р°РіР°СЂРёРЅР°",
+            date: "8 РґРµРєР°Р±СЂСЏ",
+            venue: "РљРѕРЅРіСЂРµСЃСЃ-РҐРѕР»Р»",
+            color: "from-indigo-900 to-indigo-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "Р’Р»Р°РґРёРІРѕСЃС‚РѕРє",
+            age: "16+",
+            price: "РѕС‚ 2900",
+            artist: "РњРѕРЅРµС‚РѕС‡РєР°",
+            date: "12 РґРµРєР°Р±СЂСЏ",
+            venue: "Р¤РµС‚РёСЃРѕРІ РђСЂРµРЅР°",
+            color: "from-rose-900 to-rose-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+        ],
+      },
+    },
+    inspiration: {
+      visible: true,
+      fields: {
+        title: "Р’РґРѕС…РЅРѕРІРµРЅРёРµ РґР»СЏ СЃР»РµРґСѓСЋС‰РµР№ РїРѕРµР·РґРєРё",
+        subtitle: "РќР°Р№РґРёС‚Рµ РёРґРµРё Рё РЅР°РїСЂР°РІР»РµРЅРёСЏ",
+        titleColor: "",
+        subtitleColor: "",
+        items: [
+          {
+            name: "Р”СѓС€РµРІРЅР°СЏ РђСЂРјРµРЅРёСЏ",
+            description: "Р•СЂРµРІР°РЅ, РЎРµРІР°РЅ Рё РґСЂРµРІРЅРёРµ РјРѕРЅР°СЃС‚С‹СЂРё",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "РћС‚РїСѓСЃРє РІ РљРёС‚Р°Рµ",
+            description: "Р§С‚Рѕ СЃС‚РѕРёС‚ Р·РЅР°С‚СЊ РїРµСЂРµРґ РїРµСЂРІРѕР№ РїРѕРµР·РґРєРѕР№",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "РњР°СЂС€СЂСѓС‚ РїРѕ РљР°СЂРµР»РёРё",
+            description: "Р“Р»Р°РІРЅС‹Рµ РјРµСЃС‚Р° РґР»СЏ Р·РЅР°РєРѕРјСЃС‚РІР° СЃ СЂРµСЃРїСѓР±Р»РёРєРѕР№",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "Р—РѕР»РѕС‚РѕРµ РєРѕР»СЊС†Рѕ Р РѕСЃСЃРёРё",
+            description: "Р”СЂРµРІРЅРёРµ РіРѕСЂРѕРґР° Рё РїСЂР°РІРѕСЃР»Р°РІРЅС‹Рµ СЃРІСЏС‚С‹РЅРё",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "Р‘Р°Р№РєР°Р» Р·РёРјРѕР№",
+            description: "РќРµРІРµСЂРѕСЏС‚РЅР°СЏ РєСЂР°СЃРѕС‚Р° Р»РµРґСЏРЅРѕРіРѕ РѕР·РµСЂР°",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "РљР°РјС‡Р°С‚РєР°",
+            description: "Р’СѓР»РєР°РЅС‹, РіРµР№Р·РµСЂС‹ Рё РґРёРєР°СЏ РїСЂРёСЂРѕРґР°",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "РђР»С‚Р°Р№",
+            description: "Р“РѕСЂС‹, РѕР·С‘СЂР° Рё Р±РµСЃРєСЂР°Р№РЅРёРµ СЃС‚РµРїРё",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "РљСЂС‹Рј",
+            description: "Р®Р¶РЅРѕРµ РїРѕР±РµСЂРµР¶СЊРµ Рё РіРѕСЂРЅС‹Рµ С‚СЂРѕРїС‹",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "РЇРєСѓС‚РёСЏ",
+            description: "РџРѕР»СЋСЃ С…РѕР»РѕРґР° Рё СЃРµРІРµСЂРЅРѕРµ СЃРёСЏРЅРёРµ",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "РљР°РІРєР°Р·",
+            description: "Р­Р»СЊР±СЂСѓСЃ Рё РіРѕСЂРЅС‹Рµ Р°СѓР»С‹",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+        ],
+      },
+    },
+    testimonials: {
+      visible: true,
+      fields: {
+        title: "Р–РёРІС‹Рµ РёСЃС‚РѕСЂРёРё РїСѓС‚РµС€РµСЃС‚РІРёР№",
+        subtitle: "Р РµР°Р»СЊРЅС‹Рµ Р»СЋРґРё, СЂРµР°Р»СЊРЅС‹Рµ СЌРјРѕС†РёРё, СЂРµР°Р»СЊРЅС‹Рµ РїСѓС‚РµС€РµСЃС‚РІРёСЏ",
+        titleColor: "",
+        subtitleColor: "",
+        items: [
+          {
+            id: 1,
+            name: "РњР°СЂРёРЅР°",
+            avatar: "",
+            photo: "",
+            text: "Р’РѕС‚ С‚Р°РєРѕР№ РІРёРґ РёР· РѕРєРЅР° РїРѕРµР·РґР° РњРѕСЃРєРІР° вЂ” РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі",
+            route: "РњРѕСЃРєРІР° в†’ РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі",
+            date: "15 РЅРѕСЏР±СЂСЏ 2024",
+            body: "Р’РѕС‚ С‚Р°РєРѕР№ РІРёРґ РёР· РѕРєРЅР° РїРѕРµР·РґР° РњРѕСЃРєРІР° вЂ” РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі",
+            gallery: [],
+          },
+          {
+            id: 2,
+            name: "РђР»РµРєСЃРµР№",
+            avatar: "",
+            photo: "",
+            text: "РџРѕРµР·РґРєР° РїСЂРѕС€Р»Р° РёРґРµР°Р»СЊРЅРѕ, Р±СѓРґСѓ РµР·РґРёС‚СЊ С‡РµСЂРµР· TudaSuda!",
+            route: "РњРѕСЃРєРІР° в†’ РљР°Р·Р°РЅСЊ",
+            date: "12 РЅРѕСЏР±СЂСЏ 2024",
+            body: "РџРѕРµР·РґРєР° РїСЂРѕС€Р»Р° РёРґРµР°Р»СЊРЅРѕ, Р±СѓРґСѓ РµР·РґРёС‚СЊ С‡РµСЂРµР· TudaSuda!",
+            gallery: [],
+          },
+          {
+            id: 3,
+            name: "Р•Р»РµРЅР°",
+            avatar: "",
+            photo: "",
+            text: "РЈРґРѕР±РЅС‹Рµ РјРµСЃС‚Р°, С‡РёСЃС‚Рѕ, РєРѕРјС„РѕСЂС‚РЅРѕ. Р’СЃС‘ РєР°Рє РЅР° С„РѕС‚Рѕ!",
+            route: "РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі в†’ РњРѕСЃРєРІР°",
+            date: "10 РЅРѕСЏР±СЂСЏ 2024",
+            body: "РЈРґРѕР±РЅС‹Рµ РјРµСЃС‚Р°, С‡РёСЃС‚Рѕ, РєРѕРјС„РѕСЂС‚РЅРѕ. Р’СЃС‘ РєР°Рє РЅР° С„РѕС‚Рѕ!",
+            gallery: [],
+          },
+          {
+            id: 4,
+            name: "Р”РјРёС‚СЂРёР№",
+            avatar: "",
+            photo: "",
+            text: "РќРµРІРµСЂРѕСЏС‚РЅС‹Рµ РІРёРґС‹! РџРѕРµР·РґРєР° РЅР° Р‘Р°Р№РєР°Р» вЂ” СЌС‚Рѕ С‡С‚Рѕ-С‚Рѕ РѕСЃРѕР±РµРЅРЅРѕРµ",
+            route: "РСЂРєСѓС‚СЃРє в†’ Р‘Р°Р№РєР°Р»",
+            date: "8 РЅРѕСЏР±СЂСЏ 2024",
+            body: "РќРµРІРµСЂРѕСЏС‚РЅС‹Рµ РІРёРґС‹! РџРѕРµР·РґРєР° РЅР° Р‘Р°Р№РєР°Р» вЂ” СЌС‚Рѕ С‡С‚Рѕ-С‚Рѕ РѕСЃРѕР±РµРЅРЅРѕРµ",
+            gallery: [],
+          },
+          {
+            id: 5,
+            name: "РђРЅРЅР°",
+            avatar: "",
+            photo: "",
+            text: "РћС‚Р»РёС‡РЅР°СЏ С†РµРЅР° Рё СЃРµСЂРІРёСЃ. Р РµРєРѕРјРµРЅРґСѓСЋ РІСЃРµРј РґСЂСѓР·СЊСЏРј!",
+            route: "РњРѕСЃРєРІР° в†’ Р’РµР»РёРєРёР№ РќРѕРІРіРѕСЂРѕРґ",
+            date: "5 РЅРѕСЏР±СЂСЏ 2024",
+            body: "РћС‚Р»РёС‡РЅР°СЏ С†РµРЅР° Рё СЃРµСЂРІРёСЃ. Р РµРєРѕРјРµРЅРґСѓСЋ РІСЃРµРј РґСЂСѓР·СЊСЏРј!",
+            gallery: [],
+          },
+          {
+            id: 6,
+            name: "РЎРµСЂРіРµР№",
+            avatar: "",
+            photo: "",
+            text: "Р”Р°Р»СЊРЅРµРІРѕСЃС‚РѕС‡РЅС‹Рµ РїСЂРёРєР»СЋС‡РµРЅРёСЏ РЅР°С‡Р°Р»РёСЃСЊ! Р’Р»Р°РґРёРІРѕСЃС‚РѕРє Р¶РґС‘С‚",
+            route: "РњРѕСЃРєРІР° в†’ Р’Р»Р°РґРёРІРѕСЃС‚РѕРє",
+            date: "3 РЅРѕСЏР±СЂСЏ 2024",
+            body: "Р”Р°Р»СЊРЅРµРІРѕСЃС‚РѕС‡РЅС‹Рµ РїСЂРёРєР»СЋС‡РµРЅРёСЏ РЅР°С‡Р°Р»РёСЃСЊ! Р’Р»Р°РґРёРІРѕСЃС‚РѕРє Р¶РґС‘С‚",
+            gallery: [],
+          },
+          {
+            id: 7,
+            name: "РћР»СЊРіР°",
+            avatar: "",
+            photo: "",
+            text: "Р•РІСЂРѕРїРµР№СЃРєРёР№ РєРѕР»РѕСЂРёС‚ РІ Р РѕСЃСЃРёРё. РљР°Р»РёРЅРёРЅРіСЂР°Рґ вЂ” СЌС‚Рѕ РјР°РіРёСЏ!",
+            route: "РњРѕСЃРєРІР° в†’ РљР°Р»РёРЅРёРЅРіСЂР°Рґ",
+            date: "1 РЅРѕСЏР±СЂСЏ 2024",
+            body: "Р•РІСЂРѕРїРµР№СЃРєРёР№ РєРѕР»РѕСЂРёС‚ РІ Р РѕСЃСЃРёРё. РљР°Р»РёРЅРёРЅРіСЂР°Рґ вЂ” СЌС‚Рѕ РјР°РіРёСЏ!",
+            gallery: [],
+          },
+          {
+            id: 8,
+            name: "РРІР°РЅ",
+            avatar: "",
+            photo: "",
+            text: "РљСЂР°СЃРёРІС‹Рµ РїРµР№Р·Р°Р¶Рё РљР°СЂРµР»РёРё. РџСЂРёСЂРѕРґР° Р·РґРµСЃСЊ РїСЂРѕСЃС‚Рѕ РїРѕС‚СЂСЏСЃР°СЋС‰Р°СЏ",
+            route: "РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі в†’ РљР°СЂРµР»РёСЏ",
+            date: "29 РѕРєС‚СЏР±СЂСЏ 2024",
+            body: "РљСЂР°СЃРёРІС‹Рµ РїРµР№Р·Р°Р¶Рё РљР°СЂРµР»РёРё. РџСЂРёСЂРѕРґР° Р·РґРµСЃСЊ РїСЂРѕСЃС‚Рѕ РїРѕС‚СЂСЏСЃР°СЋС‰Р°СЏ",
+            gallery: [],
+          },
+          {
+            id: 9,
+            name: "РўР°С‚СЊСЏРЅР°",
+            avatar: "",
+            photo: "",
+            text: "Р‘С‹СЃС‚СЂРѕ, СѓРґРѕР±РЅРѕ, Р±РµР· РїСЂРѕР±Р»РµРј. TudaSuda вЂ” РјРѕР№ РІС‹Р±РѕСЂ!",
+            route: "РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі в†’ РњРѕСЃРєРІР°",
+            date: "27 РѕРєС‚СЏР±СЂСЏ 2024",
+            body: "Р‘С‹СЃС‚СЂРѕ, СѓРґРѕР±РЅРѕ, Р±РµР· РїСЂРѕР±Р»РµРј. TudaSuda вЂ” РјРѕР№ РІС‹Р±РѕСЂ!",
+            gallery: [],
+          },
+          {
+            id: 10,
+            name: "РњРёС…Р°РёР»",
+            avatar: "",
+            photo: "",
+            text: "Р‘РµР»С‹Рµ РЅРѕС‡Рё РІ РџРёС‚РµСЂРµ. Р­С‚Рѕ РЅСѓР¶РЅРѕ РІРёРґРµС‚СЊ СЃРІРѕРёРјРё РіР»Р°Р·Р°РјРё!",
+            route: "РњРѕСЃРєРІР° в†’ РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі",
+            date: "25 РѕРєС‚СЏР±СЂСЏ 2024",
+            body: "Р‘РµР»С‹Рµ РЅРѕС‡Рё РІ РџРёС‚РµСЂРµ. Р­С‚Рѕ РЅСѓР¶РЅРѕ РІРёРґРµС‚СЊ СЃРІРѕРёРјРё РіР»Р°Р·Р°РјРё!",
+            gallery: [],
+          },
+          {
+            id: 11,
+            name: "РќР°С‚Р°Р»СЊСЏ",
+            avatar: "",
+            photo: "",
+            text: "РљРѕРјС„РѕСЂС‚РЅР°СЏ РїРѕРµР·РґРєР°, РѕС‚Р»РёС‡РЅС‹Р№ СЃРµСЂРІРёСЃ. РћР±СЏР·Р°С‚РµР»СЊРЅРѕ РІРµСЂРЅСѓСЃСЊ!",
+            route: "РњРѕСЃРєРІР° в†’ РЎРѕС‡Рё",
+            date: "23 РѕРєС‚СЏР±СЂСЏ 2024",
+            body: "РљРѕРјС„РѕСЂС‚РЅР°СЏ РїРѕРµР·РґРєР°, РѕС‚Р»РёС‡РЅС‹Р№ СЃРµСЂРІРёСЃ. РћР±СЏР·Р°С‚РµР»СЊРЅРѕ РІРµСЂРЅСѓСЃСЊ!",
+            gallery: [],
+          },
+        ],
+      },
+    },
+    support: {
+      visible: true,
+      fields: {
+        title: "РЈРјРЅС‹Р№ Р±РѕС‚-РїРѕРјРѕС‰РЅРёРє 24/7",
+        subtitle: "Р РµС€Р°РµРј РІРѕРїСЂРѕСЃС‹ Р±С‹СЃС‚СЂРѕ Рё СЌС„С„РµРєС‚РёРІРЅРѕ, СЂР°Р±РѕС‚Р°РµРј РєСЂСѓРіР»РѕСЃСѓС‚РѕС‡РЅРѕ",
+        titleColor: "",
+        subtitleColor: "",
+        textColor: "",
+        description1:
+          "РќР°С€ СѓРјРЅС‹Р№ Р±РѕС‚-РїРѕРјРѕС‰РЅРёРє РёСЃРїРѕР»СЊР·СѓРµС‚ С‚РµС…РЅРѕР»РѕРіРёРё РёСЃРєСѓСЃСЃС‚РІРµРЅРЅРѕРіРѕ РёРЅС‚РµР»Р»РµРєС‚Р° РґР»СЏ Р±С‹СЃС‚СЂРѕРіРѕ СЂРµС€РµРЅРёСЏ РІР°С€РёС… РІРѕРїСЂРѕСЃРѕРІ. РћРЅ РїРѕРЅРёРјР°РµС‚ РєРѕРЅС‚РµРєСЃС‚, РїРѕРјРЅРёС‚ РёСЃС‚РѕСЂРёСЋ РґРёР°Р»РѕРіР° Рё РјРѕР¶РµС‚ РїРѕРјРѕС‡СЊ СЃ РІС‹Р±РѕСЂРѕРј Р±РёР»РµС‚РѕРІ, РјР°СЂС€СЂСѓС‚РѕРІ Рё РїР»Р°РЅРёСЂРѕРІР°РЅРёРµРј РїСѓС‚РµС€РµСЃС‚РІРёР№.",
+        description2:
+          "Р•СЃР»Рё Р±РѕС‚ РЅРµ СЃРјРѕР¶РµС‚ СЂРµС€РёС‚СЊ РІРѕРїСЂРѕСЃ СЃР°РјРѕСЃС‚РѕСЏС‚РµР»СЊРЅРѕ, РѕРЅ РјРіРЅРѕРІРµРЅРЅРѕ РїРѕРґРєР»СЋС‡РёС‚ Р¶РёРІРѕРіРѕ РѕРїРµСЂР°С‚РѕСЂР°, РєРѕС‚РѕСЂС‹Р№ РїСЂРѕРґРѕР»Р¶РёС‚ РґРёР°Р»РѕРі Р±РµР· РїРѕС‚РµСЂРё РєРѕРЅС‚РµРєСЃС‚Р°. Р’СЃРµ РІР°С€Рё РґР°РЅРЅС‹Рµ Р·Р°С‰РёС‰РµРЅС‹ Рё РѕР±СЂР°Р±Р°С‚С‹РІР°СЋС‚СЃСЏ РІ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРё СЃ С‚СЂРµР±РѕРІР°РЅРёСЏРјРё Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё.",
+        contactHeading: "Р’С‹Р±РµСЂРёС‚Рµ СЃРїРѕСЃРѕР± СЃРІСЏР·Рё",
+        chatCta: "РћС‚РєСЂС‹С‚СЊ С‡Р°С‚ СЃ Р±РѕС‚РѕРј",
+      },
+    },
+    blogInvite: {
+      visible: true,
+      fields: {
+        badge: "Р”Р»СЏ С‡РёС‚Р°С‚РµР»РµР№",
+        title: "Р—Р°С‡РµРј С‡РёС‚Р°С‚СЊ Р±Р»РѕРі TudaSuda",
+        titleColor: "",
+        textColor: "",
+        paragraph1:
+          "РњС‹ РїРёС€РµРј Рѕ С‚РѕРј, РєР°Рє РїСЂРѕС‰Рµ РїР»Р°РЅРёСЂРѕРІР°С‚СЊ РїРѕРµР·РґРєРё РїРѕ Р РѕСЃСЃРёРё Рё Р·Р° РµС‘ РїСЂРµРґРµР»Р°С…: РѕС‚ РІС‹Р±РѕСЂР° Р±РёР»РµС‚РѕРІ Рё РѕС‚РµР»РµР№ РґРѕ РґРѕРєСѓРјРµРЅС‚РѕРІ Рё Р±СЋРґР¶РµС‚Р°. РЎС‚Р°С‚СЊРё СЂРµРґР°РєС†РёРё РѕСЃРЅРѕРІР°РЅС‹ РЅР° РѕРїС‹С‚Рµ РєРѕРјР°РЅРґС‹ Рё РѕР±СЂР°С‚РЅРѕР№ СЃРІСЏР·Рё РїР°СЃСЃР°Р¶РёСЂРѕРІ.",
+        paragraph2:
+          "Р‘Р»РѕРі РґРѕРїРѕР»РЅСЏРµС‚ СЃРїСЂР°РІРѕС‡РЅРёРє Рё РїСѓС‚РµРІРѕРґРёС‚РµР»СЊ: Р·РґРµСЃСЊ Р±РѕР»СЊС€Рµ РїСЂРѕ РёРґРµРё РґР»СЏ РїРѕРµР·РґРѕРє, РѕР±РЅРѕРІР»РµРЅРёСЏ СЃРµСЂРІРёСЃР° Рё РїСЂР°РєС‚РёС‡РЅС‹Рµ СЃРѕРІРµС‚С‹ РІ РѕРґРЅРѕРј РјРµСЃС‚Рµ.",
+        ctaLabel: "РџРµСЂРµР№С‚Рё РІ Р±Р»РѕРі",
+        ctaHref: "/blog",
+        image: blogImage, // Р’СЃС‚Р°РІСЊС‚Рµ РїСѓС‚СЊ Рє РєР°СЂС‚РёРЅРєРµ, РЅР°РїСЂРёРјРµСЂ: "/path/to/your/blog-image.png"
+      },
+    },
+    verified: {
+      visible: true,
+      fields: {
+        badgeLeft: "РџСЂРѕРІРµСЂРµРЅРѕ",
+        badgeRight: "TudaSuda",
+        title: "Р“РѕС‚РѕРІС‹Рµ РјР°СЂС€СЂСѓС‚С‹ РґР»СЏ РїСѓС‚РµС€РµСЃС‚РІРёР№",
+        titleColor: "",
+        description:
+          "РџСЂРѕРІРµСЂРµРЅРЅС‹Рµ С‚СЂРµРІРµР»-Р±Р»РѕРіРµСЂР°РјРё Рё Р¶СѓСЂРЅР°Р»РёСЃС‚Р°РјРё РјР°СЂС€СЂСѓС‚С‹ РїРѕ РІСЃРµР№ Р РѕСЃСЃРёРё. РљР°Р¶РґС‹Р№ РјР°СЂС€СЂСѓС‚ РІРєР»СЋС‡Р°РµС‚ РїРѕРґСЂРѕР±РЅСѓСЋ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ РґРѕСЃС‚РѕРїСЂРёРјРµС‡Р°С‚РµР»СЊРЅРѕСЃС‚СЏС… Рё СЃРѕРІРµС‚С‹ РѕС‚ РѕРїС‹С‚РЅС‹С… РїСѓС‚РµС€РµСЃС‚РІРµРЅРЅРёРєРѕРІ.",
+        descriptionColor: "",
+        ctaLabel: "Р’СЃРµ РјР°СЂС€СЂСѓС‚С‹",
+        ctaHref: "/routes/list",
+        polaroids: [],
+      },
+    },
+  },
+};
+
+
+
+========== FILE: src\types\pageContent.ts ==========
+
+/** Page CMS content model (Home + Routes landings). */
+
+export type PageKey = "home" | "routes";
+
+export type PageSectionId =
+  | "hero"
+  | "features"
+  | "recommendedTrains"
+  | "routesSection"
+  | "events"
+  | "inspiration"
+  | "testimonials"
+  | "support"
+  | "blogInvite"
+  | "verified"
+  | "heroRoutes"
+  | "routesHero"
+  | "regionsDay"
+  | "process"
+  | "photographers";
+
+export type PageSectionMeta = {
+  visible: boolean;
+  fields: Record<string, unknown>;
+};
+
+export type PageContentDocument = {
+  version: number;
+  sectionOrder: string[];
+  sections: Record<string, PageSectionMeta>;
+};
+
+export type HeroFields = {
+  title: string;
+  titleColor?: string;
+  videoTrain: string;
+  videoFlight: string;
+  videoBus: string;
+};
+
+export type FeaturesItemFields = {
+  title: string;
+  description: string;
+  fullDescription: string;
+  bgColor: string;
+  iconBgColor: string;
+  titleColor: string;
+  descriptionColor: string;
+};
+
+export type FeaturesFields = {
+  title: string;
+  subtitle: string;
+  titleColor: string;
+  subtitleColor: string;
+  items: FeaturesItemFields[];
+};
+
+export type RecommendedTrainItemFields = {
+  from: string;
+  to: string;
+  image: string;
+  oldPrice: string;
+  newPrice: string;
+  discount: number | string;
+  tag: string;
+  description: string;
+  href?: string;
+};
+
+export type RecommendedTrainsFields = {
+  title: string;
+  subtitle: string;
+  titleColor: string;
+  subtitleColor: string;
+  items: RecommendedTrainItemFields[];
+};
+
+export type RoutesSectionRouteFields = {
+  from: string;
+  to: string;
+  minPrice: number | string;
+  isPopular: boolean;
+  duration: string;
+  borderColor?: string;
+  textColor?: string;
+  priceColor?: string;
+};
+
+export type RoutesSectionFields = {
+  title: string;
+  subtitle: string;
+  titleColor: string;
+  subtitleColor: string;
+  routes: RoutesSectionRouteFields[];
+};
+
+export type EventsItemFields = {
+  city: string;
+  age: string;
+  price: string;
+  artist: string;
+  date: string;
+  venue: string;
+  color: string;
+  bgColor: string;
+  image: string;
+  href: string;
+  textColor: string;
+};
+
+export type EventsFields = {
+  title: string;
+  subtitle: string;
+  moreLabel: string;
+  moreHref: string;
+  titleColor: string;
+  subtitleColor: string;
+  items: EventsItemFields[];
+};
+
+export type InspirationItemFields = {
+  name: string;
+  description: string;
+  image: string;
+  href: string;
+  titleColor?: string;
+  descriptionColor?: string;
+};
+
+export type InspirationFields = {
+  title: string;
+  subtitle: string;
+  titleColor: string;
+  subtitleColor: string;
+  items: InspirationItemFields[];
+};
+
+export type TestimonialsItemFields = {
+  id: number | string;
+  name: string;
+  avatar: string;
+  photo: string;
+  text: string;
+  route: string;
+  date: string;
+  body: string;
+  gallery: string[];
+};
+
+export type TestimonialsFields = {
+  title: string;
+  subtitle: string;
+  titleColor: string;
+  subtitleColor: string;
+  items: TestimonialsItemFields[];
+};
+
+export type BlogInviteFields = {
+  badge: string;
+  title: string;
+  titleColor?: string;
+  textColor?: string;
+  paragraph1: string;
+  paragraph2: string;
+  ctaLabel: string;
+  ctaHref: string;
+  image?: string;
+};
+
+export type SupportFields = {
+  title: string;
+  titleColor?: string;
+  subtitle: string;
+  subtitleColor?: string;
+  textColor?: string;
+  description1: string;
+  description2: string;
+  contactHeading: string;
+  chatCta: string;
+};
+
+export type VerifiedFields = {
+  badgeLeft: string;
+  badgeRight: string;
+  title: string;
+  titleColor?: string;
+  description: string;
+  descriptionColor?: string;
+  ctaLabel: string;
+  ctaHref: string;
+  polaroids: { caption: string; image: string }[];
+};
+
+export type RoutesHeroFields = {
+  titleLine1: string;
+  titleLine2: string;
+  titleColor?: string;
+  videoUrl: string;
+  advantages: { number: string; title: string; description: string; textColor?: string }[];
+};
+
+export type HeroRouteCardFields = {
+  id: string;
+  title: string;
+  titleColor?: string;
+  description: string;
+  image: string;
+  hoverImage: string;
+  href: string;
+  routePageId: string;
+  /** Layout stays in code defaults; optional overrides rarely used */
+  lgWidth?: number;
+  lgHeight?: number;
+  lgLeft?: number;
+  lgTop?: number;
+};
+
+export type HeroRoutesFields = {
+  mobileTitleAccent: string;
+  mobileTitleRest: string;
+  cards: HeroRouteCardFields[];
+};
+
+export type DayItemKind = "route" | "blog" | "custom";
+
+export type DayCarouselItem = {
+  id: string;
+  kind: DayItemKind;
+  name: string;
+  image: string;
+  rating: number;
+  href: string;
+  /** CMS route page UUID or blog post UUID when kind is route/blog */
+  refId: string;
+};
+
+export type RegionsDayFields = {
+  titlePrefix: string;
+  titleAccent: string;
+  accentColor?: string;
+  items: DayCarouselItem[];
+};
+
+export type ProcessFields = {
+  title: string;
+  titleColor: string;
+  paragraph: string;
+  paragraphColor: string;
+  ctaLabel: string;
+  ctaHref: string;
+  image: string;
+  bottomText: string;
+  bottomColor: string;
+};
+
+export type PhotographerItemFields = {
+  name: string;
+  handle: string;
+  avatar: string;
+  image: string;
+  href?: string;
+};
+
+export type PhotographersFields = {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  titleColor: string;
+  subtitleColor: string;
+  eyebrowColor: string;
+  items: PhotographerItemFields[];
+};
+
+export const PAGE_CMS_PALETTE = [
+  "#100A6F",
+  "#3F3F7F",
+  "#867DFF",
+  "#2b47b4",
+  "#8a4cf0",
+  "#FFFFFF",
+  "#0F172A",
+  "#64748B",
+  "#FFD700",
+  "#F9C850",
+] as const;
+
+
+
+========== FILE: src\pages\admin\AdminPageEditor.tsx ==========
+
+import { useCallback, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PageCmsProvider } from "@/contexts/PageCmsContext";
+import {
+  getPageDefaults,
+  mergePageContent,
+  toPageOverrides,
+} from "@/lib/pageContentMerge";
+import { renderPageSections, SECTION_LABELS } from "@/components/cms/PageSectionRenderer";
+import { AdminPageSectionFields } from "@/pages/admin/AdminPageSectionFields";
+import type { PageContentDocument, PageKey } from "@/types/pageContent";
+import {
+  ArrowDown,
+  ArrowUp,
+  Eye,
+  EyeOff,
+  History,
+  Loader2,
+  Monitor,
+  Save,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type AdminPagePayload = {
+  pageKey: string;
+  draft: Partial<PageContentDocument>;
+  published: Partial<PageContentDocument>;
+  lock: {
+    lockedBy: string;
+    lockedAt: string;
+    email: string | null;
+    isMine: boolean;
+  } | null;
+  updatedAt: string;
+};
+
+type RevisionRow = {
+  id: string;
+  action: string;
+  section_id: string | null;
+  user_email: string | null;
+  created_at: string;
+};
+
+function isPageKey(v: string | undefined): v is PageKey {
+  return v === "home" || v === "routes";
+}
+
+export default function AdminPageEditor() {
+  const { pageKey: rawKey } = useParams();
+  const pageKey = isPageKey(rawKey) ? rawKey : null;
+  const qc = useQueryClient();
+  const [draft, setDraft] = useState<PageContentDocument | null>(null);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const pageQ = useQuery({
+    queryKey: ["admin-page", pageKey],
+    enabled: !!pageKey,
+    queryFn: () => apiFetch<AdminPagePayload>(`/api/admin/pages/${pageKey}`),
+  });
+
+  useEffect(() => {
+    if (!pageKey || !pageQ.data) return;
+    const merged = mergePageContent(getPageDefaults(pageKey), pageQ.data.draft);
+    setDraft(merged);
+    setSelectedSectionId((prev) => prev || merged.sectionOrder[0] || null);
+  }, [pageKey, pageQ.data]);
+
+  useEffect(() => {
+    if (!pageKey) return;
+    apiFetch(`/api/admin/pages/${pageKey}/lock`, { method: "POST" }).catch(() => {});
+    return () => {
+      apiFetch(`/api/admin/pages/${pageKey}/unlock`, { method: "POST" }).catch(() => {});
+    };
+  }, [pageKey]);
+
+  const revisionsQ = useQuery({
+    queryKey: ["admin-page-revisions", pageKey],
+    enabled: !!pageKey && showHistory,
+    queryFn: () =>
+      apiFetch<{ revisions: RevisionRow[] }>(`/api/admin/pages/${pageKey}/revisions`),
+  });
+
+  const saveMut = useMutation({
+    mutationFn: (doc: PageContentDocument) => {
+      const override = toPageOverrides(getPageDefaults(pageKey!), doc);
+      return apiFetch(`/api/admin/pages/${pageKey}/draft`, {
+        method: "PUT",
+        body: JSON.stringify({ draft: override }),
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-page", pageKey] });
+      qc.invalidateQueries({ queryKey: ["admin-page-revisions", pageKey] });
+    },
+  });
+
+  const publishMut = useMutation({
+    mutationFn: (doc: PageContentDocument) => {
+      const override = toPageOverrides(getPageDefaults(pageKey!), doc);
+      return apiFetch(`/api/admin/pages/${pageKey}/publish`, {
+        method: "POST",
+        body: JSON.stringify({ draft: override }),
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-page", pageKey] });
+      qc.invalidateQueries({ queryKey: ["page-content", pageKey] });
+      qc.invalidateQueries({ queryKey: ["admin-page-revisions", pageKey] });
+    },
+  });
+
+  const resetMut = useMutation({
+    mutationFn: (body: { scope: "page" | "section"; sectionId?: string }) =>
+      apiFetch<{ draft: Partial<PageContentDocument> }>(`/api/admin/pages/${pageKey}/reset`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    onSuccess: (data) => {
+      if (!pageKey) return;
+      setDraft(mergePageContent(getPageDefaults(pageKey), data.draft));
+      qc.invalidateQueries({ queryKey: ["admin-page", pageKey] });
+      qc.invalidateQueries({ queryKey: ["admin-page-revisions", pageKey] });
+    },
+  });
+
+  const restoreMut = useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<{ draft: Partial<PageContentDocument> }>(
+        `/api/admin/pages/${pageKey}/revisions/${id}/restore`,
+        { method: "POST" }
+      ),
+    onSuccess: (data) => {
+      if (!pageKey) return;
+      setDraft(mergePageContent(getPageDefaults(pageKey), data.draft));
+      qc.invalidateQueries({ queryKey: ["admin-page", pageKey] });
+    },
+  });
+
+  const onChange = useCallback((doc: PageContentDocument) => setDraft(doc), []);
+
+  if (!pageKey) {
+    return <p className="text-muted-foreground">РќРµРёР·РІРµСЃС‚РЅР°СЏ СЃС‚СЂР°РЅРёС†Р°</p>;
+  }
+
+  if (!isDesktop) {
+    return (
+      <div className="mx-auto max-w-md py-16 text-center">
+        <Monitor className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
+        <h1 className="text-xl font-semibold">РўРѕР»СЊРєРѕ desktop</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Р’РёР·СѓР°Р»СЊРЅС‹Р№ СЂРµРґР°РєС‚РѕСЂ СЃС‚СЂР°РЅРёС† РґРѕСЃС‚СѓРїРµРЅ РЅР° СЌРєСЂР°РЅР°С… РѕС‚ 1024px.
+        </p>
+        <Button asChild className="mt-6" variant="outline">
+          <Link to="/admin/dashboard">РќР°Р·Р°Рґ</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  if (pageQ.isLoading || !draft) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const lock = pageQ.data?.lock;
+  const lockedByOther = lock && !lock.isMine;
+  const title = pageKey === "home" ? "Р РµРґР°РєС‚РѕСЂ РіР»Р°РІРЅРѕР№" : "Р РµРґР°РєС‚РѕСЂ РјР°СЂС€СЂСѓС‚РѕРІ";
+
+  return (
+    <div className="-m-6 md:-m-8 flex h-[calc(100vh)] flex-col bg-muted/20">
+      <header className="flex shrink-0 items-center gap-3 border-b bg-card px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-lg font-semibold">{title}</h1>
+          {lock && (
+            <p className="text-xs text-muted-foreground">
+              Р‘Р»РѕРєРёСЂРѕРІРєР°: {lock.isMine ? "РІС‹" : lock.email || "РґСЂСѓРіРѕР№ Р°РґРјРёРЅ"}
+            </p>
+          )}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowHistory((v) => !v)}
+        >
+          <History className="mr-1 h-4 w-4" />
+          РСЃС‚РѕСЂРёСЏ
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={lockedByOther || resetMut.isPending}
+          onClick={() => {
+            if (window.confirm("РЎР±СЂРѕСЃРёС‚СЊ РІСЃСЋ СЃС‚СЂР°РЅРёС†Сѓ Рє РґРµС„РѕР»С‚Р°Рј РІ РєРѕРґРµ?")) {
+              resetMut.mutate({ scope: "page" });
+            }
+          }}
+        >
+          РЎР±СЂРѕСЃ СЃС‚СЂР°РЅРёС†С‹
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={lockedByOther || !draft || saveMut.isPending}
+          onClick={() => draft && saveMut.mutate(draft)}
+        >
+          {saveMut.isPending ? (
+            <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="mr-1 h-4 w-4" />
+          )}
+          Р§РµСЂРЅРѕРІРёРє
+        </Button>
+        <Button
+  size="sm"
+  disabled={lockedByOther || !draft || publishMut.isPending}
+  onClick={() => {
+    if (window.confirm("РћРїСѓР±Р»РёРєРѕРІР°С‚СЊ С‡РµСЂРЅРѕРІРёРє РЅР° СЃР°Р№С‚?")) {
+      if (draft) {
+        publishMut.mutate(draft);
+      }
+    }
+  }}
+>
+  {publishMut.isPending ? (
+    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+  ) : null}
+  РћРїСѓР±Р»РёРєРѕРІР°С‚СЊ
+</Button>
+      </header>
+
+      {lockedByOther && (
+        <div className="bg-amber-50 px-4 py-2 text-sm text-amber-900">
+          РЎС‚СЂР°РЅРёС†Сѓ СЂРµРґР°РєС‚РёСЂСѓРµС‚ {lock?.email || "РґСЂСѓРіРѕР№ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ"}. РЎРѕС…СЂР°РЅРµРЅРёРµ РЅРµРґРѕСЃС‚СѓРїРЅРѕ.
+        </div>
+      )}
+
+      <div className="flex min-h-0 flex-1">
+        {/* Sections */}
+        <aside className="flex w-56 shrink-0 flex-col border-r bg-card">
+          <p className="px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
+            Р‘Р»РѕРєРё
+          </p>
+          <ul className="flex-1 overflow-y-auto px-2 pb-4">
+            {draft.sectionOrder.map((id, index) => {
+              const visible = draft.sections[id]?.visible !== false;
+              return (
+                <li key={id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSectionId(id)}
+                    className={cn(
+                      "mb-1 flex w-full items-center gap-1 rounded-md px-2 py-2 text-left text-sm",
+                      selectedSectionId === id
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-muted"
+                    )}
+                  >
+                    <span className="min-w-0 flex-1 truncate">
+                      {SECTION_LABELS[id] || id}
+                    </span>
+                    {!visible && <EyeOff className="h-3.5 w-3.5 shrink-0 opacity-70" />}
+                  </button>
+                  {selectedSectionId === id && (
+                    <div className="mb-2 flex gap-1 px-1">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        disabled={index === 0}
+                        onClick={() => {
+                          const order = [...draft.sectionOrder];
+                          [order[index - 1], order[index]] = [order[index], order[index - 1]];
+                          setDraft({ ...draft, sectionOrder: order });
+                        }}
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        disabled={index === draft.sectionOrder.length - 1}
+                        onClick={() => {
+                          const order = [...draft.sectionOrder];
+                          [order[index], order[index + 1]] = [order[index + 1], order[index]];
+                          setDraft({ ...draft, sectionOrder: order });
+                        }}
+                      >
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={() => {
+                          const prev = draft.sections[id] || { visible: true, fields: {} };
+                          setDraft({
+                            ...draft,
+                            sections: {
+                              ...draft.sections,
+                              [id]: { ...prev, visible: !visible },
+                            },
+                          });
+                        }}
+                      >
+                        {visible ? (
+                          <Eye className="h-3.5 w-3.5" />
+                        ) : (
+                          <EyeOff className="h-3.5 w-3.5" />
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </aside>
+
+        {/* Preview */}
+        <div className="min-w-0 flex-1 overflow-y-auto bg-white">
+          <PageCmsProvider
+            pageKey={pageKey}
+            content={draft}
+            editMode
+            selectedSectionId={selectedSectionId}
+            setSelectedSectionId={setSelectedSectionId}
+            onChange={onChange}
+          >
+            <div className="pointer-events-auto">{renderPageSections(pageKey, draft)}</div>
+          </PageCmsProvider>
+        </div>
+
+        {/* Fields */}
+        <aside className="flex w-80 shrink-0 flex-col border-l bg-card">
+          <div className="border-b px-3 py-2">
+            <p className="text-sm font-semibold">
+              {selectedSectionId
+                ? SECTION_LABELS[selectedSectionId] || selectedSectionId
+                : "Р’С‹Р±РµСЂРёС‚Рµ Р±Р»РѕРє"}
+            </p>
+          </div>
+          <div className="flex-1 overflow-y-auto p-3">
+            {selectedSectionId && (
+              <>
+                <div className="mb-3 flex items-center gap-2">
+                  <Checkbox
+                    id="sec-vis"
+                    checked={draft.sections[selectedSectionId]?.visible !== false}
+                    onCheckedChange={(c) => {
+                      const prev =
+                        draft.sections[selectedSectionId] || {
+                          visible: true,
+                          fields: {},
+                        };
+                      setDraft({
+                        ...draft,
+                        sections: {
+                          ...draft.sections,
+                          [selectedSectionId]: {
+                            ...prev,
+                            visible: c === true,
+                          },
+                        },
+                      });
+                    }}
+                  />
+                  <Label htmlFor="sec-vis" className="text-sm">
+                    РџРѕРєР°Р·С‹РІР°С‚СЊ Р±Р»РѕРє
+                  </Label>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mb-4 w-full"
+                  disabled={lockedByOther}
+                  onClick={() => {
+                    if (window.confirm("РЎР±СЂРѕСЃРёС‚СЊ СЌС‚РѕС‚ Р±Р»РѕРє Рє РґРµС„РѕР»С‚Сѓ?")) {
+                      resetMut.mutate({
+                        scope: "section",
+                        sectionId: selectedSectionId,
+                      });
+                    }
+                  }}
+                >
+                  РЎР±СЂРѕСЃ Р±Р»РѕРєР°
+                </Button>
+                <AdminPageSectionFields
+                  sectionId={selectedSectionId}
+                  fields={
+                    (draft.sections[selectedSectionId]?.fields ||
+                      {}) as Record<string, unknown>
+                  }
+                  onPatch={(patch) => {
+                    const prev =
+                      draft.sections[selectedSectionId] || {
+                        visible: true,
+                        fields: {},
+                      };
+                    setDraft({
+                      ...draft,
+                      sections: {
+                        ...draft.sections,
+                        [selectedSectionId]: {
+                          ...prev,
+                          fields: { ...prev.fields, ...patch },
+                        },
+                      },
+                    });
+                  }}
+                />
+              </>
+            )}
+          </div>
+        </aside>
+
+        {showHistory && (
+          <aside className="flex w-72 shrink-0 flex-col border-l bg-card">
+            <div className="border-b px-3 py-2 text-sm font-semibold">РСЃС‚РѕСЂРёСЏ</div>
+            <ul className="flex-1 overflow-y-auto p-2 text-sm">
+              {revisionsQ.isLoading && (
+                <li className="p-2 text-muted-foreground">Р—Р°РіСЂСѓР·РєР°вЂ¦</li>
+              )}
+              {(revisionsQ.data?.revisions || []).map((r) => (
+                <li
+                  key={r.id}
+                  className="mb-2 rounded-md border p-2"
+                >
+                  <p className="font-medium">{r.action}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {r.user_email || "вЂ”"} В·{" "}
+                    {new Date(r.created_at).toLocaleString("ru-RU")}
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="mt-1 h-7 px-2 text-xs"
+                    disabled={lockedByOther || restoreMut.isPending}
+                    onClick={() => {
+                      if (window.confirm("Р’РѕСЃСЃС‚Р°РЅРѕРІРёС‚СЊ СЌС‚Сѓ РІРµСЂСЃРёСЋ РІ С‡РµСЂРЅРѕРІРёРє?")) {
+                        restoreMut.mutate(r.id);
+                      }
+                    }}
+                  >
+                    РћС‚РєР°С‚РёС‚СЊ
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+========== FILE: src\components\cms\PageSectionRenderer.tsx ==========
+
+import type { ReactNode } from "react";
+import type { PageKey } from "@/types/pageContent";
+import HeroSection from "@/components/sections/HeroSection";
+import FeaturesSection from "@/components/sections/FeaturesSection";
+import RecommendedTrainsSection from "@/components/sections/RecommendedTrainsSection";
+import RoutesSection from "@/components/sections/RoutesSection";
+import EventsSection from "@/components/sections/EventsSection";
+import TestimonialsSection from "@/components/sections/TestimonialsSection";
+import SupportSection from "@/components/sections/SupportSection";
+import BlogInviteSection from "@/components/sections/BlogInviteSection";
+import InspirationSection from "@/components/sections/InspirationSection";
+import VerifiedSection from "@/components/sections/VerifiedSection";
+import HeroRoutes from "@/components/sections/HeroRoutes";
+import RoutesHeroSection from "@/components/sections/RoutesHeroSection";
+import ProcessSection from "@/components/sections/ProcessSection";
+import RegionsRoutesSection from "@/components/sections/RegionsRoutesSection";
+import PhotographersSection from "@/components/sections/PhotographersSection";
+import { isSectionVisible } from "@/lib/pageContentMerge";
+import type { PageContentDocument } from "@/types/pageContent";
+
+const HOME_SECTIONS: Record<string, ReactNode> = {
+  hero: <HeroSection />,
+  features: <FeaturesSection surface="light" />,
+  recommendedTrains: <RecommendedTrainsSection surface="light" />,
+  routesSection: <RoutesSection surface="light" />,
+  events: <EventsSection surface="light" />,
+  inspiration: <InspirationSection surface="light" />,
+  testimonials: <TestimonialsSection surface="light" />,
+  support: <SupportSection surface="light" />,
+  blogInvite: <BlogInviteSection surface="light" />,
+  verified: <VerifiedSection surface="light" />,
+};
+
+const ROUTES_SECTIONS: Record<string, ReactNode> = {
+  heroRoutes: <HeroRoutes surface="light" />,
+  routesHero: <RoutesHeroSection surface="light" />,
+  regionsDay: <RegionsRoutesSection surface="light" />,
+  verified: <VerifiedSection surface="light" />,
+  process: <ProcessSection />,
+  photographers: <PhotographersSection surface="light" />,
+};
+
+export const SECTION_LABELS: Record<string, string> = {
+  hero: "Hero (РїРѕРёСЃРє + РІРёРґРµРѕ)",
+  features: "РџСЂРµРёРјСѓС‰РµСЃС‚РІР°",
+  recommendedTrains: "Р РµРєРѕРјРµРЅРґСѓРµРјС‹Рµ РїРѕРµР·РґР°",
+  routesSection: "РњР°СЂС€СЂСѓС‚С‹ (РіР»Р°РІРЅР°СЏ)",
+  events: "РЎРѕР±С‹С‚РёСЏ",
+  inspiration: "Р’РґРѕС…РЅРѕРІРµРЅРёРµ",
+  testimonials: "РћС‚Р·С‹РІС‹",
+  support: "Р‘РѕС‚-РїРѕРґРґРµСЂР¶РєР°",
+  blogInvite: "РџСЂРёРіР»Р°С€РµРЅРёРµ РІ Р±Р»РѕРі",
+  verified: "РџСЂРѕРІРµСЂРµРЅРѕ TudaSuda",
+  heroRoutes: "РњРѕР·Р°РёРєР° РјР°СЂС€СЂСѓС‚РѕРІ",
+  routesHero: "Р’РёРґРµРѕ + РїР»Р°С€РєРё",
+  regionsDay: "Make Your DAY",
+  process: "РџСЂРѕС†РµСЃСЃ",
+  photographers: "Р¤РѕС‚РѕРіСЂР°С„С‹",
+};
+
+export function getSectionMap(pageKey: PageKey): Record<string, ReactNode> {
+  return pageKey === "home" ? HOME_SECTIONS : ROUTES_SECTIONS;
+}
+
+export function renderPageSections(pageKey: PageKey, content: PageContentDocument) {
+  const map = getSectionMap(pageKey);
+  return content.sectionOrder
+    .filter((id) => isSectionVisible(content, id) && map[id])
+    .map((id) => <div key={id}>{map[id]}</div>);
+}
+

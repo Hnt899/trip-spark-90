@@ -15,6 +15,7 @@ import { apiFetch } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Upload } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function Field({
   label,
@@ -167,6 +168,7 @@ type AdminBlogRow = {
   slug: string;
   title: string;
   cover_image_url: string | null;
+  status?: string;
 };
 
 function DayItemLinkPicker({
@@ -272,9 +274,133 @@ function DayItemLinkPicker({
       )}
 
       <p className="text-[10px] text-muted-foreground leading-snug">
-        Выберите маршрут или статью — название, ссылка и фото подставятся сами. Либо режим «Своя
-        ссылка» и укажите URL вручную.
+        Выберите маршрут или статью — название, ссылка и фото подставятся сами.
+        Либо режим «Своя ссылка» и укажите URL вручную.
       </p>
+    </div>
+  );
+}
+
+function ArticlePicker({
+  value,
+  onChange,
+}: {
+  value: string[];
+  onChange: (ids: string[]) => void;
+}) {
+  const postsQ = useQuery({
+    queryKey: ["admin-blog-posts-news-picker"],
+    queryFn: () =>
+      apiFetch<AdminBlogRow[]>("/api/admin/blog/posts"),
+  });
+
+  const posts = postsQ.data || [];
+  const selected = value.slice(0, 10);
+
+  const toggle = (id: string) => {
+    if (selected.includes(id)) {
+      onChange(selected.filter((x) => x !== id));
+    } else {
+      if (selected.length >= 10) return;
+      onChange([...selected, id]);
+    }
+  };
+
+  const move = (id: string, dir: -1 | 1) => {
+    const idx = selected.indexOf(id);
+    if (idx < 0) return;
+    const next = [...selected];
+    const j = idx + dir;
+    if (j < 0 || j >= next.length) return;
+    [next[idx], next[j]] = [next[j], next[idx]];
+    onChange(next);
+  };
+
+  return (
+    <div className="space-y-2 rounded-md border p-3">
+      <Label className="text-sm font-semibold">
+        Статьи в слайдере ({selected.length}/10)
+      </Label>
+      <p className="text-[11px] text-muted-foreground">
+        Выберите до 10 статей. Если не выбрано ни одной — покажем 6 последних.
+      </p>
+
+      {selected.length > 0 && (
+        <ul className="space-y-1">
+          {selected.map((id, i) => {
+            const p = posts.find((x) => x.id === id);
+            return (
+              <li
+                key={id}
+                className="flex items-center gap-1 rounded border bg-muted/30 px-2 py-1 text-xs"
+              >
+                <span className="flex-1 truncate">{p?.title || id}</span>
+                <button
+                  type="button"
+                  className="px-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                  onClick={() => move(id, -1)}
+                  disabled={i === 0}
+                  title="Выше"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  className="px-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                  onClick={() => move(id, 1)}
+                  disabled={i === selected.length - 1}
+                  title="Ниже"
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  className="px-1 text-destructive"
+                  onClick={() => toggle(id)}
+                  title="Убрать"
+                >
+                  ✕
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <div className="max-h-64 space-y-1 overflow-y-auto rounded border p-2">
+        {postsQ.isLoading ? (
+          <p className="text-xs text-muted-foreground">Загрузка…</p>
+        ) : posts.length === 0 ? (
+          <p className="text-xs text-muted-foreground">Нет статей</p>
+        ) : (
+          posts.map((p) => {
+            const isSelected = selected.includes(p.id);
+            const isDisabled = !isSelected && selected.length >= 10;
+            return (
+              <label
+                key={p.id}
+                className={cn(
+                  "flex cursor-pointer items-center gap-2 rounded p-1 text-xs hover:bg-muted",
+                  isDisabled && "cursor-not-allowed opacity-50",
+                )}
+              >
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  disabled={isDisabled}
+                  onChange={() => toggle(p.id)}
+                />
+                <span className="flex-1 truncate">{p.title}</span>
+                {p.status && p.status !== "published" ? (
+                  <span className="shrink-0 text-[10px] text-muted-foreground">
+                    {p.status === "draft" ? "черновик" : p.status}
+                  </span>
+                ) : null}
+              </label>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }
@@ -548,17 +674,23 @@ export function AdminPageSectionFields({
   }
 
   if (sectionId === "blogInvite") {
+    const articleIds = Array.isArray(fields.articleIds)
+      ? (fields.articleIds as string[])
+      : [];
     return (
       <div className="space-y-3">
         <Field label="Бейдж" value={str("badge")} onChange={(v) => onPatch({ badge: v })} />
         <Field label="Заголовок" value={str("title")} onChange={(v) => onPatch({ title: v })} />
         <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
-        <Field label="Абзац 1" value={str("paragraph1")} onChange={(v) => onPatch({ paragraph1: v })} multiline />
-        <Field label="Абзац 2" value={str("paragraph2")} onChange={(v) => onPatch({ paragraph2: v })} multiline />
-        <CmsColorField label="Цвет текста" value={str("textColor")} onChange={(v) => onPatch({ textColor: v })} />
+        <Field label="Подзаголовок" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Цвет подзаголовка" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
         <Field label="Кнопка" value={str("ctaLabel")} onChange={(v) => onPatch({ ctaLabel: v })} />
-        <Field label="Ссылка" value={str("ctaHref")} onChange={(v) => onPatch({ ctaHref: v })} />
-        <Field label="Картинка (путь)" value={str("image")} onChange={(v) => onPatch({ image: v })} placeholder="/path/to/image.png" />
+        <Field label="Ссылка кнопки" value={str("ctaHref")} onChange={(v) => onPatch({ ctaHref: v })} />
+
+        <ArticlePicker
+          value={articleIds}
+          onChange={(ids) => onPatch({ articleIds: ids })}
+        />
       </div>
     );
   }

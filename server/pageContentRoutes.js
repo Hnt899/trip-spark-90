@@ -29,7 +29,14 @@ function sanitizePageJson(input) {
       const section = {};
       if (typeof sec.visible === "boolean") section.visible = sec.visible;
       if (isPlainObject(sec.fields)) {
-        section.fields = sec.fields;
+        const fields = { ...sec.fields };
+        // Лимит на articleIds в blogInvite
+        if (id === "blogInvite" && Array.isArray(fields.articleIds)) {
+          fields.articleIds = fields.articleIds
+            .filter((x) => typeof x === "string" && x.length > 0 && x.length < 64)
+            .slice(0, 10);
+        }
+        section.fields = fields;
       }
       out.sections[id] = section;
     }

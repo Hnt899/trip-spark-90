@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { StoryData } from "@/data/blogData";
+import type { CarouselStory } from "./StoriesCarousel";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface StoryModalProps {
-  story: StoryData;
+  story: CarouselStory;
   onClose: () => void;
 }
 
@@ -13,15 +13,12 @@ const StoryModal = ({ story, onClose }: StoryModalProps) => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Автоматическое перелистывание
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
-          // Переход к следующему изображению
           setCurrentImageIndex((idx) => {
             const next = idx + 1;
             if (next >= story.images.length) {
-              // Если последнее изображение, закрываем модалку
               onClose();
               return 0;
             }
@@ -29,14 +26,13 @@ const StoryModal = ({ story, onClose }: StoryModalProps) => {
           });
           return 0;
         }
-        return prev + (100 / 30); // 3 секунды = 30 интервалов по 100ms
+        return prev + 100 / 30;
       });
     }, 100);
 
     return () => clearInterval(interval);
   }, [story.images.length, onClose]);
 
-  // Сброс прогресса при смене изображения
   useEffect(() => {
     setProgress(0);
   }, [currentImageIndex]);
@@ -60,13 +56,14 @@ const StoryModal = ({ story, onClose }: StoryModalProps) => {
     setProgress(0);
   };
 
+  const title = story.city || story.title || "";
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div className="relative w-full max-w-[420px] aspect-[9/16]">
-        {/* Кнопка закрытия - вынесена за пределы сториса */}
         <Button
           variant="ghost"
           size="icon"
@@ -80,18 +77,15 @@ const StoryModal = ({ story, onClose }: StoryModalProps) => {
           className="relative w-full h-full rounded-3xl overflow-hidden bg-black"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Фоновое изображение с размытием */}
           <div className="absolute inset-0">
             <img
               src={story.images[currentImageIndex]}
-              alt={story.city}
+              alt={title}
               className="w-full h-full object-cover blur-lg opacity-50"
             />
           </div>
 
-          {/* Основной контейнер */}
           <div className="relative w-full h-full flex flex-col">
-            {/* Индикатор прогресса с градиентом */}
             <div className="flex gap-1 p-3">
               {story.images.map((_, index) => (
                 <div
@@ -102,41 +96,36 @@ const StoryModal = ({ story, onClose }: StoryModalProps) => {
                   <div
                     className="h-full transition-all duration-100 story-progress-gradient"
                     style={{
-                      width: index === currentImageIndex ? `${progress}%` : index < currentImageIndex ? '100%' : '0%',
+                      width:
+                        index === currentImageIndex
+                          ? `${progress}%`
+                          : index < currentImageIndex
+                            ? "100%"
+                            : "0%",
                     }}
                   />
                 </div>
               ))}
             </div>
 
-            {/* Основное изображение */}
             <div className="flex-1 relative">
               <img
                 src={story.images[currentImageIndex]}
-                alt={story.city}
+                alt={title}
                 className="w-full h-full object-cover"
               />
-              
-              {/* Градиент снизу */}
+
               <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-              
-              {/* Текст */}
+
               <div className="absolute bottom-6 left-4 right-4 text-white">
-                <h3 className="text-xl font-bold mb-1">{story.city}</h3>
+                <h3 className="text-xl font-bold mb-1">{title}</h3>
                 <p className="text-sm opacity-90">{story.text}</p>
               </div>
             </div>
 
-            {/* Навигация по клику */}
             <div className="absolute inset-0 flex">
-              <div
-                className="flex-1 cursor-pointer"
-                onClick={handlePrev}
-              />
-              <div
-                className="flex-1 cursor-pointer"
-                onClick={handleNext}
-              />
+              <div className="flex-1 cursor-pointer" onClick={handlePrev} />
+              <div className="flex-1 cursor-pointer" onClick={handleNext} />
             </div>
           </div>
         </div>
@@ -146,4 +135,3 @@ const StoryModal = ({ story, onClose }: StoryModalProps) => {
 };
 
 export default StoryModal;
-
