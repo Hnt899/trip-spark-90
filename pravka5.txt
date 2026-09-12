@@ -1,0 +1,713 @@
+﻿
+
+========== FILE: src\components\blog\BlogCarouselBlock.tsx ==========
+
+import { useCallback, useEffect, useState } from "react";
+import type { BlogCarouselMode, BlogCarouselSlide } from "@/types/blogContent";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+import { cn } from "@/lib/utils";
+
+function slideCaption(s: BlogCarouselSlide): string | undefined {
+  if (s.caption?.trim()) return s.caption.trim();
+  const x = s as BlogCarouselSlide;
+  const parts = [x.route, x.subtitle, x.price, x.oldPrice, x.badge, x.discount]
+    .filter((p) => p != null && String(p).trim());
+  const t = parts.join("\n").trim();
+  return t || undefined;
+}
+
+export default function BlogCarouselBlock({
+  slides,
+  mode = "manual",
+  intervalSec = 5,
+  className,
+}: {
+  slides: BlogCarouselSlide[];
+  mode?: BlogCarouselMode;
+  intervalSec?: number;
+  className?: string;
+}) {
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const autoplayEnabled = mode === "auto" || mode === "hybrid";
+  const allowManual = mode !== "auto";
+
+  const onSelect = useCallback((carousel: CarouselApi) => {
+    setCurrent(carousel.selectedScrollSnap());
+  }, []);
+
+  useEffect(() => {
+    if (!api) return;
+    onSelect(api);
+    api.on("reInit", onSelect);
+    api.on("select", onSelect);
+    return () => {
+      api.off("select", onSelect);
+    };
+  }, [api, onSelect]);
+
+  useEffect(() => {
+    if (!api || !autoplayEnabled || slides.length < 2 || paused) return;
+    const ms = Math.min(30, Math.max(1, intervalSec || 5)) * 1000;
+    const id = window.setInterval(() => {
+      api.scrollNext();
+    }, ms);
+    return () => window.clearInterval(id);
+  }, [api, autoplayEnabled, intervalSec, paused, slides.length]);
+
+  if (!slides.length) return null;
+
+  return (
+    <div
+      className={cn("my-8 w-full", className)}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <Carousel
+        setApi={setApi}
+        opts={{
+          align: "center",
+          loop: slides.length > 1,
+          containScroll: "trimSnaps",
+          watchDrag: allowManual,
+        }}
+        className="w-full"
+      >
+        <CarouselContent>
+          {slides.map((s, i) => {
+            const cap = slideCaption(s);
+            return (
+              <CarouselItem
+                key={i}
+                className="basis-full"
+              >
+                <figure className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_12px_40px_rgba(16,10,111,0.08)] dark:border-slate-800 dark:bg-slate-950">
+                  <div className="relative aspect-[16/11] w-full overflow-hidden bg-muted">
+                    <img
+                      src={s.image}
+                      alt=""
+                      referrerPolicy="no-referrer"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  {cap ? (
+                    <figcaption className="border-t border-slate-100 px-4 py-3 text-center text-sm leading-relaxed text-slate-600 whitespace-pre-wrap dark:border-slate-800 dark:text-slate-300 md:px-5 md:py-4">
+                      {cap}
+                    </figcaption>
+                  ) : null}
+                </figure>
+              </CarouselItem>
+            );
+          })}
+        </CarouselContent>
+      </Carousel>
+      {slides.length > 1 && allowManual ? (
+        <div
+          className="mt-4 flex justify-center gap-2"
+          role="tablist"
+          aria-label="РЎР»Р°Р№РґС‹ РєР°СЂСѓСЃРµР»Рё"
+        >
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              role="tab"
+              aria-selected={i === current}
+              className={cn(
+                "h-2 rounded-full transition-all",
+                i === current
+                  ? "w-8 bg-primary"
+                  : "w-2 bg-slate-300 hover:bg-slate-400 dark:bg-slate-600",
+              )}
+              onClick={() => api?.scrollTo(i)}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+
+
+========== FILE: src\components\ui\carousel-nav-button.tsx ==========
+
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface CarouselNavButtonProps {
+  direction: "prev" | "next";
+  onClick: () => void;
+  className?: string;
+  showOnMobile?: boolean;
+}
+
+export const CarouselNavButton = ({ 
+  direction, 
+  onClick, 
+  className,
+  showOnMobile = false 
+}: CarouselNavButtonProps) => {
+  const isPrev = direction === "prev";
+  const Icon = isPrev ? ChevronLeft : ChevronRight;
+
+  return (
+    <Button
+      variant="outline"
+      size="icon"
+      className={cn(
+        "absolute top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white shadow-md hover:bg-white z-10",
+        showOnMobile ? "flex" : "hidden md:flex",
+        !className && (isPrev
+          ? "left-0 -translate-x-full -ml-4"
+          : "right-0 translate-x-full ml-4"),
+        className
+      )}
+      onClick={onClick}
+    >
+      <Icon className="w-5 h-5 text-primary" />
+    </Button>
+  );
+};
+
+interface CarouselNavButtonsMobileProps {
+  onPrev: () => void;
+  onNext: () => void;
+  className?: string;
+}
+
+export const CarouselNavButtonsMobile = ({ 
+  onPrev, 
+  onNext, 
+  className 
+}: CarouselNavButtonsMobileProps) => {
+  return (
+    <div className={cn("flex justify-center gap-2 mt-6 lg:hidden", className)}>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onPrev}
+        className="rounded-full bg-white shadow-md hover:bg-white w-12 h-12 border-0"
+      >
+        <ChevronLeft className="w-5 h-5 text-primary" />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onNext}
+        className="rounded-full bg-white shadow-md hover:bg-white w-12 h-12 border-0"
+      >
+        <ChevronRight className="w-5 h-5 text-primary" />
+      </Button>
+    </div>
+  );
+};
+
+
+
+
+========== FILE: src\components\ui\carousel.tsx ==========
+
+import * as React from "react";
+import useEmblaCarousel, { type UseEmblaCarouselType } from "embla-carousel-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+type CarouselApi = UseEmblaCarouselType[1];
+type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
+type CarouselOptions = UseCarouselParameters[0];
+type CarouselPlugin = UseCarouselParameters[1];
+
+type CarouselProps = {
+  opts?: CarouselOptions;
+  plugins?: CarouselPlugin;
+  orientation?: "horizontal" | "vertical";
+  setApi?: (api: CarouselApi) => void;
+};
+
+type CarouselContextProps = {
+  carouselRef: ReturnType<typeof useEmblaCarousel>[0];
+  api: ReturnType<typeof useEmblaCarousel>[1];
+  scrollPrev: () => void;
+  scrollNext: () => void;
+  canScrollPrev: boolean;
+  canScrollNext: boolean;
+} & CarouselProps;
+
+const CarouselContext = React.createContext<CarouselContextProps | null>(null);
+
+function useCarousel() {
+  const context = React.useContext(CarouselContext);
+
+  if (!context) {
+    throw new Error("useCarousel must be used within a <Carousel />");
+  }
+
+  return context;
+}
+
+const Carousel = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & CarouselProps>(
+  ({ orientation = "horizontal", opts, setApi, plugins, className, children, ...props }, ref) => {
+    const [carouselRef, api] = useEmblaCarousel(
+      {
+        ...opts,
+        axis: orientation === "horizontal" ? "x" : "y",
+      },
+      plugins,
+    );
+    const [canScrollPrev, setCanScrollPrev] = React.useState(false);
+    const [canScrollNext, setCanScrollNext] = React.useState(false);
+
+    const onSelect = React.useCallback((api: CarouselApi) => {
+      if (!api) {
+        return;
+      }
+
+      setCanScrollPrev(api.canScrollPrev());
+      setCanScrollNext(api.canScrollNext());
+    }, []);
+
+    const scrollPrev = React.useCallback(() => {
+      api?.scrollPrev();
+    }, [api]);
+
+    const scrollNext = React.useCallback(() => {
+      api?.scrollNext();
+    }, [api]);
+
+    const handleKeyDown = React.useCallback(
+      (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          scrollPrev();
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          scrollNext();
+        }
+      },
+      [scrollPrev, scrollNext],
+    );
+
+    React.useEffect(() => {
+      if (!api || !setApi) {
+        return;
+      }
+
+      setApi(api);
+    }, [api, setApi]);
+
+    React.useEffect(() => {
+      if (!api) {
+        return;
+      }
+
+      onSelect(api);
+      api.on("reInit", onSelect);
+      api.on("select", onSelect);
+
+      return () => {
+        api?.off("select", onSelect);
+      };
+    }, [api, onSelect]);
+
+    return (
+      <CarouselContext.Provider
+        value={{
+          carouselRef,
+          api: api,
+          opts,
+          orientation: orientation || (opts?.axis === "y" ? "vertical" : "horizontal"),
+          scrollPrev,
+          scrollNext,
+          canScrollPrev,
+          canScrollNext,
+        }}
+      >
+        <div
+          ref={ref}
+          onKeyDownCapture={handleKeyDown}
+          className={cn("relative", className)}
+          role="region"
+          aria-roledescription="carousel"
+          {...props}
+        >
+          {children}
+        </div>
+      </CarouselContext.Provider>
+    );
+  },
+);
+Carousel.displayName = "Carousel";
+
+const CarouselContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => {
+    const { carouselRef, orientation } = useCarousel();
+
+    return (
+      <div ref={carouselRef} className="overflow-hidden">
+        <div
+          ref={ref}
+          className={cn("flex", orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col", className)}
+          {...props}
+        />
+      </div>
+    );
+  },
+);
+CarouselContent.displayName = "CarouselContent";
+
+const CarouselItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => {
+    const { orientation } = useCarousel();
+
+    return (
+      <div
+        ref={ref}
+        role="group"
+        aria-roledescription="slide"
+        className={cn("min-w-0 shrink-0 grow-0 basis-full", orientation === "horizontal" ? "pl-4" : "pt-4", className)}
+        {...props}
+      />
+    );
+  },
+);
+CarouselItem.displayName = "CarouselItem";
+
+const CarouselPrevious = React.forwardRef<HTMLButtonElement, React.ComponentProps<typeof Button>>(
+  ({ className, variant = "outline", size = "icon", ...props }, ref) => {
+    const { orientation, scrollPrev, canScrollPrev } = useCarousel();
+
+    return (
+      <Button
+        ref={ref}
+        variant={variant}
+        size={size}
+        className={cn(
+          "absolute h-12 w-12 rounded-full bg-white shadow-md hover:bg-white",
+          orientation === "horizontal"
+            ? "-left-12 top-1/2 -translate-y-1/2"
+            : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
+          className,
+        )}
+        disabled={!canScrollPrev}
+        onClick={scrollPrev}
+        {...props}
+      >
+        <ArrowLeft className="h-5 w-5 text-primary" />
+        <span className="sr-only">Previous slide</span>
+      </Button>
+    );
+  },
+);
+CarouselPrevious.displayName = "CarouselPrevious";
+
+const CarouselNext = React.forwardRef<HTMLButtonElement, React.ComponentProps<typeof Button>>(
+  ({ className, variant = "outline", size = "icon", ...props }, ref) => {
+    const { orientation, scrollNext, canScrollNext } = useCarousel();
+
+    return (
+      <Button
+        ref={ref}
+        variant={variant}
+        size={size}
+        className={cn(
+          "absolute h-12 w-12 rounded-full bg-white shadow-md hover:bg-white",
+          orientation === "horizontal"
+            ? "-right-12 top-1/2 -translate-y-1/2"
+            : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
+          className,
+        )}
+        disabled={!canScrollNext}
+        onClick={scrollNext}
+        {...props}
+      >
+        <ArrowRight className="h-5 w-5 text-primary" />
+        <span className="sr-only">Next slide</span>
+      </Button>
+    );
+  },
+);
+CarouselNext.displayName = "CarouselNext";
+
+export { type CarouselApi, Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext };
+
+
+
+========== FILE: src\components\editor\BlogGalleryView.tsx ==========
+
+import { useCallback, useRef } from "react";
+import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
+import { GalleryHorizontal, ImagePlus, Trash2, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { uploadImages } from "@/lib/uploadImages";
+import type { BlogCarouselMode, BlogCarouselSlide } from "@/types/blogContent";
+
+export function BlogGalleryView({
+  node,
+  updateAttributes,
+  deleteNode,
+  selected,
+}: NodeViewProps) {
+  const slides: BlogCarouselSlide[] = node.attrs.slides || [];
+  const mode: BlogCarouselMode = node.attrs.mode || "manual";
+  const intervalSec = Number(node.attrs.intervalSec) || 5;
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const addFiles = useCallback(
+    async (files: FileList | null) => {
+      if (!files?.length) return;
+      try {
+        const urls = await uploadImages(Array.from(files));
+        const newSlides: BlogCarouselSlide[] = urls.map((url) => ({
+          image: url,
+        }));
+        updateAttributes({ slides: [...slides, ...newSlides] });
+      } catch (e) {
+        console.error("Gallery upload failed", e);
+      }
+    },
+    [slides, updateAttributes],
+  );
+
+  const removeSlide = useCallback(
+    (index: number) => {
+      updateAttributes({ slides: slides.filter((_, i) => i !== index) });
+    },
+    [slides, updateAttributes],
+  );
+
+  const updateSlideField = useCallback(
+    (index: number, patch: Partial<BlogCarouselSlide>) => {
+      const next = slides.map((s, i) => (i === index ? { ...s, ...patch } : s));
+      updateAttributes({ slides: next });
+    },
+    [slides, updateAttributes],
+  );
+
+  return (
+    <NodeViewWrapper
+      data-type="blog-gallery"
+      className={`my-4 rounded-lg border-2 p-3 transition-colors ${
+        selected ? "border-primary" : "border-slate-200 dark:border-slate-800"
+      }`}
+      draggable
+      data-drag-handle=""
+    >
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <GalleryHorizontal className="h-4 w-4" />
+          Р“Р°Р»РµСЂРµСЏ ({slides.length} С„РѕС‚Рѕ)
+        </div>
+        <div className="flex flex-wrap items-center gap-1">
+          {(
+            [
+              { v: "manual", t: "Р’СЂСѓС‡РЅСѓСЋ" },
+              { v: "auto", t: "РђРІС‚Рѕ" },
+              { v: "hybrid", t: "РђРІС‚Рѕ + РІСЂСѓС‡РЅСѓСЋ" },
+            ] as const
+          ).map((x) => (
+            <Button
+              key={x.v}
+              type="button"
+              size="sm"
+              variant={mode === x.v ? "default" : "outline"}
+              className="h-8 px-2.5 text-xs"
+              onClick={() => updateAttributes({ mode: x.v as BlogCarouselMode })}
+            >
+              {x.t}
+            </Button>
+          ))}
+        </div>
+
+        {mode !== "manual" ? (
+          <div className="flex items-center gap-1">
+            <Input
+              type="number"
+              min={1}
+              max={30}
+              value={intervalSec}
+              onChange={(e) => {
+                const n = parseInt(e.target.value || "5", 10);
+                updateAttributes({
+                  intervalSec: Number.isFinite(n) ? Math.min(30, Math.max(1, n)) : 5,
+                });
+              }}
+              className="h-8 w-20 text-xs"
+              title="РРЅС‚РµСЂРІР°Р» Р°РІС‚РѕРїСЂРѕРєСЂСѓС‚РєРё РІ СЃРµРєСѓРЅРґР°С…"
+            />
+            <span className="text-xs text-muted-foreground">СЃРµРє</span>
+          </div>
+        ) : null}
+
+        <div className="ml-auto flex gap-1">
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={() => fileRef.current?.click()}
+          >
+            <ImagePlus className="mr-1 h-4 w-4" />
+            Р”РѕР±Р°РІРёС‚СЊ
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            onClick={deleteNode}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {slides.length === 0 ? (
+        <div
+          className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-muted/30 py-10 transition-colors hover:border-primary hover:bg-muted/50 dark:border-slate-700"
+          onClick={() => fileRef.current?.click()}
+        >
+          <GalleryHorizontal className="h-10 w-10 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            РќР°Р¶РјРёС‚Рµ РёР»Рё РїРµСЂРµС‚Р°С‰РёС‚Рµ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {slides.map((slide, i) => (
+            <div key={i} className="group relative space-y-1.5">
+              <div className="relative flex items-center justify-center overflow-hidden rounded-lg border bg-transparent">
+                <img
+                  src={slide.image}
+                  alt={slide.alt || ""}
+                  className="aspect-[4/3] w-full object-contain"
+                  draggable={false}
+                />
+                <button
+                  type="button"
+                  className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  onClick={() => removeSlide(i)}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+              <Input
+                value={slide.alt || ""}
+                onChange={(e) => updateSlideField(i, { alt: e.target.value })}
+                placeholder="Alt-С‚РµРєСЃС‚ (SEO)"
+                className="h-7 text-xs"
+              />
+              <Input
+                value={slide.caption || ""}
+                onChange={(e) => updateSlideField(i, { caption: e.target.value })}
+                placeholder="РџРѕРґРїРёСЃСЊ"
+                className="h-7 text-xs text-muted-foreground"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => addFiles(e.target.files)}
+      />
+    </NodeViewWrapper>
+  );
+}
+
+
+========== FILE: src\types\blogContent.ts ==========
+
+/** Р‘Р»РѕРєРё С‚РµР»Р° СЃС‚Р°С‚СЊРё (С…СЂР°РЅСЏС‚СЃСЏ РІ blog_posts.content_blocks, JSONB). */
+
+export type BlogCarouselSlide = {
+  image: string;
+  caption?: string;
+  badge?: string;
+  discount?: string;
+  route?: string;
+  subtitle?: string;
+  price?: string;
+  oldPrice?: string;
+  alt?: string;
+};
+
+export type BlogCarouselMode = "manual" | "auto" | "hybrid";
+
+export type BlogTableCell = { text: string };
+export type BlogTableRow = {
+  cells: BlogTableCell[];
+  /** id С‚Р°Р±Р»РёС‡РЅРѕРіРѕ СЏРєРѕСЂСЏ СЃС‚СЂРѕРєРё (t-anchor-N), РіР»РѕР±Р°Р»СЊРЅС‹Р№ СЃС‡С‘С‚С‡РёРє РїРѕ РґРѕРєСѓРјРµРЅС‚Сѓ */
+  tableAnchorId?: string;
+};
+
+export type CtaButtonVariant = "primary" | "secondary";
+
+export type RouteDayItem = {
+  label: string;
+  title: string;
+  description: string;
+  anchorIndex?: number;
+};
+
+export type DestinationCardBlock = {
+  type: "destinationCard";
+  season: string;
+  format: string;
+  comfort: string;
+  uniqueness: string;
+  season_label?: string;
+  format_label?: string;
+  comfort_label?: string;
+  uniqueness_label?: string;
+  season_icon?: string;
+  format_icon?: string;
+  comfort_icon?: string;
+  uniqueness_icon?: string;
+};
+
+export type QuickBookingBlock = {
+  type: "quickBooking";
+  title: string;
+  button1Text: string;
+  button1Url: string;
+  button2Text: string;
+  button2Url: string;
+  image: string;
+  imageAlt?: string;
+  bgGradient?: string;
+};
+
+export type BlogContentBlock =
+  | { type: "paragraph"; text: string; anchor?: boolean; anchorLabel?: string; anchorOrdinal?: number }
+  | { type: "heading"; level: number; text: string; anchor?: boolean; anchorLabel?: string; anchorOrdinal?: number }
+  | { type: "image"; url: string; alt?: string; caption?: string }
+  | {
+      type: "carousel";
+      slides: BlogCarouselSlide[];
+      mode?: BlogCarouselMode;
+      intervalSec?: number;
+    }
+  | { type: "quote"; text: string; attribution?: string }
+  | { type: "bulletList"; items: string[] }
+  | { type: "orderedList"; items: string[] }
+  | { type: "divider" }
+  | { type: "table"; rows: BlogTableRow[]; hasHeader: boolean }
+  | { type: "ctaButton"; text: string; url: string; variant: CtaButtonVariant }
+  | DestinationCardBlock
+  | QuickBookingBlock
+  | { type: "routeByDays"; image: string; imageAlt?: string; days: RouteDayItem[] };

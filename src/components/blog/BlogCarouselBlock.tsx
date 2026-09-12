@@ -6,6 +6,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { CarouselNavButton } from "@/components/ui/carousel-nav-button";
 import { cn } from "@/lib/utils";
 
 function slideCaption(s: BlogCarouselSlide): string | undefined {
@@ -31,8 +32,11 @@ export default function BlogCarouselBlock({
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
+  /** Ручное переключение сбрасывает таймер автопрокрутки, чтобы слайд не «убегал» сразу после клика */
+  const [autoplayKey, setAutoplayKey] = useState(0);
+
   const autoplayEnabled = mode === "auto" || mode === "hybrid";
-  const allowManual = mode !== "auto";
+  const showArrows = slides.length > 1;
 
   const onSelect = useCallback((carousel: CarouselApi) => {
     setCurrent(carousel.selectedScrollSnap());
@@ -48,6 +52,7 @@ export default function BlogCarouselBlock({
     };
   }, [api, onSelect]);
 
+  // Автопрокрутка с паузой при hover и сбросом после ручного клика
   useEffect(() => {
     if (!api || !autoplayEnabled || slides.length < 2 || paused) return;
     const ms = Math.min(30, Math.max(1, intervalSec || 5)) * 1000;
@@ -55,13 +60,23 @@ export default function BlogCarouselBlock({
       api.scrollNext();
     }, ms);
     return () => window.clearInterval(id);
-  }, [api, autoplayEnabled, intervalSec, paused, slides.length]);
+  }, [api, autoplayEnabled, intervalSec, paused, slides.length, autoplayKey]);
+
+  const handlePrev = () => {
+    api?.scrollPrev();
+    setAutoplayKey((k) => k + 1); // сбрасываем таймер
+  };
+
+  const handleNext = () => {
+    api?.scrollNext();
+    setAutoplayKey((k) => k + 1); // сбрасываем таймер
+  };
 
   if (!slides.length) return null;
 
   return (
     <div
-      className={cn("my-8 w-full", className)}
+      className={cn("relative my-8 w-full", className)}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -71,7 +86,7 @@ export default function BlogCarouselBlock({
           align: "center",
           loop: slides.length > 1,
           containScroll: "trimSnaps",
-          watchDrag: allowManual,
+          watchDrag: true,
         }}
         className="w-full"
       >
@@ -79,15 +94,12 @@ export default function BlogCarouselBlock({
           {slides.map((s, i) => {
             const cap = slideCaption(s);
             return (
-              <CarouselItem
-                key={i}
-                className="basis-full"
-              >
+              <CarouselItem key={i} className="basis-full">
                 <figure className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_12px_40px_rgba(16,10,111,0.08)] dark:border-slate-800 dark:bg-slate-950">
                   <div className="relative aspect-[16/11] w-full overflow-hidden bg-muted">
                     <img
                       src={s.image}
-                      alt=""
+                      alt={s.alt || ""}
                       referrerPolicy="no-referrer"
                       className="h-full w-full object-cover"
                     />
@@ -103,7 +115,27 @@ export default function BlogCarouselBlock({
           })}
         </CarouselContent>
       </Carousel>
-      {slides.length > 1 && allowManual ? (
+
+      {/* Стрелки вперёд/назад по бокам — показываем всегда, если >1 слайда */}
+      {showArrows ? (
+        <>
+          <CarouselNavButton
+            direction="prev"
+            onClick={handlePrev}
+            className="left-2 md:-left-4 lg:-left-6 !translate-x-0"
+            showOnMobile
+          />
+          <CarouselNavButton
+            direction="next"
+            onClick={handleNext}
+            className="right-2 md:-right-4 lg:-right-6 !translate-x-0"
+            showOnMobile
+          />
+        </>
+      ) : null}
+
+      {/* Точки-индикаторы (для наглядности) */}
+      {slides.length > 1 ? (
         <div
           className="mt-4 flex justify-center gap-2"
           role="tablist"
@@ -121,7 +153,10 @@ export default function BlogCarouselBlock({
                   ? "w-8 bg-primary"
                   : "w-2 bg-slate-300 hover:bg-slate-400 dark:bg-slate-600",
               )}
-              onClick={() => api?.scrollTo(i)}
+              onClick={() => {
+                api?.scrollTo(i);
+                setAutoplayKey((k) => k + 1);
+              }}
             />
           ))}
         </div>
