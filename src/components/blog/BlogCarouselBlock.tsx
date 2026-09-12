@@ -122,13 +122,13 @@ export default function BlogCarouselBlock({
           <CarouselNavButton
             direction="prev"
             onClick={handlePrev}
-            className="left-4 top-[42%] !translate-x-0 !-translate-y-1/2 !bg-white/90 hover:!bg-white !shadow-lg !border-0"
+            className="left-4 top-1/2 !translate-x-0 !-translate-y-1/2 !bg-white/90 hover:!bg-white !shadow-lg !border-0"
             showOnMobile
           />
           <CarouselNavButton
             direction="next"
             onClick={handleNext}
-            className="right-4 top-[42%] !translate-x-0 !-translate-y-1/2 !bg-white/90 hover:!bg-white !shadow-lg !border-0"
+            className="right-4 top-1/2 !translate-x-0 !-translate-y-1/2 !bg-white/90 hover:!bg-white !shadow-lg !border-0"
             showOnMobile
           />
         </>
