@@ -40,6 +40,7 @@ import {
   MapPin,
   Route,
   Link2,
+  Plane,
 } from "lucide-react";
 import { toggleAnchorOnActiveBlock, countAnchors } from "@/lib/tiptapAnchors";
 
@@ -470,6 +471,21 @@ export function TiptapToolbar({
             onClick={() => editor.commands.insertRouteDays()}
           >
             <Route className="h-4 w-4" />
+          </Button>
+        </Tip>
+
+        <Tip
+          label="Быстрая покупка"
+          description="Фиолетовый блок TudaSuda с заголовком, фото и двумя кнопками."
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-9 px-2.5"
+            onClick={() => editor.commands.insertQuickBooking()}
+          >
+            <Plane className="h-4 w-4" />
           </Button>
         </Tip>
 
