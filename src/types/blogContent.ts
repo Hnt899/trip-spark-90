@@ -1,5 +1,11 @@
 /** Блоки тела статьи (хранятся в blog_posts.content_blocks, JSONB). */
 
+export type RouteTab = {
+  id: string;
+  title: string;
+  blocks: BlogContentBlock[];
+};
+
 export type BlogCarouselSlide = {
   image: string;
   caption?: string;

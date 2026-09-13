@@ -3,11 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import RouteTabsHeader from "@/components/routes/RouteTabsHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, ArrowLeft, Loader2 } from "lucide-react";
 import BlogBlockRenderer from "@/components/blog/BlogBlockRenderer";
-import type { BlogContentBlock } from "@/types/blogContent";
+import type { BlogContentBlock, RouteTab } from "@/types/blogContent";
 
 import karelia from "@/assets/images/cities/karelia.jpg";
 import moscow from "@/assets/images/cities/moscow.jpg";
@@ -80,11 +81,14 @@ type ApiRoute = {
   excerpt: string;
   content_blocks: BlogContentBlock[];
   views: number;
+  tabs?: RouteTab[];
 };
 
 const RouteDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
+  const [activeTabId, setActiveTabId] = useState<string>("__main__");
 
   const apiQ = useQuery({
     queryKey: ["route-page-public", id],
@@ -99,6 +103,13 @@ const RouteDetail = () => {
 
   const apiRoute = apiQ.data;
   const isLoading = apiQ.isLoading;
+
+  // Сбрасываем активный таб при загрузке нового маршрута
+  useEffect(() => {
+    if (apiRoute) {
+      setActiveTabId("__main__");
+    }
+  }, [apiRoute]);
 
   const { data: relatedRoutes } = useQuery({
     queryKey: ["related-routes", apiRoute?.region],
@@ -146,8 +157,17 @@ const RouteDetail = () => {
   const routeRegion = apiRoute?.region ?? legacy?.region ?? "";
   const routeRating = apiRoute?.rating ?? legacy?.rating ?? 0;
   const routeImage = apiRoute?.cover_image_url ?? legacy?.image;
-  const contentBlocks = apiRoute?.content_blocks;
-  const hasContent = Array.isArray(contentBlocks) && contentBlocks.length > 0;
+
+  // Определяем контент для текущего таба
+  const currentBlocks: BlogContentBlock[] = (() => {
+    if (activeTabId === "__main__") {
+      return apiRoute?.content_blocks || [];
+    }
+    const tab = apiRoute?.tabs?.find((t) => t.id === activeTabId);
+    return tab?.blocks || [];
+  })();
+
+  const hasContent = Array.isArray(currentBlocks) && currentBlocks.length > 0;
 
   // ===== ФУНКЦИЯ ДЛЯ РЕНДЕРИНГА КОНТЕНТА С ОБРЕЗКОЙ КАРТИНОК =====
   const renderContent = () => {
@@ -167,7 +187,7 @@ const RouteDetail = () => {
       );
     }
 
-    return contentBlocks.map((block, index) => {
+    return currentBlocks.map((block, index) => {
       // ===== ОБРАБОТКА КАРТИНОК =====
       if (block.type === "image") {
         return (
@@ -224,6 +244,14 @@ const RouteDetail = () => {
     <div className="min-h-screen bg-[#F5F5FA]">
       <Header />
       <main className="pt-20 md:pt-16">
+        {/* Третья шапка с табами — только если есть дополнительные табы */}
+        {apiRoute?.tabs && apiRoute.tabs.length > 0 && (
+          <RouteTabsHeader
+            tabs={apiRoute.tabs}
+            activeTabId={activeTabId}
+            onChange={setActiveTabId}
+          />
+        )}
         <div className="container px-4 py-6 md:px-6 md:py-12">
           <Button
             variant="ghost"

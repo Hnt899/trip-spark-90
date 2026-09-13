@@ -20,9 +20,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, Plus, Pencil, ChevronUp, ChevronDown } from "lucide-react";
 import CoverUpload from "@/components/admin/CoverUpload";
-import type { BlogContentBlock } from "@/types/blogContent";
+import type { BlogContentBlock, RouteTab } from "@/types/blogContent";
 
 const TiptapEditor = lazy(() => import("@/components/editor/TiptapEditor"));
 
@@ -36,6 +36,7 @@ type Loaded = {
   cover_image_url: string | null;
   excerpt: string;
   content_blocks?: BlogContentBlock[];
+  tabs?: RouteTab[];
   status: string;
 };
 
@@ -64,6 +65,8 @@ export default function AdminRouteEdit() {
   const [coverUrl, setCoverUrl] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [contentBlocks, setContentBlocks] = useState<BlogContentBlock[]>([]);
+  const [tabs, setTabs] = useState<RouteTab[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string>("__main__");
   const [status, setStatus] = useState<"draft" | "published">("draft");
 
   const hydratedRef = useRef<string | null>(null);
@@ -109,13 +112,24 @@ export default function AdminRouteEdit() {
     setContentBlocks(
       Array.isArray(row.content_blocks) ? row.content_blocks : [],
     );
+    setTabs(Array.isArray(row.tabs) ? row.tabs : []);
     setStatus(row.status === "published" ? "published" : "draft");
+    setActiveTabId("__main__");
     setEditorKey((k) => k + 1);
   }, [isNew, routeId, loadQ.data]);
 
   const handleEditorChange = useCallback((blocks: BlogContentBlock[]) => {
-    setContentBlocks(blocks);
-  }, []);
+    if (activeTabId === "__main__") {
+      setContentBlocks(blocks);
+    } else {
+      // Обновляем блоки активного таба
+      setTabs((prev) =>
+        prev.map((t) =>
+          t.id === activeTabId ? { ...t, blocks } : t
+        )
+      );
+    }
+  }, [activeTabId]);
 
   // Лимит якорей = количество дней в блоке «Маршрут по дням»
   const anchorLimit = (() => {
@@ -124,6 +138,51 @@ export default function AdminRouteEdit() {
       | undefined;
     return routeBlock?.days?.length || undefined;
   })();
+
+  // Функции для управления табами
+  const addNewTab = () => {
+    const newTab: RouteTab = {
+      id: `tab_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      title: "Новый этап",
+      blocks: [],
+    };
+    setTabs((prev) => [...prev, newTab]);
+    setActiveTabId(newTab.id);
+    setEditorKey((k) => k + 1);
+    // Сразу переименовать
+    setTimeout(() => renameTab(newTab.id), 0);
+  };
+
+  const renameTab = (id: string) => {
+    const tab = tabs.find((t) => t.id === id);
+    if (!tab) return;
+    const newTitle = prompt("Название этапа:", tab.title);
+    if (newTitle && newTitle.trim()) {
+      setTabs((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, title: newTitle.trim() } : t))
+      );
+    }
+  };
+
+  const deleteTab = (id: string) => {
+    if (!confirm("Удалить этот этап?")) return;
+    setTabs((prev) => prev.filter((t) => t.id !== id));
+    if (activeTabId === id) {
+      setActiveTabId("__main__");
+      setEditorKey((k) => k + 1);
+    }
+  };
+
+  const moveTab = (index: number, direction: -1 | 1) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= tabs.length) return;
+    setTabs((prev) => {
+      const newArr = [...prev];
+      const [removed] = newArr.splice(index, 1);
+      newArr.splice(newIndex, 0, removed);
+      return newArr;
+    });
+  };
 
   const saveMut = useMutation({
     mutationFn: async () => {
@@ -136,6 +195,7 @@ export default function AdminRouteEdit() {
         cover_image_url: coverUrl.trim() || null,
         excerpt: excerpt.trim(),
         content_blocks: contentBlocks,
+        tabs,
         status,
       };
       if (isNew) {
@@ -302,6 +362,88 @@ export default function AdminRouteEdit() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Этапы маршрута</CardTitle>
+          <CardDescription>
+            Создавайте отдельные разделы с текстом, фото, галереями — они появятся на сайте третьей закреплённой шапкой с табами.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Список табов */}
+          <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-2">
+            {/* Основной таб */}
+            <button
+              onClick={() => { setActiveTabId("__main__"); setEditorKey((k) => k + 1); }}
+              className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
+                activeTabId === "__main__"
+                  ? "bg-[#867DFF] text-white shadow-sm"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              Основной
+            </button>
+            {/* Дополнительные табы */}
+            {tabs.map((tab, index) => (
+              <div key={tab.id} className="flex items-center gap-1 rounded-full bg-slate-100 pr-2">
+                <button
+                  onClick={() => { setActiveTabId(tab.id); setEditorKey((k) => k + 1); }}
+                  className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
+                    activeTabId === tab.id
+                      ? "bg-[#867DFF] text-white shadow-sm"
+                      : "text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {tab.title}
+                </button>
+                <div className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => moveTab(index, -1)}
+                    disabled={index === 0}
+                    className="p-1 rounded hover:bg-slate-200 disabled:opacity-30"
+                    title="Вверх"
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => moveTab(index, 1)}
+                    disabled={index === tabs.length - 1}
+                    className="p-1 rounded hover:bg-slate-200 disabled:opacity-30"
+                    title="Вниз"
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => renameTab(tab.id)}
+                    className="p-1 rounded hover:bg-slate-200"
+                    title="Переименовать"
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => deleteTab(tab.id)}
+                    className="p-1 rounded hover:bg-red-100 text-red-600"
+                    title="Удалить"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addNewTab}
+              className="rounded-full"
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              Новый этап
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Описание маршрута</CardTitle>
           <CardDescription>
             Подробное описание: достопримечательности, советы, фотографии, галереи.
@@ -316,8 +458,8 @@ export default function AdminRouteEdit() {
             }
           >
             <TiptapEditor
-              key={editorKey}
-              initialBlocks={contentBlocks}
+              key={`${activeTabId}-${editorKey}`}
+              initialBlocks={activeTabId === "__main__" ? contentBlocks : (tabs.find(t => t.id === activeTabId)?.blocks || [])}
               onChange={handleEditorChange}
               anchorLimit={anchorLimit}
             />
