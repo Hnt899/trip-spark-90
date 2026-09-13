@@ -27,22 +27,6 @@ function isValidImageUrl(url) {
   return false;
 }
 
-/** Очищает массив табов маршрута */
-function sanitizeTabs(raw) {
-  if (!Array.isArray(raw)) return [];
-  const out = [];
-  for (const t of raw) {
-    if (!t || typeof t !== "object") continue;
-    const id = String(t.id ?? "").slice(0, 64);
-    if (!id) continue;
-    const title = String(t.title ?? "").slice(0, 200);
-    if (!title) continue;
-    const blocks = Array.isArray(t.blocks) ? sanitizeBlocks(t.blocks) : [];
-    out.push({ id, title, blocks });
-  }
-  return out;
-}
-
 function sanitizeBlocks(raw) {
   if (!Array.isArray(raw)) return [];
   const out = [];
@@ -94,6 +78,7 @@ function sanitizeBlocks(raw) {
         const caption = s.caption != null ? String(s.caption).trim().slice(0, 2000) : "";
         const slide = { image };
         if (caption) slide.caption = caption;
+        if (s.alt) slide.alt = String(s.alt).slice(0, 500);
         clean.push(slide);
       }
       if (clean.length > 0) {
@@ -162,6 +147,7 @@ function sanitizeBlocks(raw) {
         button2Text: String(b.button2Text ?? "").slice(0, 200),
         button2Url: String(b.button2Url ?? "").slice(0, 2000),
         image: String(b.image ?? "").slice(0, 2000),
+        imageAlt: b.imageAlt ? String(b.imageAlt).slice(0, 500) : "",
         bgGradient: String(b.bgGradient ?? "from-[#8A70F8] to-[#9B82F8]").slice(0, 200),
       });
     } else if (type === "routeByDays") {
@@ -184,10 +170,27 @@ function sanitizeBlocks(raw) {
         out.push({
           type: "routeByDays",
           image: b.image ? String(b.image).slice(0, 2000) : "",
+          imageAlt: b.imageAlt ? String(b.imageAlt).slice(0, 500) : "",
           days: cleanDays,
         });
       }
     }
+  }
+  return out;
+}
+
+/** Очищает массив табов маршрута */
+function sanitizeTabs(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const t of raw) {
+    if (!t || typeof t !== "object") continue;
+    const id = String(t.id ?? "").slice(0, 64);
+    if (!id) continue;
+    const title = String(t.title ?? "").slice(0, 200);
+    if (!title) continue;
+    const blocks = Array.isArray(t.blocks) ? sanitizeBlocks(t.blocks) : [];
+    out.push({ id, title, blocks });
   }
   return out;
 }

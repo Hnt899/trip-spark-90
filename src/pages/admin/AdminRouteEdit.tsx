@@ -91,6 +91,8 @@ export default function AdminRouteEdit() {
     setCoverUrl("");
     setExcerpt("");
     setContentBlocks([]);
+    setTabs([]);
+    setActiveTabId("__main__");
     setStatus("draft");
     setEditorKey((k) => k + 1);
   }, [isNew, routeId]);
@@ -122,16 +124,12 @@ export default function AdminRouteEdit() {
     if (activeTabId === "__main__") {
       setContentBlocks(blocks);
     } else {
-      // Обновляем блоки активного таба
       setTabs((prev) =>
-        prev.map((t) =>
-          t.id === activeTabId ? { ...t, blocks } : t
-        )
+        prev.map((t) => (t.id === activeTabId ? { ...t, blocks } : t))
       );
     }
   }, [activeTabId]);
 
-  // Лимит якорей = количество дней в блоке «Маршрут по дням»
   const anchorLimit = (() => {
     const routeBlock = contentBlocks.find((b) => b.type === "routeByDays") as
       | { type: "routeByDays"; image: string; days: { label: string; title: string; description: string }[] }
@@ -139,18 +137,24 @@ export default function AdminRouteEdit() {
     return routeBlock?.days?.length || undefined;
   })();
 
-  // Функции для управления табами
+  // ===== Управление табами =====
+
   const addNewTab = () => {
     const newTab: RouteTab = {
       id: `tab_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       title: "Новый этап",
       blocks: [],
     };
+
+    // Спрашиваем название сразу, ДО setTabs — чтобы prompt видел контекст
+    const newTitle = prompt("Название этапа:", "Новый этап");
+    if (newTitle && newTitle.trim()) {
+      newTab.title = newTitle.trim();
+    }
+
     setTabs((prev) => [...prev, newTab]);
     setActiveTabId(newTab.id);
     setEditorKey((k) => k + 1);
-    // Сразу переименовать
-    setTimeout(() => renameTab(newTab.id), 0);
   };
 
   const renameTab = (id: string) => {
@@ -368,10 +372,9 @@ export default function AdminRouteEdit() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Список табов */}
           <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-2">
-            {/* Основной таб */}
             <button
+              type="button"
               onClick={() => { setActiveTabId("__main__"); setEditorKey((k) => k + 1); }}
               className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
                 activeTabId === "__main__"
@@ -381,10 +384,10 @@ export default function AdminRouteEdit() {
             >
               Основной
             </button>
-            {/* Дополнительные табы */}
             {tabs.map((tab, index) => (
               <div key={tab.id} className="flex items-center gap-1 rounded-full bg-slate-100 pr-2">
                 <button
+                  type="button"
                   onClick={() => { setActiveTabId(tab.id); setEditorKey((k) => k + 1); }}
                   className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
                     activeTabId === tab.id
@@ -396,6 +399,7 @@ export default function AdminRouteEdit() {
                 </button>
                 <div className="flex items-center gap-0.5">
                   <button
+                    type="button"
                     onClick={() => moveTab(index, -1)}
                     disabled={index === 0}
                     className="p-1 rounded hover:bg-slate-200 disabled:opacity-30"
@@ -404,6 +408,7 @@ export default function AdminRouteEdit() {
                     <ChevronUp className="h-3 w-3" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => moveTab(index, 1)}
                     disabled={index === tabs.length - 1}
                     className="p-1 rounded hover:bg-slate-200 disabled:opacity-30"
@@ -412,6 +417,7 @@ export default function AdminRouteEdit() {
                     <ChevronDown className="h-3 w-3" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => renameTab(tab.id)}
                     className="p-1 rounded hover:bg-slate-200"
                     title="Переименовать"
@@ -419,6 +425,7 @@ export default function AdminRouteEdit() {
                     <Pencil className="h-3 w-3" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => deleteTab(tab.id)}
                     className="p-1 rounded hover:bg-red-100 text-red-600"
                     title="Удалить"
@@ -459,7 +466,11 @@ export default function AdminRouteEdit() {
           >
             <TiptapEditor
               key={`${activeTabId}-${editorKey}`}
-              initialBlocks={activeTabId === "__main__" ? contentBlocks : (tabs.find(t => t.id === activeTabId)?.blocks || [])}
+              initialBlocks={
+                activeTabId === "__main__"
+                  ? contentBlocks
+                  : (tabs.find((t) => t.id === activeTabId)?.blocks || [])
+              }
               onChange={handleEditorChange}
               anchorLimit={anchorLimit}
             />

@@ -104,12 +104,12 @@ const RouteDetail = () => {
   const apiRoute = apiQ.data;
   const isLoading = apiQ.isLoading;
 
-  // Сбрасываем активный таб при загрузке нового маршрута
+  // Сбрасываем активный таб при смене маршрута (только при смене id, не при ре-рендере)
   useEffect(() => {
-    if (apiRoute) {
+    if (apiRoute?.id) {
       setActiveTabId("__main__");
     }
-  }, [apiRoute]);
+  }, [apiRoute?.id]);
 
   const { data: relatedRoutes } = useQuery({
     queryKey: ["related-routes", apiRoute?.region],
@@ -158,7 +158,6 @@ const RouteDetail = () => {
   const routeRating = apiRoute?.rating ?? legacy?.rating ?? 0;
   const routeImage = apiRoute?.cover_image_url ?? legacy?.image;
 
-  // Определяем контент для текущего таба
   const currentBlocks: BlogContentBlock[] = (() => {
     if (activeTabId === "__main__") {
       return apiRoute?.content_blocks || [];
@@ -169,7 +168,6 @@ const RouteDetail = () => {
 
   const hasContent = Array.isArray(currentBlocks) && currentBlocks.length > 0;
 
-  // ===== ФУНКЦИЯ ДЛЯ РЕНДЕРИНГА КОНТЕНТА С ОБРЕЗКОЙ КАРТИНОК =====
   const renderContent = () => {
     if (!hasContent) {
       return (
@@ -188,7 +186,6 @@ const RouteDetail = () => {
     }
 
     return currentBlocks.map((block, index) => {
-      // ===== ОБРАБОТКА КАРТИНОК =====
       if (block.type === "image") {
         return (
           <div key={index} className="my-4 w-full max-w-[896px] mx-auto">
@@ -204,9 +201,6 @@ const RouteDetail = () => {
           </div>
         );
       }
-
-      // ===== ОСТАЛЬНЫЕ БЛОКИ (через BlogBlockRenderer) =====
-      // Передаём только один блок, чтобы не дублировать
       return <BlogBlockRenderer key={index} blocks={[block]} />;
     });
   };
@@ -263,15 +257,15 @@ const RouteDetail = () => {
           </Button>
 
           <Card className="overflow-hidden shadow-lg">
-          {routeImage && (
-  <div className="relative w-full max-w-[896px] mx-auto overflow-hidden rounded-lg">
-    <img
-      src={routeImage}
-      alt={routeName}
-      className="w-full h-[560px] object-cover"
-    />
-  </div>
-)}
+            {routeImage && (
+              <div className="relative w-full max-w-[896px] mx-auto overflow-hidden rounded-lg">
+                <img
+                  src={routeImage}
+                  alt={routeName}
+                  className="w-full h-[560px] object-cover"
+                />
+              </div>
+            )}
             <CardContent className="p-4 md:p-6 lg:p-8">
               <div className="mb-4 flex flex-col gap-4 md:mb-6 md:flex-row md:items-start md:justify-between">
                 <div className="flex-1">

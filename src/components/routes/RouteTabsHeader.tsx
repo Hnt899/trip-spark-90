@@ -18,14 +18,15 @@ export default function RouteTabsHeader({ tabs, activeTabId, onChange }: Props) 
   ];
 
   return (
-    <div className="sticky top-[var(--site-header-height)] z-30 bg-white/95 backdrop-blur border-b">
+    <div className="sticky top-[calc(var(--site-header-height)+3.5rem)] z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="container mx-auto px-4">
-        <div className="flex gap-2 overflow-x-auto py-3 px-4 bg-[#EEEDF5] rounded-2xl scrollbar-hide">
+        <div className="my-3 flex gap-2 overflow-x-auto rounded-2xl bg-[#EEEDF5] px-4 py-3 scrollbar-hide">
           {allTabs.map((tab) => {
             const isActive = tab.id === activeTabId;
             return (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => onChange(tab.id)}
                 className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
                   isActive

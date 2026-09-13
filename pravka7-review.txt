@@ -1,0 +1,1406 @@
+﻿
+
+========== FILE: src\components\routes\RouteTabsHeader.tsx ==========
+
+import type { RouteTab } from "@/types/blogContent";
+
+type Props = {
+  tabs: RouteTab[];
+  activeTabId: string;
+  onChange: (id: string) => void;
+};
+
+export default function RouteTabsHeader({ tabs, activeTabId, onChange }: Props) {
+  // Р•СЃР»Рё С‚Р°Р±РѕРІ РЅРµС‚ (РєСЂРѕРјРµ РѕСЃРЅРѕРІРЅРѕРіРѕ) вЂ” РЅРµ СЂРµРЅРґРµСЂРёРј С€Р°РїРєСѓ
+  if (!tabs || tabs.length === 0) {
+    return null;
+  }
+
+  const allTabs = [
+    { id: "__main__", title: "РњР°СЂС€СЂСѓС‚" },
+    ...tabs.map((t) => ({ id: t.id, title: t.title })),
+  ];
+
+  return (
+    <div className="sticky top-[var(--site-header-height)] z-30 bg-white/95 backdrop-blur border-b">
+      <div className="container mx-auto px-4">
+        <div className="flex gap-2 overflow-x-auto py-3 px-4 bg-[#EEEDF5] rounded-2xl scrollbar-hide">
+          {allTabs.map((tab) => {
+            const isActive = tab.id === activeTabId;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => onChange(tab.id)}
+                className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
+                  isActive
+                    ? "bg-[#867DFF] text-white shadow-sm"
+                    : "text-[#100A6F] hover:bg-white/60"
+                }`}
+              >
+                {tab.title}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+========== FILE: src\pages\admin\AdminRouteEdit.tsx ==========
+
+import { useEffect, useRef, useState, useCallback, lazy, Suspense } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Loader2, Trash2, Plus, Pencil, ChevronUp, ChevronDown } from "lucide-react";
+import CoverUpload from "@/components/admin/CoverUpload";
+import type { BlogContentBlock, RouteTab } from "@/types/blogContent";
+
+const TiptapEditor = lazy(() => import("@/components/editor/TiptapEditor"));
+
+type Loaded = {
+  id: string;
+  slug: string;
+  name: string;
+  legacy_id: string | null;
+  region: string;
+  rating: number;
+  cover_image_url: string | null;
+  excerpt: string;
+  content_blocks?: BlogContentBlock[];
+  tabs?: RouteTab[];
+  status: string;
+};
+
+const REGIONS = [
+  "Р¦РµРЅС‚СЂ",
+  "РЎРµРІРµСЂРѕ-Р—Р°РїР°Рґ",
+  "Р®Рі",
+  "РџРѕРІРѕР»Р¶СЊРµ",
+  "РЈСЂР°Р»",
+  "РЎРёР±РёСЂСЊ",
+  "РљР°РІРєР°Р·",
+  "Р”Р°Р»СЊРЅРёР№ Р’РѕСЃС‚РѕРє",
+];
+
+export default function AdminRouteEdit() {
+  const { routeId } = useParams<{ routeId: string }>();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const isNew = routeId === "new";
+
+  const [slug, setSlug] = useState("");
+  const [name, setName] = useState("");
+  const [legacyId, setLegacyId] = useState("");
+  const [region, setRegion] = useState("");
+  const [rating, setRating] = useState("0");
+  const [coverUrl, setCoverUrl] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [contentBlocks, setContentBlocks] = useState<BlogContentBlock[]>([]);
+  const [tabs, setTabs] = useState<RouteTab[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string>("__main__");
+  const [status, setStatus] = useState<"draft" | "published">("draft");
+
+  const hydratedRef = useRef<string | null>(null);
+  const [editorKey, setEditorKey] = useState(0);
+
+  const loadQ = useQuery({
+    queryKey: ["admin-route-page", routeId],
+    enabled: !isNew && !!routeId,
+    queryFn: () => apiFetch<Loaded>(`/api/admin/routes/id/${routeId}`),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
+  useEffect(() => {
+    if (!isNew) return;
+    hydratedRef.current = null;
+    setSlug("");
+    setName("");
+    setLegacyId("");
+    setRegion("");
+    setRating("0");
+    setCoverUrl("");
+    setExcerpt("");
+    setContentBlocks([]);
+    setStatus("draft");
+    setEditorKey((k) => k + 1);
+  }, [isNew, routeId]);
+
+  useEffect(() => {
+    if (isNew) return;
+    const row = loadQ.data;
+    if (!row || !routeId) return;
+    if (hydratedRef.current === routeId) return;
+    hydratedRef.current = routeId;
+
+    setSlug(row.slug);
+    setName(row.name);
+    setLegacyId(row.legacy_id || "");
+    setRegion(row.region || "");
+    setRating(String(row.rating ?? 0));
+    setCoverUrl(row.cover_image_url || "");
+    setExcerpt(row.excerpt || "");
+    setContentBlocks(
+      Array.isArray(row.content_blocks) ? row.content_blocks : [],
+    );
+    setTabs(Array.isArray(row.tabs) ? row.tabs : []);
+    setStatus(row.status === "published" ? "published" : "draft");
+    setActiveTabId("__main__");
+    setEditorKey((k) => k + 1);
+  }, [isNew, routeId, loadQ.data]);
+
+  const handleEditorChange = useCallback((blocks: BlogContentBlock[]) => {
+    if (activeTabId === "__main__") {
+      setContentBlocks(blocks);
+    } else {
+      // РћР±РЅРѕРІР»СЏРµРј Р±Р»РѕРєРё Р°РєС‚РёРІРЅРѕРіРѕ С‚Р°Р±Р°
+      setTabs((prev) =>
+        prev.map((t) =>
+          t.id === activeTabId ? { ...t, blocks } : t
+        )
+      );
+    }
+  }, [activeTabId]);
+
+  // Р›РёРјРёС‚ СЏРєРѕСЂРµР№ = РєРѕР»РёС‡РµСЃС‚РІРѕ РґРЅРµР№ РІ Р±Р»РѕРєРµ В«РњР°СЂС€СЂСѓС‚ РїРѕ РґРЅСЏРјВ»
+  const anchorLimit = (() => {
+    const routeBlock = contentBlocks.find((b) => b.type === "routeByDays") as
+      | { type: "routeByDays"; image: string; days: { label: string; title: string; description: string }[] }
+      | undefined;
+    return routeBlock?.days?.length || undefined;
+  })();
+
+  // Р¤СѓРЅРєС†РёРё РґР»СЏ СѓРїСЂР°РІР»РµРЅРёСЏ С‚Р°Р±Р°РјРё
+  const addNewTab = () => {
+    const newTab: RouteTab = {
+      id: `tab_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      title: "РќРѕРІС‹Р№ СЌС‚Р°Рї",
+      blocks: [],
+    };
+    setTabs((prev) => [...prev, newTab]);
+    setActiveTabId(newTab.id);
+    setEditorKey((k) => k + 1);
+    // РЎСЂР°Р·Сѓ РїРµСЂРµРёРјРµРЅРѕРІР°С‚СЊ
+    setTimeout(() => renameTab(newTab.id), 0);
+  };
+
+  const renameTab = (id: string) => {
+    const tab = tabs.find((t) => t.id === id);
+    if (!tab) return;
+    const newTitle = prompt("РќР°Р·РІР°РЅРёРµ СЌС‚Р°РїР°:", tab.title);
+    if (newTitle && newTitle.trim()) {
+      setTabs((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, title: newTitle.trim() } : t))
+      );
+    }
+  };
+
+  const deleteTab = (id: string) => {
+    if (!confirm("РЈРґР°Р»РёС‚СЊ СЌС‚РѕС‚ СЌС‚Р°Рї?")) return;
+    setTabs((prev) => prev.filter((t) => t.id !== id));
+    if (activeTabId === id) {
+      setActiveTabId("__main__");
+      setEditorKey((k) => k + 1);
+    }
+  };
+
+  const moveTab = (index: number, direction: -1 | 1) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= tabs.length) return;
+    setTabs((prev) => {
+      const newArr = [...prev];
+      const [removed] = newArr.splice(index, 1);
+      newArr.splice(newIndex, 0, removed);
+      return newArr;
+    });
+  };
+
+  const saveMut = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        slug: slug.trim().toLowerCase(),
+        name: name.trim(),
+        legacy_id: legacyId.trim() || null,
+        region: region.trim(),
+        rating: parseFloat(rating) || 0,
+        cover_image_url: coverUrl.trim() || null,
+        excerpt: excerpt.trim(),
+        content_blocks: contentBlocks,
+        tabs,
+        status,
+      };
+      if (isNew) {
+        return apiFetch<Loaded>("/api/admin/routes", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+      }
+      return apiFetch<Loaded>(`/api/admin/routes/id/${routeId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["admin-route-pages"] });
+      qc.invalidateQueries({ queryKey: ["admin-route-page", routeId] });
+      qc.invalidateQueries({ queryKey: ["route-page-public"] });
+      if (isNew && data?.id) {
+        navigate(`/admin/routes/${data.id}`, { replace: true });
+      }
+    },
+  });
+
+  const delMut = useMutation({
+    mutationFn: () =>
+      apiFetch(`/api/admin/routes/id/${routeId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-route-pages"] });
+      qc.invalidateQueries({ queryKey: ["route-page-public"] });
+      navigate("/admin/routes");
+    },
+  });
+
+  if (!isNew && loadQ.isLoading) {
+    return (
+      <div className="flex justify-center py-24 text-muted-foreground">
+        <Loader2 className="h-10 w-10 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isNew && loadQ.isError) {
+    return (
+      <p className="text-destructive">
+        РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РјР°СЂС€СЂСѓС‚.{" "}
+        <Link to="/admin/routes" className="underline">
+          Рљ СЃРїРёСЃРєСѓ
+        </Link>
+      </p>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold tracking-tight">
+          {isNew ? "РќРѕРІС‹Р№ РјР°СЂС€СЂСѓС‚" : "Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ РјР°СЂС€СЂСѓС‚Р°"}
+        </h1>
+        <Button variant="outline" asChild>
+          <Link to="/admin/routes">в†ђ Рљ СЃРїРёСЃРєСѓ</Link>
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>РњРµС‚Р°РґР°РЅРЅС‹Рµ</CardTitle>
+          <CardDescription>
+            Slug вЂ” Р»Р°С‚РёРЅРёС†Р° Рё РґРµС„РёСЃС‹, СѓРЅРёРєР°Р»СЊРЅС‹Р№ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ.
+            Legacy ID вЂ” С‡РёСЃР»РѕРІРѕР№ ID РёР· СЃС‚Р°СЂС‹С… РґР°РЅРЅС‹С… (1вЂ“40), РµСЃР»Рё РЅСѓР¶РЅР° СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="slug">Slug</Label>
+              <Input
+                id="slug"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="sochi-i-okrestnosti"
+                className="font-mono text-sm"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="legacyId">Legacy ID (РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</Label>
+              <Input
+                id="legacyId"
+                value={legacyId}
+                onChange={(e) => setLegacyId(e.target.value)}
+                placeholder="17"
+                className="font-mono text-sm"
+              />
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="name">РќР°Р·РІР°РЅРёРµ РјР°СЂС€СЂСѓС‚Р°</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="РЎРѕС‡Рё Рё РѕРєСЂРµСЃС‚РЅРѕСЃС‚Рё"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="excerpt">РљСЂР°С‚РєРѕРµ РѕРїРёСЃР°РЅРёРµ</Label>
+            <Textarea
+              id="excerpt"
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <CoverUpload
+            value={coverUrl}
+            onChange={setCoverUrl}
+            label="РћР±Р»РѕР¶РєР°"
+          />
+          <div className="grid gap-2 sm:grid-cols-3 sm:gap-4">
+            <div className="grid gap-2">
+              <Label>Р РµРіРёРѕРЅ</Label>
+              <Select value={region} onValueChange={setRegion}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Р’С‹Р±РµСЂРёС‚Рµ" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REGIONS.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {r}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="rating">Р РµР№С‚РёРЅРі (0вЂ“10)</Label>
+              <Input
+                id="rating"
+                type="number"
+                min={0}
+                max={10}
+                step={0.1}
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>РЎС‚Р°С‚СѓСЃ</Label>
+              <Select
+                value={status}
+                onValueChange={(v) => setStatus(v as "draft" | "published")}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Р§РµСЂРЅРѕРІРёРє</SelectItem>
+                  <SelectItem value="published">РћРїСѓР±Р»РёРєРѕРІР°РЅРѕ</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Р­С‚Р°РїС‹ РјР°СЂС€СЂСѓС‚Р°</CardTitle>
+          <CardDescription>
+            РЎРѕР·РґР°РІР°Р№С‚Рµ РѕС‚РґРµР»СЊРЅС‹Рµ СЂР°Р·РґРµР»С‹ СЃ С‚РµРєСЃС‚РѕРј, С„РѕС‚Рѕ, РіР°Р»РµСЂРµСЏРјРё вЂ” РѕРЅРё РїРѕСЏРІСЏС‚СЃСЏ РЅР° СЃР°Р№С‚Рµ С‚СЂРµС‚СЊРµР№ Р·Р°РєСЂРµРїР»С‘РЅРЅРѕР№ С€Р°РїРєРѕР№ СЃ С‚Р°Р±Р°РјРё.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* РЎРїРёСЃРѕРє С‚Р°Р±РѕРІ */}
+          <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-2">
+            {/* РћСЃРЅРѕРІРЅРѕР№ С‚Р°Р± */}
+            <button
+              onClick={() => { setActiveTabId("__main__"); setEditorKey((k) => k + 1); }}
+              className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
+                activeTabId === "__main__"
+                  ? "bg-[#867DFF] text-white shadow-sm"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              РћСЃРЅРѕРІРЅРѕР№
+            </button>
+            {/* Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ С‚Р°Р±С‹ */}
+            {tabs.map((tab, index) => (
+              <div key={tab.id} className="flex items-center gap-1 rounded-full bg-slate-100 pr-2">
+                <button
+                  onClick={() => { setActiveTabId(tab.id); setEditorKey((k) => k + 1); }}
+                  className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
+                    activeTabId === tab.id
+                      ? "bg-[#867DFF] text-white shadow-sm"
+                      : "text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {tab.title}
+                </button>
+                <div className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => moveTab(index, -1)}
+                    disabled={index === 0}
+                    className="p-1 rounded hover:bg-slate-200 disabled:opacity-30"
+                    title="Р’РІРµСЂС…"
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => moveTab(index, 1)}
+                    disabled={index === tabs.length - 1}
+                    className="p-1 rounded hover:bg-slate-200 disabled:opacity-30"
+                    title="Р’РЅРёР·"
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => renameTab(tab.id)}
+                    className="p-1 rounded hover:bg-slate-200"
+                    title="РџРµСЂРµРёРјРµРЅРѕРІР°С‚СЊ"
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => deleteTab(tab.id)}
+                    className="p-1 rounded hover:bg-red-100 text-red-600"
+                    title="РЈРґР°Р»РёС‚СЊ"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addNewTab}
+              className="rounded-full"
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              РќРѕРІС‹Р№ СЌС‚Р°Рї
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>РћРїРёСЃР°РЅРёРµ РјР°СЂС€СЂСѓС‚Р°</CardTitle>
+          <CardDescription>
+            РџРѕРґСЂРѕР±РЅРѕРµ РѕРїРёСЃР°РЅРёРµ: РґРѕСЃС‚РѕРїСЂРёРјРµС‡Р°С‚РµР»СЊРЅРѕСЃС‚Рё, СЃРѕРІРµС‚С‹, С„РѕС‚РѕРіСЂР°С„РёРё, РіР°Р»РµСЂРµРё.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0 sm:p-4">
+          <Suspense
+            fallback={
+              <div className="flex justify-center py-12 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            }
+          >
+            <TiptapEditor
+              key={`${activeTabId}-${editorKey}`}
+              initialBlocks={activeTabId === "__main__" ? contentBlocks : (tabs.find(t => t.id === activeTabId)?.blocks || [])}
+              onChange={handleEditorChange}
+              anchorLimit={anchorLimit}
+            />
+          </Suspense>
+        </CardContent>
+      </Card>
+
+      <div className="flex flex-wrap gap-3">
+        <Button
+          type="button"
+          onClick={() => saveMut.mutate()}
+          disabled={saveMut.isPending}
+        >
+          {saveMut.isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : null}
+          РЎРѕС…СЂР°РЅРёС‚СЊ
+        </Button>
+        {!isNew ? (
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={delMut.isPending}
+            onClick={() => {
+              if (confirm("РЈРґР°Р»РёС‚СЊ РјР°СЂС€СЂСѓС‚ РёР· Р±Р°Р·С‹?")) delMut.mutate();
+            }}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            РЈРґР°Р»РёС‚СЊ
+          </Button>
+        ) : null}
+      </div>
+      {saveMut.isError ? (
+        <p className="text-sm text-destructive">
+          {(saveMut.error as Error)?.message || "РћС€РёР±РєР° СЃРѕС…СЂР°РЅРµРЅРёСЏ"}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+
+========== FILE: src\pages\RouteDetail.tsx ==========
+
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import RouteTabsHeader from "@/components/routes/RouteTabsHeader";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Star, ArrowLeft, Loader2 } from "lucide-react";
+import BlogBlockRenderer from "@/components/blog/BlogBlockRenderer";
+import type { BlogContentBlock, RouteTab } from "@/types/blogContent";
+
+import karelia from "@/assets/images/cities/karelia.jpg";
+import moscow from "@/assets/images/cities/moscow.jpg";
+import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
+import kazan from "@/assets/images/cities/kazan.jpg";
+import novgorod from "@/assets/images/cities/novgorod.jpg";
+import armenia from "@/assets/images/cities/armenia.jpg";
+import china from "@/assets/images/cities/china.jpg";
+import heroTrain from "@/assets/images/hero/hero-train.jpg";
+
+interface LegacyRoute {
+  id: string;
+  name: string;
+  rating: number;
+  image: string;
+  region: string;
+}
+
+const legacyRoutes: LegacyRoute[] = [
+  { id: "1", name: "Р’Р»Р°РґРёРјРёСЂСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ", rating: 8.2, image: karelia, region: "Р¦РµРЅС‚СЂ" },
+  { id: "2", name: "Р’РѕСЂРѕРЅРµР¶СЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ", rating: 9.5, image: moscow, region: "Р¦РµРЅС‚СЂ" },
+  { id: "3", name: "Р—Р°СЂР°Р№СЃРє Рё РљРѕР»РѕРјРЅР°", rating: 8.5, image: stPetersburg, region: "Р¦РµРЅС‚СЂ" },
+  { id: "5", name: "РРІР°РЅРѕРІСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ, РјР°СЂС€СЂСѓС‚ в„–1", rating: 8.6, image: novgorod, region: "Р¦РµРЅС‚СЂ" },
+  { id: "6", name: "РРІР°РЅРѕРІСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ, РјР°СЂС€СЂСѓС‚ в„–2", rating: 9.5, image: armenia, region: "Р¦РµРЅС‚СЂ" },
+  { id: "7", name: "РљР°Р»РёРЅРёРЅРіСЂР°РґСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ, РјР°СЂС€СЂСѓС‚ в„–1", rating: 9.3, image: china, region: "РЎРµРІРµСЂРѕ-Р—Р°РїР°Рґ" },
+  { id: "8", name: "РљР°Р»РёРЅРёРЅРіСЂР°РґСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ, РјР°СЂС€СЂСѓС‚ в„–4", rating: 9.0, image: heroTrain, region: "РЎРµРІРµСЂРѕ-Р—Р°РїР°Рґ" },
+  { id: "10", name: "РњСѓСЂРјР°РЅСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ, РјР°СЂС€СЂСѓС‚ в„–1", rating: 9.3, image: moscow, region: "РЎРµРІРµСЂРѕ-Р—Р°РїР°Рґ" },
+  { id: "11", name: "РњСѓСЂРјР°РЅСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ, РјР°СЂС€СЂСѓС‚ в„–2", rating: 9.8, image: stPetersburg, region: "РЎРµРІРµСЂРѕ-Р—Р°РїР°Рґ" },
+  { id: "13", name: "РђСЂС…Р°РЅРіРµР»СЊСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ", rating: 9.3, image: karelia, region: "РЎРµРІРµСЂРѕ-Р—Р°РїР°Рґ" },
+  { id: "9", name: "РљСЂР°СЃРЅРѕРґР°СЂСЃРєРёР№ РєСЂР°Р№", rating: 10, image: karelia, region: "Р®Рі" },
+  { id: "14", name: "Р РѕСЃС‚РѕРІ-РЅР°-Р”РѕРЅСѓ", rating: 9.1, image: moscow, region: "Р®Рі" },
+  { id: "15", name: "РљСЂС‹Рј", rating: 9.7, image: stPetersburg, region: "Р®Рі" },
+  { id: "16", name: "РЎС‚Р°РІСЂРѕРїРѕР»СЊСЃРєРёР№ РєСЂР°Р№", rating: 8.8, image: kazan, region: "Р®Рі" },
+  { id: "17", name: "РЎРѕС‡Рё Рё РѕРєСЂРµСЃС‚РЅРѕСЃС‚Рё", rating: 9.6, image: novgorod, region: "Р®Рі" },
+  { id: "18", name: "РљР°Р·Р°РЅСЊ", rating: 9.4, image: kazan, region: "РџРѕРІРѕР»Р¶СЊРµ" },
+  { id: "19", name: "РЎР°РјР°СЂР°", rating: 8.7, image: armenia, region: "РџРѕРІРѕР»Р¶СЊРµ" },
+  { id: "20", name: "РќРёР¶РЅРёР№ РќРѕРІРіРѕСЂРѕРґ", rating: 9.2, image: china, region: "РџРѕРІРѕР»Р¶СЊРµ" },
+  { id: "21", name: "Р’РѕР»РіРѕРіСЂР°Рґ", rating: 8.9, image: heroTrain, region: "РџРѕРІРѕР»Р¶СЊРµ" },
+  { id: "22", name: "Р’РµР»РёРєРёР№ Р’РѕР»Р¶СЃРєРёР№ РїСѓС‚СЊ", rating: 9.7, image: karelia, region: "РџРѕРІРѕР»Р¶СЊРµ" },
+  { id: "4", name: "Р•РєР°С‚РµСЂРёРЅР±СѓСЂРі", rating: 8.9, image: kazan, region: "РЈСЂР°Р»" },
+  { id: "23", name: "Р§РµР»СЏР±РёРЅСЃРє", rating: 8.4, image: moscow, region: "РЈСЂР°Р»" },
+  { id: "24", name: "РџРµСЂРјСЊ", rating: 8.6, image: stPetersburg, region: "РЈСЂР°Р»" },
+  { id: "25", name: "РўСЋРјРµРЅСЊ", rating: 9.0, image: kazan, region: "РЈСЂР°Р»" },
+  { id: "26", name: "РҐРњРђРћ - Р®РіСЂР°", rating: 9.9, image: novgorod, region: "РЈСЂР°Р»" },
+  { id: "12", name: "РќРѕРІРѕСЃРёР±РёСЂСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ", rating: 7.4, image: kazan, region: "РЎРёР±РёСЂСЊ" },
+  { id: "27", name: "РљСЂР°СЃРЅРѕСЏСЂСЃРє", rating: 8.8, image: armenia, region: "РЎРёР±РёСЂСЊ" },
+  { id: "28", name: "РСЂРєСѓС‚СЃРє Рё Р‘Р°Р№РєР°Р»", rating: 9.8, image: china, region: "РЎРёР±РёСЂСЊ" },
+  { id: "29", name: "РђР»С‚Р°Р№СЃРєРёР№ РєСЂР°Р№", rating: 9.7, image: heroTrain, region: "РЎРёР±РёСЂСЊ" },
+  { id: "30", name: "РўРѕРјСЃРє", rating: 8.5, image: karelia, region: "РЎРёР±РёСЂСЊ" },
+  { id: "31", name: "Р”Р°РіРµСЃС‚Р°РЅ", rating: 9.3, image: moscow, region: "РљР°РІРєР°Р·" },
+  { id: "32", name: "РљР°СЂР°С‡Р°РµРІРѕ-Р§РµСЂРєРµСЃРёСЏ", rating: 9.1, image: stPetersburg, region: "РљР°РІРєР°Р·" },
+  { id: "33", name: "РљР°Р±Р°СЂРґРёРЅРѕ-Р‘Р°Р»РєР°СЂРёСЏ", rating: 9.5, image: kazan, region: "РљР°РІРєР°Р·" },
+  { id: "34", name: "РћСЃРµС‚РёСЏ", rating: 9.0, image: novgorod, region: "РљР°РІРєР°Р·" },
+  { id: "35", name: "Р§РµС‡РЅСЏ", rating: 9.2, image: armenia, region: "РљР°РІРєР°Р·" },
+  { id: "36", name: "Р’Р»Р°РґРёРІРѕСЃС‚РѕРє Рё РѕРєСЂРµСЃС‚РЅРѕСЃС‚Рё", rating: 10, image: china, region: "Р”Р°Р»СЊРЅРёР№ Р’РѕСЃС‚РѕРє" },
+  { id: "37", name: "РҐР°Р±Р°СЂРѕРІСЃРє", rating: 8.9, image: heroTrain, region: "Р”Р°Р»СЊРЅРёР№ Р’РѕСЃС‚РѕРє" },
+  { id: "38", name: "РљР°РјС‡Р°С‚РєР°", rating: 9.8, image: karelia, region: "Р”Р°Р»СЊРЅРёР№ Р’РѕСЃС‚РѕРє" },
+  { id: "39", name: "РЎР°С…Р°Р»РёРЅ", rating: 9.4, image: moscow, region: "Р”Р°Р»СЊРЅРёР№ Р’РѕСЃС‚РѕРє" },
+  { id: "40", name: "РЇРєСѓС‚РёСЏ", rating: 9.6, image: stPetersburg, region: "Р”Р°Р»СЊРЅРёР№ Р’РѕСЃС‚РѕРє" },
+];
+
+type ApiRoute = {
+  id: string;
+  legacy_id: string | null;
+  slug: string;
+  name: string;
+  region: string;
+  rating: number;
+  cover_image_url: string | null;
+  excerpt: string;
+  content_blocks: BlogContentBlock[];
+  views: number;
+  tabs?: RouteTab[];
+};
+
+const RouteDetail = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  const [activeTabId, setActiveTabId] = useState<string>("__main__");
+
+  const apiQ = useQuery({
+    queryKey: ["route-page-public", id],
+    queryFn: () =>
+      fetch(`/api/route-pages/by-id/${id}`).then((r) => {
+        if (!r.ok) throw new Error(`${r.status}`);
+        return r.json() as Promise<ApiRoute>;
+      }),
+    retry: false,
+    enabled: !!id,
+  });
+
+  const apiRoute = apiQ.data;
+  const isLoading = apiQ.isLoading;
+
+  // РЎР±СЂР°СЃС‹РІР°РµРј Р°РєС‚РёРІРЅС‹Р№ С‚Р°Р± РїСЂРё Р·Р°РіСЂСѓР·РєРµ РЅРѕРІРѕРіРѕ РјР°СЂС€СЂСѓС‚Р°
+  useEffect(() => {
+    if (apiRoute) {
+      setActiveTabId("__main__");
+    }
+  }, [apiRoute]);
+
+  const { data: relatedRoutes } = useQuery({
+    queryKey: ["related-routes", apiRoute?.region],
+    enabled: !!apiRoute?.region,
+    queryFn: () =>
+      fetch(`/api/route-pages/related?region=${encodeURIComponent(apiRoute!.region)}&exclude=${apiRoute!.id}`)
+        .then((r) => {
+          if (!r.ok) throw new Error("Failed to fetch related");
+          return r.json();
+        }),
+  });
+
+  const [relatedPage, setRelatedPage] = useState(0);
+  const [allRelated, setAllRelated] = useState<any[]>([]);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  useEffect(() => {
+    if (relatedRoutes) {
+      setAllRelated(relatedRoutes);
+      setRelatedPage(0);
+    }
+  }, [relatedRoutes]);
+
+  const loadMoreRelated = async () => {
+    if (!apiRoute?.region) return;
+    setLoadingMore(true);
+    try {
+      const offset = (relatedPage + 1) * 3;
+      const res = await fetch(
+        `/api/route-pages/related?region=${encodeURIComponent(apiRoute.region)}&exclude=${apiRoute.id}&offset=${offset}`
+      );
+      if (!res.ok) throw new Error("Failed to load more");
+      const data = await res.json();
+      setAllRelated((prev) => [...prev, ...data]);
+      setRelatedPage((prev) => prev + 1);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const legacy = legacyRoutes.find((r) => r.id === id);
+  const routeName = apiRoute?.name ?? legacy?.name;
+  const routeRegion = apiRoute?.region ?? legacy?.region ?? "";
+  const routeRating = apiRoute?.rating ?? legacy?.rating ?? 0;
+  const routeImage = apiRoute?.cover_image_url ?? legacy?.image;
+
+  // РћРїСЂРµРґРµР»СЏРµРј РєРѕРЅС‚РµРЅС‚ РґР»СЏ С‚РµРєСѓС‰РµРіРѕ С‚Р°Р±Р°
+  const currentBlocks: BlogContentBlock[] = (() => {
+    if (activeTabId === "__main__") {
+      return apiRoute?.content_blocks || [];
+    }
+    const tab = apiRoute?.tabs?.find((t) => t.id === activeTabId);
+    return tab?.blocks || [];
+  })();
+
+  const hasContent = Array.isArray(currentBlocks) && currentBlocks.length > 0;
+
+  // ===== Р¤РЈРќРљР¦РРЇ Р”Р›РЇ Р Р•РќР”Р•Р РРќР“Рђ РљРћРќРўР•РќРўРђ РЎ РћР‘Р Р•Р—РљРћР™ РљРђР РўРРќРћРљ =====
+  const renderContent = () => {
+    if (!hasContent) {
+      return (
+        <div className="prose max-w-none">
+          <p className="mb-4 text-base text-muted-foreground md:mb-6 md:text-lg">
+            Р”РµС‚Р°Р»СЊРЅР°СЏ РёРЅС„РѕСЂРјР°С†РёСЏ Рѕ РјР°СЂС€СЂСѓС‚Рµ РЅР°С…РѕРґРёС‚СЃСЏ РІ СЂР°Р·СЂР°Р±РѕС‚РєРµ.
+          </p>
+          <p className="text-base text-muted-foreground md:text-lg">
+            Р—РґРµСЃСЊ Р±СѓРґРµС‚ СЂР°Р·РјРµС‰РµРЅР° РїРѕРґСЂРѕР±РЅР°СЏ РёРЅС„РѕСЂРјР°С†РёСЏ Рѕ РјР°СЂС€СЂСѓС‚Рµ,
+            РІРєР»СЋС‡Р°СЏ РѕРїРёСЃР°РЅРёРµ РґРѕСЃС‚РѕРїСЂРёРјРµС‡Р°С‚РµР»СЊРЅРѕСЃС‚РµР№, СЂРµРєРѕРјРµРЅРґР°С†РёРё РїРѕ
+            РїРѕСЃРµС‰РµРЅРёСЋ, РєР°СЂС‚Сѓ РјР°СЂС€СЂСѓС‚Р° Рё РґСЂСѓРіСѓСЋ РїРѕР»РµР·РЅСѓСЋ РёРЅС„РѕСЂРјР°С†РёСЋ РґР»СЏ
+            РїСѓС‚РµС€РµСЃС‚РІРµРЅРЅРёРєРѕРІ.
+          </p>
+        </div>
+      );
+    }
+
+    return currentBlocks.map((block, index) => {
+      // ===== РћР‘Р РђР‘РћРўРљРђ РљРђР РўРРќРћРљ =====
+      if (block.type === "image") {
+        return (
+          <div key={index} className="my-4 w-full max-w-[896px] mx-auto">
+            <img
+              src={block.url}
+              alt={block.alt || "РР·РѕР±СЂР°Р¶РµРЅРёРµ"}
+              className="w-full h-[560px] object-cover rounded-lg"
+              loading="lazy"
+            />
+            {block.caption && (
+              <p className="mt-2 text-center text-sm text-muted-foreground">{block.caption}</p>
+            )}
+          </div>
+        );
+      }
+
+      // ===== РћРЎРўРђР›Р¬РќР«Р• Р‘Р›РћРљР (С‡РµСЂРµР· BlogBlockRenderer) =====
+      // РџРµСЂРµРґР°С‘Рј С‚РѕР»СЊРєРѕ РѕРґРёРЅ Р±Р»РѕРє, С‡С‚РѕР±С‹ РЅРµ РґСѓР±Р»РёСЂРѕРІР°С‚СЊ
+      return <BlogBlockRenderer key={index} blocks={[block]} />;
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F5F5FA]">
+        <Header />
+        <main className="flex items-center justify-center py-32">
+          <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!routeName) {
+    return (
+      <div className="min-h-screen bg-[#F5F5FA]">
+        <Header />
+        <main className="container px-4 py-12 pt-20 md:px-6 md:py-20 md:pt-32">
+          <h1 className="heading-gradient mb-6 text-2xl font-bold tracking-tight md:text-4xl">
+            РњР°СЂС€СЂСѓС‚ РЅРµ РЅР°Р№РґРµРЅ
+          </h1>
+          <Button onClick={() => navigate("/routes/list")}>
+            Р’РµСЂРЅСѓС‚СЊСЃСЏ Рє СЃРїРёСЃРєСѓ РјР°СЂС€СЂСѓС‚РѕРІ
+          </Button>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#F5F5FA]">
+      <Header />
+      <main className="pt-20 md:pt-16">
+        {/* РўСЂРµС‚СЊСЏ С€Р°РїРєР° СЃ С‚Р°Р±Р°РјРё вЂ” С‚РѕР»СЊРєРѕ РµСЃР»Рё РµСЃС‚СЊ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ С‚Р°Р±С‹ */}
+        {apiRoute?.tabs && apiRoute.tabs.length > 0 && (
+          <RouteTabsHeader
+            tabs={apiRoute.tabs}
+            activeTabId={activeTabId}
+            onChange={setActiveTabId}
+          />
+        )}
+        <div className="container px-4 py-6 md:px-6 md:py-12">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/routes/list")}
+            className="mb-4 text-sm md:mb-6 md:text-base"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            РќР°Р·Р°Рґ Рє РјР°СЂС€СЂСѓС‚Р°Рј
+          </Button>
+
+          <Card className="overflow-hidden shadow-lg">
+          {routeImage && (
+  <div className="relative w-full max-w-[896px] mx-auto overflow-hidden rounded-lg">
+    <img
+      src={routeImage}
+      alt={routeName}
+      className="w-full h-[560px] object-cover"
+    />
+  </div>
+)}
+            <CardContent className="p-4 md:p-6 lg:p-8">
+              <div className="mb-4 flex flex-col gap-4 md:mb-6 md:flex-row md:items-start md:justify-between">
+                <div className="flex-1">
+                  <h1 className="heading-gradient mb-2 text-2xl font-bold tracking-tight md:text-4xl lg:text-5xl">
+                    {routeName}
+                  </h1>
+                  <p className="text-base text-muted-foreground md:text-lg">
+                    {routeRegion}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 md:flex-shrink-0">
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400 md:h-6 md:w-6" />
+                  <span className="text-lg font-semibold text-foreground md:text-xl">
+                    {routeRating}
+                  </span>
+                </div>
+              </div>
+
+              {renderContent()}
+
+              <div className="mt-6 md:mt-8">
+                <Button
+                  size="lg"
+                  className="w-full px-6 py-4 text-base md:w-auto md:px-8 md:py-6 md:text-lg"
+                >
+                  РЈР·РЅР°С‚СЊ РјР°СЂС€СЂСѓС‚
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {allRelated.length > 0 && (
+            <div className="mt-12 md:mt-16">
+              <h2 className="heading-gradient mb-6 text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl">
+                РџРѕС…РѕР¶РёРµ РјР°СЂС€СЂСѓС‚С‹
+              </h2>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {allRelated.map((route) => (
+                  <Card
+                    key={route.id}
+                    className="overflow-hidden shadow-md transition-shadow hover:shadow-xl cursor-pointer"
+                    onClick={() => navigate(`/routes/${route.id}`)}
+                  >
+                    {route.cover_image_url && (
+                      <div className="h-40 overflow-hidden md:h-48">
+                        <img
+                          src={route.cover_image_url}
+                          alt={route.name}
+                          className="h-full w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                    )}
+                    <CardContent className="p-4">
+                      <h3 className="mb-1 text-lg font-semibold line-clamp-1">{route.name}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{route.excerpt || route.region}</p>
+                      <div className="mt-2 flex items-center gap-1">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm font-medium">{route.rating}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {relatedRoutes && relatedRoutes.length === 3 && (
+                <div className="mt-6 text-center">
+                  <Button
+                    variant="outline"
+                    onClick={loadMoreRelated}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Р—Р°РіСЂСѓР·РєР°...
+                      </>
+                    ) : (
+                      "Р—Р°РіСЂСѓР·РёС‚СЊ РµС‰С‘"
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default RouteDetail;
+
+
+========== FILE: server\routePageRoutes.js ==========
+
+import express from "express";
+import { pool } from "./db.js";
+import { adminMiddleware } from "./authMiddleware.js";
+
+const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+const ALLOWED_BLOCK_TYPES = new Set([
+  "paragraph",
+  "heading",
+  "image",
+  "carousel",
+  "bulletList",
+  "orderedList",
+  "divider",
+  "quote",
+  "table",
+  "ctaButton",
+  "destinationCard",
+  "quickBooking",
+  "routeByDays",
+]);
+
+function isValidImageUrl(url) {
+  if (!url) return false;
+  if (/^https?:\/\/.+/i.test(url)) return true;
+  if (/^\/uploads\/[^\s]+/i.test(url)) return true;
+  return false;
+}
+
+/** РћС‡РёС‰Р°РµС‚ РјР°СЃСЃРёРІ С‚Р°Р±РѕРІ РјР°СЂС€СЂСѓС‚Р° */
+function sanitizeTabs(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const t of raw) {
+    if (!t || typeof t !== "object") continue;
+    const id = String(t.id ?? "").slice(0, 64);
+    if (!id) continue;
+    const title = String(t.title ?? "").slice(0, 200);
+    if (!title) continue;
+    const blocks = Array.isArray(t.blocks) ? sanitizeBlocks(t.blocks) : [];
+    out.push({ id, title, blocks });
+  }
+  return out;
+}
+
+function sanitizeBlocks(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const b of raw) {
+    if (!b || typeof b !== "object") continue;
+    const type = String(b.type || "");
+    if (!ALLOWED_BLOCK_TYPES.has(type)) continue;
+
+    if (type === "paragraph") {
+      const block = { type, text: String(b.text ?? "").slice(0, 80000) };
+      if (b.anchor === true) block.anchor = true;
+      if (b.anchorLabel != null) block.anchorLabel = String(b.anchorLabel).slice(0, 500);
+      if (b.anchorOrdinal != null) {
+        const n = parseInt(String(b.anchorOrdinal), 10);
+        if (Number.isFinite(n) && n > 0) block.anchorOrdinal = n;
+      }
+      out.push(block);
+    } else if (type === "heading") {
+      const level = [1, 2, 3].includes(Number(b.level)) ? Number(b.level) : 2;
+      const block = { type, level, text: String(b.text ?? "").slice(0, 500) };
+      if (b.anchor === true) block.anchor = true;
+      if (b.anchorLabel != null) block.anchorLabel = String(b.anchorLabel).slice(0, 500);
+      if (b.anchorOrdinal != null) {
+        const n = parseInt(String(b.anchorOrdinal), 10);
+        if (Number.isFinite(n) && n > 0) block.anchorOrdinal = n;
+      }
+      out.push(block);
+    } else if (type === "image") {
+      out.push({
+        type,
+        url: String(b.url ?? "").slice(0, 2000),
+        alt: String(b.alt ?? "").slice(0, 500),
+        caption: b.caption ? String(b.caption).slice(0, 2000) : undefined,
+      });
+    } else if (type === "carousel") {
+      const slides = Array.isArray(b.slides) ? b.slides.slice(0, 15) : [];
+      const modeRaw = String(b.mode || "manual");
+      const mode =
+        modeRaw === "auto" || modeRaw === "hybrid" ? modeRaw : "manual";
+      const intervalSec = Math.min(
+        30,
+        Math.max(1, parseInt(String(b.intervalSec || "5"), 10) || 5),
+      );
+      const clean = [];
+      for (const s of slides) {
+        if (!s || typeof s !== "object") continue;
+        const image = String(s.image ?? "").replace(/\s+/g, "").trim().slice(0, 2000);
+        if (!isValidImageUrl(image)) continue;
+        const caption = s.caption != null ? String(s.caption).trim().slice(0, 2000) : "";
+        const slide = { image };
+        if (caption) slide.caption = caption;
+        clean.push(slide);
+      }
+      if (clean.length > 0) {
+        out.push({ type: "carousel", slides: clean, mode, intervalSec });
+      }
+    } else if (type === "bulletList" || type === "orderedList") {
+      const items = Array.isArray(b.items)
+        ? b.items.slice(0, 50).map((x) => String(x ?? "").slice(0, 8000))
+        : [];
+      if (items.length > 0) out.push({ type, items });
+    } else if (type === "quote") {
+      out.push({
+        type,
+        text: String(b.text ?? "").slice(0, 8000),
+        attribution: b.attribution ? String(b.attribution).slice(0, 300) : undefined,
+      });
+    } else if (type === "divider") {
+      out.push({ type: "divider" });
+    } else if (type === "table") {
+      const rows = Array.isArray(b.rows) ? b.rows.slice(0, 50) : [];
+      const cleanRows = [];
+      for (const row of rows) {
+        if (!row || typeof row !== "object" || !Array.isArray(row.cells)) continue;
+        const cells = row.cells.slice(0, 20).map((c) => ({
+          text: String(c?.text ?? "").slice(0, 8000),
+        }));
+        const cleanRow = { cells };
+        if (row.tableAnchorId != null) {
+          const id = String(row.tableAnchorId).trim().slice(0, 100);
+          if (/^t-anchor-\d+$/.test(id)) cleanRow.tableAnchorId = id;
+        }
+        cleanRows.push(cleanRow);
+      }
+      if (cleanRows.length > 0) {
+        out.push({ type: "table", rows: cleanRows, hasHeader: !!b.hasHeader });
+      }
+    } else if (type === "ctaButton") {
+      out.push({
+        type: "ctaButton",
+        text: String(b.text ?? "РџРѕРґСЂРѕР±РЅРµРµ").slice(0, 200),
+        url: String(b.url ?? "").slice(0, 2000),
+        variant: b.variant === "secondary" ? "secondary" : "primary",
+      });
+    } else if (type === "destinationCard") {
+      out.push({
+        type: "destinationCard",
+        season: String(b.season ?? "").slice(0, 500),
+        format: String(b.format ?? "").slice(0, 500),
+        comfort: String(b.comfort ?? "").slice(0, 500),
+        uniqueness: String(b.uniqueness ?? "").slice(0, 500),
+        season_label: b.season_label != null ? String(b.season_label).slice(0, 200) : "",
+        format_label: b.format_label != null ? String(b.format_label).slice(0, 200) : "",
+        comfort_label: b.comfort_label != null ? String(b.comfort_label).slice(0, 200) : "",
+        uniqueness_label: b.uniqueness_label != null ? String(b.uniqueness_label).slice(0, 200) : "",
+        season_icon: b.season_icon != null ? String(b.season_icon).slice(0, 100) : "Sun",
+        format_icon: b.format_icon != null ? String(b.format_icon).slice(0, 100) : "Tent",
+        comfort_icon: b.comfort_icon != null ? String(b.comfort_icon).slice(0, 100) : "Star",
+        uniqueness_icon: b.uniqueness_icon != null ? String(b.uniqueness_icon).slice(0, 100) : "Sparkles",
+      });
+    } else if (type === "quickBooking") {
+      out.push({
+        type: "quickBooking",
+        title: String(b.title ?? "").slice(0, 500),
+        button1Text: String(b.button1Text ?? "").slice(0, 200),
+        button1Url: String(b.button1Url ?? "").slice(0, 2000),
+        button2Text: String(b.button2Text ?? "").slice(0, 200),
+        button2Url: String(b.button2Url ?? "").slice(0, 2000),
+        image: String(b.image ?? "").slice(0, 2000),
+        bgGradient: String(b.bgGradient ?? "from-[#8A70F8] to-[#9B82F8]").slice(0, 200),
+      });
+    } else if (type === "routeByDays") {
+      const days = Array.isArray(b.days) ? b.days.slice(0, 30) : [];
+      const cleanDays = [];
+      for (const d of days) {
+        if (!d || typeof d !== "object") continue;
+        const day = {
+          label: String(d.label ?? "").slice(0, 200),
+          title: String(d.title ?? "").slice(0, 500),
+          description: String(d.description ?? "").slice(0, 8000),
+        };
+        if (d.anchorIndex != null) {
+          const n = parseInt(String(d.anchorIndex), 10);
+          if (Number.isFinite(n) && n >= 0) day.anchorIndex = n;
+        }
+        cleanDays.push(day);
+      }
+      if (cleanDays.length > 0) {
+        out.push({
+          type: "routeByDays",
+          image: b.image ? String(b.image).slice(0, 2000) : "",
+          days: cleanDays,
+        });
+      }
+    }
+  }
+  return out;
+}
+
+function parseBody(body) {
+  const slug = String(body.slug || "").trim().toLowerCase();
+  const name = String(body.name || "").trim();
+  if (!slug || !SLUG_RE.test(slug)) {
+    return { error: "Invalid slug (latin, digits, hyphens)" };
+  }
+  if (!name) return { error: "name required" };
+
+  const blocks = Array.isArray(body.content_blocks)
+    ? sanitizeBlocks(body.content_blocks)
+    : [];
+
+  const tabs = Array.isArray(body.tabs)
+    ? sanitizeTabs(body.tabs)
+    : [];
+
+  const status =
+    body.status === "published" || body.status === "draft"
+      ? body.status
+      : "draft";
+  let publishedAt = body.published_at ? new Date(body.published_at) : null;
+  if (status === "published" && (!publishedAt || Number.isNaN(publishedAt.getTime()))) {
+    publishedAt = new Date();
+  }
+  if (status === "draft") {
+    publishedAt = publishedAt && !Number.isNaN(publishedAt.getTime()) ? publishedAt : null;
+  }
+
+  return {
+    data: {
+      slug,
+      name,
+      legacy_id: body.legacy_id ? String(body.legacy_id).trim() : null,
+      region: String(body.region ?? "").slice(0, 200),
+      rating: Math.min(10, Math.max(0, parseFloat(String(body.rating || "0")) || 0)),
+      cover_image_url: body.cover_image_url ? String(body.cover_image_url).slice(0, 2000) : null,
+      excerpt: String(body.excerpt ?? "").slice(0, 2000),
+      content_blocks: blocks,
+      tabs,
+      status,
+      published_at: publishedAt,
+    },
+  };
+}
+
+/**
+ * Public routes for route pages
+ * @param {import('express').Express} app
+ */
+export function registerRoutePublicRoutes(app) {
+  app.get("/api/route-pages", async (_req, res) => {
+    try {
+      const { rows } = await pool.query(
+        `SELECT id, legacy_id, slug, name, region, rating, cover_image_url, excerpt, views
+         FROM route_pages
+         WHERE status = 'published'
+         ORDER BY rating DESC, name ASC`
+      );
+      res.json(rows);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Failed to list routes" });
+    }
+  });
+
+  app.get("/api/route-pages/related", async (req, res) => {
+    const { region, exclude, offset = 0 } = req.query;
+    if (!region) {
+      return res.status(400).json({ error: "region required" });
+    }
+
+    const limit = 3;
+    const off = parseInt(offset, 10) || 0;
+
+    try {
+      const { rows } = await pool.query(
+        `SELECT id, legacy_id, slug, name, region, rating, cover_image_url, excerpt
+         FROM route_pages
+         WHERE region = $1 AND status = 'published' AND id::text != $2
+         ORDER BY rating DESC, name ASC
+         LIMIT $3 OFFSET $4`,
+        [region, exclude || "0", limit, off]
+      );
+      res.json(rows);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Failed to fetch related routes" });
+    }
+  });
+
+  app.get("/api/route-pages/by-id/:id", async (req, res) => {
+    const id = String(req.params.id || "");
+    if (!id) return res.status(400).json({ error: "id required" });
+    try {
+      const { rows } = await pool.query(
+        `SELECT * FROM route_pages
+         WHERE (id::text = $1 OR legacy_id = $1) AND status = 'published'`,
+        [id]
+      );
+      const row = rows[0];
+      if (!row) return res.status(404).json({ error: "Not found" });
+
+      pool
+        .query(`UPDATE route_pages SET views = views + 1 WHERE id = $1`, [row.id])
+        .catch(() => {});
+
+      res.json({
+        ...row,
+        views: (row.views ?? 0) + 1,
+        content_blocks: Array.isArray(row.content_blocks) ? row.content_blocks : [],
+        tabs: Array.isArray(row.tabs) ? row.tabs : [],
+      });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Failed to load route" });
+    }
+  });
+}
+
+/**
+ * Admin CRUD routes
+ * @param {import('express').Express} app
+ */
+export function registerAdminRouteRoutes(app) {
+  app.get("/api/admin/routes", adminMiddleware, async (_req, res) => {
+    try {
+      const { rows } = await pool.query(
+        `SELECT id, legacy_id, slug, name, region, rating, cover_image_url, status, updated_at
+         FROM route_pages
+         ORDER BY updated_at DESC`
+      );
+      res.json(rows);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "List failed" });
+    }
+  });
+
+  app.get("/api/admin/routes/id/:id", adminMiddleware, async (req, res) => {
+    try {
+      const { rows } = await pool.query(
+        `SELECT * FROM route_pages WHERE id = $1::uuid`,
+        [req.params.id]
+      );
+      if (!rows.length) return res.status(404).json({ error: "Not found" });
+      const row = rows[0];
+      res.json({
+        ...row,
+        content_blocks: Array.isArray(row.content_blocks) ? row.content_blocks : [],
+        tabs: Array.isArray(row.tabs) ? row.tabs : [],
+      });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Load failed" });
+    }
+  });
+
+  app.post(
+    "/api/admin/routes",
+    adminMiddleware,
+    express.json({ limit: "512kb" }),
+    async (req, res) => {
+      const parsed = parseBody(req.body || {});
+      if (parsed.error) return res.status(400).json({ error: parsed.error });
+      const d = parsed.data;
+      try {
+        const { rows } = await pool.query(
+          `INSERT INTO route_pages (
+            slug, name, legacy_id, region, rating, cover_image_url, excerpt,
+            content_blocks, tabs, status, published_at, author_id
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11,$12)
+          RETURNING *`,
+          [
+            d.slug, d.name, d.legacy_id, d.region, d.rating,
+            d.cover_image_url, d.excerpt,
+            JSON.stringify(d.content_blocks), JSON.stringify(d.tabs), d.status, d.published_at,
+            req.userId,
+          ]
+        );
+        res.status(201).json(rows[0]);
+      } catch (e) {
+        if (e.code === "23505")
+          return res.status(400).json({ error: "Slug or legacy_id already exists" });
+        console.error(e);
+        res.status(500).json({ error: e.message || "Create failed" });
+      }
+    }
+  );
+
+  app.patch(
+    "/api/admin/routes/id/:id",
+    adminMiddleware,
+    express.json({ limit: "512kb" }),
+    async (req, res) => {
+      const b = req.body || {};
+      try {
+        const cur = (
+          await pool.query(`SELECT * FROM route_pages WHERE id = $1::uuid`, [req.params.id])
+        ).rows[0];
+        if (!cur) return res.status(404).json({ error: "Not found" });
+
+        const slug = (b.slug != null ? String(b.slug) : cur.slug).trim().toLowerCase();
+        if (!SLUG_RE.test(slug))
+          return res.status(400).json({ error: "Invalid slug" });
+        const name = b.name !== undefined ? String(b.name).trim() : cur.name;
+        if (!name) return res.status(400).json({ error: "name required" });
+
+        let blocks;
+        if (Array.isArray(b.content_blocks)) {
+          blocks = sanitizeBlocks(b.content_blocks);
+        } else {
+          blocks = sanitizeBlocks(cur.content_blocks || []);
+        }
+
+        const tabs = Array.isArray(b.tabs)
+          ? sanitizeTabs(b.tabs)
+          : Array.isArray(cur.tabs)
+            ? sanitizeTabs(cur.tabs)
+            : [];
+
+        const status =
+          b.status === "published" || b.status === "draft" ? b.status : cur.status;
+        let publishedAt =
+          b.published_at !== undefined
+            ? b.published_at ? new Date(b.published_at) : null
+            : cur.published_at ? new Date(cur.published_at) : null;
+        if (status === "published" && (!publishedAt || Number.isNaN(publishedAt.getTime()))) {
+          publishedAt = new Date();
+        }
+
+        const { rows } = await pool.query(
+          `UPDATE route_pages SET
+            slug = $2, name = $3, legacy_id = $4, region = $5, rating = $6,
+            cover_image_url = $7, excerpt = $8, content_blocks = $9::jsonb,
+            tabs = $10::jsonb, status = $11, published_at = $12, updated_at = NOW()
+          WHERE id = $1::uuid
+          RETURNING *`,
+          [
+            req.params.id,
+            slug,
+            name,
+            b.legacy_id !== undefined ? (b.legacy_id ? String(b.legacy_id).trim() : null) : cur.legacy_id,
+            b.region !== undefined ? String(b.region).slice(0, 200) : cur.region,
+            b.rating !== undefined ? Math.min(10, Math.max(0, parseFloat(String(b.rating)) || 0)) : cur.rating,
+            b.cover_image_url !== undefined ? (b.cover_image_url ? String(b.cover_image_url).slice(0, 2000) : null) : cur.cover_image_url,
+            b.excerpt !== undefined ? String(b.excerpt).slice(0, 2000) : cur.excerpt,
+            JSON.stringify(blocks),
+            JSON.stringify(tabs),
+            status,
+            publishedAt,
+          ]
+        );
+        res.json(rows[0]);
+      } catch (e) {
+        if (e.code === "23505")
+          return res.status(400).json({ error: "Slug or legacy_id already exists" });
+        console.error(e);
+        res.status(500).json({ error: e.message || "Update failed" });
+      }
+    }
+  );
+
+  app.delete("/api/admin/routes/id/:id", adminMiddleware, async (req, res) => {
+    try {
+      const r = await pool.query(`DELETE FROM route_pages WHERE id = $1::uuid`, [req.params.id]);
+      if (r.rowCount === 0) return res.status(404).json({ error: "Not found" });
+      res.json({ ok: true });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Delete failed" });
+    }
+  });
+}
+
+
+========== FILE: postgres\migrations\010_add_route_tabs.sql ==========
+
+-- РњРёРіСЂР°С†РёСЏ РґР»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ РєРѕР»РѕРЅРєРё tabs РІ С‚Р°Р±Р»РёС†Сѓ route_pages
+-- РҐСЂР°РЅРёС‚ РјР°СЃСЃРёРІ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… СЌС‚Р°РїРѕРІ РјР°СЂС€СЂСѓС‚Р° (С‚Р°Р±РѕРІ)
+-- РћСЃРЅРѕРІРЅРѕР№ РєРѕРЅС‚РµРЅС‚ РѕСЃС‚Р°С‘С‚СЃСЏ РІ content_blocks
+
+ALTER TABLE route_pages ADD COLUMN IF NOT EXISTS tabs JSONB DEFAULT '[]'::jsonb;
+
