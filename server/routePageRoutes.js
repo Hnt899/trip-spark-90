@@ -27,6 +27,22 @@ function isValidImageUrl(url) {
   return false;
 }
 
+/** Очищает массив табов маршрута */
+function sanitizeTabs(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const t of raw) {
+    if (!t || typeof t !== "object") continue;
+    const id = String(t.id ?? "").slice(0, 64);
+    if (!id) continue;
+    const title = String(t.title ?? "").slice(0, 200);
+    if (!title) continue;
+    const blocks = Array.isArray(t.blocks) ? sanitizeBlocks(t.blocks) : [];
+    out.push({ id, title, blocks });
+  }
+  return out;
+}
+
 function sanitizeBlocks(raw) {
   if (!Array.isArray(raw)) return [];
   const out = [];
@@ -188,6 +204,10 @@ function parseBody(body) {
     ? sanitizeBlocks(body.content_blocks)
     : [];
 
+  const tabs = Array.isArray(body.tabs)
+    ? sanitizeTabs(body.tabs)
+    : [];
+
   const status =
     body.status === "published" || body.status === "draft"
       ? body.status
@@ -210,6 +230,7 @@ function parseBody(body) {
       cover_image_url: body.cover_image_url ? String(body.cover_image_url).slice(0, 2000) : null,
       excerpt: String(body.excerpt ?? "").slice(0, 2000),
       content_blocks: blocks,
+      tabs,
       status,
       published_at: publishedAt,
     },
@@ -281,6 +302,7 @@ export function registerRoutePublicRoutes(app) {
         ...row,
         views: (row.views ?? 0) + 1,
         content_blocks: Array.isArray(row.content_blocks) ? row.content_blocks : [],
+        tabs: Array.isArray(row.tabs) ? row.tabs : [],
       });
     } catch (e) {
       console.error(e);
@@ -319,6 +341,7 @@ export function registerAdminRouteRoutes(app) {
       res.json({
         ...row,
         content_blocks: Array.isArray(row.content_blocks) ? row.content_blocks : [],
+        tabs: Array.isArray(row.tabs) ? row.tabs : [],
       });
     } catch (e) {
       console.error(e);
@@ -338,13 +361,13 @@ export function registerAdminRouteRoutes(app) {
         const { rows } = await pool.query(
           `INSERT INTO route_pages (
             slug, name, legacy_id, region, rating, cover_image_url, excerpt,
-            content_blocks, status, published_at, author_id
-          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11)
+            content_blocks, tabs, status, published_at, author_id
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11,$12)
           RETURNING *`,
           [
             d.slug, d.name, d.legacy_id, d.region, d.rating,
             d.cover_image_url, d.excerpt,
-            JSON.stringify(d.content_blocks), d.status, d.published_at,
+            JSON.stringify(d.content_blocks), JSON.stringify(d.tabs), d.status, d.published_at,
             req.userId,
           ]
         );
@@ -383,6 +406,12 @@ export function registerAdminRouteRoutes(app) {
           blocks = sanitizeBlocks(cur.content_blocks || []);
         }
 
+        const tabs = Array.isArray(b.tabs)
+          ? sanitizeTabs(b.tabs)
+          : Array.isArray(cur.tabs)
+            ? sanitizeTabs(cur.tabs)
+            : [];
+
         const status =
           b.status === "published" || b.status === "draft" ? b.status : cur.status;
         let publishedAt =
@@ -397,7 +426,7 @@ export function registerAdminRouteRoutes(app) {
           `UPDATE route_pages SET
             slug = $2, name = $3, legacy_id = $4, region = $5, rating = $6,
             cover_image_url = $7, excerpt = $8, content_blocks = $9::jsonb,
-            status = $10, published_at = $11, updated_at = NOW()
+            tabs = $10::jsonb, status = $11, published_at = $12, updated_at = NOW()
           WHERE id = $1::uuid
           RETURNING *`,
           [
@@ -410,6 +439,7 @@ export function registerAdminRouteRoutes(app) {
             b.cover_image_url !== undefined ? (b.cover_image_url ? String(b.cover_image_url).slice(0, 2000) : null) : cur.cover_image_url,
             b.excerpt !== undefined ? String(b.excerpt).slice(0, 2000) : cur.excerpt,
             JSON.stringify(blocks),
+            JSON.stringify(tabs),
             status,
             publishedAt,
           ]
