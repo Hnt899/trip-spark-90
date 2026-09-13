@@ -32,7 +32,7 @@ export const homePageDefaults: PageContentDocument = {
       visible: true,
       fields: {
         title: "Почему выбирают TudaSuda?",
-        subtitle: "Всё для комфортного путешествия туда и обратно",
+        subtitle: "Всё для комфортного путешествия туда — обратно",
         titleColor: "",
         subtitleColor: "",
         items: [
@@ -283,7 +283,7 @@ export const homePageDefaults: PageContentDocument = {
       visible: true,
       fields: {
         title: "Повод для путешествия",
-        subtitle: "10 событий, ради которых стоит ровнуть в путь",
+        subtitle: "10 событий, ради которых стоит рвануть в путь",
         moreLabel: "Ещё",
         moreHref: "/blog",
         titleColor: "",
