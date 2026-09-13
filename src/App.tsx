@@ -35,6 +35,7 @@ import AdminReferenceEdit from "./pages/admin/AdminReferenceEdit";
 import AdminGuideList from "./pages/admin/AdminGuideList";
 import AdminGuideEdit from "./pages/admin/AdminGuideEdit";
 import AdminPageEditor from "./pages/admin/AdminPageEditor";
+import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import NotFound from "./pages/NotFound";
 import TestimonialDetail from "./pages/TestimonialDetail";
 import ChatWidget from "./components/ChatWidget";
@@ -123,6 +124,7 @@ const App = () => {
                 <Route path="guide" element={<AdminGuideList />} />
                 <Route path="guide/:postId" element={<AdminGuideEdit />} />
                 <Route path="pages/:pageKey" element={<AdminPageEditor />} />
+                <Route path="subscriptions" element={<AdminSubscriptions />} />
               </Route>
               <Route path="/testimonials/:id" element={<TestimonialDetail />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

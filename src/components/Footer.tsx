@@ -2,14 +2,15 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import logoWhiteImage from "@/assets/images/logo/logo w.png";
-import { MessageCircle, Mail, ArrowRight } from "lucide-react";
+import { MessageCircle, Mail, ArrowRight, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 const Footer = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "already" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -23,12 +24,37 @@ const Footer = () => {
     }
   };
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      setIsSubscribed(true);
-      setEmail("");
-      setTimeout(() => setIsSubscribed(false), 3000);
+    if (!email.trim()) return;
+
+    setStatus("loading");
+    setErrorMsg("");
+
+    try {
+      const res = await fetch("/api/subscriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setStatus("error");
+        setErrorMsg(data?.error || "Не удалось подписаться. Попробуйте позже.");
+        return;
+      }
+
+      if (data?.already) {
+        setStatus("already");
+      } else {
+        setStatus("success");
+        setEmail("");
+      }
+    } catch {
+      setStatus("error");
+      setErrorMsg("Ошибка сети. Попробуйте позже.");
     }
   };
 
@@ -127,22 +153,29 @@ const Footer = () => {
               Получайте актуальные предложения и специальные акции на почту
             </p>
             <form onSubmit={handleSubscribe} className="space-y-3">
-              <Input 
-                type="email" 
-                placeholder="Ваш email" 
+              <Input
+                type="email"
+                placeholder="Ваш email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-primary h-12"
+                disabled={status === "loading"}
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-primary h-12 disabled:opacity-50"
                 required
               />
-              <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white font-semibold h-12 shadow-lg hover:shadow-xl transition-all duration-300"
+              <Button
+                type="submit"
+                disabled={status === "loading"}
+                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white font-semibold h-12 shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
               >
-                {isSubscribed ? (
+                {status === "loading" ? (
                   <>
-                    <span>Подписка оформлена!</span>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Отправка…
                   </>
+                ) : status === "success" ? (
+                  "Спасибо! Подписка оформлена."
+                ) : status === "already" ? (
+                  "Вы уже подписаны."
                 ) : (
                   <>
                     Подписаться
@@ -150,6 +183,9 @@ const Footer = () => {
                   </>
                 )}
               </Button>
+              {status === "error" && (
+                <p className="text-red-400 text-sm">{errorMsg}</p>
+              )}
             </form>
           </div>
         </div>
