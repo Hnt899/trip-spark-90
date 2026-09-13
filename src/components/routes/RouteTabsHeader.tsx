@@ -7,7 +7,6 @@ type Props = {
 };
 
 export default function RouteTabsHeader({ tabs, activeTabId, onChange }: Props) {
-  // Если табов нет (кроме основного) — не рендерим шапку
   if (!tabs || tabs.length === 0) {
     return null;
   }
@@ -18,9 +17,12 @@ export default function RouteTabsHeader({ tabs, activeTabId, onChange }: Props) 
   ];
 
   return (
-    <div className="sticky top-[calc(var(--site-header-height)+3.5rem)] z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="container mx-auto px-4">
-        <div className="my-3 flex gap-2 overflow-x-auto rounded-2xl bg-[#EEEDF5] px-4 py-3 scrollbar-hide">
+    <div className="sticky top-[var(--site-header-height)] z-30 w-full bg-[#867DFF]">
+      <div className="mx-auto w-full max-w-[1440px] px-4 md:px-6">
+        <div
+          className="flex items-center justify-start gap-2 overflow-x-auto py-5 scrollbar-hide md:justify-center"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
           {allTabs.map((tab) => {
             const isActive = tab.id === activeTabId;
             return (
@@ -28,11 +30,12 @@ export default function RouteTabsHeader({ tabs, activeTabId, onChange }: Props) 
                 key={tab.id}
                 type="button"
                 onClick={() => onChange(tab.id)}
-                className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
-                  isActive
-                    ? "bg-[#867DFF] text-white shadow-sm"
-                    : "text-[#100A6F] hover:bg-white/60"
-                }`}
+                className={
+                  "shrink-0 rounded-full px-6 py-3 text-base font-semibold transition-all md:text-lg " +
+                  (isActive
+                    ? "bg-white text-[#867DFF] shadow-md scale-105"
+                    : "bg-white/10 text-white hover:bg-white/20 border border-white/30")
+                }
               >
                 {tab.title}
               </button>
