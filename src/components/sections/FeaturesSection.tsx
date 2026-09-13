@@ -179,14 +179,14 @@ const FeaturesSection = ({ surface = "brand" }: FeaturesSectionProps) => {
             <h2
               className={cmsHeadingClass(
                 f.titleColor,
-                "heading-gradient text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight"
+                "heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight"
               )}
               style={cmsColorStyle(f.titleColor)}
             >
               {sectionTitle}
             </h2>
             <p
-              className={cn("text-base md:text-lg max-w-2xl mx-auto", sectionLeadClass(surface))}
+              className={cn("text-lg md:text-xl max-w-2xl mx-auto", sectionLeadClass(surface))}
               style={cmsColorStyle(f.subtitleColor)}
             >
               {sectionSubtitle}

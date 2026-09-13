@@ -127,7 +127,7 @@ const EventsSection = ({ surface = "brand" }: EventsSectionProps) => {
   const isMobile = useIsMobile();
   const f = usePageSectionFields<EventsFields>("events");
   const sectionTitle = f.title || "Повод для путешествия";
-  const sectionSubtitle = f.subtitle || "10 событий, ради которых стоит ровнуть в путь";
+  const sectionSubtitle = f.subtitle || "10 событий, ради которых стоит рвануть в путь";
   const moreLabel = f.moreLabel || "Ещё";
   const moreHref = f.moreHref || "/blog";
 

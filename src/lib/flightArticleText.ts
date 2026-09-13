@@ -1,5 +1,5 @@
 /** Видимое имя бренда в статьях (кириллица, в UI подсвечивается primary). */
-export const BRAND_DISPLAY_NAME = "Туда суда";
+export const BRAND_DISPLAY_NAME = "Туда — обратно";
 
 /**
  * Замена упоминаний конкурента на бренд.
