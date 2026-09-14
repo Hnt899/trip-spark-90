@@ -68,15 +68,11 @@ wheels/
 *.egg
 MANIFEST
 
-# Logs
+# Logs and temp files
 *.log
-
-# IDE
-.vscode/
-.idea/
+*.tmp
 *.swp
 *.swo
-*.tmp
 
 # Environment
 .env
@@ -87,10 +83,36 @@ MANIFEST
 .DS_Store
 Thumbs.db
 
-# Coverage
-coverage/
-htmlcov/
+# Build directories
+dist/
+build/
+target/
+.gradle/
+
+# Python specific
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+env/
+.venv/
+venv/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
 .coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
 
 # Build
 build/
