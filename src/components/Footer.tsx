@@ -2,7 +2,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import logoWhiteImage from "@/assets/images/logo/logo w.png";
-import { MessageCircle, Mail, ArrowRight, Loader2 } from "lucide-react";
+import { MessageCircle, Mail, ArrowRight, Loader2, Send, Instagram, Share2 } from "lucide-react";
 import { useState } from "react";
 
 const Footer = () => {
@@ -132,16 +132,47 @@ const Footer = () => {
             </nav>
           </div>
 
-          {/* Колонка 3: Поддержка */}
+          {/* Колонка 3: Поддержка и соцсети */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-white mb-6">Поддержка</h3>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 mb-6">
               <a 
                 href="mailto:info@ts-trip.ru" 
                 className="flex items-center gap-3 text-muted-foreground hover:text-white transition-colors duration-200 text-sm group"
               >
                 <Mail className="w-4 h-4 group-hover:text-primary transition-colors" />
                 <span>info@ts-trip.ru</span>
+              </a>
+            </div>
+            
+            <h3 className="text-lg font-bold text-white mb-4">Мы в соцсетях</h3>
+            <div className="flex gap-3">
+              <a 
+                href="https://t.me/ts_trip_ru" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#229ED9] hover:brightness-110 transition-all"
+                aria-label="Telegram"
+              >
+                <Send className="w-5 h-5 text-white" />
+              </a>
+              <a 
+                href="https://vk.ru/tstrip" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#0077FF] hover:brightness-110 transition-all"
+                aria-label="VK"
+              >
+                <Share2 className="w-5 h-5 text-white" />
+              </a>
+              <a 
+                href="https://www.instagram.com/tstripru" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] hover:brightness-110 transition-all"
+                aria-label="Instagram"
+              >
+                <Instagram className="w-5 h-5 text-white" />
               </a>
             </div>
           </div>

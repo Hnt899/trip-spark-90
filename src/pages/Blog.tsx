@@ -95,28 +95,28 @@ const SOCIAL_TILES: {
 }[] = [
   {
     label: "Telegram",
-    href: "https://t.me/tudasuda_support",
+    href: "https://t.me/ts_trip_ru",
     Icon: Send,
     tileClass:
       "bg-[#229ED9] shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:brightness-110",
   },
   {
     label: "VK",
-    href: "https://vk.com/tudasuda",
+    href: "https://vk.ru/tstrip",
     Icon: Share2,
     tileClass:
       "bg-[#0077FF] shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:brightness-110",
   },
   {
     label: "Instagram",
-    href: "https://instagram.com/tudasuda",
+    href: "https://www.instagram.com/tstripru",
     Icon: Instagram,
     tileClass:
       "bg-gradient-to-br from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] hover:brightness-110",
   },
   {
-    label: "Threads",
-    href: "https://www.threads.net/@tudasuda",
+    label: "Dzen",
+    href: "https://dzen.ru/tstripru",
     Icon: AtSign,
     tileClass:
       "bg-[#101010] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] hover:bg-[#1a1a1a]",
