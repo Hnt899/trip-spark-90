@@ -1590,7 +1590,7 @@ const Profile = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4" />
-                    <span>Email: <a href="mailto:support@tudasuda.ru" className="text-primary hover:underline">support@tudasuda.ru</a></span>
+                    <span>Email: <a href="mailto:info@ts-trip.ru" className="text-primary hover:underline">info@ts-trip.ru</a></span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MessageCircle className="w-4 h-4" />

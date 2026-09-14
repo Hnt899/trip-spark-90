@@ -104,7 +104,7 @@ type FeatureCard = {
 const FeaturesSection = ({ surface = "brand" }: FeaturesSectionProps) => {
   const f = usePageSectionFields<FeaturesFields>("features");
   const sectionTitle = f.title || "Почему выбирают TudaSuda?";
-  const sectionSubtitle = f.subtitle || "Всё для комфортного путешествия туда и обратно";
+  const sectionSubtitle = f.subtitle || "Всё для комфортного путешествия откуда — куда";
 
   const features: FeatureCard[] = DEFAULT_FEATURES.map((def, i) => {
     const cms = f.items?.[i];

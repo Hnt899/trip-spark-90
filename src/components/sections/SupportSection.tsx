@@ -56,7 +56,7 @@ const SupportSection = ({ surface = "brand" }: SupportSectionProps) => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const phoneNumber = "+7 (800) 123-45-67";
-  const emailAddress = "support@tudasuda.ru";
+  const emailAddress = "info@ts-trip.ru";
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
