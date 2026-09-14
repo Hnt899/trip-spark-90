@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, FileText, Map, Loader2, BookOpenText, Compass, Home, Route } from "lucide-react";
+import { LayoutDashboard, FileText, Map, Loader2, BookOpenText, Compass, Home, Route, Mail } from "lucide-react";
 import { NavLink, Navigate, Outlet } from "react-router-dom";
 
 const nav = [
@@ -11,6 +11,7 @@ const nav = [
   { to: "/admin/guide", label: "Путеводитель (CMS)", icon: Compass },
   { to: "/admin/pages/home", label: "Редактор главной", icon: Home },
   { to: "/admin/pages/routes", label: "Редактор маршрутов", icon: Route },
+  { to: "/admin/subscriptions", label: "Подписки", icon: Mail },
 ];
 
 export default function AdminLayout() {
