@@ -472,7 +472,7 @@ const FlightSearch = () => {
               <div className="flex flex-col lg:flex-row gap-3 items-stretch">
                 {/* Откуда */}
                 <div className="flex-1">
-                  <label className="text-xs text-muted-foreground mb-1 block">Откуда</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">Туда</label>
                   <Select value={fromCity} onValueChange={(value) => {
                     setFromCity(value);
                     updateSearchParams(value, undefined);
@@ -504,7 +504,7 @@ const FlightSearch = () => {
 
                 {/* Куда */}
                 <div className="flex-1">
-                  <label className="text-xs text-muted-foreground mb-1 block">Куда</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">Обратно</label>
                   <Select value={toCity} onValueChange={(value) => {
                     setToCity(value);
                     updateSearchParams(undefined, value);
