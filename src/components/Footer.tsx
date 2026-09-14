@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import logoImage from "@/assets/images/logo/logo.png";
+import logoImage from "@/assets/images/logo/logo_full_4.png";
 import { MessageCircle, Mail, ArrowRight, Loader2, Send, Instagram, Share2, Rss } from "lucide-react";
 import { useState } from "react";
 
