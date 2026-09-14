@@ -222,8 +222,8 @@ const FlightSearchForm = ({
                     : "text-white/70 hover:text-white"
                 )}
               >
-                <span style={{ color: tripType === "round" ? "#100877" : "white" }}>Туда</span>
-                <span style={{ color: tripType === "round" ? "#887BFF" : "white" }}> — сюда</span>
+                <span style={{ color: tripType === "round" ? "#100877" : "white" }}>Откуда</span>
+                <span style={{ color: tripType === "round" ? "#887BFF" : "white" }}> — Куда</span>
               </button>
               <button
                 type="button"
@@ -247,21 +247,21 @@ const FlightSearchForm = ({
 
 {isHeaderDesktop ? (
   <div className="flex items-center gap-2 w-full">
-    {/* Туда - Обратно */}
+    {/* Откуда - Куда */}
     <PlaceAutocomplete
       value={fromPlace}
       onChange={handleFromChange}
-      placeholder="Туда"
+      placeholder="Откуда"
       error={errors.from}
       variant="header"
       className="flex-1 min-w-0"
     />
 
-    {/* Обратно */}
+    {/* Куда */}
     <PlaceAutocomplete
       value={toPlace}
       onChange={handleToChange}
-      placeholder="Обратно"
+      placeholder="Куда"
       error={errors.to}
       variant="header"
       className="flex-1 min-w-0"
@@ -311,7 +311,7 @@ const FlightSearchForm = ({
           )}
         >
           <CalendarIcon className="mr-1 h-4 w-4" />
-          {departureDate ? format(departureDate, "dd.MM.yy", { locale: ru }) : "Туда"}
+          {departureDate ? format(departureDate, "dd.MM.yy", { locale: ru }) : "Дата вылета"}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -332,7 +332,7 @@ const FlightSearchForm = ({
             )}
           >
             <CalendarIcon className="mr-1 h-4 w-4" />
-            {returnDate ? format(returnDate, "dd.MM.yy", { locale: ru }) : "Обратно"}
+            {returnDate ? format(returnDate, "dd.MM.yy", { locale: ru }) : "Дата возврата"}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -363,14 +363,14 @@ const FlightSearchForm = ({
               <PlaceAutocomplete
                 value={fromPlace}
                 onChange={handleFromChange}
-                placeholder="Туда"
+                placeholder="Откуда"
                 error={errors.from}
                 variant={variant}
               />
               <PlaceAutocomplete
                 value={toPlace}
                 onChange={handleToChange}
-                placeholder="Обратно"
+                placeholder="Куда"
                 error={errors.to}
                 variant={variant}
               />
