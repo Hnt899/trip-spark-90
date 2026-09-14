@@ -460,7 +460,7 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
               <div className="space-y-4 mb-6 shrink-0">
                 {/* Откуда */}
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1.5 block">Откуда</label>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Туда</label>
                   <Select 
                     value={calcFrom} 
                     onValueChange={(value) => {
@@ -483,7 +483,7 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
 
                 {/* Куда */}
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1.5 block">Куда</label>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Обратно</label>
                   <Select 
                     value={calcTo} 
                     onValueChange={(value) => {
