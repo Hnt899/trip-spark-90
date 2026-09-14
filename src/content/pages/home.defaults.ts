@@ -32,7 +32,7 @@ export const homePageDefaults: PageContentDocument = {
       visible: true,
       fields: {
         title: "Почему выбирают TudaSuda?",
-        subtitle: "Всё для комфортного путешествия туда — обратно",
+        subtitle: "Всё для комфортного путешествия",
         titleColor: "",
         subtitleColor: "",
         items: [
