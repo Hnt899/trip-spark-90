@@ -1,8 +1,8 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import logoWhiteImage from "@/assets/images/logo/logo w.png";
-import { MessageCircle, Mail, ArrowRight, Loader2, Send, Instagram, Share2 } from "lucide-react";
+import logoImage from "@/assets/images/logo/logo.png";
+import { MessageCircle, Mail, ArrowRight, Loader2, Send, Instagram, Share2, Rss } from "lucide-react";
 import { useState } from "react";
 
 const Footer = () => {
@@ -75,7 +75,7 @@ const Footer = () => {
               className="inline-block relative hover:opacity-90 transition-opacity"
             >
               <img 
-                src={logoWhiteImage} 
+                src={logoImage} 
                 alt="TudaSuda" 
                 className="h-20 md:h-24 w-auto object-contain relative z-10"
               />
@@ -173,6 +173,15 @@ const Footer = () => {
                 aria-label="Instagram"
               >
                 <Instagram className="w-5 h-5 text-white" />
+              </a>
+              <a 
+                href="https://dzen.ru/tstrip" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#000000] hover:brightness-110 transition-all"
+                aria-label="Dzen"
+              >
+                <Rss className="w-5 h-5 text-white" />
               </a>
             </div>
           </div>
