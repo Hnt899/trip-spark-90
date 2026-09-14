@@ -153,8 +153,8 @@ const HeroSection = () => {
                               : "text-white/70 hover:text-white"
                           )}
                         >
-                          <span style={{ color: tripType === "round" ? "#100877" : "white" }}>Туда</span>
-                          <span style={{ color: tripType === "round" ? "#887BFF" : "white" }}> — обратно</span>
+                          <span style={{ color: tripType === "round" ? "#100877" : "white" }}>Откуда</span>
+                          <span style={{ color: tripType === "round" ? "#887BFF" : "white" }}> — Куда</span>
                         </button>
                         <button
                           type="button"
@@ -177,7 +177,7 @@ const HeroSection = () => {
                             <SelectValue placeholder="Тип поездки" />
                           </SelectTrigger>
                           <SelectContent className="bg-[#1a1a2e] border-white/20 text-white">
-                            <SelectItem value="round">Туда — обратно</SelectItem>
+                            <SelectItem value="round">Откуда — Куда</SelectItem>
                             <SelectItem value="one">В одну сторону</SelectItem>
                           </SelectContent>
                         </Select>
