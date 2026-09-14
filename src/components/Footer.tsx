@@ -137,11 +137,11 @@ const Footer = () => {
             <h3 className="text-lg font-bold text-white mb-6">Поддержка</h3>
             <div className="flex flex-col gap-4">
               <a 
-                href="mailto:ts-trip.info@ts-trip.ru" 
+                href="mailto:info@ts-trip.ru" 
                 className="flex items-center gap-3 text-muted-foreground hover:text-white transition-colors duration-200 text-sm group"
               >
                 <Mail className="w-4 h-4 group-hover:text-primary transition-colors" />
-                <span>ts-trip.info@ts-trip.ru</span>
+                <span>info@ts-trip.ru</span>
               </a>
             </div>
           </div>
