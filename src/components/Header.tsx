@@ -9,6 +9,7 @@ import { Train, Bus, User, Search, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logoImage from "@/assets/images/logo/logo.png";
 import logoWhiteImage from "@/assets/images/logo/logo w.png";
+import logoMobile from "@/assets/images/logo/logo-mobile.png"; // ← НОВЫЙ ИМПОРТ
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import FlightSearchForm from "@/components/flight/FlightSearchForm";
@@ -23,7 +24,6 @@ const Header = () => {
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [isHeroMode, setIsHeroMode] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  /** Верхняя панель только с формой заказа — открывается с капсулы «откуда куда», не с бургера */
   const [mobileBookingOpen, setMobileBookingOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
@@ -35,7 +35,6 @@ const Header = () => {
     location.pathname === "/blog" || location.pathname.startsWith("/blog/");
   const isMobile = useIsMobile();
 
-  // Отслеживание скролла для показа формы поиска и изменения стиля шапки
   useEffect(() => {
     if (!isHomePage && !isRoutesPage && !isBlogPage) {
       setShowStickySearch(false);
@@ -44,7 +43,6 @@ const Header = () => {
       return;
     }
 
-    // Мобильные: hero-режим лого + компактная строка поиска в шапке (как у Aviasales)
     if (isMobile) {
       const handleScroll = () => {
         const heroSection = document.getElementById("hero-section");
@@ -65,7 +63,6 @@ const Header = () => {
         }
 
         if (isRoutesPage) {
-          // Как на главной: hero-секция маршрутов ушла вверх → показываем компактную строку поиска
           setShowStickySearch(heroRect && heroRect.bottom > 0 ? false : true);
           setIsAnimatingOut(false);
         } else if (isBlogPage) {
@@ -90,12 +87,11 @@ const Header = () => {
       };
     }
 
-    // На blog странице форма всегда видна после небольшой прокрутки (только для десктопа)
     if (isBlogPage) {
       const handleScroll = () => {
         const scrollY = window.scrollY;
-        const shouldShow = scrollY > 50; // Показываем после прокрутки на 50px
-        
+        const shouldShow = scrollY > 50;
+
         if (shouldShow && !showStickySearch) {
           setIsAnimatingOut(false);
           setShowStickySearch(true);
@@ -121,20 +117,17 @@ const Header = () => {
     const handleScroll = () => {
       const heroSection = document.getElementById("hero-section");
       const featuresSection = isHomePage ? document.getElementById("features-section") : null;
-      
+
       if (heroSection) {
         const heroRect = heroSection.getBoundingClientRect();
         const heroBottom = heroRect.bottom;
         const shouldShow = heroBottom < 100;
-        
+
         if (shouldShow && !showStickySearch) {
-          // Показываем форму
           setIsAnimatingOut(false);
           setShowStickySearch(true);
         } else if (!shouldShow && showStickySearch && (isHomePage || isRoutesPage)) {
-          // Начинаем анимацию исчезновения на главной и на /routes
           setIsAnimatingOut(true);
-          // Убираем форму после завершения анимации
           setTimeout(() => {
             setShowStickySearch(false);
             setIsAnimatingOut(false);
@@ -142,22 +135,16 @@ const Header = () => {
         }
       }
 
-      // Проверяем hero режим для главной и страницы маршрутов
       if (heroSection && featuresSection) {
         const heroRect = heroSection.getBoundingClientRect();
         const nextSectionRect = featuresSection.getBoundingClientRect();
-        const headerHeight = 96; // h-24 = 96px
-        
-        // Белое лого показываем, если:
-        // 1. Hero секция еще видна (нижняя граница hero > 0)
-        // 2. И следующая секция еще не достигнута (верх следующей секции > headerHeight)
+        const headerHeight = 96;
+
         const isHeroVisible = heroRect.bottom > 0;
         const isNextSectionReached = nextSectionRect.top <= headerHeight;
-        
-        // Белое лого пока hero виден и следующая секция еще не достигнута
+
         setIsHeroMode(isHeroVisible && !isNextSectionReached);
       } else if (heroSection) {
-        // Если следующая секция не найдена, проверяем только Hero
         const heroRect = heroSection.getBoundingClientRect();
         setIsHeroMode(heroRect.bottom > 0);
       } else {
@@ -165,7 +152,6 @@ const Header = () => {
       }
     };
 
-    // Проверяем при монтировании
     handleScroll();
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -195,17 +181,17 @@ const Header = () => {
           <button type="button"><Bus /></button>
         </div>
         <FlightSearchForm
-  variant={isSheet ? "header-mobile" : "header-desktop"}
-  showTripTypeToggle={false}  // ← Меняем с !isSheet на false
-  onFromLabelChange={setFromLabel}
-  onToLabelChange={setToLabel}
-  onSearchComplete={() => {
-    if (isMobile) {
-      setMobileMenuOpen(false);
-      setMobileBookingOpen(false);
-    }
-  }}
-/>
+          variant={isSheet ? "header-mobile" : "header-desktop"}
+          showTripTypeToggle={false}
+          onFromLabelChange={setFromLabel}
+          onToLabelChange={setToLabel}
+          onSearchComplete={() => {
+            if (isMobile) {
+              setMobileMenuOpen(false);
+              setMobileBookingOpen(false);
+            }
+          }}
+        />
       </div>
     );
   };
@@ -215,20 +201,36 @@ const Header = () => {
       <header className={cn(
         "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300",
         isHomePage && isHeroMode
-          ? "bg-transparent border-b border-white/20 backdrop-blur-md" 
-            : "bg-[#E8ECF7] backdrop-blur-md border-b border-[#100A6F]/10 shadow-sm"
+          ? "bg-transparent border-b border-white/20 backdrop-blur-md"
+          : "bg-[#E8ECF7] backdrop-blur-md border-b border-[#100A6F]/10 shadow-sm"
       )}>
         <div className="container">
-          {/* Верхняя часть шапки: лого, навигация, вход */}
           <div className="flex h-14 md:h-24 items-center justify-between gap-2 md:gap-4">
-            <Link to="/" className="flex items-center hover:opacity-80 transition-opacity shrink-0 -ml-2 md:ml-0">
-              <img 
-                src={isHomePage && isHeroMode ? logoWhiteImage : logoImage} 
-                alt="TudaSuda" 
+            {/* Лого — на мобилке своё, на десктопе как было */}
+            <Link
+              to="/"
+              className="flex items-center hover:opacity-80 transition-opacity shrink-0 -ml-2 md:ml-0"
+            >
+              {/* Мобилка: своё лого, показывается только до md */}
+              <img
+                src={logoMobile}
+                alt="TudaSuda"
                 className={cn(
-                  "h-14 md:h-[84px] w-auto object-contain transition-all duration-300",
-                  isHomePage && isHeroMode 
-                    ? "drop-shadow-lg brightness-110" 
+                  "block md:hidden h-14 w-auto object-contain transition-all duration-300",
+                  isHomePage && isHeroMode
+                    ? "drop-shadow-lg brightness-110"
+                    : "drop-shadow-sm brightness-110"
+                )}
+              />
+
+              {/* Десктоп: текущее лого (белое в hero, тёмное иначе) */}
+              <img
+                src={isHomePage && isHeroMode ? logoWhiteImage : logoImage}
+                alt="TudaSuda"
+                className={cn(
+                  "hidden md:block h-14 md:h-[84px] w-auto object-contain transition-all duration-300",
+                  isHomePage && isHeroMode
+                    ? "drop-shadow-lg brightness-110"
                     : "drop-shadow-sm brightness-110"
                 )}
               />
@@ -286,82 +288,80 @@ const Header = () => {
               </button>
             )}
 
-            {/* Десктоп навигация */}
             <nav className="hidden lg:flex items-center gap-4 flex-1 justify-center">
-              <Link 
-                to="/" 
+              <Link
+                to="/"
                 className={cn(
                   "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
-                  isActive("/") 
-                    ? isHomePage && isHeroMode 
-                      ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
-                        : "text-primary bg-primary/10 border-transparent"
+                  isActive("/")
+                    ? isHomePage && isHeroMode
+                      ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20"
+                      : "text-primary bg-primary/10 border-transparent"
                     : isHomePage && isHeroMode
                       ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
-                        : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
+                      : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
                 )}
               >
                 Главная
               </Link>
-              <NavDropdown 
-                label="Маршруты" 
+              <NavDropdown
+                label="Маршруты"
                 items={popularRoutes}
                 href="/routes"
                 isActive={isActive("/routes") || location.pathname.startsWith("/routes/")}
                 isHomePage={isHomePage && isHeroMode}
               />
-              <NavDropdown 
-                label="Справочная" 
+              <NavDropdown
+                label="Справочная"
                 items={faqTopics}
                 href="/reference"
                 isActive={isActive("/reference") || location.pathname.startsWith("/reference/")}
                 isHomePage={isHomePage && isHeroMode}
               />
-              <Link 
-                to="/blog" 
+              <Link
+                to="/blog"
                 className={cn(
                   "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
-                  isBlogNavActive 
-                    ? isHomePage && isHeroMode 
-                      ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
-                        : "text-primary bg-primary/10 border-transparent"
+                  isBlogNavActive
+                    ? isHomePage && isHeroMode
+                      ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20"
+                      : "text-primary bg-primary/10 border-transparent"
                     : isHomePage && isHeroMode
                       ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
-                        : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
+                      : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
                 )}
               >
                 Блог
               </Link>
-              <Link 
-                to="/guide" 
+              <Link
+                to="/guide"
                 className={cn(
                   "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
                   isActive("/guide") || location.pathname.startsWith("/guide/")
-                    ? isHomePage && isHeroMode 
-                      ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
-                        : "text-primary bg-primary/10 border-transparent"
+                    ? isHomePage && isHeroMode
+                      ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20"
+                      : "text-primary bg-primary/10 border-transparent"
                     : isHomePage && isHeroMode
                       ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
-                        : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
+                      : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
                 )}
               >
                 Путеводитель
               </Link>
             </nav>
 
-            {/* Кнопка входа/профиль и бургер-меню для мобильных */}
             <div className="flex items-center gap-2 shrink-0">
               {user ? (
-                <Button 
-                  asChild 
-                  variant="ghost" 
-                  size="icon" 
-                  title="Личный кабинет" 
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="icon"
+                  title="Личный кабинет"
                   className={cn(
                     "h-10 w-10 md:h-14 md:w-14 [&_svg]:!h-5 [&_svg]:!w-5 md:[&_svg]:!h-8 md:[&_svg]:!w-8 transition-colors rounded-lg",
                     isHomePage && isHeroMode
                       ? "bg-black/40 backdrop-blur-md hover:bg-black/50 border-0 [&_svg]:text-white [&_svg]:stroke-white [&_svg]:fill-none"
-                        : "bg-transparent hover:bg-white/50 border-0 [&_svg]:text-primary [&_svg]:stroke-primary [&_svg]:fill-none"
+                      : "bg-transparent hover:bg-white/50 border-0 [&_svg]:text-primary [&_svg]:stroke-primary [&_svg]:fill-none"
                   )}
                 >
                   <Link to="/profile">
@@ -369,21 +369,20 @@ const Header = () => {
                   </Link>
                 </Button>
               ) : (
-                <Button 
-                  onClick={() => setAuthModalOpen(true)} 
-                  variant="outline" 
+                <Button
+                  onClick={() => setAuthModalOpen(true)}
+                  variant="outline"
                   className={cn(
                     "hidden md:inline-flex text-sm md:text-lg font-medium transition-colors px-3 md:px-4 py-1.5 md:py-2 rounded-md border h-auto",
                     isHomePage && isHeroMode
-                        ? "text-white/90 border-white/30 bg-white/10 hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
-                        : "text-foreground/80 border-border bg-background/50 hover:bg-muted/50 hover:text-foreground"
+                      ? "text-white/90 border-white/30 bg-white/10 hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
+                      : "text-foreground/80 border-border bg-background/50 hover:bg-muted/50 hover:text-foreground"
                   )}
                 >
                   Войти
                 </Button>
               )}
 
-              {/* Верхняя панель: только форма заказа (капсула «откуда куда») */}
               <Sheet
                 open={mobileBookingOpen}
                 onOpenChange={(open) => {
@@ -406,7 +405,6 @@ const Header = () => {
                 </SheetContent>
               </Sheet>
 
-              {/* Бургер: классическое меню справа — Войти, разделы, форма */}
               <Sheet
                 open={mobileMenuOpen}
                 onOpenChange={(open) => {
@@ -529,75 +527,73 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Компактная форма поиска в шапке (на главной странице, routes и blog, после прокрутки) - только для десктопа */}
           {(isHomePage || isRoutesPage || isBlogPage) && (showStickySearch || isAnimatingOut) && !isMobile && (
             <div className={cn(
               "pb-4 transition-all duration-300",
-              showStickySearch && !isAnimatingOut 
-                ? "animate-in slide-in-from-top-2 fade-in" 
+              showStickySearch && !isAnimatingOut
+                ? "animate-in slide-in-from-top-2 fade-in"
                 : "animate-out slide-out-to-top-2 fade-out"
             )}>
               {renderSearchForm("headerDesktop")}
             </div>
           )}
 
-          {/* Мобильная навигация - скрыта, используется бургер-меню */}
           <nav className="hidden lg:hidden items-center gap-2 pb-4 overflow-x-auto">
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className={cn(
                 "text-2xl font-medium transition-colors px-2 py-1 rounded whitespace-nowrap border",
-                isActive("/") 
-                  ? isHomePage && isHeroMode 
-                    ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
-                      : "text-primary bg-primary/10 border-transparent"
+                isActive("/")
+                  ? isHomePage && isHeroMode
+                    ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20"
+                    : "text-primary bg-primary/10 border-transparent"
                   : isHomePage && isHeroMode
                     ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
-                      : "text-foreground/80 border-transparent hover:text-primary"
+                    : "text-foreground/80 border-transparent hover:text-primary"
               )}
             >
               Главная
             </Link>
-            <NavDropdown 
-              label="Маршруты" 
+            <NavDropdown
+              label="Маршруты"
               items={popularRoutes}
               href="/routes"
               isActive={isActive("/routes") || location.pathname.startsWith("/routes/")}
               isHomePage={isHomePage && isHeroMode}
             />
-            <NavDropdown 
-              label="Справочная" 
+            <NavDropdown
+              label="Справочная"
               items={faqTopics}
               href="/reference"
               isActive={isActive("/reference") || location.pathname.startsWith("/reference/")}
               isHomePage={isHomePage && isHeroMode}
             />
-            <Link 
-              to="/blog" 
+            <Link
+              to="/blog"
               className={cn(
                 "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap border",
-                isBlogNavActive 
-                  ? isHomePage && isHeroMode 
-                    ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
-                      : "text-primary bg-primary/10 border-transparent"
+                isBlogNavActive
+                  ? isHomePage && isHeroMode
+                    ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20"
+                    : "text-primary bg-primary/10 border-transparent"
                   : isHomePage && isHeroMode
                     ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
-                      : "text-foreground/80 border-transparent hover:text-primary"
+                    : "text-foreground/80 border-transparent hover:text-primary"
               )}
             >
               Блог
             </Link>
-            <Link 
-              to="/guide" 
+            <Link
+              to="/guide"
               className={cn(
                 "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap border",
                 isActive("/guide") || location.pathname.startsWith("/guide/")
-                  ? isHomePage && isHeroMode 
-                    ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20" 
-                      : "text-primary bg-primary/10 border-transparent"
+                  ? isHomePage && isHeroMode
+                    ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20"
+                    : "text-primary bg-primary/10 border-transparent"
                   : isHomePage && isHeroMode
                     ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
-                      : "text-foreground/80 border-transparent hover:text-primary"
+                    : "text-foreground/80 border-transparent hover:text-primary"
               )}
             >
               Путеводитель
