@@ -56,6 +56,8 @@ type Loaded = {
   partner_carousel: boolean;
   sponsored_grid: boolean;
   related_post_ids?: string[];
+  seo_title?: string | null;
+  seo_description?: string | null;
 };
 
 type BlogTag = {
@@ -80,10 +82,6 @@ const CHANNELS = [
   { v: "special", l: "Спецпроекты" },
 ];
 
-/**
- * Migrate legacy body_text (with <фото>/<карусель> tags) to structured blocks.
- * If content_blocks already exist and are non-empty, use them directly.
- */
 function resolveInitialBlocks(row: Loaded): BlogContentBlock[] {
   if (Array.isArray(row.content_blocks) && row.content_blocks.length > 0) {
     return row.content_blocks;
@@ -118,10 +116,10 @@ export default function AdminBlogEdit() {
   const [sponsoredGrid, setSponsoredGrid] = useState(false);
   const [relatedPostIds, setRelatedPostIds] = useState<string[]>([]);
   const [relatedSelectOpen, setRelatedSelectOpen] = useState(false);
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
 
   const hydratedPostIdRef = useRef<string | null>(null);
-
-  /** Key to force re-mount TiptapEditor when switching between articles */
   const [editorKey, setEditorKey] = useState(0);
 
   const loadQ = useQuery({
@@ -164,6 +162,8 @@ export default function AdminBlogEdit() {
     setPartnerCarousel(false);
     setSponsoredGrid(false);
     setRelatedPostIds([]);
+    setSeoTitle("");
+    setSeoDescription("");
     setEditorKey((k) => k + 1);
   }, [isNew, postId]);
 
@@ -191,6 +191,8 @@ export default function AdminBlogEdit() {
     setPartnerCarousel(!!row.partner_carousel);
     setSponsoredGrid(!!row.sponsored_grid);
     setRelatedPostIds(Array.isArray(row.related_post_ids) ? row.related_post_ids : []);
+    setSeoTitle(row.seo_title || "");
+    setSeoDescription(row.seo_description || "");
     setEditorKey((k) => k + 1);
   }, [isNew, postId, loadQ.data]);
 
@@ -238,6 +240,8 @@ export default function AdminBlogEdit() {
         partner_carousel: partnerCarousel,
         sponsored_grid: sponsoredGrid,
         related_post_ids: relatedPostIds.slice(0, 5),
+        seo_title: seoTitle.trim() || null,
+        seo_description: seoDescription.trim() || null,
       };
       if (isNew) {
         return apiFetch<Loaded>("/api/admin/blog/posts", {
@@ -566,6 +570,40 @@ export default function AdminBlogEdit() {
               />
               Сетка спецпроектов
             </label>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>SEO</CardTitle>
+          <CardDescription>
+            Title и Description для поисковых систем. Если пусто — возьмётся заголовок и краткое описание.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-2">
+            <Label htmlFor="seoTitle">SEO Title (до 200 символов)</Label>
+            <Input
+              id="seoTitle"
+              value={seoTitle}
+              onChange={(e) => setSeoTitle(e.target.value)}
+              maxLength={200}
+              placeholder={title || "Заголовок для поисковиков"}
+            />
+            <p className="text-xs text-muted-foreground">{seoTitle.length}/200</p>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="seoDescription">SEO Description (до 500 символов)</Label>
+            <Textarea
+              id="seoDescription"
+              value={seoDescription}
+              onChange={(e) => setSeoDescription(e.target.value)}
+              maxLength={500}
+              rows={3}
+              placeholder={excerpt || "Краткое описание для поисковиков"}
+            />
+            <p className="text-xs text-muted-foreground">{seoDescription.length}/500</p>
           </div>
         </CardContent>
       </Card>

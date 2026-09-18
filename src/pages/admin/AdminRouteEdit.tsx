@@ -38,9 +38,9 @@ type Loaded = {
   content_blocks?: BlogContentBlock[];
   tabs?: RouteTab[];
   status: string;
+  seo_title?: string | null;
+  seo_description?: string | null;
 };
-
-const REGIONS: string[] = [];
 
 export default function AdminRouteEdit() {
   const { routeId } = useParams<{ routeId: string }>();
@@ -48,7 +48,6 @@ export default function AdminRouteEdit() {
   const qc = useQueryClient();
   const isNew = routeId === "new";
 
-  // Загружаем регионы с API
   const { data: regionsData = [] } = useQuery({
     queryKey: ["admin-regions-list"],
     queryFn: () => apiFetch<Array<{ id: string; name: string; slug: string }>>("/api/admin/regions"),
@@ -66,6 +65,8 @@ export default function AdminRouteEdit() {
   const [tabs, setTabs] = useState<RouteTab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string>("__main__");
   const [status, setStatus] = useState<"draft" | "published">("draft");
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
 
   const hydratedRef = useRef<string | null>(null);
   const [editorKey, setEditorKey] = useState(0);
@@ -92,6 +93,8 @@ export default function AdminRouteEdit() {
     setTabs([]);
     setActiveTabId("__main__");
     setStatus("draft");
+    setSeoTitle("");
+    setSeoDescription("");
     setEditorKey((k) => k + 1);
   }, [isNew, routeId]);
 
@@ -114,6 +117,8 @@ export default function AdminRouteEdit() {
     );
     setTabs(Array.isArray(row.tabs) ? row.tabs : []);
     setStatus(row.status === "published" ? "published" : "draft");
+    setSeoTitle(row.seo_title || "");
+    setSeoDescription(row.seo_description || "");
     setActiveTabId("__main__");
     setEditorKey((k) => k + 1);
   }, [isNew, routeId, loadQ.data]);
@@ -135,21 +140,16 @@ export default function AdminRouteEdit() {
     return routeBlock?.days?.length || undefined;
   })();
 
-  // ===== Управление табами =====
-
   const addNewTab = () => {
     const newTab: RouteTab = {
       id: `tab_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       title: "Новый этап",
       blocks: [],
     };
-
-    // Спрашиваем название сразу, ДО setTabs — чтобы prompt видел контекст
     const newTitle = prompt("Название этапа:", "Новый этап");
     if (newTitle && newTitle.trim()) {
       newTab.title = newTitle.trim();
     }
-
     setTabs((prev) => [...prev, newTab]);
     setActiveTabId(newTab.id);
     setEditorKey((k) => k + 1);
@@ -199,6 +199,8 @@ export default function AdminRouteEdit() {
         content_blocks: contentBlocks,
         tabs,
         status,
+        seo_title: seoTitle.trim() || null,
+        seo_description: seoDescription.trim() || null,
       };
       if (isNew) {
         return apiFetch<Loaded>("/api/admin/routes", {
@@ -362,6 +364,40 @@ export default function AdminRouteEdit() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>SEO</CardTitle>
+          <CardDescription>
+            Title и Description для поисковых систем. Если пусто — возьмётся название и краткое описание.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-2">
+            <Label htmlFor="seoTitle">SEO Title (до 200 символов)</Label>
+            <Input
+              id="seoTitle"
+              value={seoTitle}
+              onChange={(e) => setSeoTitle(e.target.value)}
+              maxLength={200}
+              placeholder={name || "Заголовок для поисковиков"}
+            />
+            <p className="text-xs text-muted-foreground">{seoTitle.length}/200</p>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="seoDescription">SEO Description (до 500 символов)</Label>
+            <Textarea
+              id="seoDescription"
+              value={seoDescription}
+              onChange={(e) => setSeoDescription(e.target.value)}
+              maxLength={500}
+              rows={3}
+              placeholder={excerpt || "Краткое описание для поисковиков"}
+            />
+            <p className="text-xs text-muted-foreground">{seoDescription.length}/500</p>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card id="route-editor">
         <CardHeader>
           <CardTitle>Этапы маршрута</CardTitle>
@@ -376,9 +412,8 @@ export default function AdminRouteEdit() {
               onClick={() => {
                 setActiveTabId("__main__");
                 setEditorKey((k) => k + 1);
-                // Скролл вверх страницы после переключения таба
                 requestAnimationFrame(() => {
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  window.scrollTo(0, 0);
                 });
               }}
               className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
@@ -396,9 +431,8 @@ export default function AdminRouteEdit() {
                   onClick={() => {
                     setActiveTabId(tab.id);
                     setEditorKey((k) => k + 1);
-                    // Скролл вверх страницы после переключения таба
                     requestAnimationFrame(() => {
-                      window.scrollTo({ top: 0, behavior: "smooth" });
+                      window.scrollTo(0, 0);
                     });
                   }}
                   className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${

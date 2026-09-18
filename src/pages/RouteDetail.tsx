@@ -248,14 +248,13 @@ const RouteDetail = () => {
         {/* Третья шапка с табами — только если есть дополнительные табы */}
         {apiRoute?.tabs && apiRoute.tabs.length > 0 && (
           <RouteTabsHeader
-            id="route-tabs-header"
             tabs={apiRoute.tabs}
             activeTabId={activeTabId}
             onChange={(id) => {
               setActiveTabId(id);
               // Ждём перерендер контента, потом скроллим в начало страницы
               requestAnimationFrame(() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
+                window.scrollTo(0, 0);
               });
             }}
           />

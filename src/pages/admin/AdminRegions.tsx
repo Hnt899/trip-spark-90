@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -109,6 +108,7 @@ export default function AdminRegions() {
     routes: RouteInRegion[];
   } | null>(null);
   const [formData, setFormData] = useState({ name: "", slug: "" });
+  const [formError, setFormError] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -145,12 +145,16 @@ export default function AdminRegions() {
     mutationFn: (data: { name: string; slug?: string }) =>
       apiFetch<Region>("/api/admin/regions", {
         method: "POST",
-        body: data,
+        body: JSON.stringify(data), // ← фикс: JSON.stringify
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-regions"] });
       setDialogOpen(false);
       setFormData({ name: "", slug: "" });
+      setFormError("");
+    },
+    onError: (e: any) => {
+      setFormError(e?.message || "Не удалось создать регион");
     },
   });
 
@@ -158,13 +162,17 @@ export default function AdminRegions() {
     mutationFn: ({ id, data }: { id: string; data: Partial<Region> }) =>
       apiFetch<Region>(`/api/admin/regions/${id}`, {
         method: "PATCH",
-        body: data,
+        body: JSON.stringify(data), // ← фикс
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-regions"] });
       setDialogOpen(false);
       setEditingRegion(null);
       setFormData({ name: "", slug: "" });
+      setFormError("");
+    },
+    onError: (e: any) => {
+      setFormError(e?.message || "Не удалось сохранить регион");
     },
   });
 
@@ -172,7 +180,7 @@ export default function AdminRegions() {
     mutationFn: (items: { id: string }[]) =>
       apiFetch<{ ok: boolean }>("/api/admin/regions/reorder", {
         method: "PUT",
-        body: { items },
+        body: JSON.stringify({ items }), // ← фикс
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-regions"] });
@@ -190,37 +198,36 @@ export default function AdminRegions() {
       setDeleteError(null);
     },
     onError: (e: any) => {
-      if (e?.response?.status === 409) {
-        const data = e.response.data;
-        setDeleteError({
-          routeCount: data.routeCount || 0,
-          routes: [],
-        });
+      // apiFetch бросает Error с полем status и, возможно, data
+      if (e?.status === 409) {
+        const count = e?.routeCount || e?.data?.routeCount || 0;
+        setDeleteError({ routeCount: count, routes: [] });
       }
     },
   });
 
   function handleDragEnd(event: any) {
     const { active, over } = event;
-    if (active.id !== over.id) {
-      const oldIndex = regions.findIndex((r) => r.id === active.id);
-      const newIndex = regions.findIndex((r) => r.id === over.id);
-      const newOrder = arrayMove(regions, oldIndex, newIndex).map((r, i) => ({
-        id: r.id,
-      }));
-      reorderMutation.mutate(newOrder);
-    }
+    if (!over || active.id === over.id) return;
+    const oldIndex = regions.findIndex((r) => r.id === active.id);
+    const newIndex = regions.findIndex((r) => r.id === over.id);
+    const newOrder = arrayMove(regions, oldIndex, newIndex).map((r) => ({
+      id: r.id,
+    }));
+    reorderMutation.mutate(newOrder);
   }
 
   function openCreate() {
     setEditingRegion(null);
     setFormData({ name: "", slug: "" });
+    setFormError("");
     setDialogOpen(true);
   }
 
   function openEdit(region: Region) {
     setEditingRegion(region);
     setFormData({ name: region.name, slug: region.slug });
+    setFormError("");
     setDialogOpen(true);
   }
 
@@ -233,14 +240,24 @@ export default function AdminRegions() {
   }
 
   function submitForm() {
-    if (!formData.name.trim()) return;
+    const name = formData.name.trim();
+    if (!name) {
+      setFormError("Введите название");
+      return;
+    }
+    const slug = formData.slug.trim().toLowerCase() || slugify(name);
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+      setFormError("Slug: только латиница, цифры и дефисы");
+      return;
+    }
+    setFormError("");
     if (editingRegion) {
       updateMutation.mutate({
         id: editingRegion.id,
-        data: { name: formData.name, slug: formData.slug },
+        data: { name, slug },
       });
     } else {
-      createMutation.mutate({ name: formData.name, slug: formData.slug });
+      createMutation.mutate({ name, slug });
     }
   }
 
@@ -259,7 +276,7 @@ export default function AdminRegions() {
         </CardTitle>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={openCreate}>
+            <Button type="button" onClick={openCreate}>
               <Plus className="mr-2 h-4 w-4" />
               Добавить регион
             </Button>
@@ -277,6 +294,7 @@ export default function AdminRegions() {
                   value={formData.name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   placeholder="Например: Центр"
+                  autoFocus
                 />
               </div>
               <div>
@@ -292,8 +310,20 @@ export default function AdminRegions() {
                   Только латиница, цифры и дефисы (автогенерация из названия)
                 </p>
               </div>
-              <Button onClick={submitForm} className="w-full">
-                {editingRegion ? "Сохранить" : "Создать"}
+              {formError ? (
+                <p className="text-sm text-destructive">{formError}</p>
+              ) : null}
+              <Button
+                type="button"
+                onClick={submitForm}
+                className="w-full"
+                disabled={createMutation.isPending || updateMutation.isPending}
+              >
+                {createMutation.isPending || updateMutation.isPending
+                  ? "..."
+                  : editingRegion
+                    ? "Сохранить"
+                    : "Создать"}
               </Button>
             </div>
           </DialogContent>
@@ -339,30 +369,13 @@ export default function AdminRegions() {
               {deleteError ? (
                 <div className="space-y-3">
                   <p className="font-medium text-destructive">
-                    В регионе &laquo;{deleteRegion?.name}&raquo; есть{" "}
-                    {deleteError.routeCount} маршрут(ов). Нельзя удалить регион,
-                    пока в нём есть маршруты.
+                    В регионе «{deleteRegion?.name}» есть {deleteError.routeCount}{" "}
+                    маршрут(ов). Нельзя удалить регион, пока в нём есть маршруты.
                   </p>
                   <p className="text-sm">
                     Сначала перенесите маршруты в другой регион через страницу
                     редактирования маршрута.
                   </p>
-                  {deleteError.routes.length > 0 && (
-                    <div className="max-h-40 overflow-auto">
-                      <ul className="list-inside list-disc text-sm">
-                        {deleteError.routes.map((r) => (
-                          <li key={r.id}>
-                            <a
-                              href={`/admin/routes/${r.legacy_id || r.id}`}
-                              className="text-primary hover:underline"
-                            >
-                              {r.name}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
                 </div>
               ) : (
                 `Вы уверены, что хотите удалить регион «${deleteRegion?.name}»? Это действие нельзя отменить.`
@@ -371,14 +384,6 @@ export default function AdminRegions() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Отмена</AlertDialogCancel>
-            {!deleteError && (
-              <AlertDialogAction
-                onClick={() => deleteMutation.mutate(deleteRegion!.id)}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Удалить
-              </AlertDialogAction>
-            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
