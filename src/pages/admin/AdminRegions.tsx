@@ -149,6 +149,7 @@ export default function AdminRegions() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-regions"] });
+      queryClient.invalidateQueries({ queryKey: ["regions"] });
       setDialogOpen(false);
       setFormData({ name: "", slug: "" });
       setFormError("");
@@ -166,6 +167,7 @@ export default function AdminRegions() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-regions"] });
+      queryClient.invalidateQueries({ queryKey: ["regions"] });
       setDialogOpen(false);
       setEditingRegion(null);
       setFormData({ name: "", slug: "" });
@@ -184,6 +186,7 @@ export default function AdminRegions() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-regions"] });
+      queryClient.invalidateQueries({ queryKey: ["regions"] });
     },
   });
 

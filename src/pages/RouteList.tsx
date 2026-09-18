@@ -26,6 +26,13 @@ interface RouteItem {
   region: string;
 }
 
+interface Region {
+  id: string;
+  name: string;
+  slug: string;
+  sort_order: number;
+}
+
 const hardcodedRoutes: RouteItem[] = [
   { id: "1", name: "Владимирская область", rating: 8.2, image: karelia, region: "Центр" },
   { id: "2", name: "Воронежская область", rating: 9.5, image: moscow, region: "Центр" },
@@ -80,23 +87,29 @@ type ApiRoute = {
   excerpt: string;
 };
 
-const regions = [
-  "Все регионы",
-  "Центр",
-  "Северо-Запад",
-  "Юг",
-  "Поволжье",
-  "Урал",
-  "Сибирь",
-  "Кавказ",
-  "Дальний Восток",
-];
-
 const RouteList = () => {
   const [activeRegion, setActiveRegion] = useState("Все регионы");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  // Загружаем регионы из API для табов
+  const regionsQuery = useQuery<Region[]>({
+    queryKey: ["regions"],
+    queryFn: () =>
+      fetch("/api/regions").then((r) => {
+        if (!r.ok) throw new Error(`${r.status}`);
+        return r.json() as Promise<Region[]>;
+      }),
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  // Формируем список регионов для табов: "Все регионы" + загруженные из API
+  const regions = useMemo(() => {
+    const apiRegions = regionsQuery.data ?? [];
+    return ["Все регионы", ...apiRegions.map((r) => r.name)];
+  }, [regionsQuery.data]);
 
   const apiQ = useQuery({
     queryKey: ["route-pages-public-list"],
@@ -195,20 +208,24 @@ const RouteList = () => {
 
             <div className="rounded-lg bg-white p-3 shadow-sm md:p-4">
               <div className="flex flex-wrap items-center gap-2 md:gap-4">
-                {regions.map((region) => (
-                  <button
-                    key={region}
-                    onClick={() => setActiveRegion(region)}
-                    className={cn(
-                      "rounded-lg px-3 py-2 text-xs font-medium transition-colors md:px-4 md:text-sm",
-                      activeRegion === region
-                        ? "bg-[#8A70F8] text-white"
-                        : "text-[#8A70F8] hover:text-[#8A70F8]/80",
-                    )}
-                  >
-                    {region}
-                  </button>
-                ))}
+                {regionsQuery.isPending ? (
+                  <span className="text-xs text-[#8A70F8]/70">Загрузка регионов...</span>
+                ) : (
+                  regions.map((region) => (
+                    <button
+                      key={region}
+                      onClick={() => setActiveRegion(region)}
+                      className={cn(
+                        "rounded-lg px-3 py-2 text-xs font-medium transition-colors md:px-4 md:text-sm",
+                        activeRegion === region
+                          ? "bg-[#8A70F8] text-white"
+                          : "text-[#8A70F8] hover:text-[#8A70F8]/80",
+                      )}
+                    >
+                      {region}
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           </div>
