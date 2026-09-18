@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, FileText, Map, Loader2, BookOpenText, Compass, Home, Route, Mail } from "lucide-react";
+import { LayoutDashboard, FileText, Map, Loader2, BookOpenText, Compass, Home, Route, Mail, Globe } from "lucide-react";
 import { NavLink, Navigate, Outlet } from "react-router-dom";
 
 const nav = [
@@ -8,6 +8,7 @@ const nav = [
   { to: "/admin/blog", label: "Блог (CMS)", icon: FileText },
   { to: "/admin/routes", label: "Маршруты (CMS)", icon: Map },
   { to: "/admin/regions", label: "Регионы", icon: Map },
+  { to: "/admin/seo", label: "SEO", icon: Globe },
   { to: "/admin/reference", label: "Справочная (CMS)", icon: BookOpenText },
   { to: "/admin/guide", label: "Путеводитель (CMS)", icon: Compass },
   { to: "/admin/pages/home", label: "Редактор главной", icon: Home },

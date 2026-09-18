@@ -37,6 +37,7 @@ import AdminGuideEdit from "./pages/admin/AdminGuideEdit";
 import AdminPageEditor from "./pages/admin/AdminPageEditor";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import AdminRegions from "./pages/admin/AdminRegions";
+import AdminSEO from "./pages/admin/AdminSEO";
 import NotFound from "./pages/NotFound";
 import TestimonialDetail from "./pages/TestimonialDetail";
 import ChatWidget from "./components/ChatWidget";
@@ -125,6 +126,7 @@ const App = () => {
                 <Route path="guide" element={<AdminGuideList />} />
                 <Route path="guide/:postId" element={<AdminGuideEdit />} />
                 <Route path="regions" element={<AdminRegions />} />
+                <Route path="seo" element={<AdminSEO />} />
                 <Route path="pages/:pageKey" element={<AdminPageEditor />} />
                 <Route path="subscriptions" element={<AdminSubscriptions />} />
               </Route>

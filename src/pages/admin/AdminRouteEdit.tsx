@@ -376,11 +376,10 @@ export default function AdminRouteEdit() {
               onClick={() => {
                 setActiveTabId("__main__");
                 setEditorKey((k) => k + 1);
-                // Скролл к редактору (чуть ниже блока табов)
-                const editor = document.getElementById("route-editor");
-                if (editor) {
-                  editor.scrollIntoView({ behavior: "smooth", block: "start" });
-                }
+                // Скролл вверх страницы после переключения таба
+                requestAnimationFrame(() => {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                });
               }}
               className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
                 activeTabId === "__main__"
@@ -397,11 +396,10 @@ export default function AdminRouteEdit() {
                   onClick={() => {
                     setActiveTabId(tab.id);
                     setEditorKey((k) => k + 1);
-                    // Скролл к редактору (чуть ниже блока табов)
-                    const editor = document.getElementById("route-editor");
-                    if (editor) {
-                      editor.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }
+                    // Скролл вверх страницы после переключения таба
+                    requestAnimationFrame(() => {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    });
                   }}
                   className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
                     activeTabId === tab.id

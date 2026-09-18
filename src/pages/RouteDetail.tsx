@@ -253,12 +253,10 @@ const RouteDetail = () => {
             activeTabId={activeTabId}
             onChange={(id) => {
               setActiveTabId(id);
-              // Скролл к началу контента (чуть выше шапки с табами)
-              const tabsHeader = document.getElementById("route-tabs-header");
-              if (tabsHeader) {
-                const top = tabsHeader.getBoundingClientRect().top + window.scrollY - 20;
-                window.scrollTo({ top, behavior: "smooth" });
-              }
+              // Ждём перерендер контента, потом скроллим в начало страницы
+              requestAnimationFrame(() => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              });
             }}
           />
         )}

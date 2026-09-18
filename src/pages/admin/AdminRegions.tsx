@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/apiFetch";
+import { apiFetch } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,6 +117,25 @@ export default function AdminRegions() {
     })
   );
 
+  function slugify(str: string): string {
+    const map: Record<string, string> = {
+      а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "e", ж: "zh",
+      з: "z", и: "i", й: "y", к: "k", л: "l", м: "m", н: "n", о: "o",
+      п: "p", р: "r", с: "s", т: "t", у: "u", ф: "f", х: "h", ц: "c",
+      ч: "ch", ш: "sh", щ: "sch", ъ: "", ы: "y", ь: "", э: "e", ю: "yu",
+      я: "ya",
+    };
+    return String(str || "")
+      .toLowerCase()
+      .split("")
+      .map((c) => (map[c] !== undefined ? map[c] : c))
+      .join("")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .replace(/-{2,}/g, "-")
+      .slice(0, 64);
+  }
+
   const { data: regions = [] } = useQuery<Region[]>({
     queryKey: ["admin-regions"],
     queryFn: () => apiFetch<Region[]>("/api/admin/regions"),
@@ -205,6 +224,14 @@ export default function AdminRegions() {
     setDialogOpen(true);
   }
 
+  function handleNameChange(value: string) {
+    setFormData((f) => ({
+      ...f,
+      name: value,
+      slug: f.slug || slugify(value),
+    }));
+  }
+
   function submitForm() {
     if (!formData.name.trim()) return;
     if (editingRegion) {
@@ -248,9 +275,7 @@ export default function AdminRegions() {
                 <label className="text-sm font-medium">Название</label>
                 <Input
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData((f) => ({ ...f, name: e.target.value }))
-                  }
+                  onChange={(e) => handleNameChange(e.target.value)}
                   placeholder="Например: Центр"
                 />
               </div>
@@ -264,7 +289,7 @@ export default function AdminRegions() {
                   placeholder="Например: centr"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Только латиница, цифры и дефисы
+                  Только латиница, цифры и дефисы (автогенерация из названия)
                 </p>
               </div>
               <Button onClick={submitForm} className="w-full">
