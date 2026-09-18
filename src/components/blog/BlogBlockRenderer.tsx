@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { expandRichParagraphBlocks } from "@/lib/blogBodyExpand";
 import BlogCarouselBlock from "@/components/blog/BlogCarouselBlock";
 import type { BlogContentBlock } from "@/types/blogContent";
-import { ExternalLink, Sun, Tent, Star, Sparkles, MapPin } from "lucide-react";
+import { ExternalLink, Sun, Tent, Star, Sparkles, MapPin, Plane, BedDouble } from "lucide-react";
 import { getIcon } from "@/components/editor/DestinationCardView";
 
 const ALLOWED_TAG_RE = /^\/?(strong|b|em|i|s|del|br|span|a)\b/i;
@@ -162,12 +162,12 @@ export default function BlogBlockRenderer({
             if (!block.url?.trim()) return null;
             return (
               <figure key={key} className="my-6 flex flex-col items-center">
-                <div className="inline-flex max-w-full items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-transparent dark:border-slate-800">
+                <div className="mx-auto w-full max-w-[800px]">
                   <img
                     src={block.url}
                     alt={block.alt || ""}
                     referrerPolicy="no-referrer"
-                    className="mx-auto block h-auto max-h-[560px] w-auto max-w-full object-contain"
+                    className="aspect-[4/3] w-full rounded-xl object-cover"
                   />
                 </div>
                 {block.caption ? (
@@ -365,6 +365,52 @@ export default function BlogBlockRenderer({
                   <ExternalLink className="h-4 w-4" />
                   {block.text}
                 </a>
+              </div>
+            );
+          }
+          case "quickBooking": {
+            const bgGradient = block.bgGradient || "from-[#8A70F8] to-[#9B82F8]";
+            return (
+              <div
+                key={key}
+                className={`my-8 overflow-hidden rounded-2xl bg-gradient-to-r ${bgGradient} p-6 md:p-8`}
+              >
+                <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-2">
+                  <div className="flex flex-col gap-5">
+                    <h3 className="text-xl font-bold text-white md:text-2xl lg:text-3xl">
+                      {block.title}
+                    </h3>
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <a
+                        href={block.button1Url || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-4 text-base font-semibold text-[#8A70F8] transition-colors hover:bg-white/90 sm:w-auto"
+                      >
+                        <Plane className="h-4 w-4 md:h-5 md:w-5" />
+                        {block.button1Text}
+                      </a>
+                      <a
+                        href={block.button2Url || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white bg-white/10 px-6 py-4 text-base font-semibold text-white transition-colors hover:bg-white/20 sm:w-auto"
+                      >
+                        <BedDouble className="h-4 w-4 md:h-5 md:w-5" />
+                        {block.button2Text}
+                      </a>
+                    </div>
+                  </div>
+                  {block.image ? (
+                    <div className="flex justify-center lg:justify-end">
+                      <img
+                        src={block.image}
+                        alt={block.imageAlt || ""}
+                        className="w-full max-w-[480px] rounded-2xl object-cover"
+                      />
+                    </div>
+                  ) : null}
+                </div>
               </div>
             );
           }

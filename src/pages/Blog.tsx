@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import BlogArticleCard from "@/components/blog/BlogArticleCard";
 import EditorsPickSlider from "@/components/blog/EditorsPickSlider";
 import PartnersArticleScroller from "@/components/blog/PartnersArticleScroller";
@@ -221,6 +222,10 @@ const Blog = () => {
 
   return (
     <div className="min-h-screen bg-white text-foreground dark:bg-background">
+      <SEO
+        title="Блог о путешествиях — TudaSuda"
+        description="Статьи о путешествиях по России и миру: лайфхаки, обзоры, инструкции и вдохновение."
+      />
       <Header />
       <main className="mx-auto min-w-0 max-w-[1280px] overflow-x-hidden px-4 pb-16 pt-[calc(var(--site-header-height)+1.5rem)] md:px-6 lg:px-8 lg:pb-20">
         <header className="relative mb-10 md:mb-14">

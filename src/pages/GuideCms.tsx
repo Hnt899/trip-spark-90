@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Search, X, ChevronDown, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Search, X, ChevronDown, ChevronLeft, ChevronRight, Loader2, Map } from "lucide-react";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { apiFetch } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -194,6 +195,10 @@ export default function GuideCms() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Путеводитель — TudaSuda"
+        description="Подробные гиды по городам и регионам России: что посмотреть, где поесть, как добраться."
+      />
       <Header />
       {!isMobile ? (
         <>

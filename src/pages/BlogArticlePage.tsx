@@ -2,6 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { getBlogArticleBySlug } from "@/data/blogArticles";
 import { apiFetch } from "@/lib/api";
@@ -110,6 +111,12 @@ const BlogArticlePage = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-background">
+      <SEO
+        title={meta.title}
+        description={meta.excerpt}
+        image={meta.coverImage}
+        url={window.location.href}
+      />
       <Header />
       <main className="px-4 py-[calc(var(--site-header-height)+1.5rem)] pb-16 md:px-6">
         <div className="mx-auto w-full max-w-[1440px]">

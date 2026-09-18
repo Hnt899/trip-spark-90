@@ -17,6 +17,7 @@ import { registerReferencePublicRoutes } from "./referenceRoutes.js";
 import { registerGuidePublicRoutes } from "./guideRoutes.js";
 import { registerPagePublicRoutes } from "./pageContentRoutes.js";
 import { registerSubscriptionRoutes } from "./subscriptionRoutes.js";
+import { registerRegionRoutes } from "./regionRoutes.js";
 import { sendExolveSms } from "./sendSms.js";
 import { sendEmailOtp } from "./emailOtp.js";
 import { registerRzdTrainSearchRoutes } from "./rzdTrainSearchRoutes.js";

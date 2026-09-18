@@ -39,7 +39,7 @@ export function BlogImageView({ node, updateAttributes, deleteNode, selected }: 
             <img
               src={src}
               alt={alt}
-              className="mx-auto block h-auto max-h-[520px] w-auto max-w-full object-contain"
+              className="mx-auto block aspect-[4/3] w-full max-w-[800px] rounded-lg object-cover"
               draggable={false}
             />
           </div>

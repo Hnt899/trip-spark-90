@@ -282,7 +282,7 @@ All colors MUST be HSL.
 }
 
 .chat-pulse-btn {
-  animation: chatPulse 7s ease-in-out infinite;
+  animation: chatPulse 0.45s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

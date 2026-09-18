@@ -7,6 +7,7 @@ const nav = [
   { to: "/admin/dashboard", label: "Статистика", icon: LayoutDashboard },
   { to: "/admin/blog", label: "Блог (CMS)", icon: FileText },
   { to: "/admin/routes", label: "Маршруты (CMS)", icon: Map },
+  { to: "/admin/regions", label: "Регионы", icon: Map },
   { to: "/admin/reference", label: "Справочная (CMS)", icon: BookOpenText },
   { to: "/admin/guide", label: "Путеводитель (CMS)", icon: Compass },
   { to: "/admin/pages/home", label: "Редактор главной", icon: Home },
