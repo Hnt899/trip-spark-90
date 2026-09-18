@@ -5,6 +5,7 @@ import { Train, Plane, Bus, Loader2 } from "lucide-react";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import type { ReferenceKind, ReferenceSection, ReferencePostListItem } from "@/types/referenceCms";
@@ -172,6 +173,10 @@ export default function Reference() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Справочная информация — TudaSuda"
+        description="Правила покупки билетов, возврат, провоз багажа, оформление документов — всё в одном месте."
+      />
       <Header />
       <div className="sticky top-[56px] z-40 border-b bg-background md:hidden">
         <div className="container py-3">

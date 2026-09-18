@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import RouteTabsHeader from "@/components/routes/RouteTabsHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -238,12 +239,27 @@ const RouteDetail = () => {
     <div className="min-h-screen bg-[#F5F5FA]">
       <Header />
       <main className="pt-20 md:pt-16">
+        <SEO
+          title={apiRoute?.name || routeName || "Маршрут"}
+          description={apiRoute?.excerpt}
+          image={routeImage || undefined}
+          url={window.location.href}
+        />
         {/* Третья шапка с табами — только если есть дополнительные табы */}
         {apiRoute?.tabs && apiRoute.tabs.length > 0 && (
           <RouteTabsHeader
+            id="route-tabs-header"
             tabs={apiRoute.tabs}
             activeTabId={activeTabId}
-            onChange={setActiveTabId}
+            onChange={(id) => {
+              setActiveTabId(id);
+              // Скролл к началу контента (чуть выше шапки с табами)
+              const tabsHeader = document.getElementById("route-tabs-header");
+              if (tabsHeader) {
+                const top = tabsHeader.getBoundingClientRect().top + window.scrollY - 20;
+                window.scrollTo({ top, behavior: "smooth" });
+              }
+            }}
           />
         )}
         <div className="container px-4 py-6 md:px-6 md:py-12">
@@ -285,15 +301,6 @@ const RouteDetail = () => {
               </div>
 
               {renderContent()}
-
-              <div className="mt-6 md:mt-8">
-                <Button
-                  size="lg"
-                  className="w-full px-6 py-4 text-base md:w-auto md:px-8 md:py-6 md:text-lg"
-                >
-                  Узнать маршрут
-                </Button>
-              </div>
             </CardContent>
           </Card>
 

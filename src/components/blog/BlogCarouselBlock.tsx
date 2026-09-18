@@ -94,7 +94,7 @@ export default function BlogCarouselBlock({
             return (
               <CarouselItem key={i} className="basis-full">
                 <figure className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_12px_40px_rgba(16,10,111,0.08)] dark:border-slate-800 dark:bg-slate-950">
-                  <div className="relative aspect-[16/11] w-full overflow-hidden bg-muted">
+                  <div className="relative mx-auto aspect-[4/3] w-full max-w-[800px] overflow-hidden bg-muted">
                     <img
                       src={s.image}
                       alt={s.alt || ""}
@@ -114,45 +114,27 @@ export default function BlogCarouselBlock({
         </CarouselContent>
       </Carousel>
 
-      {/* Стрелки — снаружи картинки, по вертикали на уровне центра фото */}
+      {/* Стрелки — внутри картинки, поверх фото */}
       {showArrows ? (
         <>
-          {/* Prev — слева, снаружи */}
+          {/* Prev — слева, внутри фото */}
           <button
             type="button"
             onClick={handlePrev}
             aria-label="Предыдущий слайд"
-            className="hidden md:flex absolute top-1/2 left-0 -translate-y-1/2 -translate-x-[calc(100%+12px)] h-12 w-12 items-center justify-center rounded-full bg-white shadow-md hover:bg-white transition-colors z-10"
+            className="absolute top-1/2 left-3 -translate-y-1/2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-md transition-all hover:bg-white hover:scale-105 md:left-4 md:h-12 md:w-12"
           >
             <ChevronLeft className="h-5 w-5 text-primary" />
           </button>
 
-          {/* Next — справа, снаружи */}
+          {/* Next — справа, внутри фото */}
           <button
             type="button"
             onClick={handleNext}
             aria-label="Следующий слайд"
-            className="hidden md:flex absolute top-1/2 right-0 -translate-y-1/2 translate-x-[calc(100%+12px)] h-12 w-12 items-center justify-center rounded-full bg-white shadow-md hover:bg-white transition-colors z-10"
+            className="absolute top-1/2 right-3 -translate-y-1/2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-md transition-all hover:bg-white hover:scale-105 md:right-4 md:h-12 md:w-12"
           >
             <ChevronRight className="h-5 w-5 text-primary" />
-          </button>
-
-          {/* Мобильные стрелки — внутри фото (снаружи нет места) */}
-          <button
-            type="button"
-            onClick={handlePrev}
-            aria-label="Предыдущий слайд"
-            className="flex md:hidden absolute top-1/2 left-3 -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-md hover:bg-white transition-colors z-10"
-          >
-            <ChevronLeft className="h-4 w-4 text-primary" />
-          </button>
-          <button
-            type="button"
-            onClick={handleNext}
-            aria-label="Следующий слайд"
-            className="flex md:hidden absolute top-1/2 right-3 -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-md hover:bg-white transition-colors z-10"
-          >
-            <ChevronRight className="h-4 w-4 text-primary" />
           </button>
         </>
       ) : null}

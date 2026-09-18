@@ -143,7 +143,7 @@ export function BlogGalleryView({
                 <img
                   src={slide.image}
                   alt={slide.alt || ""}
-                  className="aspect-[4/3] w-full object-contain"
+                  className="aspect-[4/3] w-full rounded-lg object-cover"
                   draggable={false}
                 />
                 <button

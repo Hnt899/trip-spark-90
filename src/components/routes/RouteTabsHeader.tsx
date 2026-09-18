@@ -18,6 +18,7 @@ export default function RouteTabsHeader({ tabs, activeTabId, onChange }: Props) 
 
   return (
     <div
+      id="route-tabs-header"
       className="sticky top-[var(--site-header-height)] z-30 w-full border-b border-white/25"
       style={{
         background: "rgba(134, 125, 255, 0.55)",

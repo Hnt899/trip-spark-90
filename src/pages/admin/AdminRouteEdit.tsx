@@ -40,22 +40,20 @@ type Loaded = {
   status: string;
 };
 
-const REGIONS = [
-  "Центр",
-  "Северо-Запад",
-  "Юг",
-  "Поволжье",
-  "Урал",
-  "Сибирь",
-  "Кавказ",
-  "Дальний Восток",
-];
+const REGIONS: string[] = [];
 
 export default function AdminRouteEdit() {
   const { routeId } = useParams<{ routeId: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const isNew = routeId === "new";
+
+  // Загружаем регионы с API
+  const { data: regionsData = [] } = useQuery({
+    queryKey: ["admin-regions-list"],
+    queryFn: () => apiFetch<Array<{ id: string; name: string; slug: string }>>("/api/admin/regions"),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const [slug, setSlug] = useState("");
   const [name, setName] = useState("");
@@ -325,9 +323,9 @@ export default function AdminRouteEdit() {
                   <SelectValue placeholder="Выберите" />
                 </SelectTrigger>
                 <SelectContent>
-                  {REGIONS.map((r) => (
-                    <SelectItem key={r} value={r}>
-                      {r}
+                  {(regionsData || []).map((r) => (
+                    <SelectItem key={r.id} value={r.name}>
+                      {r.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -364,7 +362,7 @@ export default function AdminRouteEdit() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="route-editor">
         <CardHeader>
           <CardTitle>Этапы маршрута</CardTitle>
           <CardDescription>
@@ -375,7 +373,15 @@ export default function AdminRouteEdit() {
           <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-2">
             <button
               type="button"
-              onClick={() => { setActiveTabId("__main__"); setEditorKey((k) => k + 1); }}
+              onClick={() => {
+                setActiveTabId("__main__");
+                setEditorKey((k) => k + 1);
+                // Скролл к редактору (чуть ниже блока табов)
+                const editor = document.getElementById("route-editor");
+                if (editor) {
+                  editor.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+              }}
               className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
                 activeTabId === "__main__"
                   ? "bg-[#867DFF] text-white shadow-sm"
@@ -388,7 +394,15 @@ export default function AdminRouteEdit() {
               <div key={tab.id} className="flex items-center gap-1 rounded-full bg-slate-100 pr-2">
                 <button
                   type="button"
-                  onClick={() => { setActiveTabId(tab.id); setEditorKey((k) => k + 1); }}
+                  onClick={() => {
+                    setActiveTabId(tab.id);
+                    setEditorKey((k) => k + 1);
+                    // Скролл к редактору (чуть ниже блока табов)
+                    const editor = document.getElementById("route-editor");
+                    if (editor) {
+                      editor.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                  }}
                   className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
                     activeTabId === tab.id
                       ? "bg-[#867DFF] text-white shadow-sm"
