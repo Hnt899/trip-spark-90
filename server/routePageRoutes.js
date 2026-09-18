@@ -236,6 +236,8 @@ function parseBody(body) {
       tabs,
       status,
       published_at: publishedAt,
+      seo_title: body.seo_title ? String(body.seo_title).slice(0, 200) : null,
+      seo_description: body.seo_description ? String(body.seo_description).slice(0, 500) : null,
     },
   };
 }
@@ -364,14 +366,16 @@ export function registerAdminRouteRoutes(app) {
         const { rows } = await pool.query(
           `INSERT INTO route_pages (
             slug, name, legacy_id, region, rating, cover_image_url, excerpt,
-            content_blocks, tabs, status, published_at, author_id
-          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11,$12)
+            content_blocks, tabs, status, published_at, author_id, seo_title, seo_description
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11,$12,$13,$14)
           RETURNING *`,
           [
             d.slug, d.name, d.legacy_id, d.region, d.rating,
             d.cover_image_url, d.excerpt,
             JSON.stringify(d.content_blocks), JSON.stringify(d.tabs), d.status, d.published_at,
             req.userId,
+            d.seo_title,
+            d.seo_description,
           ]
         );
         res.status(201).json(rows[0]);
@@ -429,7 +433,9 @@ export function registerAdminRouteRoutes(app) {
           `UPDATE route_pages SET
             slug = $2, name = $3, legacy_id = $4, region = $5, rating = $6,
             cover_image_url = $7, excerpt = $8, content_blocks = $9::jsonb,
-            tabs = $10::jsonb, status = $11, published_at = $12, updated_at = NOW()
+            tabs = $10::jsonb, status = $11, published_at = $12, updated_at = NOW(),
+            seo_title = COALESCE($13, NULLIF('', '')),
+            seo_description = COALESCE($14, NULLIF('', ''))
           WHERE id = $1::uuid
           RETURNING *`,
           [
@@ -445,6 +451,8 @@ export function registerAdminRouteRoutes(app) {
             JSON.stringify(tabs),
             status,
             publishedAt,
+            b.seo_title !== undefined ? (b.seo_title ? String(b.seo_title).slice(0, 200) : null) : cur.seo_title,
+            b.seo_description !== undefined ? (b.seo_description ? String(b.seo_description).slice(0, 500) : null) : cur.seo_description,
           ]
         );
         res.json(rows[0]);

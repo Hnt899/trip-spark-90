@@ -623,6 +623,8 @@ function rowToArticle(row) {
     partnerCarousel: !!row.partner_carousel,
     sponsoredGrid: !!row.sponsored_grid,
     views: row.views ?? 0,
+    seo_title: row.seo_title || null,
+    seo_description: row.seo_description || null,
   };
 }
 
@@ -695,6 +697,8 @@ function parseCreateBody(body) {
       partner_carousel: !!body.partner_carousel,
       sponsored_grid: !!body.sponsored_grid,
       related_post_ids: normalizeRelatedPostIds(body.related_post_ids),
+      seo_title: body.seo_title ? String(body.seo_title).slice(0, 200) : null,
+      seo_description: body.seo_description ? String(body.seo_description).slice(0, 500) : null,
     },
   };
 }
@@ -1037,8 +1041,9 @@ export function registerAdminBlogRoutes(app) {
       const { rows } = await pool.query(
         `INSERT INTO blog_posts (
           slug, title, excerpt, cover_image_url, content_blocks, status, published_at,
-          reading_minutes, badges, channel, tag_ids, editors_pick, partner_carousel, sponsored_grid, related_post_ids, author_id
-        ) VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9::text[],$10,$11::text[],$12,$13,$14,$15::uuid[],$16)
+          reading_minutes, badges, channel, tag_ids, editors_pick, partner_carousel, sponsored_grid, related_post_ids, author_id,
+          seo_title, seo_description
+        ) VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9::text[],$10,$11::text[],$12,$13,$14,$15::uuid[],$16,$17,$18)
         RETURNING *`,
         [
           d.slug,
@@ -1057,6 +1062,8 @@ export function registerAdminBlogRoutes(app) {
           d.sponsored_grid,
           d.related_post_ids,
           req.userId,
+          d.seo_title,
+          d.seo_description,
         ]
       );
       res.status(201).json(rows[0]);
@@ -1139,8 +1146,9 @@ export function registerAdminBlogRoutes(app) {
             content_blocks = $6::jsonb, status = $7, published_at = $8,
             reading_minutes = $9, badges = $10::text[], channel = $11,
             tag_ids = $12::text[], editors_pick = $13, partner_carousel = $14, sponsored_grid = $15,
-            related_post_ids = $16::uuid[],
-            updated_at = NOW()
+            related_post_ids = $16::uuid[], updated_at = NOW(),
+            seo_title = COALESCE($17, NULLIF('', '')),
+            seo_description = COALESCE($18, NULLIF('', ''))
           WHERE id = $1::uuid
           RETURNING *`,
           [
@@ -1172,6 +1180,8 @@ export function registerAdminBlogRoutes(app) {
             b.related_post_ids !== undefined
               ? normalizeRelatedPostIds(b.related_post_ids).filter((id) => id !== req.params.id)
               : normalizeRelatedPostIds(cur.related_post_ids || []).filter((id) => id !== req.params.id),
+            b.seo_title !== undefined ? (b.seo_title ? String(b.seo_title).slice(0, 200) : null) : cur.seo_title,
+            b.seo_description !== undefined ? (b.seo_description ? String(b.seo_description).slice(0, 500) : null) : cur.seo_description,
           ]
         );
         res.json(rows[0]);
