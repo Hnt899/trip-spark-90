@@ -1,0 +1,2523 @@
+﻿
+
+========== FILE: src\components\blog\BlogBlockRenderer.tsx ==========
+
+import { cn } from "@/lib/utils";
+import { expandRichParagraphBlocks } from "@/lib/blogBodyExpand";
+import BlogCarouselBlock from "@/components/blog/BlogCarouselBlock";
+import type { BlogContentBlock } from "@/types/blogContent";
+import { ExternalLink, Sun, Tent, Star, Sparkles, MapPin } from "lucide-react";
+import { getIcon } from "@/components/editor/DestinationCardView";
+
+const ALLOWED_TAG_RE = /^\/?(strong|b|em|i|s|del|br|span|a)\b/i;
+const CELL_TAG_RE = /^\/?(strong|b|em|i|s|del|br|span|p|ul|ol|li|a)\b/i;
+const ACCENT_RE =
+  /<(?:Р°РєС†РµРЅС‚|accent)>\s*([\s\S]*?)\s*<\/\s*(?:Р°РєС†РµРЅС‚|accent)\s*>/gi;
+
+function sanitizeInlineHtml(raw: string): string {
+  return raw.replace(/<(\/?)([^>]*)>/g, (full, _slash: string, inner: string) => {
+    const tag = inner.trim().split(/[\s/>/]/)[0];
+    if (ALLOWED_TAG_RE.test(`${_slash}${tag}`)) return full;
+    return full.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  });
+}
+
+function prepareHtml(text: string): string {
+  let html = text.replace(/\n/g, "<br>");
+  html = html.replace(
+    ACCENT_RE,
+    '<span class="font-bold underline decoration-wavy decoration-2 decoration-primary underline-offset-[3px]">$1</span>',
+  );
+  return sanitizeInlineHtml(html);
+}
+
+function InlineHtml({ text, className }: { text: string; className?: string }) {
+  const handleClick = (e: React.MouseEvent<HTMLSpanElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName !== "A") return;
+    const href = target.getAttribute("href");
+    if (!href?.startsWith("#")) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const id = href.slice(1);
+    const el = document.getElementById(id);
+    if (!el) {
+      console.warn("[BlogBlockRenderer] anchor not found:", id);
+      return;
+    }
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    el.classList.add("bg-yellow-200/70");
+    window.setTimeout(() => el.classList.remove("bg-yellow-200/70"), 2000);
+  };
+
+  return (
+    <span
+      className={cn(
+        "[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_a]:font-medium [&_a]:cursor-pointer [&_a:hover]:opacity-80 [&_a]:transition-opacity",
+        className,
+      )}
+      onClick={handleClick}
+      dangerouslySetInnerHTML={{ __html: prepareHtml(text) }}
+    />
+  );
+}
+
+function sanitizeCellHtml(raw: string): string {
+  return raw.replace(/<(\/?)([^>]*)>/g, (full, _slash: string, inner: string) => {
+    const tag = inner.trim().split(/[\s/>/]/)[0];
+    if (CELL_TAG_RE.test(`${_slash}${tag}`)) return full;
+    return full.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  });
+}
+
+function CellHtml({ text, className }: { text: string; className?: string }) {
+  const html = sanitizeCellHtml(text.replace(/\n/g, "<br>"));
+  return (
+    <div
+      className={cn(
+        "cell-content [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1 [&_li]:my-0.5 [&_p]:my-0.5 [&_a]:text-primary [&_a]:underline",
+        className,
+      )}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
+
+function isBlock(x: unknown): x is BlogContentBlock {
+  return (
+    typeof x === "object" &&
+    x !== null &&
+    "type" in x &&
+    typeof (x as BlogContentBlock).type === "string"
+  );
+}
+
+export default function BlogBlockRenderer({
+  blocks,
+  className,
+  isRoute = false,
+}: {
+  blocks: unknown;
+  className?: string;
+  isRoute?: boolean;
+}) {
+  const rawList = Array.isArray(blocks) ? blocks.filter(isBlock) : [];
+  const list = expandRichParagraphBlocks(rawList as BlogContentBlock[]);
+
+  if (list.length === 0) {
+    return (
+      <p className={cn("text-muted-foreground", className)}>
+        РўРµРєСЃС‚ СЃС‚Р°С‚СЊРё РїРѕРєР° РЅРµ РґРѕР±Р°РІР»РµРЅ.
+      </p>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "min-w-0 space-y-6 break-words [overflow-wrap:anywhere]",
+        className,
+      )}
+    >
+      {list.map((block, i) => {
+        const key = `${block.type}-${i}`;
+        switch (block.type) {
+          case "paragraph":
+            return (
+              <p
+                key={key}
+                id={
+                  block.anchor && block.anchorOrdinal
+                    ? `anchor-${block.anchorOrdinal}`
+                    : undefined
+                }
+                className="whitespace-pre-wrap break-words text-base leading-relaxed text-slate-700 [overflow-wrap:anywhere] dark:text-slate-200"
+              >
+                <InlineHtml text={block.text} />
+              </p>
+            );
+          case "heading": {
+            const L = Math.min(3, Math.max(1, Number(block.level) || 2));
+            const cls =
+              L === 1
+                ? "text-2xl font-bold mt-10 mb-4"
+                : L === 2
+                  ? "text-xl font-semibold mt-8 mb-3"
+                  : "text-lg font-semibold mt-6 mb-2";
+            const Tag = (L === 1 ? "h2" : L === 2 ? "h3" : "h4") as keyof JSX.IntrinsicElements;
+            const headingId =
+              block.anchor && block.anchorOrdinal
+                ? `anchor-${block.anchorOrdinal}`
+                : `section-${i}`;
+            return (
+              <Tag
+                key={key}
+                id={headingId}
+                className={cn(
+                  cls,
+                  "break-words text-slate-900 [overflow-wrap:anywhere] tracking-tight dark:text-white",
+                )}
+              >
+                <InlineHtml text={block.text} />
+              </Tag>
+            );
+          }
+          case "image":
+            if (!block.url?.trim()) return null;
+            return (
+              <figure key={key} className="my-6 flex flex-col items-center">
+                <div className="inline-flex max-w-full items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-transparent dark:border-slate-800">
+                  <img
+                    src={block.url}
+                    alt={block.alt || ""}
+                    referrerPolicy="no-referrer"
+                    className="mx-auto block h-auto max-h-[560px] w-auto max-w-full object-contain"
+                  />
+                </div>
+                {block.caption ? (
+                  <figcaption className="mt-2 whitespace-pre-wrap break-words text-center text-sm text-muted-foreground [overflow-wrap:anywhere]">
+                    {block.caption}
+                  </figcaption>
+                ) : null}
+              </figure>
+            );
+          case "carousel":
+            if (!Array.isArray(block.slides) || block.slides.length === 0) {
+              return null;
+            }
+            return (
+              <BlogCarouselBlock
+                key={key}
+                slides={block.slides}
+                mode={block.mode || "manual"}
+                intervalSec={block.intervalSec || 5}
+              />
+            );
+          case "bulletList":
+            if (!Array.isArray(block.items) || block.items.length === 0)
+              return null;
+            return (
+              <ul
+                key={key}
+                className="my-4 list-disc space-y-1 pl-6 text-base leading-relaxed text-slate-700 dark:text-slate-200"
+              >
+                {block.items.map((item, j) => (
+                  <li
+                    key={j}
+                    className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]"
+                  >
+                    <InlineHtml text={item} />
+                  </li>
+                ))}
+              </ul>
+            );
+          case "orderedList":
+            if (!Array.isArray(block.items) || block.items.length === 0)
+              return null;
+            return (
+              <ol
+                key={key}
+                className="my-4 list-decimal space-y-1 pl-6 text-base leading-relaxed text-slate-700 dark:text-slate-200"
+              >
+                {block.items.map((item, j) => (
+                  <li
+                    key={j}
+                    className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]"
+                  >
+                    <InlineHtml text={item} />
+                  </li>
+                ))}
+              </ol>
+            );
+          case "quote":
+            return (
+              <blockquote
+                key={key}
+                className="min-w-0 break-words rounded-r-lg border-l-4 border-primary/40 bg-muted/50 py-3 pl-4 pr-2 italic text-slate-700 [overflow-wrap:anywhere] dark:text-slate-200"
+              >
+                <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+                  <InlineHtml text={block.text} />
+                </p>
+                {block.attribution ? (
+                  <footer className="mt-2 text-sm not-italic text-muted-foreground">
+                    вЂ” {block.attribution}
+                  </footer>
+                ) : null}
+              </blockquote>
+            );
+          case "divider":
+            return (
+              <hr
+                key={key}
+                className="my-8 border-slate-200 dark:border-slate-700"
+              />
+            );
+          case "table": {
+            if (!block.rows?.length) return null;
+            const maxCols = Math.max(...block.rows.map((r) => r.cells.length));
+            const scrollToRow = (id: string) => {
+              const el = document.getElementById(id);
+              if (!el) return;
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+              el.classList.add("bg-yellow-200/70");
+              window.setTimeout(() => {
+                el.classList.remove("bg-yellow-200/70");
+              }, 2000);
+            };
+
+            const headerRow = block.hasHeader ? block.rows[0] : null;
+            const bodyRows = block.hasHeader ? block.rows.slice(1) : block.rows;
+
+            return (
+              <div key={key} className="my-6 overflow-x-auto">
+                <table className="w-full border-collapse overflow-hidden rounded-lg border border-border text-sm">
+                  {headerRow && (
+                    <thead>
+                      <tr
+                        id={headerRow.tableAnchorId || undefined}
+                        className={cn(
+                          "transition-colors",
+                          headerRow.tableAnchorId
+                            ? "cursor-pointer hover:bg-primary/10"
+                            : "",
+                        )}
+                        onClick={
+                          headerRow.tableAnchorId
+                            ? (e) => {
+                                e.preventDefault();
+                                scrollToRow(headerRow.tableAnchorId!);
+                              }
+                            : undefined
+                        }
+                      >
+                        {headerRow.cells
+                          .concat(
+                            Array.from(
+                              { length: maxCols - headerRow.cells.length },
+                              () => ({ text: "" }),
+                            ),
+                          )
+                          .map((cell, ci) => (
+                            <th
+                              key={ci}
+                              className="border border-border bg-muted px-4 py-2.5 text-left font-semibold text-foreground"
+                            >
+                              <CellHtml text={cell.text} />
+                            </th>
+                          ))}
+                      </tr>
+                    </thead>
+                  )}
+                  <tbody>
+                    {bodyRows.map((row, ri) => {
+                      const anchorId = row.tableAnchorId;
+                      return (
+                        <tr
+                          key={ri}
+                          id={anchorId || undefined}
+                          className={cn(
+                            "border-b border-border transition-colors",
+                            anchorId
+                              ? "cursor-pointer hover:bg-primary/5"
+                              : "hover:bg-muted/50",
+                          )}
+                          onClick={
+                            anchorId
+                              ? (e) => {
+                                  e.preventDefault();
+                                  scrollToRow(anchorId);
+                                }
+                              : undefined
+                          }
+                        >
+                          {row.cells
+                            .concat(
+                              Array.from(
+                                { length: maxCols - row.cells.length },
+                                () => ({ text: "" }),
+                              ),
+                            )
+                            .map((cell, ci) => (
+                              <td key={ci} className="border border-border px-4 py-2.5">
+                                <CellHtml text={cell.text} />
+                              </td>
+                            ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            );
+          }
+          case "ctaButton": {
+            const variantCls =
+              block.variant === "secondary"
+                ? "bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                : "bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white";
+            return (
+              <div key={key} className="my-8 flex justify-center">
+                <a
+                  href={block.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-full px-8 py-3 text-sm font-medium transition-all",
+                    variantCls,
+                  )}
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  {block.text}
+                </a>
+              </div>
+            );
+          }
+          case "destinationCard": {
+            const fields = [
+              { label: block.season_label     || "РРґРµР°Р»СЊРЅС‹Р№ СЃРµР·РѕРЅ", value: block.season,     iconName: block.season_icon     || "Sun",      fallback: Sun },
+              { label: block.format_label     || "Р¤РѕСЂРјР°С‚",          value: block.format,     iconName: block.format_icon     || "Tent",     fallback: Tent },
+              { label: block.comfort_label    || "РљРѕРјС„РѕСЂС‚",         value: block.comfort,    iconName: block.comfort_icon    || "Star",     fallback: Star },
+              { label: block.uniqueness_label || "РЈРЅРёРєР°Р»СЊРЅРѕСЃС‚СЊ",    value: block.uniqueness, iconName: block.uniqueness_icon || "Sparkles", fallback: Sparkles },
+            ];
+            return (
+              <div
+                key={key}
+                className="my-6 overflow-hidden rounded-xl border border-border bg-muted/30"
+              >
+                <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-3">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-semibold text-foreground">
+                    Рћ РЅР°РїСЂР°РІР»РµРЅРёРё
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-4">
+                  {fields.map(({ label, value, iconName, fallback }) => {
+                    const Icon = getIcon(iconName, fallback);
+                    return (
+                      <div key={label} className="space-y-1">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Icon className="h-3.5 w-3.5" />
+                          {label}
+                        </div>
+                        <p className="text-sm font-medium text-foreground">
+                          {value || "вЂ”"}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          }
+          case "routeByDays": {
+            if (!block.days?.length) return null;
+            const DEFAULT_IMG = "/РїСѓС‚СЊ-no-bg-preview (carve.photos).png";
+            const routeImage = block.image || DEFAULT_IMG;
+            const totalDays = block.days.length;
+
+            const scrollToDayAnchor = (anchorIndex: number) => {
+              const id = `anchor-${anchorIndex + 1}`;
+              const el = document.getElementById(id);
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            };
+
+            return (
+              <div
+                key={key}
+                className="my-8 overflow-hidden rounded-2xl bg-[hsl(var(--primary)/0.04)] dark:bg-[hsl(var(--primary)/0.08)]"
+              >
+                <div className="flex flex-col md:flex-row md:min-h-[420px]">
+                  <div className="relative w-full shrink-0 md:w-[340px] lg:w-[400px]">
+                  <img
+                      src={routeImage}
+                      alt={block.imageAlt || ""}
+                      className={
+                        isRoute
+                          ? "h-56 w-full object-cover md:absolute md:inset-0 md:h-full"
+                          : "h-56 w-full object-contain md:absolute md:inset-0 md:h-full"
+                      }
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1 px-6 py-6 md:px-8 md:py-8">
+                    <div className="mb-6 flex items-center gap-2.5">
+                      <MapPin className="h-5 w-5 text-primary" />
+                      <span className="text-xl font-bold tracking-tight text-foreground">
+                        РњР°СЂС€СЂСѓС‚
+                      </span>
+                    </div>
+                    <div className="flex flex-col">
+                      {block.days.map((day, di) => {
+                        const isFirst = di === 0;
+                        const isLast = di === totalDays - 1;
+                        const anchorIdx = day.anchorIndex ?? di;
+                        return (
+                          <div key={di} className="flex gap-4">
+                            <div className="flex w-5 shrink-0 flex-col items-center">
+                              {isFirst ? (
+                                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/15">
+                                  <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                                </div>
+                              ) : isLast ? (
+                                <div className="h-5 w-5 rounded-full bg-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.15)]" />
+                              ) : (
+                                <div className="flex h-5 w-5 items-center justify-center">
+                                  <div className="h-2 w-2 rounded-full border-2 border-primary bg-white dark:bg-background" />
+                                </div>
+                              )}
+                              {!isLast && (
+                                <div className="my-1 w-px flex-1 border-l-2 border-dashed border-primary/30" />
+                              )}
+                            </div>
+                            <div className={cn("min-w-0 flex-1", !isLast && "pb-5")}>
+                              <button
+                                type="button"
+                                onClick={() => scrollToDayAnchor(anchorIdx)}
+                                className="text-left hover:underline focus:outline-none focus:underline"
+                              >
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-primary/70">
+                                  {day.label}
+                                </p>
+                                <h4 className="mt-0.5 text-base font-bold leading-snug text-foreground">
+                                  {day.title}
+                                </h4>
+                              </button>
+                              {day.description && (
+                                <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                                  {day.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          default:
+            return null;
+        }
+      })}
+    </div>
+  );
+}
+
+
+========== FILE: src\pages\RouteDetail.tsx ==========
+
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import RouteTabsHeader from "@/components/routes/RouteTabsHeader";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Star, ArrowLeft, Loader2 } from "lucide-react";
+import BlogBlockRenderer from "@/components/blog/BlogBlockRenderer";
+import type { BlogContentBlock, RouteTab } from "@/types/blogContent";
+
+import karelia from "@/assets/images/cities/karelia.jpg";
+import moscow from "@/assets/images/cities/moscow.jpg";
+import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
+import kazan from "@/assets/images/cities/kazan.jpg";
+import novgorod from "@/assets/images/cities/novgorod.jpg";
+import armenia from "@/assets/images/cities/armenia.jpg";
+import china from "@/assets/images/cities/china.jpg";
+import heroTrain from "@/assets/images/hero/hero-train.jpg";
+
+interface LegacyRoute {
+  id: string;
+  name: string;
+  rating: number;
+  image: string;
+  region: string;
+}
+
+const legacyRoutes: LegacyRoute[] = [
+  { id: "1", name: "Р’Р»Р°РґРёРјРёСЂСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ", rating: 8.2, image: karelia, region: "Р¦РµРЅС‚СЂ" },
+  { id: "2", name: "Р’РѕСЂРѕРЅРµР¶СЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ", rating: 9.5, image: moscow, region: "Р¦РµРЅС‚СЂ" },
+  { id: "3", name: "Р—Р°СЂР°Р№СЃРє Рё РљРѕР»РѕРјРЅР°", rating: 8.5, image: stPetersburg, region: "Р¦РµРЅС‚СЂ" },
+  { id: "5", name: "РРІР°РЅРѕРІСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ, РјР°СЂС€СЂСѓС‚ в„–1", rating: 8.6, image: novgorod, region: "Р¦РµРЅС‚СЂ" },
+  { id: "6", name: "РРІР°РЅРѕРІСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ, РјР°СЂС€СЂСѓС‚ в„–2", rating: 9.5, image: armenia, region: "Р¦РµРЅС‚СЂ" },
+  { id: "7", name: "РљР°Р»РёРЅРёРЅРіСЂР°РґСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ, РјР°СЂС€СЂСѓС‚ в„–1", rating: 9.3, image: china, region: "РЎРµРІРµСЂРѕ-Р—Р°РїР°Рґ" },
+  { id: "8", name: "РљР°Р»РёРЅРёРЅРіСЂР°РґСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ, РјР°СЂС€СЂСѓС‚ в„–4", rating: 9.0, image: heroTrain, region: "РЎРµРІРµСЂРѕ-Р—Р°РїР°Рґ" },
+  { id: "10", name: "РњСѓСЂРјР°РЅСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ, РјР°СЂС€СЂСѓС‚ в„–1", rating: 9.3, image: moscow, region: "РЎРµРІРµСЂРѕ-Р—Р°РїР°Рґ" },
+  { id: "11", name: "РњСѓСЂРјР°РЅСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ, РјР°СЂС€СЂСѓС‚ в„–2", rating: 9.8, image: stPetersburg, region: "РЎРµРІРµСЂРѕ-Р—Р°РїР°Рґ" },
+  { id: "13", name: "РђСЂС…Р°РЅРіРµР»СЊСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ", rating: 9.3, image: karelia, region: "РЎРµРІРµСЂРѕ-Р—Р°РїР°Рґ" },
+  { id: "9", name: "РљСЂР°СЃРЅРѕРґР°СЂСЃРєРёР№ РєСЂР°Р№", rating: 10, image: karelia, region: "Р®Рі" },
+  { id: "14", name: "Р РѕСЃС‚РѕРІ-РЅР°-Р”РѕРЅСѓ", rating: 9.1, image: moscow, region: "Р®Рі" },
+  { id: "15", name: "РљСЂС‹Рј", rating: 9.7, image: stPetersburg, region: "Р®Рі" },
+  { id: "16", name: "РЎС‚Р°РІСЂРѕРїРѕР»СЊСЃРєРёР№ РєСЂР°Р№", rating: 8.8, image: kazan, region: "Р®Рі" },
+  { id: "17", name: "РЎРѕС‡Рё Рё РѕРєСЂРµСЃС‚РЅРѕСЃС‚Рё", rating: 9.6, image: novgorod, region: "Р®Рі" },
+  { id: "18", name: "РљР°Р·Р°РЅСЊ", rating: 9.4, image: kazan, region: "РџРѕРІРѕР»Р¶СЊРµ" },
+  { id: "19", name: "РЎР°РјР°СЂР°", rating: 8.7, image: armenia, region: "РџРѕРІРѕР»Р¶СЊРµ" },
+  { id: "20", name: "РќРёР¶РЅРёР№ РќРѕРІРіРѕСЂРѕРґ", rating: 9.2, image: china, region: "РџРѕРІРѕР»Р¶СЊРµ" },
+  { id: "21", name: "Р’РѕР»РіРѕРіСЂР°Рґ", rating: 8.9, image: heroTrain, region: "РџРѕРІРѕР»Р¶СЊРµ" },
+  { id: "22", name: "Р’РµР»РёРєРёР№ Р’РѕР»Р¶СЃРєРёР№ РїСѓС‚СЊ", rating: 9.7, image: karelia, region: "РџРѕРІРѕР»Р¶СЊРµ" },
+  { id: "4", name: "Р•РєР°С‚РµСЂРёРЅР±СѓСЂРі", rating: 8.9, image: kazan, region: "РЈСЂР°Р»" },
+  { id: "23", name: "Р§РµР»СЏР±РёРЅСЃРє", rating: 8.4, image: moscow, region: "РЈСЂР°Р»" },
+  { id: "24", name: "РџРµСЂРјСЊ", rating: 8.6, image: stPetersburg, region: "РЈСЂР°Р»" },
+  { id: "25", name: "РўСЋРјРµРЅСЊ", rating: 9.0, image: kazan, region: "РЈСЂР°Р»" },
+  { id: "26", name: "РҐРњРђРћ - Р®РіСЂР°", rating: 9.9, image: novgorod, region: "РЈСЂР°Р»" },
+  { id: "12", name: "РќРѕРІРѕСЃРёР±РёСЂСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ", rating: 7.4, image: kazan, region: "РЎРёР±РёСЂСЊ" },
+  { id: "27", name: "РљСЂР°СЃРЅРѕСЏСЂСЃРє", rating: 8.8, image: armenia, region: "РЎРёР±РёСЂСЊ" },
+  { id: "28", name: "РСЂРєСѓС‚СЃРє Рё Р‘Р°Р№РєР°Р»", rating: 9.8, image: china, region: "РЎРёР±РёСЂСЊ" },
+  { id: "29", name: "РђР»С‚Р°Р№СЃРєРёР№ РєСЂР°Р№", rating: 9.7, image: heroTrain, region: "РЎРёР±РёСЂСЊ" },
+  { id: "30", name: "РўРѕРјСЃРє", rating: 8.5, image: karelia, region: "РЎРёР±РёСЂСЊ" },
+  { id: "31", name: "Р”Р°РіРµСЃС‚Р°РЅ", rating: 9.3, image: moscow, region: "РљР°РІРєР°Р·" },
+  { id: "32", name: "РљР°СЂР°С‡Р°РµРІРѕ-Р§РµСЂРєРµСЃРёСЏ", rating: 9.1, image: stPetersburg, region: "РљР°РІРєР°Р·" },
+  { id: "33", name: "РљР°Р±Р°СЂРґРёРЅРѕ-Р‘Р°Р»РєР°СЂРёСЏ", rating: 9.5, image: kazan, region: "РљР°РІРєР°Р·" },
+  { id: "34", name: "РћСЃРµС‚РёСЏ", rating: 9.0, image: novgorod, region: "РљР°РІРєР°Р·" },
+  { id: "35", name: "Р§РµС‡РЅСЏ", rating: 9.2, image: armenia, region: "РљР°РІРєР°Р·" },
+  { id: "36", name: "Р’Р»Р°РґРёРІРѕСЃС‚РѕРє Рё РѕРєСЂРµСЃС‚РЅРѕСЃС‚Рё", rating: 10, image: china, region: "Р”Р°Р»СЊРЅРёР№ Р’РѕСЃС‚РѕРє" },
+  { id: "37", name: "РҐР°Р±Р°СЂРѕРІСЃРє", rating: 8.9, image: heroTrain, region: "Р”Р°Р»СЊРЅРёР№ Р’РѕСЃС‚РѕРє" },
+  { id: "38", name: "РљР°РјС‡Р°С‚РєР°", rating: 9.8, image: karelia, region: "Р”Р°Р»СЊРЅРёР№ Р’РѕСЃС‚РѕРє" },
+  { id: "39", name: "РЎР°С…Р°Р»РёРЅ", rating: 9.4, image: moscow, region: "Р”Р°Р»СЊРЅРёР№ Р’РѕСЃС‚РѕРє" },
+  { id: "40", name: "РЇРєСѓС‚РёСЏ", rating: 9.6, image: stPetersburg, region: "Р”Р°Р»СЊРЅРёР№ Р’РѕСЃС‚РѕРє" },
+];
+
+type ApiRoute = {
+  id: string;
+  legacy_id: string | null;
+  slug: string;
+  name: string;
+  region: string;
+  rating: number;
+  cover_image_url: string | null;
+  excerpt: string;
+  content_blocks: BlogContentBlock[];
+  views: number;
+  tabs?: RouteTab[];
+};
+
+const RouteDetail = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  const [activeTabId, setActiveTabId] = useState<string>("__main__");
+
+  const apiQ = useQuery({
+    queryKey: ["route-page-public", id],
+    queryFn: () =>
+      fetch(`/api/route-pages/by-id/${id}`).then((r) => {
+        if (!r.ok) throw new Error(`${r.status}`);
+        return r.json() as Promise<ApiRoute>;
+      }),
+    retry: false,
+    enabled: !!id,
+  });
+
+  const apiRoute = apiQ.data;
+  const isLoading = apiQ.isLoading;
+
+  // РЎР±СЂР°СЃС‹РІР°РµРј Р°РєС‚РёРІРЅС‹Р№ С‚Р°Р± РїСЂРё СЃРјРµРЅРµ РјР°СЂС€СЂСѓС‚Р° (С‚РѕР»СЊРєРѕ РїСЂРё СЃРјРµРЅРµ id, РЅРµ РїСЂРё СЂРµ-СЂРµРЅРґРµСЂРµ)
+  useEffect(() => {
+    if (apiRoute?.id) {
+      setActiveTabId("__main__");
+    }
+  }, [apiRoute?.id]);
+
+  const { data: relatedRoutes } = useQuery({
+    queryKey: ["related-routes", apiRoute?.region],
+    enabled: !!apiRoute?.region,
+    queryFn: () =>
+      fetch(`/api/route-pages/related?region=${encodeURIComponent(apiRoute!.region)}&exclude=${apiRoute!.id}`)
+        .then((r) => {
+          if (!r.ok) throw new Error("Failed to fetch related");
+          return r.json();
+        }),
+  });
+
+  const [relatedPage, setRelatedPage] = useState(0);
+  const [allRelated, setAllRelated] = useState<any[]>([]);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  useEffect(() => {
+    if (relatedRoutes) {
+      setAllRelated(relatedRoutes);
+      setRelatedPage(0);
+    }
+  }, [relatedRoutes]);
+
+  const loadMoreRelated = async () => {
+    if (!apiRoute?.region) return;
+    setLoadingMore(true);
+    try {
+      const offset = (relatedPage + 1) * 3;
+      const res = await fetch(
+        `/api/route-pages/related?region=${encodeURIComponent(apiRoute.region)}&exclude=${apiRoute.id}&offset=${offset}`
+      );
+      if (!res.ok) throw new Error("Failed to load more");
+      const data = await res.json();
+      setAllRelated((prev) => [...prev, ...data]);
+      setRelatedPage((prev) => prev + 1);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const legacy = legacyRoutes.find((r) => r.id === id);
+  const routeName = apiRoute?.name ?? legacy?.name;
+  const routeRegion = apiRoute?.region ?? legacy?.region ?? "";
+  const routeRating = apiRoute?.rating ?? legacy?.rating ?? 0;
+  const routeImage = apiRoute?.cover_image_url ?? legacy?.image;
+
+  const currentBlocks: BlogContentBlock[] = (() => {
+    if (activeTabId === "__main__") {
+      return apiRoute?.content_blocks || [];
+    }
+    const tab = apiRoute?.tabs?.find((t) => t.id === activeTabId);
+    return tab?.blocks || [];
+  })();
+
+  const hasContent = Array.isArray(currentBlocks) && currentBlocks.length > 0;
+
+  const renderContent = () => {
+    if (!hasContent) {
+      return (
+        <div className="prose max-w-none">
+          <p className="mb-4 text-base text-muted-foreground md:mb-6 md:text-lg">
+            Р”РµС‚Р°Р»СЊРЅР°СЏ РёРЅС„РѕСЂРјР°С†РёСЏ Рѕ РјР°СЂС€СЂСѓС‚Рµ РЅР°С…РѕРґРёС‚СЃСЏ РІ СЂР°Р·СЂР°Р±РѕС‚РєРµ.
+          </p>
+          <p className="text-base text-muted-foreground md:text-lg">
+            Р—РґРµСЃСЊ Р±СѓРґРµС‚ СЂР°Р·РјРµС‰РµРЅР° РїРѕРґСЂРѕР±РЅР°СЏ РёРЅС„РѕСЂРјР°С†РёСЏ Рѕ РјР°СЂС€СЂСѓС‚Рµ,
+            РІРєР»СЋС‡Р°СЏ РѕРїРёСЃР°РЅРёРµ РґРѕСЃС‚РѕРїСЂРёРјРµС‡Р°С‚РµР»СЊРЅРѕСЃС‚РµР№, СЂРµРєРѕРјРµРЅРґР°С†РёРё РїРѕ
+            РїРѕСЃРµС‰РµРЅРёСЋ, РєР°СЂС‚Сѓ РјР°СЂС€СЂСѓС‚Р° Рё РґСЂСѓРіСѓСЋ РїРѕР»РµР·РЅСѓСЋ РёРЅС„РѕСЂРјР°С†РёСЋ РґР»СЏ
+            РїСѓС‚РµС€РµСЃС‚РІРµРЅРЅРёРєРѕРІ.
+          </p>
+        </div>
+      );
+    }
+
+    return currentBlocks.map((block, index) => {
+      if (block.type === "image") {
+        return (
+          <div key={index} className="my-4 w-full max-w-[896px] mx-auto">
+            <img
+              src={block.url}
+              alt={block.alt || "РР·РѕР±СЂР°Р¶РµРЅРёРµ"}
+              className="w-full h-[560px] object-cover rounded-lg"
+              loading="lazy"
+            />
+            {block.caption && (
+              <p className="mt-2 text-center text-sm text-muted-foreground">{block.caption}</p>
+            )}
+          </div>
+        );
+      }
+      return <BlogBlockRenderer key={index} blocks={[block]} />;
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F5F5FA]">
+        <Header />
+        <main className="flex items-center justify-center py-32">
+          <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!routeName) {
+    return (
+      <div className="min-h-screen bg-[#F5F5FA]">
+        <Header />
+        <main className="container px-4 py-12 pt-20 md:px-6 md:py-20 md:pt-32">
+          <h1 className="heading-gradient mb-6 text-2xl font-bold tracking-tight md:text-4xl">
+            РњР°СЂС€СЂСѓС‚ РЅРµ РЅР°Р№РґРµРЅ
+          </h1>
+          <Button onClick={() => navigate("/routes/list")}>
+            Р’РµСЂРЅСѓС‚СЊСЃСЏ Рє СЃРїРёСЃРєСѓ РјР°СЂС€СЂСѓС‚РѕРІ
+          </Button>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#F5F5FA]">
+      <Header />
+      <main className="pt-20 md:pt-16">
+        {/* РўСЂРµС‚СЊСЏ С€Р°РїРєР° СЃ С‚Р°Р±Р°РјРё вЂ” С‚РѕР»СЊРєРѕ РµСЃР»Рё РµСЃС‚СЊ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ С‚Р°Р±С‹ */}
+        {apiRoute?.tabs && apiRoute.tabs.length > 0 && (
+          <RouteTabsHeader
+            tabs={apiRoute.tabs}
+            activeTabId={activeTabId}
+            onChange={setActiveTabId}
+          />
+        )}
+        <div className="container px-4 py-6 md:px-6 md:py-12">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/routes/list")}
+            className="mb-4 text-sm md:mb-6 md:text-base"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            РќР°Р·Р°Рґ Рє РјР°СЂС€СЂСѓС‚Р°Рј
+          </Button>
+
+          <Card className="overflow-hidden shadow-lg">
+            {routeImage && (
+              <div className="relative w-full max-w-[896px] mx-auto overflow-hidden rounded-lg">
+                <img
+                  src={routeImage}
+                  alt={routeName}
+                  className="w-full h-[560px] object-cover"
+                />
+              </div>
+            )}
+            <CardContent className="p-4 md:p-6 lg:p-8">
+              <div className="mb-4 flex flex-col gap-4 md:mb-6 md:flex-row md:items-start md:justify-between">
+                <div className="flex-1">
+                  <h1 className="heading-gradient mb-2 text-2xl font-bold tracking-tight md:text-4xl lg:text-5xl">
+                    {routeName}
+                  </h1>
+                  <p className="text-base text-muted-foreground md:text-lg">
+                    {routeRegion}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 md:flex-shrink-0">
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400 md:h-6 md:w-6" />
+                  <span className="text-lg font-semibold text-foreground md:text-xl">
+                    {routeRating}
+                  </span>
+                </div>
+              </div>
+
+              {renderContent()}
+
+              <div className="mt-6 md:mt-8">
+                <Button
+                  size="lg"
+                  className="w-full px-6 py-4 text-base md:w-auto md:px-8 md:py-6 md:text-lg"
+                >
+                  РЈР·РЅР°С‚СЊ РјР°СЂС€СЂСѓС‚
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {allRelated.length > 0 && (
+            <div className="mt-12 md:mt-16">
+              <h2 className="heading-gradient mb-6 text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl">
+                РџРѕС…РѕР¶РёРµ РјР°СЂС€СЂСѓС‚С‹
+              </h2>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {allRelated.map((route) => (
+                  <Card
+                    key={route.id}
+                    className="overflow-hidden shadow-md transition-shadow hover:shadow-xl cursor-pointer"
+                    onClick={() => navigate(`/routes/${route.id}`)}
+                  >
+                    {route.cover_image_url && (
+                      <div className="h-40 overflow-hidden md:h-48">
+                        <img
+                          src={route.cover_image_url}
+                          alt={route.name}
+                          className="h-full w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                    )}
+                    <CardContent className="p-4">
+                      <h3 className="mb-1 text-lg font-semibold line-clamp-1">{route.name}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{route.excerpt || route.region}</p>
+                      <div className="mt-2 flex items-center gap-1">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm font-medium">{route.rating}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {relatedRoutes && relatedRoutes.length === 3 && (
+                <div className="mt-6 text-center">
+                  <Button
+                    variant="outline"
+                    onClick={loadMoreRelated}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Р—Р°РіСЂСѓР·РєР°...
+                      </>
+                    ) : (
+                      "Р—Р°РіСЂСѓР·РёС‚СЊ РµС‰С‘"
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default RouteDetail;
+
+
+========== FILE: src\components\blog\BlogCarouselBlock.tsx ==========
+
+import { useCallback, useEffect, useState } from "react";
+import type { BlogCarouselMode, BlogCarouselSlide } from "@/types/blogContent";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+function slideCaption(s: BlogCarouselSlide): string | undefined {
+  if (s.caption?.trim()) return s.caption.trim();
+  const x = s as BlogCarouselSlide;
+  const parts = [x.route, x.subtitle, x.price, x.oldPrice, x.badge, x.discount]
+    .filter((p) => p != null && String(p).trim());
+  const t = parts.join("\n").trim();
+  return t || undefined;
+}
+
+export default function BlogCarouselBlock({
+  slides,
+  mode = "manual",
+  intervalSec = 5,
+  className,
+}: {
+  slides: BlogCarouselSlide[];
+  mode?: BlogCarouselMode;
+  intervalSec?: number;
+  className?: string;
+}) {
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [autoplayKey, setAutoplayKey] = useState(0);
+
+  const autoplayEnabled = mode === "auto" || mode === "hybrid";
+  const showArrows = slides.length > 1;
+
+  const onSelect = useCallback((carousel: CarouselApi) => {
+    setCurrent(carousel.selectedScrollSnap());
+  }, []);
+
+  useEffect(() => {
+    if (!api) return;
+    onSelect(api);
+    api.on("reInit", onSelect);
+    api.on("select", onSelect);
+    return () => {
+      api.off("select", onSelect);
+    };
+  }, [api, onSelect]);
+
+  useEffect(() => {
+    if (!api || !autoplayEnabled || slides.length < 2 || paused) return;
+    const ms = Math.min(30, Math.max(1, intervalSec || 5)) * 1000;
+    const id = window.setInterval(() => {
+      api.scrollNext();
+    }, ms);
+    return () => window.clearInterval(id);
+  }, [api, autoplayEnabled, intervalSec, paused, slides.length, autoplayKey]);
+
+  const handlePrev = () => {
+    api?.scrollPrev();
+    setAutoplayKey((k) => k + 1);
+  };
+
+  const handleNext = () => {
+    api?.scrollNext();
+    setAutoplayKey((k) => k + 1);
+  };
+
+  if (!slides.length) return null;
+
+  return (
+    <div
+      className={cn("relative my-8 w-full", className)}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <Carousel
+        setApi={setApi}
+        opts={{
+          align: "center",
+          loop: slides.length > 1,
+          containScroll: "trimSnaps",
+          watchDrag: true,
+        }}
+        className="w-full"
+      >
+        <CarouselContent>
+          {slides.map((s, i) => {
+            const cap = slideCaption(s);
+            return (
+              <CarouselItem key={i} className="basis-full">
+                <figure className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_12px_40px_rgba(16,10,111,0.08)] dark:border-slate-800 dark:bg-slate-950">
+                  <div className="relative aspect-[16/11] w-full overflow-hidden bg-muted">
+                    <img
+                      src={s.image}
+                      alt={s.alt || ""}
+                      referrerPolicy="no-referrer"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  {cap ? (
+                    <figcaption className="border-t border-slate-100 px-4 py-3 text-center text-sm leading-relaxed text-slate-600 whitespace-pre-wrap dark:border-slate-800 dark:text-slate-300 md:px-5 md:py-4">
+                      {cap}
+                    </figcaption>
+                  ) : null}
+                </figure>
+              </CarouselItem>
+            );
+          })}
+        </CarouselContent>
+      </Carousel>
+
+      {/* РЎС‚СЂРµР»РєРё вЂ” СЃРЅР°СЂСѓР¶Рё РєР°СЂС‚РёРЅРєРё, РїРѕ РІРµСЂС‚РёРєР°Р»Рё РЅР° СѓСЂРѕРІРЅРµ С†РµРЅС‚СЂР° С„РѕС‚Рѕ */}
+      {showArrows ? (
+        <>
+          {/* Prev вЂ” СЃР»РµРІР°, СЃРЅР°СЂСѓР¶Рё */}
+          <button
+            type="button"
+            onClick={handlePrev}
+            aria-label="РџСЂРµРґС‹РґСѓС‰РёР№ СЃР»Р°Р№Рґ"
+            className="hidden md:flex absolute top-1/2 left-0 -translate-y-1/2 -translate-x-[calc(100%+12px)] h-12 w-12 items-center justify-center rounded-full bg-white shadow-md hover:bg-white transition-colors z-10"
+          >
+            <ChevronLeft className="h-5 w-5 text-primary" />
+          </button>
+
+          {/* Next вЂ” СЃРїСЂР°РІР°, СЃРЅР°СЂСѓР¶Рё */}
+          <button
+            type="button"
+            onClick={handleNext}
+            aria-label="РЎР»РµРґСѓСЋС‰РёР№ СЃР»Р°Р№Рґ"
+            className="hidden md:flex absolute top-1/2 right-0 -translate-y-1/2 translate-x-[calc(100%+12px)] h-12 w-12 items-center justify-center rounded-full bg-white shadow-md hover:bg-white transition-colors z-10"
+          >
+            <ChevronRight className="h-5 w-5 text-primary" />
+          </button>
+
+          {/* РњРѕР±РёР»СЊРЅС‹Рµ СЃС‚СЂРµР»РєРё вЂ” РІРЅСѓС‚СЂРё С„РѕС‚Рѕ (СЃРЅР°СЂСѓР¶Рё РЅРµС‚ РјРµСЃС‚Р°) */}
+          <button
+            type="button"
+            onClick={handlePrev}
+            aria-label="РџСЂРµРґС‹РґСѓС‰РёР№ СЃР»Р°Р№Рґ"
+            className="flex md:hidden absolute top-1/2 left-3 -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-md hover:bg-white transition-colors z-10"
+          >
+            <ChevronLeft className="h-4 w-4 text-primary" />
+          </button>
+          <button
+            type="button"
+            onClick={handleNext}
+            aria-label="РЎР»РµРґСѓСЋС‰РёР№ СЃР»Р°Р№Рґ"
+            className="flex md:hidden absolute top-1/2 right-3 -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-md hover:bg-white transition-colors z-10"
+          >
+            <ChevronRight className="h-4 w-4 text-primary" />
+          </button>
+        </>
+      ) : null}
+
+      {/* РўРѕС‡РєРё-РёРЅРґРёРєР°С‚РѕСЂС‹ */}
+      {slides.length > 1 ? (
+        <div
+          className="mt-4 flex justify-center gap-2"
+          role="tablist"
+          aria-label="РЎР»Р°Р№РґС‹ РєР°СЂСѓСЃРµР»Рё"
+        >
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              role="tab"
+              aria-selected={i === current}
+              className={cn(
+                "h-2 rounded-full transition-all",
+                i === current
+                  ? "w-8 bg-primary"
+                  : "w-2 bg-slate-300 hover:bg-slate-400 dark:bg-slate-600",
+              )}
+              onClick={() => {
+                api?.scrollTo(i);
+                setAutoplayKey((k) => k + 1);
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+
+========== FILE: src\components\editor\BlogImageView.tsx ==========
+
+import { useCallback, useRef } from "react";
+import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
+import { ImagePlus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { uploadImages } from "@/lib/uploadImages";
+
+export function BlogImageView({ node, updateAttributes, deleteNode, selected }: NodeViewProps) {
+  const src = node.attrs.src as string;
+  const alt = (node.attrs.alt as string) || "";
+  const caption = node.attrs.caption as string;
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = useCallback(
+    async (files: FileList | null) => {
+      if (!files?.length) return;
+      try {
+        const urls = await uploadImages([files[0]]);
+        if (urls[0]) updateAttributes({ src: urls[0] });
+      } catch (e) {
+        console.error("Image upload failed", e);
+      }
+    },
+    [updateAttributes],
+  );
+
+  return (
+    <NodeViewWrapper
+      data-type="blog-image"
+      className={`my-4 rounded-lg border-2 transition-colors ${
+        selected ? "border-primary" : "border-transparent"
+      }`}
+      draggable
+      data-drag-handle=""
+    >
+      {src ? (
+        <figure className="group relative">
+          <div className="flex min-h-[220px] w-full items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-transparent dark:border-slate-800">
+            <img
+              src={src}
+              alt={alt}
+              className="mx-auto block h-auto max-h-[520px] w-auto max-w-full object-contain"
+              draggable={false}
+            />
+          </div>
+          <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <Button
+              type="button"
+              size="icon"
+              variant="secondary"
+              className="h-8 w-8"
+              onClick={() => fileRef.current?.click()}
+            >
+              <ImagePlus className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              variant="destructive"
+              className="h-8 w-8"
+              onClick={deleteNode}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="mt-2 flex flex-col gap-1.5">
+            <Input
+              value={alt}
+              onChange={(e) => updateAttributes({ alt: e.target.value })}
+              placeholder="Alt-С‚РµРєСЃС‚ РґР»СЏ SEO Рё РґРѕСЃС‚СѓРїРЅРѕСЃС‚Рё (РЅР°РїСЂ. В«РџРѕРµР·Рґ РЎР°РїСЃР°РЅ РЅР° РљСЂР°СЃРЅРѕР№ РїР»РѕС‰Р°РґРёВ»)"
+              className="text-sm"
+            />
+            <Input
+              value={caption}
+              onChange={(e) => updateAttributes({ caption: e.target.value })}
+              placeholder="РџРѕРґРїРёСЃСЊ Рє РёР·РѕР±СЂР°Р¶РµРЅРёСЋ (РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)"
+              className="text-sm text-muted-foreground"
+            />
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFile(e.target.files)}
+          />
+        </figure>
+      ) : (
+        <div
+          className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-300 bg-muted/50 py-12 transition-colors hover:border-primary hover:bg-muted dark:border-slate-700"
+          onClick={() => fileRef.current?.click()}
+        >
+          <ImagePlus className="h-10 w-10 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            РќР°Р¶РјРёС‚Рµ РёР»Рё РїРµСЂРµС‚Р°С‰РёС‚Рµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ
+          </p>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFile(e.target.files)}
+          />
+        </div>
+      )}
+    </NodeViewWrapper>
+  );
+}
+
+
+========== FILE: src\components\editor\BlogGalleryView.tsx ==========
+
+import { useCallback, useRef } from "react";
+import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
+import { GalleryHorizontal, ImagePlus, Trash2, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { uploadImages } from "@/lib/uploadImages";
+import type { BlogCarouselMode, BlogCarouselSlide } from "@/types/blogContent";
+
+export function BlogGalleryView({
+  node,
+  updateAttributes,
+  deleteNode,
+  selected,
+}: NodeViewProps) {
+  const slides: BlogCarouselSlide[] = node.attrs.slides || [];
+  const mode: BlogCarouselMode = node.attrs.mode || "manual";
+  const intervalSec = Number(node.attrs.intervalSec) || 5;
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const addFiles = useCallback(
+    async (files: FileList | null) => {
+      if (!files?.length) return;
+      try {
+        const urls = await uploadImages(Array.from(files));
+        const newSlides: BlogCarouselSlide[] = urls.map((url) => ({
+          image: url,
+        }));
+        updateAttributes({ slides: [...slides, ...newSlides] });
+      } catch (e) {
+        console.error("Gallery upload failed", e);
+      }
+    },
+    [slides, updateAttributes],
+  );
+
+  const removeSlide = useCallback(
+    (index: number) => {
+      updateAttributes({ slides: slides.filter((_, i) => i !== index) });
+    },
+    [slides, updateAttributes],
+  );
+
+  const updateSlideField = useCallback(
+    (index: number, patch: Partial<BlogCarouselSlide>) => {
+      const next = slides.map((s, i) => (i === index ? { ...s, ...patch } : s));
+      updateAttributes({ slides: next });
+    },
+    [slides, updateAttributes],
+  );
+
+  return (
+    <NodeViewWrapper
+      data-type="blog-gallery"
+      className={`my-4 rounded-lg border-2 p-3 transition-colors ${
+        selected ? "border-primary" : "border-slate-200 dark:border-slate-800"
+      }`}
+      draggable
+      data-drag-handle=""
+    >
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <GalleryHorizontal className="h-4 w-4" />
+          Р“Р°Р»РµСЂРµСЏ ({slides.length} С„РѕС‚Рѕ)
+        </div>
+        <div className="flex flex-wrap items-center gap-1">
+          {(
+            [
+              { v: "manual", t: "Р’СЂСѓС‡РЅСѓСЋ" },
+              { v: "auto", t: "РђРІС‚Рѕ" },
+              { v: "hybrid", t: "РђРІС‚Рѕ + РІСЂСѓС‡РЅСѓСЋ" },
+            ] as const
+          ).map((x) => (
+            <Button
+              key={x.v}
+              type="button"
+              size="sm"
+              variant={mode === x.v ? "default" : "outline"}
+              className="h-8 px-2.5 text-xs"
+              onClick={() => updateAttributes({ mode: x.v as BlogCarouselMode })}
+            >
+              {x.t}
+            </Button>
+          ))}
+        </div>
+
+        {mode !== "manual" ? (
+          <div className="flex items-center gap-1">
+            <Input
+              type="number"
+              min={1}
+              max={30}
+              value={intervalSec}
+              onChange={(e) => {
+                const n = parseInt(e.target.value || "5", 10);
+                updateAttributes({
+                  intervalSec: Number.isFinite(n) ? Math.min(30, Math.max(1, n)) : 5,
+                });
+              }}
+              className="h-8 w-20 text-xs"
+              title="РРЅС‚РµСЂРІР°Р» Р°РІС‚РѕРїСЂРѕРєСЂСѓС‚РєРё РІ СЃРµРєСѓРЅРґР°С…"
+            />
+            <span className="text-xs text-muted-foreground">СЃРµРє</span>
+          </div>
+        ) : null}
+
+        <div className="ml-auto flex gap-1">
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={() => fileRef.current?.click()}
+          >
+            <ImagePlus className="mr-1 h-4 w-4" />
+            Р”РѕР±Р°РІРёС‚СЊ
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            onClick={deleteNode}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {slides.length === 0 ? (
+        <div
+          className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-muted/30 py-10 transition-colors hover:border-primary hover:bg-muted/50 dark:border-slate-700"
+          onClick={() => fileRef.current?.click()}
+        >
+          <GalleryHorizontal className="h-10 w-10 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            РќР°Р¶РјРёС‚Рµ РёР»Рё РїРµСЂРµС‚Р°С‰РёС‚Рµ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {slides.map((slide, i) => (
+            <div key={i} className="group relative space-y-1.5">
+              <div className="relative flex items-center justify-center overflow-hidden rounded-lg border bg-transparent">
+                <img
+                  src={slide.image}
+                  alt={slide.alt || ""}
+                  className="aspect-[4/3] w-full object-contain"
+                  draggable={false}
+                />
+                <button
+                  type="button"
+                  className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  onClick={() => removeSlide(i)}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+              <Input
+                value={slide.alt || ""}
+                onChange={(e) => updateSlideField(i, { alt: e.target.value })}
+                placeholder="Alt-С‚РµРєСЃС‚ (SEO)"
+                className="h-7 text-xs"
+              />
+              <Input
+                value={slide.caption || ""}
+                onChange={(e) => updateSlideField(i, { caption: e.target.value })}
+                placeholder="РџРѕРґРїРёСЃСЊ"
+                className="h-7 text-xs text-muted-foreground"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => addFiles(e.target.files)}
+      />
+    </NodeViewWrapper>
+  );
+}
+
+
+========== FILE: src\components\editor\RouteDaysView.tsx ==========
+
+import { useCallback, useRef, useState } from "react";
+import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
+import {
+  Route,
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  ImagePlus,
+  X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import type { RouteDayItem } from "@/types/blogContent";
+
+const DEFAULT_IMAGE = "/РїСѓС‚СЊ-no-bg-preview (carve.photos).png";
+
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
+async function uploadRouteImages(files: File[]): Promise<string[]> {
+  const fd = new FormData();
+  for (const f of files) fd.append("files", f);
+
+  const token = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("access_token="))
+    ?.split("=")[1];
+
+  const headers: HeadersInit = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const url = `${API_BASE}/api/upload/route`;
+  const res = await fetch(url, { method: "POST", headers, body: fd });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(
+      (data as { error?: string }).error || "Upload failed",
+    );
+  }
+  const data = (await res.json()) as { urls: string[] };
+  return data.urls;
+}
+
+export function RouteDaysView({
+  node,
+  updateAttributes,
+  deleteNode,
+  selected,
+}: NodeViewProps) {
+  const days: RouteDayItem[] = node.attrs.days || [];
+  const image = (node.attrs.image as string) || "";
+  const imageAlt = (node.attrs.imageAlt as string) || "";
+  const [openDays, setOpenDays] = useState<Set<number>>(new Set([0]));
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const toggleDay = (index: number) => {
+    setOpenDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
+
+  const updateDay = useCallback(
+    (index: number, patch: Partial<RouteDayItem>) => {
+      const next = days.map((d, i) => (i === index ? { ...d, ...patch } : d));
+      updateAttributes({ days: next });
+    },
+    [days, updateAttributes],
+  );
+
+  const addDay = useCallback(() => {
+    const num = days.length + 1;
+    const next = [
+      ...days,
+      {
+        label: `Р”РµРЅСЊ ${num}`,
+        title: "",
+        description: "",
+        anchorIndex: days.length,
+      },
+    ];
+    updateAttributes({ days: next });
+    setOpenDays((prev) => new Set([...prev, days.length]));
+  }, [days, updateAttributes]);
+
+  const removeDay = useCallback(
+    (index: number) => {
+      const newDays = days
+        .filter((_, i) => i !== index)
+        .map((day, i) => ({
+          ...day,
+          anchorIndex: i,
+        }));
+      updateAttributes({ days: newDays });
+      setOpenDays((prev) => {
+        const next = new Set<number>();
+        for (const v of prev) {
+          if (v < index) next.add(v);
+          else if (v > index) next.add(v - 1);
+        }
+        return next;
+      });
+    },
+    [days, updateAttributes],
+  );
+
+  const handleImageFile = useCallback(
+    async (files: FileList | null) => {
+      if (!files?.length) return;
+      try {
+        const urls = await uploadRouteImages([files[0]]);
+        if (urls[0]) updateAttributes({ image: urls[0] });
+      } catch (e) {
+        console.error("Route image upload failed", e);
+      }
+    },
+    [updateAttributes],
+  );
+
+  const displayImage = image || DEFAULT_IMAGE;
+
+  return (
+    <NodeViewWrapper
+      data-type="route-days"
+      className={`my-4 rounded-xl border-2 transition-colors ${
+        selected ? "border-primary" : "border-slate-200 dark:border-slate-800"
+      }`}
+      draggable
+      data-drag-handle=""
+    >
+      <div className="flex items-center justify-between rounded-t-xl border-b border-slate-200 bg-muted/50 px-4 py-2.5 dark:border-slate-800">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Route className="h-4 w-4" />
+          РњР°СЂС€СЂСѓС‚ РїРѕ РґРЅСЏРј ({days.length})
+        </div>
+        <div className="flex gap-1">
+          <Button type="button" size="sm" variant="secondary" onClick={addDay}>
+            <Plus className="mr-1 h-4 w-4" />
+            Р”РѕР±Р°РІРёС‚СЊ
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            onClick={deleteNode}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex gap-0">
+        <div className="relative flex w-48 shrink-0 flex-col border-r border-slate-200 dark:border-slate-800">
+            <div
+            className="group relative min-h-[200px] flex-1 cursor-pointer overflow-hidden bg-muted"
+            onClick={() => fileRef.current?.click()}
+          >
+            <img
+              src={displayImage}
+              alt={imageAlt}
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+              <ImagePlus className="h-6 w-6 text-white" />
+            </div>
+          </div>
+          {image && (
+            <button
+              type="button"
+              className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-white shadow"
+              onClick={() => updateAttributes({ image: "" })}
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
+                    <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleImageFile(e.target.files)}
+          />
+          {image && (
+            <div className="border-t border-slate-200 bg-muted/30 p-2 dark:border-slate-800">
+              <Input
+                value={imageAlt}
+                onChange={(e) => updateAttributes({ imageAlt: e.target.value })}
+                placeholder="Alt-С‚РµРєСЃС‚ С„РѕС‚Рѕ"
+                className="h-7 text-[10px]"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1 divide-y divide-slate-200 dark:divide-slate-800">
+          {days.map((day, i) => (
+            <Collapsible key={i} open={openDays.has(i)} onOpenChange={() => toggleDay(i)}>
+              <div className="flex items-center gap-2 px-3 py-2">
+                <CollapsibleTrigger className="flex flex-1 items-center gap-2 text-left">
+                  {openDays.has(i) ? (
+                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                  <span className="text-xs font-medium text-primary">{day.label}</span>
+                  <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">
+                    {day.title || "(Р±РµР· Р·Р°РіРѕР»РѕРІРєР°)"}
+                  </span>
+                </CollapsibleTrigger>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6 text-destructive hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeDay(i);
+                  }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+              <CollapsibleContent>
+                <div className="flex flex-col gap-2 px-3 pb-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">РњРµС‚РєР°</Label>
+                    <Input
+                      value={day.label}
+                      onChange={(e) => updateDay(i, { label: e.target.value })}
+                      placeholder="Р”РµРЅСЊ 1"
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Р—Р°РіРѕР»РѕРІРѕРє</Label>
+                    <Input
+                      value={day.title}
+                      onChange={(e) => updateDay(i, { title: e.target.value })}
+                      placeholder="Р’СЂР°С‚Р° РІ РљС‘РЅРёРіСЃР±РµСЂРі"
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">РћРїРёСЃР°РЅРёРµ</Label>
+                    <Textarea
+                      value={day.description}
+                      onChange={(e) => updateDay(i, { description: e.target.value })}
+                      placeholder="РџСЂРёР±С‹С‚РёРµ РІ РљР°Р»РёРЅРёРЅРіСЂР°Рґ..."
+                      className="min-h-[50px] resize-y text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      РЇРєРѕСЂСЊ (РёРЅРґРµРєСЃ)
+                    </Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={day.anchorIndex ?? i}
+                      onChange={(e) =>
+                        updateDay(i, { anchorIndex: Number(e.target.value) || 0 })
+                      }
+                      placeholder={`РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ: ${i}`}
+                      className="h-7 text-xs"
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      Р”РµРЅСЊ {i + 1} в†’ СЏРєРѕСЂСЊ #{i + 1} РІ С‚РµРєСЃС‚Рµ
+                    </p>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          ))}
+
+          {days.length === 0 && (
+            <div
+              className="flex cursor-pointer flex-col items-center gap-2 py-8 text-muted-foreground"
+              onClick={addDay}
+            >
+              <Plus className="h-6 w-6" />
+              <p className="text-sm">Р”РѕР±Р°РІСЊС‚Рµ РїРµСЂРІС‹Р№ РґРµРЅСЊ</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </NodeViewWrapper>
+  );
+}
+
+
+========== FILE: src\pages\admin\AdminRouteEdit.tsx ==========
+
+import { useEffect, useRef, useState, useCallback, lazy, Suspense } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Loader2, Trash2, Plus, Pencil, ChevronUp, ChevronDown } from "lucide-react";
+import CoverUpload from "@/components/admin/CoverUpload";
+import type { BlogContentBlock, RouteTab } from "@/types/blogContent";
+
+const TiptapEditor = lazy(() => import("@/components/editor/TiptapEditor"));
+
+type Loaded = {
+  id: string;
+  slug: string;
+  name: string;
+  legacy_id: string | null;
+  region: string;
+  rating: number;
+  cover_image_url: string | null;
+  excerpt: string;
+  content_blocks?: BlogContentBlock[];
+  tabs?: RouteTab[];
+  status: string;
+};
+
+const REGIONS = [
+  "Р¦РµРЅС‚СЂ",
+  "РЎРµРІРµСЂРѕ-Р—Р°РїР°Рґ",
+  "Р®Рі",
+  "РџРѕРІРѕР»Р¶СЊРµ",
+  "РЈСЂР°Р»",
+  "РЎРёР±РёСЂСЊ",
+  "РљР°РІРєР°Р·",
+  "Р”Р°Р»СЊРЅРёР№ Р’РѕСЃС‚РѕРє",
+];
+
+export default function AdminRouteEdit() {
+  const { routeId } = useParams<{ routeId: string }>();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const isNew = routeId === "new";
+
+  const [slug, setSlug] = useState("");
+  const [name, setName] = useState("");
+  const [legacyId, setLegacyId] = useState("");
+  const [region, setRegion] = useState("");
+  const [rating, setRating] = useState("0");
+  const [coverUrl, setCoverUrl] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [contentBlocks, setContentBlocks] = useState<BlogContentBlock[]>([]);
+  const [tabs, setTabs] = useState<RouteTab[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string>("__main__");
+  const [status, setStatus] = useState<"draft" | "published">("draft");
+
+  const hydratedRef = useRef<string | null>(null);
+  const [editorKey, setEditorKey] = useState(0);
+
+  const loadQ = useQuery({
+    queryKey: ["admin-route-page", routeId],
+    enabled: !isNew && !!routeId,
+    queryFn: () => apiFetch<Loaded>(`/api/admin/routes/id/${routeId}`),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
+  useEffect(() => {
+    if (!isNew) return;
+    hydratedRef.current = null;
+    setSlug("");
+    setName("");
+    setLegacyId("");
+    setRegion("");
+    setRating("0");
+    setCoverUrl("");
+    setExcerpt("");
+    setContentBlocks([]);
+    setTabs([]);
+    setActiveTabId("__main__");
+    setStatus("draft");
+    setEditorKey((k) => k + 1);
+  }, [isNew, routeId]);
+
+  useEffect(() => {
+    if (isNew) return;
+    const row = loadQ.data;
+    if (!row || !routeId) return;
+    if (hydratedRef.current === routeId) return;
+    hydratedRef.current = routeId;
+
+    setSlug(row.slug);
+    setName(row.name);
+    setLegacyId(row.legacy_id || "");
+    setRegion(row.region || "");
+    setRating(String(row.rating ?? 0));
+    setCoverUrl(row.cover_image_url || "");
+    setExcerpt(row.excerpt || "");
+    setContentBlocks(
+      Array.isArray(row.content_blocks) ? row.content_blocks : [],
+    );
+    setTabs(Array.isArray(row.tabs) ? row.tabs : []);
+    setStatus(row.status === "published" ? "published" : "draft");
+    setActiveTabId("__main__");
+    setEditorKey((k) => k + 1);
+  }, [isNew, routeId, loadQ.data]);
+
+  const handleEditorChange = useCallback((blocks: BlogContentBlock[]) => {
+    if (activeTabId === "__main__") {
+      setContentBlocks(blocks);
+    } else {
+      setTabs((prev) =>
+        prev.map((t) => (t.id === activeTabId ? { ...t, blocks } : t))
+      );
+    }
+  }, [activeTabId]);
+
+  const anchorLimit = (() => {
+    const routeBlock = contentBlocks.find((b) => b.type === "routeByDays") as
+      | { type: "routeByDays"; image: string; days: { label: string; title: string; description: string }[] }
+      | undefined;
+    return routeBlock?.days?.length || undefined;
+  })();
+
+  // ===== РЈРїСЂР°РІР»РµРЅРёРµ С‚Р°Р±Р°РјРё =====
+
+  const addNewTab = () => {
+    const newTab: RouteTab = {
+      id: `tab_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      title: "РќРѕРІС‹Р№ СЌС‚Р°Рї",
+      blocks: [],
+    };
+
+    // РЎРїСЂР°С€РёРІР°РµРј РЅР°Р·РІР°РЅРёРµ СЃСЂР°Р·Сѓ, Р”Рћ setTabs вЂ” С‡С‚РѕР±С‹ prompt РІРёРґРµР» РєРѕРЅС‚РµРєСЃС‚
+    const newTitle = prompt("РќР°Р·РІР°РЅРёРµ СЌС‚Р°РїР°:", "РќРѕРІС‹Р№ СЌС‚Р°Рї");
+    if (newTitle && newTitle.trim()) {
+      newTab.title = newTitle.trim();
+    }
+
+    setTabs((prev) => [...prev, newTab]);
+    setActiveTabId(newTab.id);
+    setEditorKey((k) => k + 1);
+  };
+
+  const renameTab = (id: string) => {
+    const tab = tabs.find((t) => t.id === id);
+    if (!tab) return;
+    const newTitle = prompt("РќР°Р·РІР°РЅРёРµ СЌС‚Р°РїР°:", tab.title);
+    if (newTitle && newTitle.trim()) {
+      setTabs((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, title: newTitle.trim() } : t))
+      );
+    }
+  };
+
+  const deleteTab = (id: string) => {
+    if (!confirm("РЈРґР°Р»РёС‚СЊ СЌС‚РѕС‚ СЌС‚Р°Рї?")) return;
+    setTabs((prev) => prev.filter((t) => t.id !== id));
+    if (activeTabId === id) {
+      setActiveTabId("__main__");
+      setEditorKey((k) => k + 1);
+    }
+  };
+
+  const moveTab = (index: number, direction: -1 | 1) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= tabs.length) return;
+    setTabs((prev) => {
+      const newArr = [...prev];
+      const [removed] = newArr.splice(index, 1);
+      newArr.splice(newIndex, 0, removed);
+      return newArr;
+    });
+  };
+
+  const saveMut = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        slug: slug.trim().toLowerCase(),
+        name: name.trim(),
+        legacy_id: legacyId.trim() || null,
+        region: region.trim(),
+        rating: parseFloat(rating) || 0,
+        cover_image_url: coverUrl.trim() || null,
+        excerpt: excerpt.trim(),
+        content_blocks: contentBlocks,
+        tabs,
+        status,
+      };
+      if (isNew) {
+        return apiFetch<Loaded>("/api/admin/routes", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+      }
+      return apiFetch<Loaded>(`/api/admin/routes/id/${routeId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["admin-route-pages"] });
+      qc.invalidateQueries({ queryKey: ["admin-route-page", routeId] });
+      qc.invalidateQueries({ queryKey: ["route-page-public"] });
+      if (isNew && data?.id) {
+        navigate(`/admin/routes/${data.id}`, { replace: true });
+      }
+    },
+  });
+
+  const delMut = useMutation({
+    mutationFn: () =>
+      apiFetch(`/api/admin/routes/id/${routeId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-route-pages"] });
+      qc.invalidateQueries({ queryKey: ["route-page-public"] });
+      navigate("/admin/routes");
+    },
+  });
+
+  if (!isNew && loadQ.isLoading) {
+    return (
+      <div className="flex justify-center py-24 text-muted-foreground">
+        <Loader2 className="h-10 w-10 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isNew && loadQ.isError) {
+    return (
+      <p className="text-destructive">
+        РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РјР°СЂС€СЂСѓС‚.{" "}
+        <Link to="/admin/routes" className="underline">
+          Рљ СЃРїРёСЃРєСѓ
+        </Link>
+      </p>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold tracking-tight">
+          {isNew ? "РќРѕРІС‹Р№ РјР°СЂС€СЂСѓС‚" : "Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ РјР°СЂС€СЂСѓС‚Р°"}
+        </h1>
+        <Button variant="outline" asChild>
+          <Link to="/admin/routes">в†ђ Рљ СЃРїРёСЃРєСѓ</Link>
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>РњРµС‚Р°РґР°РЅРЅС‹Рµ</CardTitle>
+          <CardDescription>
+            Slug вЂ” Р»Р°С‚РёРЅРёС†Р° Рё РґРµС„РёСЃС‹, СѓРЅРёРєР°Р»СЊРЅС‹Р№ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ.
+            Legacy ID вЂ” С‡РёСЃР»РѕРІРѕР№ ID РёР· СЃС‚Р°СЂС‹С… РґР°РЅРЅС‹С… (1вЂ“40), РµСЃР»Рё РЅСѓР¶РЅР° СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="slug">Slug</Label>
+              <Input
+                id="slug"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="sochi-i-okrestnosti"
+                className="font-mono text-sm"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="legacyId">Legacy ID (РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</Label>
+              <Input
+                id="legacyId"
+                value={legacyId}
+                onChange={(e) => setLegacyId(e.target.value)}
+                placeholder="17"
+                className="font-mono text-sm"
+              />
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="name">РќР°Р·РІР°РЅРёРµ РјР°СЂС€СЂСѓС‚Р°</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="РЎРѕС‡Рё Рё РѕРєСЂРµСЃС‚РЅРѕСЃС‚Рё"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="excerpt">РљСЂР°С‚РєРѕРµ РѕРїРёСЃР°РЅРёРµ</Label>
+            <Textarea
+              id="excerpt"
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <CoverUpload
+            value={coverUrl}
+            onChange={setCoverUrl}
+            label="РћР±Р»РѕР¶РєР°"
+          />
+          <div className="grid gap-2 sm:grid-cols-3 sm:gap-4">
+            <div className="grid gap-2">
+              <Label>Р РµРіРёРѕРЅ</Label>
+              <Select value={region} onValueChange={setRegion}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Р’С‹Р±РµСЂРёС‚Рµ" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REGIONS.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {r}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="rating">Р РµР№С‚РёРЅРі (0вЂ“10)</Label>
+              <Input
+                id="rating"
+                type="number"
+                min={0}
+                max={10}
+                step={0.1}
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>РЎС‚Р°С‚СѓСЃ</Label>
+              <Select
+                value={status}
+                onValueChange={(v) => setStatus(v as "draft" | "published")}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Р§РµСЂРЅРѕРІРёРє</SelectItem>
+                  <SelectItem value="published">РћРїСѓР±Р»РёРєРѕРІР°РЅРѕ</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Р­С‚Р°РїС‹ РјР°СЂС€СЂСѓС‚Р°</CardTitle>
+          <CardDescription>
+            РЎРѕР·РґР°РІР°Р№С‚Рµ РѕС‚РґРµР»СЊРЅС‹Рµ СЂР°Р·РґРµР»С‹ СЃ С‚РµРєСЃС‚РѕРј, С„РѕС‚Рѕ, РіР°Р»РµСЂРµСЏРјРё вЂ” РѕРЅРё РїРѕСЏРІСЏС‚СЃСЏ РЅР° СЃР°Р№С‚Рµ С‚СЂРµС‚СЊРµР№ Р·Р°РєСЂРµРїР»С‘РЅРЅРѕР№ С€Р°РїРєРѕР№ СЃ С‚Р°Р±Р°РјРё.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-2">
+            <button
+              type="button"
+              onClick={() => { setActiveTabId("__main__"); setEditorKey((k) => k + 1); }}
+              className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
+                activeTabId === "__main__"
+                  ? "bg-[#867DFF] text-white shadow-sm"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              РћСЃРЅРѕРІРЅРѕР№
+            </button>
+            {tabs.map((tab, index) => (
+              <div key={tab.id} className="flex items-center gap-1 rounded-full bg-slate-100 pr-2">
+                <button
+                  type="button"
+                  onClick={() => { setActiveTabId(tab.id); setEditorKey((k) => k + 1); }}
+                  className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
+                    activeTabId === tab.id
+                      ? "bg-[#867DFF] text-white shadow-sm"
+                      : "text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {tab.title}
+                </button>
+                <div className="flex items-center gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() => moveTab(index, -1)}
+                    disabled={index === 0}
+                    className="p-1 rounded hover:bg-slate-200 disabled:opacity-30"
+                    title="Р’РІРµСЂС…"
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveTab(index, 1)}
+                    disabled={index === tabs.length - 1}
+                    className="p-1 rounded hover:bg-slate-200 disabled:opacity-30"
+                    title="Р’РЅРёР·"
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => renameTab(tab.id)}
+                    className="p-1 rounded hover:bg-slate-200"
+                    title="РџРµСЂРµРёРјРµРЅРѕРІР°С‚СЊ"
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteTab(tab.id)}
+                    className="p-1 rounded hover:bg-red-100 text-red-600"
+                    title="РЈРґР°Р»РёС‚СЊ"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addNewTab}
+              className="rounded-full"
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              РќРѕРІС‹Р№ СЌС‚Р°Рї
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>РћРїРёСЃР°РЅРёРµ РјР°СЂС€СЂСѓС‚Р°</CardTitle>
+          <CardDescription>
+            РџРѕРґСЂРѕР±РЅРѕРµ РѕРїРёСЃР°РЅРёРµ: РґРѕСЃС‚РѕРїСЂРёРјРµС‡Р°С‚РµР»СЊРЅРѕСЃС‚Рё, СЃРѕРІРµС‚С‹, С„РѕС‚РѕРіСЂР°С„РёРё, РіР°Р»РµСЂРµРё.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0 sm:p-4">
+          <Suspense
+            fallback={
+              <div className="flex justify-center py-12 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            }
+          >
+            <TiptapEditor
+              key={`${activeTabId}-${editorKey}`}
+              initialBlocks={
+                activeTabId === "__main__"
+                  ? contentBlocks
+                  : (tabs.find((t) => t.id === activeTabId)?.blocks || [])
+              }
+              onChange={handleEditorChange}
+              anchorLimit={anchorLimit}
+            />
+          </Suspense>
+        </CardContent>
+      </Card>
+
+      <div className="flex flex-wrap gap-3">
+        <Button
+          type="button"
+          onClick={() => saveMut.mutate()}
+          disabled={saveMut.isPending}
+        >
+          {saveMut.isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : null}
+          РЎРѕС…СЂР°РЅРёС‚СЊ
+        </Button>
+        {!isNew ? (
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={delMut.isPending}
+            onClick={() => {
+              if (confirm("РЈРґР°Р»РёС‚СЊ РјР°СЂС€СЂСѓС‚ РёР· Р±Р°Р·С‹?")) delMut.mutate();
+            }}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            РЈРґР°Р»РёС‚СЊ
+          </Button>
+        ) : null}
+      </div>
+      {saveMut.isError ? (
+        <p className="text-sm text-destructive">
+          {(saveMut.error as Error)?.message || "РћС€РёР±РєР° СЃРѕС…СЂР°РЅРµРЅРёСЏ"}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+
+========== FILE: src\pages\Routes.tsx ==========
+
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { PageCmsProvider } from "@/contexts/PageCmsContext";
+import { useMergedPublishedPage } from "@/hooks/usePageContent";
+import { renderPageSections } from "@/components/cms/PageSectionRenderer";
+import { Loader2 } from "lucide-react";
+
+const Routes = () => {
+  const { content, isLoading } = useMergedPublishedPage("routes");
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" aria-hidden />
+      </div>
+    );
+  }
+
+  return (
+    <PageCmsProvider pageKey="routes" content={content}>
+      <div className="min-h-screen bg-white">
+        <Header />
+        <main className="hero-under-header">{renderPageSections("routes", content)}</main>
+        <Footer />
+      </div>
+    </PageCmsProvider>
+  );
+};
+
+export default Routes;
+
+
+
+========== FILE: src\components\ChatWidget.tsx ==========
+
+import { useEffect, useRef, useState } from "react";
+import { Bot, Loader2, MessageCircle, Send, X } from "lucide-react";
+
+interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+}
+
+const WELCOME_MESSAGE: ChatMessage = {
+  id: "welcome",
+  role: "assistant",
+  content: "РџСЂРёРІРµС‚! РЇ РїРѕРјРѕРіСѓ СЃ РјР°СЂС€СЂСѓС‚РѕРј Рё Р·Р°РєР°Р·РѕРј Р±РёР»РµС‚РѕРІ. РќР°РїРёС€Рё СЃРІРѕР№ РІРѕРїСЂРѕСЃ рџ™‚",
+};
+
+// Р°РґСЂРµСЃ API: Р»РѕРєР°Р»СЊРЅРѕ вЂ” localhost:4000, РІ РїСЂРѕРґРµ РЅР° Vercel вЂ” /api/support/chat
+const API_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:4000/api/support/chat"
+    : "/api/support/chat";
+
+const ChatWidget = () => {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem("tudasuda-chat-history");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved) as ChatMessage[];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        } catch {
+          // ignore parse error
+        }
+      }
+    }
+    return [WELCOME_MESSAGE];
+  });
+
+  const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
+  // СЃРѕС…СЂР°РЅСЏРµРј РёСЃС‚РѕСЂРёСЋ РІ localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(
+        "tudasuda-chat-history",
+        JSON.stringify(messages)
+      );
+    }
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || isLoading) return;
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: inputValue.trim(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
+    setIsLoading(true);
+
+    try {
+      const historyPayload = [...messages, userMessage]
+        .slice(-10)
+        .map((msg) => ({ role: msg.role, content: msg.content }));
+
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: userMessage.content,
+          history: historyPayload,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("API error");
+      }
+
+      const data = await response.json();
+      const replyText =
+        data?.reply ||
+        "РР·РІРёРЅРёС‚Рµ, РЅРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РѕС‚РІРµС‚. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰С‘ СЂР°Р·.";
+
+      const assistantMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content: replyText,
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      const assistantMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content:
+          "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРІСЏР·Р°С‚СЊСЃСЏ СЃ СЃРµСЂРІРµСЂРѕРј. РџСЂРѕРІРµСЂСЊС‚Рµ РїРѕРґРєР»СЋС‡РµРЅРёРµ Рё РїРѕРїСЂРѕР±СѓР№С‚Рµ СЃРЅРѕРІР°.",
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setIsChatOpen(false); // РёСЃС‚РѕСЂРёСЋ РќР• С‚СЂРѕРіР°РµРј
+  };
+
+  return (
+    <div className="pointer-events-none">
+      {/* РљРЅРѕРїРєР° РѕС‚РєСЂС‹С‚РёСЏ С‡Р°С‚Р° вЂ” РІСЃРµРіРґР° РїРѕРІРµСЂС… */}
+      {!isChatOpen && (
+        <button
+          type="button"
+          aria-label="РћС‚РєСЂС‹С‚СЊ С‡Р°С‚ СЃ РїРѕРјРѕС‰РЅРёРєРѕРј"
+          onClick={() => setIsChatOpen(true)}
+          className="chat-pulse-btn pointer-events-auto fixed bottom-6 right-6 z-[9999] flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-500 text-primary-foreground shadow-xl hover:scale-105 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+        >
+          <MessageCircle className="h-7 w-7" />
+          <span className="sr-only">РћС‚РєСЂС‹С‚СЊ С‡Р°С‚</span>
+        </button>
+      )}
+
+      {/* РћРєРЅРѕ С‡Р°С‚Р° вЂ” С‚РѕР¶Рµ РїРѕРІРµСЂС… РІСЃРµРіРѕ */}
+      {isChatOpen && (
+        <div
+          className="pointer-events-auto fixed bottom-6 right-6 z-[9999] flex w-[380px] max-w-[92vw] flex-col rounded-3xl border border-border bg-white/90 backdrop-blur-md shadow-2xl transition-all duration-300 animate-[chatWidgetIn_0.32s_ease-out] md:w-[400px]"
+          style={{ maxHeight: "80vh", minHeight: "440px" }}
+        >
+          <header className="flex items-center justify-between rounded-t-3xl px-5 py-4 border-b bg-gradient-to-r from-blue-600 to-primary text-white shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-white/15 backdrop-blur">
+                <Bot className="h-6 w-6" />
+              </span>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold uppercase tracking-wide text-white/80">
+                  РџРѕРјРѕС‰РЅРёРє
+                </span>
+                <div className="flex items-center gap-2 text-base font-semibold">
+                  tudasuda
+                </div>
+                <div className="flex items-center gap-1 text-xs text-white/80">
+                  <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_0_4px_rgba(52,211,153,0.25)]" />
+                  online
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white"
+            >
+              <X className="h-5 w-5" />
+              <span className="sr-only">Р—Р°РєСЂС‹С‚СЊ С‡Р°С‚</span>
+            </button>
+          </header>
+
+          <div
+            className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4 bg-gradient-to-b from-white/90 to-white"
+            style={{ scrollbarWidth: "thin" }}
+          >
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm transition-transform duration-200 ${
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground rounded-br-md"
+                      : "bg-white text-foreground border"
+                  }`}
+                >
+                  {message.content}
+                </div>
+              </div>
+            ))}
+
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="flex items-center gap-2 rounded-2xl border bg-white px-4 py-3 text-sm text-foreground shadow-sm">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span>РџРµС‡Р°С‚Р°СЋ РѕС‚РІРµС‚...</span>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          <form
+            className="border-t border-border bg-white/80 px-4 py-3 backdrop-blur"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSend();
+            }}
+          >
+            <div className="flex items-center gap-3 rounded-2xl border border-border bg-white px-3 py-2 shadow-inner focus-within:ring-2 focus-within:ring-primary/30">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Р’РІРµРґРёС‚Рµ СЃРѕРѕР±С‰РµРЅРёРµ..."
+                className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/70"
+              />
+              <button
+                type="submit"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary disabled:opacity-50"
+                disabled={!inputValue.trim() || isLoading}
+                aria-label="РћС‚РїСЂР°РІРёС‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ"
+              >
+                <Send className="h-5 w-5" />
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ChatWidget;
+
+
+
+========== FILE: index.html ==========
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TudaSuda - РќР°Р№РґРёС‚Рµ Р±РёР»РµС‚ РЅР° РїРѕРµР·Рґ РѕРЅР»Р°Р№РЅ</title>
+    <meta name="description" content="TudaSuda - РѕРЅР»Р°Р№РЅ Р±СЂРѕРЅРёСЂРѕРІР°РЅРёРµ Р±РёР»РµС‚РѕРІ РЅР° РїРѕРµР·Рґ. РџРѕРёСЃРє СЂР°СЃРїРёСЃР°РЅРёСЏ, РІС‹Р±РѕСЂ РјРµСЃС‚, Р±РµР·РѕРїР°СЃРЅР°СЏ РѕРїР»Р°С‚Р° Рё Р­РџР” РІ РѕРґРЅРѕРј РѕРєРЅРµ." />
+    <meta name="author" content="TudaSuda" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <meta property="og:title" content="TudaSuda - РќР°Р№РґРёС‚Рµ Р±РёР»РµС‚ РЅР° РїРѕРµР·Рґ РѕРЅР»Р°Р№РЅ" />
+    <meta property="og:description" content="РџРѕРёСЃРє СЂР°СЃРїРёСЃР°РЅРёСЏ, РІС‹Р±РѕСЂ РјРµСЃС‚, Р±РµР·РѕРїР°СЃРЅР°СЏ РѕРїР»Р°С‚Р° Рё Р­РџР” РІ РѕРґРЅРѕРј РѕРєРЅРµ" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@tudasuda" />
+    <meta name="twitter:image" content="/og-image.png" />
+
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript">
+      (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+      })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=112394184', 'ym');
+
+      ym(112394184, 'init', {
+        ssr:true,
+        webvisor:true,
+        clickmap:true,
+        ecommerce:"dataLayer",
+        referrer: document.referrer,
+        url: location.href,
+        accurateTrackBounce:true,
+        trackLinks:true
+      });
+    </script>
+    <!-- /Yandex.Metrika counter -->
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <noscript><div><img src="https://mc.yandex.ru/watch/112394184" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
