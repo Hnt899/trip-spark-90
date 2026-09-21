@@ -149,12 +149,11 @@ const HeroSection = () => {
                           className={cn(
                             "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
                             tripType === "round"
-                              ? "bg-white/20"
+                              ? "bg-gradient-to-r from-[#100877] to-[#887BFF] text-white shadow-sm"
                               : "text-white/70 hover:text-white"
                           )}
                         >
-                          <span style={{ color: tripType === "round" ? "#100877" : "white" }}>Туда</span>
-                          <span style={{ color: tripType === "round" ? "#887BFF" : "white" }}> — Обратно</span>
+                          Туда — Обратно
                         </button>
                         <button
                           type="button"
@@ -162,7 +161,7 @@ const HeroSection = () => {
                           className={cn(
                             "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
                             tripType === "one"
-                              ? "bg-white/20 text-white"
+                              ? "bg-gradient-to-r from-[#100877] to-[#887BFF] text-white shadow-sm"
                               : "text-white/70 hover:text-white"
                           )}
                         >
