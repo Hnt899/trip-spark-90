@@ -33,7 +33,7 @@ export function CmsColorField({
           onClick={() => onChange("")}
           className={cn(
             "h-6 w-6 rounded border border-dashed border-muted-foreground/40",
-            !value && "ring-2 ring-[#867DFF]"
+            !value && "ring-2 ring-[#0A8FE8]"
           )}
         />
         {PAGE_CMS_PALETTE.map((c) => (
@@ -44,7 +44,7 @@ export function CmsColorField({
             onClick={() => onChange(c)}
             className={cn(
               "h-6 w-6 rounded border border-black/10",
-              value === c && "ring-2 ring-[#867DFF] ring-offset-1"
+              value === c && "ring-2 ring-[#0A8FE8] ring-offset-1"
             )}
             style={{ background: c }}
           />
@@ -54,14 +54,14 @@ export function CmsColorField({
         <div className="flex items-center gap-2">
           <input
             type="color"
-            value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : "#100A6F"}
+            value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : "#0B5FD9"}
             onChange={(e) => onChange(e.target.value)}
             className="h-8 w-10 cursor-pointer rounded border"
           />
           <Input
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder="#100A6F или пусто"
+            placeholder="#0B5FD9 или пусто"
             className="h-8"
           />
         </div>

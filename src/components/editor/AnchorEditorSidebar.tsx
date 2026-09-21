@@ -29,11 +29,11 @@ export function AnchorEditorSidebar({ editor }: { editor: Editor }) {
   return (
     <aside
       className={cn(
-        "w-full shrink-0 rounded-xl border border-[#867DFF]/35 bg-[#867DFF]/[0.04] p-3 sm:w-[200px] sm:p-3.5",
+        "w-full shrink-0 rounded-xl border border-[#0A8FE8]/35 bg-[#0A8FE8]/[0.04] p-3 sm:w-[200px] sm:p-3.5",
       )}
       aria-label="Якоря статьи"
     >
-      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#867DFF]">
+      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#0A8FE8]">
         <Link2 className="h-3.5 w-3.5" aria-hidden />
         Якоря
       </div>
@@ -48,14 +48,14 @@ export function AnchorEditorSidebar({ editor }: { editor: Editor }) {
           {anchors.map((anchor, index) => (
             <li key={anchor.pos} className="space-y-1.5">
               <div className="flex items-center gap-1">
-                <span className="w-4 shrink-0 text-[10px] font-medium text-[#867DFF]/70">
+                <span className="w-4 shrink-0 text-[10px] font-medium text-[#0A8FE8]/70">
                   {index + 1}
                 </span>
                 <Input
                   value={anchor.anchorLabel}
                   onChange={(e) => setAnchorLabelAt(editor, anchor.pos, e.target.value)}
                   onFocus={() => focusAnchorAt(editor, anchor.pos)}
-                  className="h-8 border-[#867DFF]/30 text-sm italic text-[#867DFF] placeholder:text-[#867DFF]/40"
+                  className="h-8 border-[#0A8FE8]/30 text-sm italic text-[#0A8FE8] placeholder:text-[#0A8FE8]/40"
                   placeholder="Название якоря"
                 />
                 <Button

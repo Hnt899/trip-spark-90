@@ -10,11 +10,11 @@ export const sectionYellowGlow = {
 
 /** Цвета логотипа: тёмно-синий и фиолетовый (градиент только из них). */
 export const logoGradientText =
-  "bg-gradient-to-r from-[#100A6F] via-[#4A3FAD] to-[#8A70F8] bg-clip-text text-transparent";
+  "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] bg-clip-text text-transparent";
 
 /** Акцент в заголовке: на светлом — градиент логотипа; на бренде — жёлтый с свечением (через style). */
 export function sectionHeadingAccentClass(surface: SectionSurface): string {
-  return surface === "light" ? logoGradientText : "text-[#FFD700]";
+  return surface === "light" ? logoGradientText : "text-[#60F2FF]";
 }
 
 export function sectionHeadingBaseClass(surface: SectionSurface): string {
@@ -29,7 +29,7 @@ export function sectionShellClass(surface: SectionSurface, paddingClass: string)
   return cn(
     paddingClass,
     "relative overflow-x-hidden overflow-y-visible",
-    surface === "light" ? "bg-white" : "bg-[#100A6F]/80 backdrop-blur-sm"
+    surface === "light" ? "bg-white" : "bg-[#0B5FD9]/80 backdrop-blur-sm"
   );
 }
 

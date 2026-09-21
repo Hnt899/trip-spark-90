@@ -34,7 +34,7 @@ export const QuickBookingExtension = Node.create({
       button2Url: { default: "" },
       image: { default: "" },
       imageAlt: { default: "" },
-      bgGradient: { default: "from-[#8A70F8] to-[#9B82F8]" },
+      bgGradient: { default: "from-[#0A8FE8] to-[#0FB5F0]" },
     };
   },
 
@@ -68,7 +68,7 @@ export const QuickBookingExtension = Node.create({
               button2Url: attrs?.button2Url || "",
               image: attrs?.image || "",
               imageAlt: attrs?.imageAlt || "",
-              bgGradient: attrs?.bgGradient || "from-[#8A70F8] to-[#9B82F8]",
+              bgGradient: attrs?.bgGradient || "from-[#0A8FE8] to-[#0FB5F0]",
             },
           }),
     };

@@ -153,21 +153,21 @@ const RoutesHeroSection = ({ surface = "brand" }: { surface?: SectionSurface }) 
                           <div 
                             className="text-5xl md:text-7xl lg:text-8xl font-bold mb-2 md:mb-4"
                             style={{
-                              color: '#867DFF',
-                              textShadow: surface === "light" ? undefined : '0 0 20px rgba(134, 125, 255, 0.6), 0 0 40px rgba(134, 125, 255, 0.4), 0 0 60px rgba(134, 125, 255, 0.2)',
+                              color: '#0A8FE8',
+                              textShadow: surface === "light" ? undefined : '0 0 20px rgba(10, 143, 232, 0.6), 0 0 40px rgba(10, 143, 232, 0.4), 0 0 60px rgba(10, 143, 232, 0.2)',
                             }}
                           >
                             {advantage.number}
                           </div>
                           <div className={cn(
                             "text-lg md:text-2xl lg:text-3xl font-semibold mb-2 md:mb-4",
-                            surface === "light" ? "text-[#3F3F7F]" : "text-white drop-shadow-md",
+                            surface === "light" ? "text-[#21252E]" : "text-white drop-shadow-md",
                           )}>
                             {advantage.title}
                           </div>
                           <div className={cn(
                             "text-sm md:text-base lg:text-lg leading-relaxed max-w-3xl mx-auto",
-                            surface === "light" ? "text-[#3F3F7F]/80" : "text-white/90",
+                            surface === "light" ? "text-[#21252E]/80" : "text-white/90",
                           )}>
                             {advantage.description}
                           </div>
@@ -241,21 +241,21 @@ const RoutesHeroSection = ({ surface = "brand" }: { surface?: SectionSurface }) 
                           <div 
                             className="text-5xl md:text-7xl lg:text-8xl font-bold mb-2 md:mb-4"
                             style={{
-                              color: '#867DFF',
-                              textShadow: surface === "light" ? undefined : '0 0 20px rgba(134, 125, 255, 0.6), 0 0 40px rgba(134, 125, 255, 0.4), 0 0 60px rgba(134, 125, 255, 0.2)',
+                              color: '#0A8FE8',
+                              textShadow: surface === "light" ? undefined : '0 0 20px rgba(10, 143, 232, 0.6), 0 0 40px rgba(10, 143, 232, 0.4), 0 0 60px rgba(10, 143, 232, 0.2)',
                             }}
                           >
                             {advantage.number}
                           </div>
                           <div className={cn(
                             "text-lg md:text-2xl lg:text-3xl font-semibold mb-2 md:mb-4",
-                            surface === "light" ? "text-[#3F3F7F]" : "text-white drop-shadow-md",
+                            surface === "light" ? "text-[#21252E]" : "text-white drop-shadow-md",
                           )}>
                             {advantage.title}
                           </div>
                           <div className={cn(
                             "text-sm md:text-base lg:text-lg leading-relaxed max-w-3xl mx-auto",
-                            surface === "light" ? "text-[#3F3F7F]/80" : "text-white/90",
+                            surface === "light" ? "text-[#21252E]/80" : "text-white/90",
                           )}>
                             {advantage.description}
                           </div>

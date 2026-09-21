@@ -202,7 +202,7 @@ const Header = () => {
         "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300",
         isHomePage && isHeroMode
           ? "bg-transparent border-b border-white/20 backdrop-blur-md"
-          : "bg-[#E8ECF7] backdrop-blur-md border-b border-[#100A6F]/10 shadow-sm"
+          : "bg-[#E8ECF7] backdrop-blur-md border-b border-[#0B5FD9]/10 shadow-sm"
       )}>
         <div className="container">
           <div className="flex h-14 md:h-24 items-center justify-between gap-2 md:gap-4">

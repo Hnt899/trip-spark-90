@@ -327,7 +327,7 @@ export function blocksToTiptap(blocks: BlogContentBlock[]): JSONContent {
             button2Text: block.button2Text || "",
             button2Url: block.button2Url || "",
             image: block.image || "",
-            bgGradient: block.bgGradient || "from-[#8A70F8] to-[#9B82F8]",
+            bgGradient: block.bgGradient || "from-[#0A8FE8] to-[#0FB5F0]",
           },
         });
         break;
@@ -505,7 +505,7 @@ export function tiptapToBlocks(doc: JSONContent): BlogContentBlock[] {
           button2Text: (node.attrs?.button2Text as string) || "",
           button2Url: (node.attrs?.button2Url as string) || "",
           image: (node.attrs?.image as string) || "",
-          bgGradient: (node.attrs?.bgGradient as string) || "from-[#8A70F8] to-[#9B82F8]",
+          bgGradient: (node.attrs?.bgGradient as string) || "from-[#0A8FE8] to-[#0FB5F0]",
         });
         break;
       }

@@ -20,7 +20,7 @@ export default function SimilarArticlesSidebar({
           <li key={article.id}>
             <Link
               to={`/blog/${article.slug}`}
-              className="group block overflow-hidden rounded-2xl border border-[#867DFF]/40 bg-white transition-shadow hover:shadow-md hover:shadow-[#867DFF]/10"
+              className="group block overflow-hidden rounded-2xl border border-[#0A8FE8]/40 bg-white transition-shadow hover:shadow-md hover:shadow-[#0A8FE8]/10"
             >
               {article.coverImage ? (
                 <div className="aspect-[16/10] overflow-hidden bg-muted">
@@ -31,7 +31,7 @@ export default function SimilarArticlesSidebar({
                   />
                 </div>
               ) : null}
-              <p className="px-3 py-3 text-sm italic leading-snug text-[#867DFF] group-hover:text-[#6b5fe0]">
+              <p className="px-3 py-3 text-sm italic leading-snug text-[#0A8FE8] group-hover:text-[#6b5fe0]">
                 {article.title}
               </p>
             </Link>
@@ -51,7 +51,7 @@ export function SimilarArticlesMobile({
 
   return (
     <section className={cn("lg:hidden", className)} aria-label="Похожие статьи">
-      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#867DFF]">
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#0A8FE8]">
         Похожие статьи
       </h3>
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -59,7 +59,7 @@ export function SimilarArticlesMobile({
           <Link
             key={article.id}
             to={`/blog/${article.slug}`}
-            className="w-56 shrink-0 overflow-hidden rounded-2xl border border-[#867DFF]/40 bg-white"
+            className="w-56 shrink-0 overflow-hidden rounded-2xl border border-[#0A8FE8]/40 bg-white"
           >
             {article.coverImage ? (
               <img
@@ -68,7 +68,7 @@ export function SimilarArticlesMobile({
                 className="aspect-[16/10] w-full object-cover"
               />
             ) : null}
-            <p className="px-3 py-2 text-sm italic text-[#867DFF] line-clamp-2">
+            <p className="px-3 py-2 text-sm italic text-[#0A8FE8] line-clamp-2">
               {article.title}
             </p>
           </Link>

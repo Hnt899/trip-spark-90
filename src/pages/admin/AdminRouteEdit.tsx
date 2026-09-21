@@ -418,7 +418,7 @@ export default function AdminRouteEdit() {
               }}
               className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
                 activeTabId === "__main__"
-                  ? "bg-[#867DFF] text-white shadow-sm"
+                  ? "bg-[#0A8FE8] text-white shadow-sm"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
@@ -437,7 +437,7 @@ export default function AdminRouteEdit() {
                   }}
                   className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
                     activeTabId === tab.id
-                      ? "bg-[#867DFF] text-white shadow-sm"
+                      ? "bg-[#0A8FE8] text-white shadow-sm"
                       : "text-slate-700 hover:bg-slate-200"
                   }`}
                 >

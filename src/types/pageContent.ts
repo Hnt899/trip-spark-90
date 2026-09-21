@@ -277,14 +277,14 @@ export type PhotographersFields = {
 };
 
 export const PAGE_CMS_PALETTE = [
-  "#100A6F",
-  "#3F3F7F",
-  "#867DFF",
-  "#2b47b4",
-  "#8a4cf0",
-  "#FFFFFF",
-  "#0F172A",
-  "#64748B",
-  "#FFD700",
-  "#F9C850",
+  "#0B5FD9",     // brand blue deep
+  "#21252E",     // graphite
+  "#0A8FE8",     // brand blue bright
+  "#0A66E0",     // primary blue
+  "#60F2FF",     // cyan accent
+  "#FFFFFF",     // white
+  "#2A2F3A",     // dark card bg
+  "#94A3B8",     // muted foreground
+  "#0FB5F0",     // cyan light
+  "#60F2FF",     // cyan (duplicate for fallback)
 ] as const;

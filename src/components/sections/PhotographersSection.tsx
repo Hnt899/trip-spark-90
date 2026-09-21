@@ -98,7 +98,7 @@ function PhotographerCard({
         className={cn(
           "relative h-64 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105",
           surface === "light"
-            ? "border-2 border-[#867DFF]/35 bg-white"
+            ? "border-2 border-[#0A8FE8]/35 bg-white"
             : "border border-white/10 bg-white/5 backdrop-blur-sm"
         )}
       >
@@ -150,7 +150,7 @@ const PhotographersSection = ({ surface = "brand" }: { surface?: SectionSurface 
             <div
               className={cn(
                 "tracking-[0.28em] text-xs md:text-sm uppercase",
-                surface === "light" ? "text-[#867DFF]/70" : "text-white/60"
+                surface === "light" ? "text-[#0A8FE8]/70" : "text-white/60"
               )}
               style={cmsColorStyle(f.eyebrowColor)}
             >
@@ -171,7 +171,7 @@ const PhotographersSection = ({ surface = "brand" }: { surface?: SectionSurface 
             <p
               className={cn(
                 "mt-3 max-w-2xl",
-                surface === "light" ? "text-[#3F3F7F]/80" : "text-white/75"
+                surface === "light" ? "text-[#21252E]/80" : "text-white/75"
               )}
               style={cmsColorStyle(f.subtitleColor)}
             >

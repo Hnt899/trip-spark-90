@@ -134,7 +134,7 @@ const VerifiedSection = ({ surface = "brand", omitOuterChrome = false }: Verifie
           ? "overflow-x-clip overflow-y-visible bg-white"
           : omitOuterChrome
             ? "overflow-x-clip overflow-y-visible bg-transparent"
-            : "overflow-x-clip overflow-y-visible bg-gradient-to-br from-[#100A6F] via-[#1a1a3e] to-[#100A6F]"
+            : "overflow-x-clip overflow-y-visible bg-gradient-to-br from-[#0B5FD9] via-[#1a1a3e] to-[#0B5FD9]"
       )}
     >
       {/* Декоративные пятна */}

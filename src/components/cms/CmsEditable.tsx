@@ -36,14 +36,14 @@ export function CmsEditable({
       className={cn(
         "relative outline outline-2 outline-offset-2 transition-colors",
         selected
-          ? "outline-[#867DFF] bg-[#867DFF]/5"
-          : "outline-transparent hover:outline-[#867DFF]/60",
+          ? "outline-[#0A8FE8] bg-[#0A8FE8]/5"
+          : "outline-transparent hover:outline-[#0A8FE8]/60",
         className
       )}
       data-cms-section={sectionId}
     >
       {children}
-      <span className="pointer-events-none absolute right-2 top-2 z-50 rounded bg-[#100A6F] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white opacity-90">
+      <span className="pointer-events-none absolute right-2 top-2 z-50 rounded bg-[#0B5FD9] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white opacity-90">
         {sectionId}
       </span>
     </div>

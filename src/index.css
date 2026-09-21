@@ -8,41 +8,59 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 215 85% 15%;
+    --background: 0 0% 100%;              /* #FFFFFF */
+    --foreground: 220 16% 15%;            /* #21252E — графит */
 
-    --card: 0 0% 100%;
-    --card-foreground: 215 85% 15%;
+    --card: 0 0% 100%;                    /* #FFFFFF */
+    --card-foreground: 220 16% 15%;       /* #21252E */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 85% 15%;
+    --popover: 0 0% 100%;                 /* #FFFFFF */
+    --popover-foreground: 220 16% 15%;    /* #21252E */
 
-    --primary: 222 72% 40%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 214 91% 46%;               /* #0A66E0 — основной синий */
+    --primary-foreground: 0 0% 100%;      /* #FFFFFF */
 
-    --secondary: 215 85% 15%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 220 16% 15%;             /* #21252E — графит */
+    --secondary-foreground: 0 0% 100%;    /* #FFFFFF */
 
-    --muted: 220 13% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 210 40% 96%;                 /* #F1F5F9 */
+    --muted-foreground: 215 16% 47%;      /* #64748B */
 
-    --accent: 211 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 186 100% 69%;               /* #60F2FF — бирюзовый */
+    --accent-foreground: 220 16% 15%;     /* #21252E — графит (НЕ белый!) */
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;             /* #DC2626 */
+    --destructive-foreground: 0 0% 100%;  /* #FFFFFF */
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 222 72% 40%;
+    --border: 220 13% 91%;                /* #E2E8F0 */
+    --input: 220 13% 91%;                 /* #E2E8F0 */
+    --ring: 214 91% 46%;                  /* #0A66E0 */
 
     --radius: 0.75rem;
 
-    /* Travel theme colors */
-    --navy: 215 85% 15%;
-    --navy-light: 215 50% 35%;
-    --blue-bright: 222 72% 40%;
-    --gray-light: 220 13% 96%;
+    /* Brand gradient: основной градиент бренда */
+    --brand-gradient: linear-gradient(135deg, #0B5FD9 0%, #0A8FE8 50%, #0FB5F0 100%);
+
+    /* Градиенты для заголовков и декоративных элементов */
+    --heading-gradient: linear-gradient(to right, #0A66E0, #60F2FF);
+
+    /* Сторис: обводка и прогресс */
+    --story-card-border: linear-gradient(90deg, #0B5FD9, #0A8FE8, #60F2FF, #0A8FE8, #0B5FD9);
+    --story-progress-gradient: linear-gradient(90deg, #0B5FD9, #0A8FE8, #60F2FF);
+
+    /* Табы транспорта / guide-tabs */
+    --travel-tab-gradient: linear-gradient(90deg, #0B5FD9, #0A8FE8, #60F2FF, #0A8FE8, #0B5FD9);
+    --reference-tab-hover-fill: linear-gradient(90deg, #0B5FD9, #0A8FE8, #60F2FF, #0A8FE8, #0B5FD9);
+    --guide-tabs-rail: linear-gradient(90deg, #0B5FD9, #0A8FE8, #60F2FF, #0A8FE8, #0B5FD9);
+
+    /* letterWave animation */
+    --letterWave: linear-gradient(90deg, #0A8FE8, #60F2FF);
+
+    /* Travel theme colors — обновлённые под брендбук */
+    --navy: 220 16% 15%;                  /* #21252E — графит */
+    --navy-light: 220 16% 20%;            /* #2A2F3A */
+    --blue-bright: 214 91% 46%;           /* #0A66E0 */
+    --gray-light: 210 40% 96%;            /* #F1F5F9 */
 
     /* Фиксированная шапка: соответствует h-14 md:h-24 в Header */
     --site-header-height: 3.5rem;
@@ -55,33 +73,36 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 215 85% 15%;
-    --foreground: 0 0% 100%;
+    --background: 220 16% 15%;            /* #21252E — графит */
+    --foreground: 0 0% 100%;              /* #FFFFFF */
 
-    --card: 215 70% 20%;
-    --card-foreground: 0 0% 100%;
+    --card: 220 16% 20%;                  /* #2A2F3A */
+    --card-foreground: 0 0% 100%;         /* #FFFFFF */
 
-    --popover: 215 70% 20%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 220 16% 20%;               /* #2A2F3A */
+    --popover-foreground: 0 0% 100%;      /* #FFFFFF */
 
-    --primary: 222 72% 60%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 202 93% 47%;               /* #0A8FE8 */
+    --primary-foreground: 0 0% 100%;      /* #FFFFFF */
 
-    --secondary: 215 50% 35%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 220 16% 20%;             /* #2A2F3A */
+    --secondary-foreground: 0 0% 100%;    /* #FFFFFF */
 
-    --muted: 215 40% 30%;
-    --muted-foreground: 220 13% 70%;
+    --muted: 220 16% 20%;                 /* #2A2F3A */
+    --muted-foreground: 220 13% 70%;      /* #94A3B8 */
 
-    --accent: 211 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 186 100% 69%;               /* #60F2FF — бирюзовый */
+    --accent-foreground: 220 16% 15%;     /* #21252E — графит (НЕ белый!) */
 
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 62% 50%;             /* #B91C1C */
+    --destructive-foreground: 0 0% 100%;  /* #FFFFFF */
 
-    --border: 215 40% 30%;
-    --input: 215 40% 30%;
-    --ring: 222 72% 60%;
+    --border: 220 16% 20%;                /* #2A2F3A */
+    --input: 220 16% 20%;                 /* #2A2F3A */
+    --ring: 202 93% 47%;                  /* #0A8FE8 */
+    
+    /* Градиенты для тёмной темы */
+    --heading-gradient: linear-gradient(to right, #0A8FE8, #60F2FF);
   }
 }
 
@@ -92,7 +113,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Google Sans Flex', 'Manrope', 'Onest', system-ui, sans-serif;
     /* clip не создаёт scroll-container — иначе ломается position: sticky */
     overflow-x: clip;
   }
@@ -107,21 +128,10 @@ All colors MUST be HSL.
 
 @layer components {
   /**
-   * Градиент синий → фиолетовый внутри текста (как у блока бота). Сочетать с text-* и font-bold.
+   * Градиент синий → бирюзовый внутри текста. Сочетать с text-* и font-bold.
    */
   .heading-gradient {
-    background-image: linear-gradient(to right, #2b47b4, #8a4cf0);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-    line-height: 1.3;
-    padding-bottom: 0.12em;
-    overflow: visible;
-  }
-
-  .dark .heading-gradient {
-    background-image: linear-gradient(to right, #6b8ae8, #b794f6);
+    background-image: var(--heading-gradient);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -143,8 +153,8 @@ All colors MUST be HSL.
   .blog-tiptap-root .ProseMirror h1[data-anchor="true"],
   .blog-tiptap-root .ProseMirror h2[data-anchor="true"],
   .blog-tiptap-root .ProseMirror h3[data-anchor="true"] {
-    color: #867dff !important;
-    border-left: 3px solid rgba(134, 125, 255, 0.5);
+    color: #60F2FF !important;
+    border-left: 3px solid rgba(96, 242, 255, 0.5);
     padding-left: 0.65rem;
     margin-left: -0.1rem;
   }
@@ -229,7 +239,7 @@ All colors MUST be HSL.
   right: -3px;
   bottom: -3px;
   border-radius: 24px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #8b5cf6, #3b82f6);
+  background: var(--story-card-border);
   background-size: 400% 400%;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -269,15 +279,15 @@ All colors MUST be HSL.
 @keyframes chatPulse {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.45);
+    box-shadow: 0 0 0 0 rgba(10, 102, 224, 0.45);
   }
   50% {
     transform: scale(1.05);
-    box-shadow: 0 0 0 16px rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 16px rgba(10, 102, 224, 0);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 0 rgba(10, 102, 224, 0);
   }
 }
 
@@ -304,14 +314,14 @@ All colors MUST be HSL.
 
 /* Градиент для прогресс-бара в модальном окне сториса */
 .story-progress-gradient {
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #8b5cf6, #3b82f6);
+  background: var(--story-progress-gradient);
   background-size: 400% 400%;
   animation: gradient-flow 4s ease-in-out infinite;
 }
 
 /* Анимированный градиент для табов транспорта */
 .travel-tab-gradient {
-  background: linear-gradient(90deg, #0D0D6E, #867DFF, #0D0D6E, #867DFF, #0D0D6E);
+  background: var(--travel-tab-gradient);
   background-size: 300% 100%;
   animation: gradient-flow 12s ease-in-out infinite;
 }
@@ -322,7 +332,7 @@ All colors MUST be HSL.
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(90deg, #0d0d6e, #867dff, #0d0d6e, #867dff, #0d0d6e);
+  background: var(--reference-tab-hover-fill);
   background-size: 300% 100%;
   animation: gradient-flow 12s ease-in-out infinite;
   opacity: 0;
@@ -334,7 +344,7 @@ All colors MUST be HSL.
 
 /* Путеводитель /guide: полоска табов под шапкой — градиент с лёгким «бегом», как у travel-tab */
 .guide-tabs-rail {
-  background: linear-gradient(90deg, #14106e, #3d32b8, #867dff, #3d32b8, #14106e);
+  background: var(--guide-tabs-rail);
   background-size: 300% 100%;
   animation: gradient-flow 14s ease-in-out infinite;
 }
@@ -376,7 +386,7 @@ All colors MUST be HSL.
   }
   2.5% {
     transform: translateY(-5px);
-    background: linear-gradient(90deg, #3B82F6, #A855F7);
+    background: var(--letterWave);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;

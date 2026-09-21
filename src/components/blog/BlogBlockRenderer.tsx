@@ -369,7 +369,7 @@ export default function BlogBlockRenderer({
             );
           }
           case "quickBooking": {
-            const bgGradient = block.bgGradient || "from-[#8A70F8] to-[#9B82F8]";
+            const bgGradient = block.bgGradient || "from-[#0A8FE8] to-[#0FB5F0]";
             return (
               <div
                 key={key}
@@ -385,7 +385,7 @@ export default function BlogBlockRenderer({
                         href={block.button1Url || "#"}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-4 text-base font-semibold text-[#8A70F8] transition-colors hover:bg-white/90 sm:w-auto"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-4 text-base font-semibold text-[#0A8FE8] transition-colors hover:bg-white/90 sm:w-auto"
                       >
                         <Plane className="h-4 w-4 md:h-5 md:w-5" />
                         {block.button1Text}

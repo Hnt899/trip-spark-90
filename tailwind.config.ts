@@ -15,6 +15,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Google Sans Flex', 'Manrope', 'Onest', 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -58,6 +61,14 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+        },
+        brand: {
+          blue: '#0A66E0',
+          blueDeep: '#0B5FD9',
+          blueBright: '#0A8FE8',
+          cyan: '#60F2FF',
+          cyanLight: '#0FB5F0',
+          graphite: '#21252E',
         },
       },
       borderRadius: {

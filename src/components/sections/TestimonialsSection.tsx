@@ -412,13 +412,13 @@ const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) =>
                       <Button
                         size="lg"
                         variant="outline"
-                        className="bg-white text-[#8A70F8] hover:bg-white hover:text-[#8A70F8] border-white shadow-xl font-bold text-base px-6"
+                        className="bg-white text-[#0A8FE8] hover:bg-white hover:text-[#0A8FE8] border-white shadow-xl font-bold text-base px-6"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/testimonials/${testimonial.id}`);
                         }}
                       >
-                        <BookOpen className="h-5 w-5 mr-2 text-[#8A70F8]" />
+                        <BookOpen className="h-5 w-5 mr-2 text-[#0A8FE8]" />
                         Читать
                       </Button>
                     </div>
