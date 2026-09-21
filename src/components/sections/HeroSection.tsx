@@ -125,8 +125,7 @@ const HeroSection = () => {
                     <TabsList className="flex items-center gap-1 bg-white/10 p-1 h-10 flex-shrink-0">
                       <TabsTrigger
                         value="flight"
-                        className="flex items-center justify-center text-sm font-medium px-3 py-1.5 rounded-md bg-gradient-to-r from-[#100877] to-[#887BFF] text-white shadow-sm whitespace-nowrap"
-                        style={{ color: 'white' }}
+                        className="flex items-center justify-center text-sm font-medium px-3 py-1.5 rounded-md bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm whitespace-nowrap"
                       >
                         <Plane className="h-5 w-5 mr-2" />
                         <span className="tab-text">Авиабилеты</span>
@@ -149,12 +148,11 @@ const HeroSection = () => {
                           className={cn(
                             "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
                             tripType === "round"
-                              ? "bg-white/20"
+                              ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
                               : "text-white/70 hover:text-white"
                           )}
                         >
-                          <span style={{ color: tripType === "round" ? "#100877" : "white" }}>Туда</span>
-                          <span style={{ color: tripType === "round" ? "#887BFF" : "white" }}> — Обратно</span>
+                          Туда — Обратно
                         </button>
                         <button
                           type="button"

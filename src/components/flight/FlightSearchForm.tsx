@@ -32,16 +32,16 @@ const scrollbarStyles = `
     border-radius: 10px;
   }
   .city-dropdown-scroll::-webkit-scrollbar-thumb {
-    background: #887BFF;
+    background: #0A8FE8;
     border-radius: 10px;
     transition: background 0.2s;
   }
   .city-dropdown-scroll::-webkit-scrollbar-thumb:hover {
-    background: #100877;
+    background: #0B5FD9;
   }
   .city-dropdown-scroll {
     scrollbar-width: thin;
-    scrollbar-color: #887BFF transparent;
+    scrollbar-color: #0A8FE8 transparent;
   }
 `;
 
@@ -218,12 +218,11 @@ const FlightSearchForm = ({
                 className={cn(
                   "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
                   tripType === "round"
-                    ? "bg-white/20"
+                    ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
                     : "text-white/70 hover:text-white"
                 )}
               >
-                <span style={{ color: tripType === "round" ? "#100877" : "white" }}>Откуда</span>
-                <span style={{ color: tripType === "round" ? "#887BFF" : "white" }}> — Куда</span>
+                Откуда — Куда
               </button>
               <button
                 type="button"
