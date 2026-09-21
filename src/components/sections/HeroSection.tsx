@@ -160,7 +160,7 @@ const HeroSection = () => {
                           className={cn(
                             "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
                             tripType === "one"
-                              ? "bg-white/20 text-white"
+                              ? "bg-gradient-to-r from-[#100877] to-[#887BFF] text-white shadow-sm"
                               : "text-white/70 hover:text-white"
                           )}
                         >

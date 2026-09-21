@@ -9,7 +9,8 @@ import { Train, Bus, User, Search, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logoImage from "@/assets/images/logo/logo.png";
 import logoWhiteImage from "@/assets/images/logo/logo w.png";
-import logoMobile from "@/assets/images/logo/logo-mobile.png"; // ← НОВЫЙ ИМПОРТ
+import logoMobile from "@/assets/images/logo/logo-mobile.png";
+import logoMobile2 from "@/assets/images/logo/logom.png";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import FlightSearchForm from "@/components/flight/FlightSearchForm";
@@ -51,7 +52,7 @@ const Header = () => {
 
         if (heroRect && featuresSection) {
           const nextSectionRect = featuresSection.getBoundingClientRect();
-          const headerHeight = 56;
+          const headerHeight = 64; // было 56, стало 64 (h-16)
 
           const isHeroVisible = heroRect.bottom > 0;
           const isNextSectionReached = nextSectionRect.top <= headerHeight;
@@ -202,21 +203,21 @@ const Header = () => {
         "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300",
         isHomePage && isHeroMode
           ? "bg-transparent border-b border-white/20 backdrop-blur-md"
-          : "bg-[#E8ECF7] backdrop-blur-md border-b border-[#0B5FD9]/10 shadow-sm"
+          : "bg-[#F1F5F9] backdrop-blur-md border-b border-[#0B5FD9]/10 shadow-sm"
       )}>
         <div className="container">
-          <div className="flex h-14 md:h-24 items-center justify-between gap-2 md:gap-4">
+          <div className="flex h-16 md:h-24 items-center justify-between gap-2 md:gap-4">
             {/* Лого — на мобилке своё, на десктопе как было */}
             <Link
               to="/"
               className="flex items-center hover:opacity-80 transition-opacity shrink-0 -ml-2 md:ml-0"
             >
-              {/* Мобилка: своё лого, показывается только до md */}
+              {/* Мобилка: на hero — logoMobile2 (logom.png), после hero — logoMobile */}
               <img
-                src={logoMobile}
+                src={isHomePage && isHeroMode ? logoMobile2 : logoMobile}
                 alt="TudaSuda"
                 className={cn(
-                  "block md:hidden h-14 w-auto object-contain transition-all duration-300",
+                  "block md:hidden h-14 w-auto max-w-none object-contain transition-all duration-300",
                   isHomePage && isHeroMode
                     ? "drop-shadow-lg brightness-110"
                     : "drop-shadow-sm brightness-110"
@@ -255,7 +256,7 @@ const Header = () => {
                 <span
                   className={cn(
                     "pointer-events-none absolute inset-0 z-0 rounded-full opacity-[0.01]",
-                    "shadow-[0_2px_20px_-2px_rgba(138,112,248,0.42),0_0_0_1px_rgba(186,198,245,0.82)]",
+                    "shadow-[0_2px_20px_-2px_rgba(10,143,232,0.42),0_0_0_1px_rgba(96,242,255,0.5)]",
                     "animate-search-pill-glow-opacity motion-reduce:animate-none motion-reduce:opacity-0"
                   )}
                   aria-hidden
