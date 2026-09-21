@@ -149,7 +149,7 @@ const HeroSection = () => {
                             "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
                             tripType === "round"
                               ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
-                              : "text-black/70 hover:text-black/90"
+                              : "text-white/70 hover:text-white/90"
                           )}
                         >
                           Туда — Обратно
@@ -161,7 +161,7 @@ const HeroSection = () => {
                             "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
                             tripType === "one"
                               ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
-                              : "text-black/70 hover:text-black/90"
+                              : "text-white/70 hover:text-white/90"
                           )}
                         >
                           В одну сторону
