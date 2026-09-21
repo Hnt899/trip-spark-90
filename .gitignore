@@ -1,50 +1,70 @@
-```
+```gitignore
 # Dependencies
 node_modules/
 
 # Build outputs
 dist/
 build/
-target/
+.next/
+.nuxt/
+public/dist/
+*.min.js
+*.min.css
 
 # Environment variables
 .env
 .env.local
-*.env.*
+.env.*
+!.env.example
 
-# IDE specific
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
+*.tmp
 
-# Python specific
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
 *.so
+.Python
 *.egg-info/
-
-# Logs
-*.log
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Coverage reports
-coverage/
-htmlcov/
-*.coverage
-
-# Temporary files
-*.tmp
-*.temp
-
-# Cache directories
+.eggs/
+.venv/
+venv/
+.env
 .mypy_cache/
 .pytest_cache/
-.gradle/
+.tox/
+.coverage
+nosetests.xml
+```
+
+Wait, I need to reconsider this. Looking at the modified files, they are all TypeScript/React source files (.tsx), and there are no build artifacts, dependency directories, or temporary files in the changes. According to rule #6, if the change list contains only source or config files and no build artifacts, dependencies, or temp files, I should output an empty .gitignore.
+
+The modified files are:
+- src/components/flight/FlightSearchForm.tsx
+- src/components/sections/HeroSection.tsx  
+- src/components/ui/button.tsx
+
+These are all source code files, so no .gitignore rules are needed.
+
+```gitignore
+
 ```
