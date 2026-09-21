@@ -35,13 +35,13 @@ const ProcessSection = () => {
           <div className="bg-white rounded-2xl p-6 md:p-8 lg:p-10 flex flex-col lg:flex-row items-center gap-8 shadow-xl">
             <div className="flex-1 w-full lg:w-auto">
               <h3
-                className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#3F3F7F] mb-4 leading-tight"
+                className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#21252E] mb-4 leading-tight"
                 style={cmsColorStyle(f.titleColor)}
               >
                 {title}
               </h3>
               <p
-                className="text-lg text-[#3F3F7F]/80 mb-6 leading-relaxed"
+                className="text-lg text-[#21252E]/80 mb-6 leading-relaxed"
                 style={cmsColorStyle(f.paragraphColor)}
               >
                 {paragraph}

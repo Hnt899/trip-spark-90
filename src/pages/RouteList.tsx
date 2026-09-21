@@ -190,18 +190,18 @@ const RouteList = () => {
                 <h1 className="heading-gradient mb-2 text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
                   Маршруты
                 </h1>
-                <p className="text-base text-[#3F3F7F]/70 md:text-lg">
+                <p className="text-base text-[#21252E]/70 md:text-lg">
                   {routes.length} готовых маршрутов для путешествий
                 </p>
               </div>
               <div className="relative w-full md:w-auto">
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#8A70F8]" />
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#0A8FE8]" />
                 <Input
                   type="text"
                   placeholder="Поиск региона..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-full border-[#8A70F8] pl-10 pr-4 focus:border-[#8A70F8] focus:ring-[#8A70F8] md:w-64"
+                  className="w-full rounded-full border-[#0A8FE8] pl-10 pr-4 focus:border-[#0A8FE8] focus:ring-[#0A8FE8] md:w-64"
                 />
               </div>
             </div>
@@ -209,7 +209,7 @@ const RouteList = () => {
             <div className="rounded-lg bg-white p-3 shadow-sm md:p-4">
               <div className="flex flex-wrap items-center gap-2 md:gap-4">
                 {regionsQuery.isPending ? (
-                  <span className="text-xs text-[#8A70F8]/70">Загрузка регионов...</span>
+                  <span className="text-xs text-[#0A8FE8]/70">Загрузка регионов...</span>
                 ) : (
                   regions.map((region) => (
                     <button
@@ -218,8 +218,8 @@ const RouteList = () => {
                       className={cn(
                         "rounded-lg px-3 py-2 text-xs font-medium transition-colors md:px-4 md:text-sm",
                         activeRegion === region
-                          ? "bg-[#8A70F8] text-white"
-                          : "text-[#8A70F8] hover:text-[#8A70F8]/80",
+                          ? "bg-[#0A8FE8] text-white"
+                          : "text-[#0A8FE8] hover:text-[#0A8FE8]/80",
                       )}
                     >
                       {region}
@@ -265,7 +265,7 @@ const RouteList = () => {
         </div>
 
         <div className="container px-4 py-8 md:px-6 md:py-12">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#8A70F8] to-[#9B82F8] md:rounded-3xl">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0A8FE8] to-[#0FB5F0] md:rounded-3xl">
             <div className="grid grid-cols-1 gap-6 p-6 md:gap-8 md:p-8 lg:grid-cols-2 lg:p-12">
               <div className="flex flex-col justify-center space-y-4 md:space-y-6">
                 <div className="space-y-1 text-white md:space-y-2">
@@ -282,7 +282,7 @@ const RouteList = () => {
                 <div className="flex flex-col gap-3 sm:flex-row md:gap-4">
                   <Button
                     size="lg"
-                    className="w-full rounded-full bg-white px-4 py-4 text-base font-semibold text-[#8A70F8] hover:bg-white/90 sm:w-auto md:px-6 md:py-6 md:text-lg"
+                    className="w-full rounded-full bg-white px-4 py-4 text-base font-semibold text-[#0A8FE8] hover:bg-white/90 sm:w-auto md:px-6 md:py-6 md:text-lg"
                   >
                     <Plane className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                     Найти билеты
@@ -298,7 +298,7 @@ const RouteList = () => {
                 </div>
               </div>
               <div className="relative hidden h-64 lg:block lg:h-auto">
-                <div className="absolute inset-0 rounded-l-3xl bg-gradient-to-l from-[#8A70F8] to-transparent" />
+                <div className="absolute inset-0 rounded-l-3xl bg-gradient-to-l from-[#0A8FE8] to-transparent" />
                 <div className="relative h-full w-full overflow-hidden rounded-l-3xl bg-gray-200">
                   <img
                     src={heroTrain}

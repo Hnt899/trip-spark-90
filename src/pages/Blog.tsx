@@ -243,11 +243,11 @@ const Blog = () => {
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute -left-24 top-0 h-[min(100%,420px)] w-[420px] rounded-full bg-[#8A70F8] opacity-[0.2] blur-[100px] dark:opacity-[0.35]"
+              className="pointer-events-none absolute -left-24 top-0 h-[min(100%,420px)] w-[420px] rounded-full bg-[#0A8FE8] opacity-[0.2] blur-[100px] dark:opacity-[0.35]"
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute -bottom-32 right-0 h-[380px] w-[380px] rounded-full bg-[#100A6F] opacity-[0.14] blur-[90px] dark:bg-primary dark:opacity-[0.22]"
+              className="pointer-events-none absolute -bottom-32 right-0 h-[380px] w-[380px] rounded-full bg-[#0B5FD9] opacity-[0.14] blur-[90px] dark:bg-primary dark:opacity-[0.22]"
               aria-hidden
             />
 
@@ -255,7 +255,7 @@ const Blog = () => {
               <div className="min-w-0">
                 <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/75 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-primary shadow-sm backdrop-blur-md dark:border-primary/35 dark:bg-white/[0.08] dark:text-violet-200">
                   <Sparkles
-                    className="h-3.5 w-3.5 shrink-0 text-[#8A70F8]"
+                    className="h-3.5 w-3.5 shrink-0 text-[#0A8FE8]"
                     aria-hidden
                   />
                   Журнал путешествий
@@ -302,7 +302,7 @@ const Blog = () => {
               >
                 <div className="absolute inset-0 flex items-center justify-center motion-safe:animate-[spin_42s_linear_infinite] motion-reduce:animate-none">
                   <div className="h-[220px] w-[220px] rounded-full border-2 border-dashed border-primary/25 opacity-70 dark:border-primary/40" />
-                  <div className="absolute left-1/2 top-0 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-[#8A70F8] shadow-[0_0_12px_rgba(138,112,248,0.7)]" />
+                  <div className="absolute left-1/2 top-0 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-[#0A8FE8] shadow-[0_0_12px_rgba(138,112,248,0.7)]" />
                   <div className="absolute bottom-6 left-6 h-2 w-2 rounded-full bg-primary/80" />
                   <div className="absolute right-10 top-1/3 h-2 w-2 rounded-full bg-violet-400/90" />
                 </div>
@@ -328,7 +328,7 @@ const Blog = () => {
                     <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-primary/75 dark:text-violet-300/90">
                       В путь
                     </p>
-                    <p className="mt-2 text-3xl font-extrabold tabular-nums tracking-tight text-[#100A6F] dark:text-white">
+                    <p className="mt-2 text-3xl font-extrabold tabular-nums tracking-tight text-[#0B5FD9] dark:text-white">
                       {allArticles.length}+
                     </p>
                     <p className="mt-1 max-w-[9rem] text-[11px] leading-snug text-muted-foreground">
@@ -609,7 +609,7 @@ const Blog = () => {
           className="mb-16 w-full min-w-0 rounded-3xl border border-[hsl(var(--primary)/0.14)] bg-gradient-to-br from-slate-50/98 via-white to-[hsl(var(--primary)/0.05)] px-6 py-7 shadow-[0_12px_44px_rgba(16,10,111,0.07)] md:px-8 md:py-9 dark:border-primary/30 dark:from-slate-950 dark:via-slate-950 dark:to-primary/[0.08]"
           aria-label="О блоге"
         >
-              <header className="mb-6 border-l-4 border-primary pl-4 dark:border-[#8A70F8]">
+              <header className="mb-6 border-l-4 border-primary pl-4 dark:border-[#0A8FE8]">
                 <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-[hsl(var(--primary)/0.08)] px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-primary dark:border-primary/40 dark:bg-primary/15 dark:text-violet-200">
                   <BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   Для читателей

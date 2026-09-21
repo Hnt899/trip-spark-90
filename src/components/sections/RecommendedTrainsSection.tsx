@@ -110,16 +110,16 @@ const DEFAULT_DESTINATIONS = [
   },
 ];
 
-/** Единая палитра карточки (лого): #100A6F → #8A70F8 — без конкурирующих голубого/красного */
+/** Единая палитра карточки (лого): #0B5FD9 → #0A8FE8 — без конкурирующих голубого/красного */
 const destinationTagClass =
-  "bg-[#100A6F] shadow-md ring-1 ring-white/25";
+  "bg-[#0B5FD9] shadow-md ring-1 ring-white/25";
 
 const destinationDiscountClass =
-  "bg-white/95 backdrop-blur-sm border border-[#8A70F8]/35 shadow-lg";
+  "bg-white/95 backdrop-blur-sm border border-[#0A8FE8]/35 shadow-lg";
 
 const destinationCtaClass = cn(
   "rounded-full border-0 font-bold text-base px-8",
-  "bg-gradient-to-r from-[#100A6F] to-[#8A70F8] text-white shadow-xl",
+  "bg-gradient-to-r from-[#0B5FD9] to-[#0A8FE8] text-white shadow-xl",
   "hover:from-[#15107a] hover:to-[#9a82ff] hover:text-white hover:shadow-2xl",
   "transition-all duration-300"
 );
@@ -368,7 +368,7 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
             className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -ml-[10px]"
             aria-label="Прокрутить влево"
           >
-            <ChevronLeft className="h-5 w-5 text-[#100A6F]" />
+            <ChevronLeft className="h-5 w-5 text-[#0B5FD9]" />
           </button>
 
           <div className="flex-1 relative overflow-hidden">
@@ -424,8 +424,8 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
                     )}
                   >
                     <div className="flex items-center gap-1">
-                      <TrendingDown className="h-5 w-5 text-[#8A70F8]" strokeWidth={2.25} />
-                      <span className="text-2xl font-extrabold tabular-nums text-[#100A6F]">
+                      <TrendingDown className="h-5 w-5 text-[#0A8FE8]" strokeWidth={2.25} />
+                      <span className="text-2xl font-extrabold tabular-nums text-[#0B5FD9]">
                         -{destination.discount}%
                       </span>
                     </div>
@@ -484,7 +484,7 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
             className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -mr-[10px]"
             aria-label="Прокрутить вправо"
           >
-            <ChevronRight className="h-5 w-5 text-[#100A6F]" />
+            <ChevronRight className="h-5 w-5 text-[#0B5FD9]" />
           </button>
         </div>
 
@@ -538,8 +538,8 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
                       )}
                     >
                       <div className="flex items-center gap-1">
-                        <TrendingDown className="h-5 w-5 text-[#8A70F8]" strokeWidth={2.25} />
-                        <span className="text-2xl font-extrabold tabular-nums text-[#100A6F]">
+                        <TrendingDown className="h-5 w-5 text-[#0A8FE8]" strokeWidth={2.25} />
+                        <span className="text-2xl font-extrabold tabular-nums text-[#0B5FD9]">
                           -{destination.discount}%
                         </span>
                       </div>

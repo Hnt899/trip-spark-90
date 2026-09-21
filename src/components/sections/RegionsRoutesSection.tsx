@@ -132,7 +132,7 @@ const RegionsRoutesSection = ({ surface = "brand" }: { surface?: SectionSurface 
       <div className="container relative z-10">
         <div className="flex flex-col items-center text-center mb-8 md:mb-12">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">
-            <span className={surface === "light" ? "text-[#3F3F7F]" : "text-white"}>{titlePrefix}</span>
+            <span className={surface === "light" ? "text-[#21252E]" : "text-white"}>{titlePrefix}</span>
             <span
               className={f.accentColor?.trim() ? undefined : sectionHeadingAccentClass(surface)}
               style={
@@ -143,7 +143,7 @@ const RegionsRoutesSection = ({ surface = "brand" }: { surface?: SectionSurface 
               {titleAccent}
             </span>
           </h2>
-          <p className={cn("text-base md:text-lg max-w-2xl mx-auto px-4", surface === "light" ? "text-[#3F3F7F]/80" : "text-white/80")}>
+          <p className={cn("text-base md:text-lg max-w-2xl mx-auto px-4", surface === "light" ? "text-[#21252E]/80" : "text-white/80")}>
             Откройте для себя уникальные регионы России и создайте незабываемое путешествие
           </p>
         </div>
@@ -160,7 +160,7 @@ const RegionsRoutesSection = ({ surface = "brand" }: { surface?: SectionSurface 
             className={cn(
               "absolute top-1/2 -translate-y-1/2 z-10 rounded-full shadow-lg w-12 h-12 hidden lg:flex",
               surface === "light"
-                ? "border-2 border-[#867DFF]/50 bg-white text-primary hover:bg-[#867DFF]/10 hover:border-[#867DFF]"
+                ? "border-2 border-[#0A8FE8]/50 bg-white text-primary hover:bg-[#0A8FE8]/10 hover:border-[#0A8FE8]"
                 : "border-0 bg-white/90 backdrop-blur-sm hover:bg-white",
             )}
             style={{ left: '-26px' }}
@@ -211,7 +211,7 @@ const RegionsRoutesSection = ({ surface = "brand" }: { surface?: SectionSurface 
             className={cn(
               "absolute top-1/2 -translate-y-1/2 z-10 rounded-full shadow-lg w-12 h-12 hidden lg:flex",
               surface === "light"
-                ? "border-2 border-[#867DFF]/50 bg-white text-primary hover:bg-[#867DFF]/10 hover:border-[#867DFF]"
+                ? "border-2 border-[#0A8FE8]/50 bg-white text-primary hover:bg-[#0A8FE8]/10 hover:border-[#0A8FE8]"
                 : "border-0 bg-white/90 backdrop-blur-sm hover:bg-white",
             )}
             style={{ right: '-15px' }}

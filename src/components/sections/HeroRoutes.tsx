@@ -177,7 +177,7 @@ const HeroRoutes = ({ surface = "brand" }: { surface?: SectionSurface }) => {
               key={card.id}
               to={card.href}
               data-card-id={card.id}
-              className="group absolute rounded-xl md:rounded-2xl overflow-hidden shadow-lg border-2 border-[#867DFF] h-[220px] md:h-[260px]"
+              className="group absolute rounded-xl md:rounded-2xl overflow-hidden shadow-lg border-2 border-[#0A8FE8] h-[220px] md:h-[260px]"
               style={{
                 width: '100%',
                 height: '220px',
@@ -196,7 +196,7 @@ const HeroRoutes = ({ surface = "brand" }: { surface?: SectionSurface }) => {
               </div>
 
               {/* Фиолетовый overlay при наведении */}
-              <div className="absolute inset-0 bg-[#867DFF] origin-top transform scale-y-0 group-hover:scale-y-100 transition-transform duration-1000 ease-out z-10" />
+              <div className="absolute inset-0 bg-[#0A8FE8] origin-top transform scale-y-0 group-hover:scale-y-100 transition-transform duration-1000 ease-out z-10" />
 
               {/* Графическое изображение при наведении (только для Казани) */}
               {card.hoverImage && (
@@ -231,7 +231,7 @@ const HeroRoutes = ({ surface = "brand" }: { surface?: SectionSurface }) => {
 
                 {/* Описание под названием */}
                 <div>
-                  <p className="text-sm md:text-base lg:text-lg leading-relaxed text-white/90 line-clamp-2 md:line-clamp-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ textShadow: '0 0 4px #867DFF, 0 0 4px #867DFF, 0 0 4px #867DFF, 0 0 4px #867DFF, 0 2px 8px rgba(0,0,0,0.5)' }}>
+                  <p className="text-sm md:text-base lg:text-lg leading-relaxed text-white/90 line-clamp-2 md:line-clamp-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ textShadow: '0 0 4px #0A8FE8, 0 0 4px #0A8FE8, 0 0 4px #0A8FE8, 0 0 4px #0A8FE8, 0 2px 8px rgba(0,0,0,0.5)' }}>
                     {card.description}
                   </p>
                 </div>
@@ -246,7 +246,7 @@ const HeroRoutes = ({ surface = "brand" }: { surface?: SectionSurface }) => {
             <Link
               key={card.id}
               to={card.href}
-              className="group relative rounded-xl md:rounded-2xl overflow-hidden shadow-lg border-2 border-[#867DFF] h-[220px] md:h-[260px]"
+              className="group relative rounded-xl md:rounded-2xl overflow-hidden shadow-lg border-2 border-[#0A8FE8] h-[220px] md:h-[260px]"
             >
               {/* Фоновое изображение */}
               <div className="absolute inset-0">
@@ -261,7 +261,7 @@ const HeroRoutes = ({ surface = "brand" }: { surface?: SectionSurface }) => {
               </div>
 
               {/* Фиолетовый overlay при наведении */}
-              <div className="absolute inset-0 bg-[#867DFF] origin-top transform scale-y-0 group-hover:scale-y-100 transition-transform duration-1000 ease-out z-10" />
+              <div className="absolute inset-0 bg-[#0A8FE8] origin-top transform scale-y-0 group-hover:scale-y-100 transition-transform duration-1000 ease-out z-10" />
 
               {/* Графическое изображение при наведении */}
               {card.hoverImage && (
@@ -342,7 +342,7 @@ const HeroRoutes = ({ surface = "brand" }: { surface?: SectionSurface }) => {
                   to={card.href}
                   className={cn(
                     "flex-shrink-0 w-full",
-                    "group relative rounded-xl overflow-hidden shadow-lg border-2 border-[#867DFF] h-[220px]"
+                    "group relative rounded-xl overflow-hidden shadow-lg border-2 border-[#0A8FE8] h-[220px]"
                   )}
                 >
                   {/* Фоновое изображение */}
@@ -358,7 +358,7 @@ const HeroRoutes = ({ surface = "brand" }: { surface?: SectionSurface }) => {
                   </div>
 
                   {/* Фиолетовый overlay при наведении */}
-                  <div className="absolute inset-0 bg-[#867DFF] origin-top transform scale-y-0 group-hover:scale-y-100 transition-transform duration-1000 ease-out z-10" />
+                  <div className="absolute inset-0 bg-[#0A8FE8] origin-top transform scale-y-0 group-hover:scale-y-100 transition-transform duration-1000 ease-out z-10" />
 
                   {/* Графическое изображение при наведении */}
                   {card.hoverImage && (

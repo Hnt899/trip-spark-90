@@ -26,7 +26,7 @@ export function QuickBookingView({
   const button2Url = (node.attrs.button2Url as string) || "";
   const image = (node.attrs.image as string) || "";
   const imageAlt = (node.attrs.imageAlt as string) || "";
-  const bgGradient = (node.attrs.bgGradient as string) || "from-[#8A70F8] to-[#9B82F8]";
+  const bgGradient = (node.attrs.bgGradient as string) || "from-[#0A8FE8] to-[#0FB5F0]";
 
   const [open, setOpen] = useState(false);
   const [formTitle, setFormTitle] = useState(title);
@@ -109,7 +109,7 @@ export function QuickBookingView({
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button
                   size="lg"
-                  className="w-full rounded-full bg-white px-4 py-4 text-base font-semibold text-[#8A70F8] hover:bg-white/90 sm:w-auto md:px-6 md:py-6 md:text-lg"
+                  className="w-full rounded-full bg-white px-4 py-4 text-base font-semibold text-[#0A8FE8] hover:bg-white/90 sm:w-auto md:px-6 md:py-6 md:text-lg"
                   onClick={() => button1Url && window.open(button1Url, "_blank")}
                 >
                   <Plane className="mr-2 h-4 w-4 md:h-5 md:w-5" />

@@ -158,8 +158,8 @@ export default function GuideCms() {
       value={section.id}
       className={tabTriggerClass}
       style={{
-        backgroundColor: activeTab === section.id ? "#897CFF" : "transparent",
-        color: activeTab === section.id ? "#F9C850" : "white",
+        backgroundColor: activeTab === section.id ? "#0A8FE8" : "transparent",
+        color: activeTab === section.id ? "#60F2FF" : "white",
       }}
     >
       {section.title}
@@ -361,15 +361,15 @@ export default function GuideCms() {
                             variant="outline"
                             className="h-auto w-full justify-between px-4 py-3 text-base font-medium"
                             style={{
-                              backgroundColor: "rgba(32, 8, 255, 0.4)",
-                              borderColor: "rgba(32, 8, 255, 0.3)",
+                              backgroundColor: "rgba(10, 102, 224, 0.4)",
+                              borderColor: "rgba(10, 102, 224, 0.3)",
                               color: "white",
                             }}
                           >
                             <span>{sectionsForTabs.find((s) => s.id === activeTab)?.title || "Все"}</span>
                             <ChevronDown
                               className={cn("h-5 w-5 text-primary transition-transform", mobileMenuOpen && "rotate-180")}
-                              style={{ color: "#897CFF" }}
+                              style={{ color: "#0A8FE8" }}
                             />
                           </Button>
                         </DropdownMenuTrigger>
