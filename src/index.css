@@ -42,7 +42,7 @@ All colors MUST be HSL.
     --brand-gradient: linear-gradient(135deg, #0B5FD9 0%, #0A8FE8 50%, #0FB5F0 100%);
 
     /* Градиенты для заголовков и декоративных элементов */
-    --heading-gradient: linear-gradient(to right, #0A66E0, #60F2FF);
+    --heading-gradient: linear-gradient(to right, #0A66E0, #0A66E0);
 
     /* Сторис: обводка и прогресс */
     --story-card-border: linear-gradient(90deg, #0B5FD9, #0A8FE8, #60F2FF, #0A8FE8, #0B5FD9);
@@ -102,7 +102,7 @@ All colors MUST be HSL.
     --ring: 202 93% 47%;                  /* #0A8FE8 */
     
     /* Градиенты для тёмной темы */
-    --heading-gradient: linear-gradient(to right, #0A8FE8, #60F2FF);
+    --heading-gradient: linear-gradient(to right, #0A8FE8, #0A8FE8);
   }
 }
 
