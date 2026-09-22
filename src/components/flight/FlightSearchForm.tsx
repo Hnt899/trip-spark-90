@@ -205,40 +205,54 @@ const FlightSearchForm = ({
 
       <div className={cn("flex flex-col gap-3 w-full flight-form-container", isHeaderDesktop && "flight-form-header-desktop")}>
 
-        {showTripTypeToggle && (
-          <div className="flex items-center justify-between w-full">
-            <h2 className="text-2xl font-bold text-white">
-              <span className="tab-text">Авиабилеты</span>
-              <span className="inline-block sm:hidden">✈️</span>
-            </h2>
-            <div className="inline-flex items-center gap-1 rounded-md p-1 bg-white/10 trip-type-toggle">
-              <button
-                type="button"
-                onClick={() => setTripType("round")}
-                className={cn(
-                  "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
-                  tripType === "round"
-                    ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
-                    : "text-white/70 hover:text-white"
-                )}
-              >
-                Откуда — Куда
-              </button>
-              <button
-                type="button"
-                onClick={() => { setTripType("one"); setReturnDate(undefined); }}
-                className={cn(
-                  "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
-                  tripType === "one"
-                    ? "bg-white/20 text-white"
-                    : "text-white/70 hover:text-white"
-                )}
-              >
-                В одну сторону
-              </button>
-            </div>
-          </div>
+      {showTripTypeToggle && (
+  <div className="flex items-center justify-between w-full">
+    <h2 className="text-2xl font-bold text-white">
+      <span className="tab-text">Авиабилеты</span>
+      <span className="inline-block sm:hidden">✈️</span>
+    </h2>
+    <div className="inline-flex items-center gap-1 rounded-md p-1 bg-white/10 trip-type-toggle">
+      <button
+        type="button"
+        onClick={() => setTripType("round")}
+        className={cn(
+          "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
+          tripType === "round"
+            ? "text-white shadow-sm"
+            : "text-white/70 hover:text-white"
         )}
+        style={{
+          background:
+            tripType === "round"
+              ? "linear-gradient(to right, #0B5FD9, #0A8FE8, #0FB5F0)"
+              : undefined,
+          color: "white",
+        }}
+      >
+        Откуда — Куда
+      </button>
+      <button
+        type="button"
+        onClick={() => { setTripType("one"); setReturnDate(undefined); }}
+        className={cn(
+          "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
+          tripType === "one"
+            ? "text-white shadow-sm"
+            : "text-white/70 hover:text-white"
+        )}
+        style={{
+          background:
+            tripType === "one"
+              ? "linear-gradient(to right, #0B5FD9, #0A8FE8, #0FB5F0)"
+              : undefined,
+          color: "white",
+        }}
+      >
+        В одну сторону
+      </button>
+    </div>
+  </div>
+)}
 
         {errors.general && (
           <p className="text-sm text-red-400 rounded-md bg-red-500/10 px-3 py-2">{errors.general}</p>
