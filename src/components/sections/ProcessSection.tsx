@@ -17,7 +17,7 @@ const ProcessSection = () => {
     f.paragraph ||
     "Хотите узнавать о новых трендах раньше всех? Подписывайтесь на наш Instagram!";
   const ctaLabel = f.ctaLabel || "Перейти в Instagram";
-  const ctaHref = f.ctaHref || "https://instagram.com/tudasuda";
+  const ctaHref = f.ctaHref || "https://instagram.com/tstripru";
   const imageSrc = mediaOrFallback(f.image, instaImage);
   const bottomText =
     f.bottomText ||
