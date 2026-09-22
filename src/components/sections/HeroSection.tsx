@@ -33,9 +33,13 @@ const HeroSection = () => {
             key={heroSrc}
             src={heroSrc}
             alt=""
-            className="w-full h-full object-cover"
+            className={cn(
+              // Мобилка: сдвигаем вправо, чтобы попал самолёт
+              // Десктоп (md+): центр 30%
+              "w-full h-full object-cover",
+              "object-[75%_30%] md:object-[center_30%]"
+            )}
             style={{
-              objectPosition: "center 30%",
               height: "120%",
               transform: "translateY(-10%)",
             }}
