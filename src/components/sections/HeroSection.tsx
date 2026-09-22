@@ -2,9 +2,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Train, Plane, Bus } from "lucide-react";
 import { useRef, useState } from "react";
-import trainVideo from "@/assets/video/поезд.mp4";
-import flightVideo from "@/assets/video/самолёт новый.mp4";
-import busVideo from "@/assets/video/автобус.mp4";
+import heroImage from "@/assets/images/transport/samoletzxc.png";
 import { cn } from "@/lib/utils";
 import { usePageSectionFields } from "@/contexts/PageCmsContext";
 import { mediaOrFallback } from "@/lib/pageContentMerge";
@@ -20,9 +18,7 @@ const HeroSection = () => {
   const hero = usePageSectionFields<HeroFields>("hero");
   const titleText = hero.title || "Путешествие это легко!";
   const titleColor = hero.titleColor;
-  const trainSrc = mediaOrFallback(hero.videoTrain, trainVideo);
-  const flightSrc = mediaOrFallback(hero.videoFlight, flightVideo);
-  const busSrc = mediaOrFallback(hero.videoBus, busVideo);
+  const heroSrc = mediaOrFallback(hero.videoFlight, heroImage);
   const travelType: TravelType = "flight";
 
   // ===== СОСТОЯНИЕ ДЛЯ ПЕРЕКЛЮЧАТЕЛЯ =====
@@ -31,23 +27,19 @@ const HeroSection = () => {
   return (
     <CmsEditable sectionId="hero">
       <section id="hero-section" className="relative min-h-screen flex items-center overflow-hidden">
-        {/* Фон с видео и затемнением под формой */}
+        {/* Фон с изображением и затемнением под формой */}
         <div className="absolute inset-0 z-0 overflow-hidden">
-          <video
-            key={flightSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover object-top"
+          <img
+            key={heroSrc}
+            src={heroSrc}
+            alt=""
+            className="w-full h-full object-cover"
             style={{
               objectPosition: "center 30%",
               height: "120%",
               transform: "translateY(-10%)",
             }}
-          >
-            <source src={flightSrc} type="video/mp4" />
-          </video>
+          />
           {/* Затемнение фона под формой */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
         </div>
