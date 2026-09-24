@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import { useSEO } from "@/hooks/useSEO";
 import { PageCmsProvider } from "@/contexts/PageCmsContext";
 import { useMergedPublishedPage } from "@/hooks/usePageContent";
 import { renderPageSections } from "@/components/cms/PageSectionRenderer";
@@ -8,6 +9,7 @@ import { Loader2 } from "lucide-react";
 
 const Index = () => {
   const { content, isLoading } = useMergedPublishedPage("home");
+  const seo = useSEO("home");
 
   if (isLoading) {
     return (
@@ -19,10 +21,7 @@ const Index = () => {
 
   return (
     <PageCmsProvider pageKey="home" content={content}>
-      <SEO
-        title="TudaSuda — поиск билетов на поезд, самолёт и автобус"
-        description={content?.hero?.fields?.title || undefined}
-      />
+      <SEO title={seo.title} description={seo.description} />
       <div className="min-h-screen bg-white">
         <Header />
         <main className="hero-under-header">{renderPageSections("home", content)}</main>

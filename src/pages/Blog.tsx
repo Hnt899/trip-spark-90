@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import { useSEO } from "@/hooks/useSEO";
 import BlogArticleCard from "@/components/blog/BlogArticleCard";
 import EditorsPickSlider from "@/components/blog/EditorsPickSlider";
 import PartnersArticleScroller from "@/components/blog/PartnersArticleScroller";
@@ -19,9 +20,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { blogArticles } from "@/data/blogArticles";
 import { filterAndSortBlogArticles } from "@/lib/blogFeed";
-import { mergeBlogArticles } from "@/lib/mergeBlogArticles";
 import { apiFetch } from "@/lib/api";
 import type { BlogArticle } from "@/types/blogArticle";
 import { logoGradientText } from "@/lib/sectionSurface";
@@ -125,6 +124,7 @@ const SOCIAL_TILES: {
 ];
 
 const Blog = () => {
+  const seo = useSEO("blog");
   const { data: remoteArticles = [] } = useQuery({
     queryKey: ["blog-posts-public"],
     queryFn: () => apiFetch<BlogArticle[]>("/api/blog/posts"),
@@ -136,10 +136,7 @@ const Blog = () => {
     staleTime: 60_000,
   });
 
-  const allArticles = useMemo(
-    () => mergeBlogArticles(remoteArticles, blogArticles),
-    [remoteArticles],
-  );
+  const allArticles = remoteArticles;
   const [channel, setChannel] = useState<BlogChannelTab>("all");
   const [sort, setSort] = useState<BlogSortMode>("new");
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(
@@ -222,10 +219,7 @@ const Blog = () => {
 
   return (
     <div className="min-h-screen bg-white text-foreground dark:bg-background">
-      <SEO
-        title="Блог о путешествиях — TudaSuda"
-        description="Статьи о путешествиях по России и миру: лайфхаки, обзоры, инструкции и вдохновение."
-      />
+      <SEO title={seo.title} description={seo.description} />
       <Header />
       <main className="mx-auto min-w-0 max-w-[1280px] overflow-x-hidden px-4 pb-16 pt-[calc(var(--site-header-height)+1.5rem)] md:px-6 lg:px-8 lg:pb-20">
         <header className="relative mb-10 md:mb-14">
@@ -503,19 +497,24 @@ const Blog = () => {
           </aside>
         </div>
 
-        <div className="mt-14 w-full border-t border-slate-200 pt-12 dark:border-slate-800 md:mt-16 md:pt-14">
-          <EditorsPickSlider articles={editorsPickArticles} />
-        </div>
+        {editorsPickArticles.length > 0 && (
+          <div className="mt-14 w-full border-t border-slate-200 pt-12 dark:border-slate-800 md:mt-16 md:pt-14">
+            <EditorsPickSlider articles={editorsPickArticles} />
+          </div>
+        )}
 
-        <div className="mt-16 w-full border-t border-slate-200 pt-16 dark:border-slate-800">
-          <PartnersArticleScroller
-            id="blog-partners-heading"
-            title="Рекомендуют наши партнёры"
-            articles={partnerCarouselArticles}
-            layout="grid"
-          />
-        </div>
+        {partnerCarouselArticles.length > 0 && (
+          <div className="mt-16 w-full border-t border-slate-200 pt-16 dark:border-slate-800">
+            <PartnersArticleScroller
+              id="blog-partners-heading"
+              title="Рекомендуют наши партнёры"
+              articles={partnerCarouselArticles}
+              layout="grid"
+            />
+          </div>
+        )}
 
+        {sponsoredArticles.length > 0 && (
         <section
           className="mb-16 w-full rounded-3xl border border-amber-200/90 bg-gradient-to-b from-amber-50/95 via-white to-white p-6 shadow-[0_12px_40px_rgba(146,94,20,0.09)] md:p-8 dark:border-amber-900/55 dark:from-amber-950/35 dark:via-slate-950 dark:to-slate-950"
           aria-labelledby="blog-sponsored-heading"
@@ -547,6 +546,7 @@ const Blog = () => {
             ))}
           </div>
         </section>
+        )}
 
         <section
           className="mb-12 w-full min-w-0 rounded-3xl border border-sky-200/85 bg-gradient-to-br from-sky-50/95 via-white to-blue-50/35 p-6 shadow-[0_10px_36px_rgba(56,130,190,0.08)] md:mb-14 md:p-7 dark:border-sky-900/55 dark:from-sky-950/35 dark:via-slate-950 dark:to-blue-950/25"

@@ -144,7 +144,7 @@ export default function ArticleTocSidebar({
             >
               <span
                 className={cn(
-                  "max-w-[8.5rem] shrink-0 text-sm italic leading-snug transition-colors",
+                  "w-[8.5rem] shrink-0 text-sm italic leading-snug transition-colors",
                   active === i ? "font-semibold text-[#0A8FE8]" : "text-[#0A8FE8]/85",
                 )}
               >
@@ -152,7 +152,7 @@ export default function ArticleTocSidebar({
               </span>
               <span
                 className={cn(
-                  "h-px min-w-[2.5rem] flex-1 transition-colors",
+                  "h-px w-[2.5rem] shrink-0 transition-colors",
                   active === i ? "bg-[#0A8FE8]" : "bg-[#0A8FE8]/40 group-hover:bg-[#0A8FE8]/65",
                 )}
                 aria-hidden

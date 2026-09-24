@@ -22,7 +22,7 @@ function toStory(a: BlogArticle, index: number) {
   return {
     id: a.id || String(index),
     city: a.title,
-    text: a.excerpt || "",
+    text: a.title,
     images: a.coverImage ? [a.coverImage] : [],
     href: `/blog/${a.slug}`,
     date: a.publishedAt,
