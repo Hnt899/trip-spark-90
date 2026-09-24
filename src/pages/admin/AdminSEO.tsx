@@ -45,7 +45,7 @@ export default function AdminSEO() {
     mutationFn: ({ pageKey, data }: { pageKey: string; data: Partial<SeoItem> }) =>
       apiFetch<SeoItem>(`/api/admin/seo/${pageKey}`, {
         method: "PUT",
-        body: data,
+        body: JSON.stringify(data),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-seo"] });

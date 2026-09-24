@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
-import { Plane, BedDouble, Pencil, Trash2, ImagePlus, X } from "lucide-react";
+import { Plane, Pencil, Trash2, ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,8 +22,6 @@ export function QuickBookingView({
   const title = (node.attrs.title as string) || "Забронировать жильё и купить билеты можно на TudaSuda";
   const button1Text = (node.attrs.button1Text as string) || "Найти билеты";
   const button1Url = (node.attrs.button1Url as string) || "";
-  const button2Text = (node.attrs.button2Text as string) || "Выбрать отель";
-  const button2Url = (node.attrs.button2Url as string) || "";
   const image = (node.attrs.image as string) || "";
   const imageAlt = (node.attrs.imageAlt as string) || "";
   const bgGradient = (node.attrs.bgGradient as string) || "from-[#0A8FE8] to-[#0FB5F0]";
@@ -32,16 +30,12 @@ export function QuickBookingView({
   const [formTitle, setFormTitle] = useState(title);
   const [formButton1Text, setFormButton1Text] = useState(button1Text);
   const [formButton1Url, setFormButton1Url] = useState(button1Url);
-  const [formButton2Text, setFormButton2Text] = useState(button2Text);
-  const [formButton2Url, setFormButton2Url] = useState(button2Url);
   const [uploading, setUploading] = useState(false);
 
   const handleOpen = () => {
     setFormTitle(title);
     setFormButton1Text(button1Text);
     setFormButton1Url(button1Url);
-    setFormButton2Text(button2Text);
-    setFormButton2Url(button2Url);
     setOpen(true);
   };
 
@@ -50,8 +44,6 @@ export function QuickBookingView({
       title: formTitle,
       button1Text: formButton1Text,
       button1Url: formButton1Url,
-      button2Text: formButton2Text,
-      button2Url: formButton2Url,
     });
     setOpen(false);
   };
@@ -114,15 +106,6 @@ export function QuickBookingView({
                 >
                   <Plane className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                   {button1Text}
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full rounded-full border-white bg-white/10 px-4 py-4 text-base font-semibold text-white hover:bg-white/20 hover:text-white sm:w-auto md:px-6 md:py-6 md:text-lg"
-                  onClick={() => button2Url && window.open(button2Url, "_blank")}
-                >
-                  <BedDouble className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-                  {button2Text}
                 </Button>
               </div>
             </div>
@@ -187,7 +170,7 @@ export function QuickBookingView({
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="qb-btn1-text">Текст кнопки 1</Label>
+                <Label htmlFor="qb-btn1-text">Текст кнопки</Label>
                 <Input
                   id="qb-btn1-text"
                   value={formButton1Text}
@@ -195,30 +178,11 @@ export function QuickBookingView({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="qb-btn1-url">Ссылка кнопки 1</Label>
+                <Label htmlFor="qb-btn1-url">Ссылка кнопки</Label>
                 <Input
                   id="qb-btn1-url"
                   value={formButton1Url}
                   onChange={(e) => setFormButton1Url(e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="qb-btn2-text">Текст кнопки 2</Label>
-                <Input
-                  id="qb-btn2-text"
-                  value={formButton2Text}
-                  onChange={(e) => setFormButton2Text(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="qb-btn2-url">Ссылка кнопки 2</Label>
-                <Input
-                  id="qb-btn2-url"
-                  value={formButton2Url}
-                  onChange={(e) => setFormButton2Url(e.target.value)}
                   placeholder="https://..."
                 />
               </div>

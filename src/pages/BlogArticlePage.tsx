@@ -4,7 +4,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
-import { getBlogArticleBySlug } from "@/data/blogArticles";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { BlogArticle, BlogBadge } from "@/types/blogArticle";
@@ -46,9 +45,8 @@ const BlogArticlePage = () => {
     },
   });
 
-  const staticArticle = slug ? getBlogArticleBySlug(slug) : undefined;
   const article = remoteQ.data ?? undefined;
-  const meta: BlogArticle | undefined = article ?? staticArticle;
+  const meta: BlogArticle | undefined = article;
   const relatedPosts = article?.relatedPosts ?? [];
 
   if (remoteQ.isLoading) {
@@ -161,10 +159,6 @@ const BlogArticlePage = () => {
                   />
                 </div>
               ) : null}
-              <p className="mt-8 break-words text-lg leading-relaxed text-slate-700 dark:text-slate-200">
-                {meta.excerpt}
-              </p>
-
               {article ? (
                 <div className="mt-10 min-w-0">
                   <ArticleTocSidebar

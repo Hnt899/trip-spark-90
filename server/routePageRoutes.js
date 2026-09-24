@@ -293,7 +293,7 @@ export function registerRoutePublicRoutes(app) {
     try {
       const { rows } = await pool.query(
         `SELECT * FROM route_pages
-         WHERE (id::text = $1 OR legacy_id = $1) AND status = 'published'`,
+         WHERE (id::text = $1 OR legacy_id = $1 OR slug = $1) AND status = 'published'`,
         [id]
       );
       const row = rows[0];
@@ -434,8 +434,8 @@ export function registerAdminRouteRoutes(app) {
             slug = $2, name = $3, legacy_id = $4, region = $5, rating = $6,
             cover_image_url = $7, excerpt = $8, content_blocks = $9::jsonb,
             tabs = $10::jsonb, status = $11, published_at = $12, updated_at = NOW(),
-            seo_title = COALESCE($13, NULLIF('', '')),
-            seo_description = COALESCE($14, NULLIF('', ''))
+            seo_title = COALESCE(NULLIF($13, ''), NULL),
+            seo_description = COALESCE(NULLIF($14, ''), NULL)
           WHERE id = $1::uuid
           RETURNING *`,
           [

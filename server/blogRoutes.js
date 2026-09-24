@@ -1147,8 +1147,8 @@ export function registerAdminBlogRoutes(app) {
             reading_minutes = $9, badges = $10::text[], channel = $11,
             tag_ids = $12::text[], editors_pick = $13, partner_carousel = $14, sponsored_grid = $15,
             related_post_ids = $16::uuid[], updated_at = NOW(),
-            seo_title = COALESCE($17, NULLIF('', '')),
-            seo_description = COALESCE($18, NULLIF('', ''))
+            seo_title = COALESCE(NULLIF($17, ''), NULL),
+            seo_description = COALESCE(NULLIF($18, ''), NULL)
           WHERE id = $1::uuid
           RETURNING *`,
           [

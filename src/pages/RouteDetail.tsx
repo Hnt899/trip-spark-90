@@ -11,66 +11,6 @@ import { Star, ArrowLeft, Loader2 } from "lucide-react";
 import BlogBlockRenderer from "@/components/blog/BlogBlockRenderer";
 import type { BlogContentBlock, RouteTab } from "@/types/blogContent";
 
-import karelia from "@/assets/images/cities/karelia.jpg";
-import moscow from "@/assets/images/cities/moscow.jpg";
-import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
-import kazan from "@/assets/images/cities/kazan.jpg";
-import novgorod from "@/assets/images/cities/novgorod.jpg";
-import armenia from "@/assets/images/cities/armenia.jpg";
-import china from "@/assets/images/cities/china.jpg";
-import heroTrain from "@/assets/images/hero/hero-train.jpg";
-
-interface LegacyRoute {
-  id: string;
-  name: string;
-  rating: number;
-  image: string;
-  region: string;
-}
-
-const legacyRoutes: LegacyRoute[] = [
-  { id: "1", name: "Владимирская область", rating: 8.2, image: karelia, region: "Центр" },
-  { id: "2", name: "Воронежская область", rating: 9.5, image: moscow, region: "Центр" },
-  { id: "3", name: "Зарайск и Коломна", rating: 8.5, image: stPetersburg, region: "Центр" },
-  { id: "5", name: "Ивановская область, маршрут №1", rating: 8.6, image: novgorod, region: "Центр" },
-  { id: "6", name: "Ивановская область, маршрут №2", rating: 9.5, image: armenia, region: "Центр" },
-  { id: "7", name: "Калининградская область, маршрут №1", rating: 9.3, image: china, region: "Северо-Запад" },
-  { id: "8", name: "Калининградская область, маршрут №4", rating: 9.0, image: heroTrain, region: "Северо-Запад" },
-  { id: "10", name: "Мурманская область, маршрут №1", rating: 9.3, image: moscow, region: "Северо-Запад" },
-  { id: "11", name: "Мурманская область, маршрут №2", rating: 9.8, image: stPetersburg, region: "Северо-Запад" },
-  { id: "13", name: "Архангельская область", rating: 9.3, image: karelia, region: "Северо-Запад" },
-  { id: "9", name: "Краснодарский край", rating: 10, image: karelia, region: "Юг" },
-  { id: "14", name: "Ростов-на-Дону", rating: 9.1, image: moscow, region: "Юг" },
-  { id: "15", name: "Крым", rating: 9.7, image: stPetersburg, region: "Юг" },
-  { id: "16", name: "Ставропольский край", rating: 8.8, image: kazan, region: "Юг" },
-  { id: "17", name: "Сочи и окрестности", rating: 9.6, image: novgorod, region: "Юг" },
-  { id: "18", name: "Казань", rating: 9.4, image: kazan, region: "Поволжье" },
-  { id: "19", name: "Самара", rating: 8.7, image: armenia, region: "Поволжье" },
-  { id: "20", name: "Нижний Новгород", rating: 9.2, image: china, region: "Поволжье" },
-  { id: "21", name: "Волгоград", rating: 8.9, image: heroTrain, region: "Поволжье" },
-  { id: "22", name: "Великий Волжский путь", rating: 9.7, image: karelia, region: "Поволжье" },
-  { id: "4", name: "Екатеринбург", rating: 8.9, image: kazan, region: "Урал" },
-  { id: "23", name: "Челябинск", rating: 8.4, image: moscow, region: "Урал" },
-  { id: "24", name: "Пермь", rating: 8.6, image: stPetersburg, region: "Урал" },
-  { id: "25", name: "Тюмень", rating: 9.0, image: kazan, region: "Урал" },
-  { id: "26", name: "ХМАО - Югра", rating: 9.9, image: novgorod, region: "Урал" },
-  { id: "12", name: "Новосибирская область", rating: 7.4, image: kazan, region: "Сибирь" },
-  { id: "27", name: "Красноярск", rating: 8.8, image: armenia, region: "Сибирь" },
-  { id: "28", name: "Иркутск и Байкал", rating: 9.8, image: china, region: "Сибирь" },
-  { id: "29", name: "Алтайский край", rating: 9.7, image: heroTrain, region: "Сибирь" },
-  { id: "30", name: "Томск", rating: 8.5, image: karelia, region: "Сибирь" },
-  { id: "31", name: "Дагестан", rating: 9.3, image: moscow, region: "Кавказ" },
-  { id: "32", name: "Карачаево-Черкесия", rating: 9.1, image: stPetersburg, region: "Кавказ" },
-  { id: "33", name: "Кабардино-Балкария", rating: 9.5, image: kazan, region: "Кавказ" },
-  { id: "34", name: "Осетия", rating: 9.0, image: novgorod, region: "Кавказ" },
-  { id: "35", name: "Чечня", rating: 9.2, image: armenia, region: "Кавказ" },
-  { id: "36", name: "Владивосток и окрестности", rating: 10, image: china, region: "Дальний Восток" },
-  { id: "37", name: "Хабаровск", rating: 8.9, image: heroTrain, region: "Дальний Восток" },
-  { id: "38", name: "Камчатка", rating: 9.8, image: karelia, region: "Дальний Восток" },
-  { id: "39", name: "Сахалин", rating: 9.4, image: moscow, region: "Дальний Восток" },
-  { id: "40", name: "Якутия", rating: 9.6, image: stPetersburg, region: "Дальний Восток" },
-];
-
 type ApiRoute = {
   id: string;
   legacy_id: string | null;
@@ -153,11 +93,10 @@ const RouteDetail = () => {
     }
   };
 
-  const legacy = legacyRoutes.find((r) => r.id === id);
-  const routeName = apiRoute?.name ?? legacy?.name;
-  const routeRegion = apiRoute?.region ?? legacy?.region ?? "";
-  const routeRating = apiRoute?.rating ?? legacy?.rating ?? 0;
-  const routeImage = apiRoute?.cover_image_url ?? legacy?.image;
+  const routeName = apiRoute?.name;
+  const routeRegion = apiRoute?.region ?? "";
+  const routeRating = apiRoute?.rating ?? 0;
+  const routeImage = apiRoute?.cover_image_url;
 
   const currentBlocks: BlogContentBlock[] = (() => {
     if (activeTabId === "__main__") {
@@ -193,7 +132,7 @@ const RouteDetail = () => {
             <img
               src={block.url}
               alt={block.alt || "Изображение"}
-              className="w-full h-[560px] object-cover rounded-lg"
+              className="w-full aspect-[16/9] object-cover rounded-lg"
               loading="lazy"
             />
             {block.caption && (
@@ -275,7 +214,7 @@ const RouteDetail = () => {
                 <img
                   src={routeImage}
                   alt={routeName}
-                  className="w-full h-[560px] object-cover"
+                  className="w-full aspect-[16/9] object-cover"
                 />
               </div>
             )}

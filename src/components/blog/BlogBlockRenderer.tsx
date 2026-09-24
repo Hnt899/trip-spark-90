@@ -133,14 +133,17 @@ export default function BlogBlockRenderer({
               </p>
             );
           case "heading": {
-            const L = Math.min(3, Math.max(1, Number(block.level) || 2));
+            const L = Math.min(4, Math.max(1, Number(block.level) || 2));
             const cls =
               L === 1
                 ? "text-2xl font-bold mt-10 mb-4"
                 : L === 2
                   ? "text-xl font-semibold mt-8 mb-3"
-                  : "text-lg font-semibold mt-6 mb-2";
-            const Tag = (L === 1 ? "h2" : L === 2 ? "h3" : "h4") as keyof JSX.IntrinsicElements;
+                  : L === 3
+                    ? "text-lg font-semibold mt-6 mb-2"
+                    : "text-base font-semibold mt-5 mb-2";
+            // Уровень Tiptap напрямую соответствует тегу: H2 в админке => <h2> на сайте
+            const Tag = (`h${L}`) as keyof JSX.IntrinsicElements;
             const headingId =
               block.anchor && block.anchorOrdinal
                 ? `anchor-${block.anchorOrdinal}`
@@ -389,15 +392,6 @@ export default function BlogBlockRenderer({
                       >
                         <Plane className="h-4 w-4 md:h-5 md:w-5" />
                         {block.button1Text}
-                      </a>
-                      <a
-                        href={block.button2Url || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white bg-white/10 px-6 py-4 text-base font-semibold text-white transition-colors hover:bg-white/20 sm:w-auto"
-                      >
-                        <BedDouble className="h-4 w-4 md:h-5 md:w-5" />
-                        {block.button2Text}
                       </a>
                     </div>
                   </div>
