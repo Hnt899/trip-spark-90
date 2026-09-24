@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -40,6 +41,8 @@ type Loaded = {
   status: string;
   seo_title?: string | null;
   seo_description?: string | null;
+  show_in_menu?: boolean | null;   // ← новое
+  menu_order?: number | null;      // ← новое
 };
 
 export default function AdminRouteEdit() {
@@ -67,6 +70,8 @@ export default function AdminRouteEdit() {
   const [status, setStatus] = useState<"draft" | "published">("draft");
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
+  const [showInMenu, setShowInMenu] = useState(false);   // ← новое
+  const [menuOrder, setMenuOrder] = useState("0");       // ← новое
 
   const hydratedRef = useRef<string | null>(null);
   const [editorKey, setEditorKey] = useState(0);
@@ -95,6 +100,8 @@ export default function AdminRouteEdit() {
     setStatus("draft");
     setSeoTitle("");
     setSeoDescription("");
+    setShowInMenu(false);
+    setMenuOrder("0");
     setEditorKey((k) => k + 1);
   }, [isNew, routeId]);
 
@@ -119,6 +126,8 @@ export default function AdminRouteEdit() {
     setStatus(row.status === "published" ? "published" : "draft");
     setSeoTitle(row.seo_title || "");
     setSeoDescription(row.seo_description || "");
+    setShowInMenu(!!row.show_in_menu);
+    setMenuOrder(String(row.menu_order ?? 0));
     setActiveTabId("__main__");
     setEditorKey((k) => k + 1);
   }, [isNew, routeId, loadQ.data]);
@@ -201,6 +210,8 @@ export default function AdminRouteEdit() {
         status,
         seo_title: seoTitle.trim() || null,
         seo_description: seoDescription.trim() || null,
+        show_in_menu: showInMenu,                                // ← новое
+        menu_order: parseInt(menuOrder, 10) || 0,                // ← новое
       };
       if (isNew) {
         return apiFetch<Loaded>("/api/admin/routes", {
@@ -217,6 +228,7 @@ export default function AdminRouteEdit() {
       qc.invalidateQueries({ queryKey: ["admin-route-pages"] });
       qc.invalidateQueries({ queryKey: ["admin-route-page", routeId] });
       qc.invalidateQueries({ queryKey: ["route-page-public"] });
+      qc.invalidateQueries({ queryKey: ["header-routes-menu"] });   // ← новое
       if (isNew && data?.id) {
         navigate(`/admin/routes/${data.id}`, { replace: true });
       }
@@ -229,6 +241,7 @@ export default function AdminRouteEdit() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-route-pages"] });
       qc.invalidateQueries({ queryKey: ["route-page-public"] });
+      qc.invalidateQueries({ queryKey: ["header-routes-menu"] });   // ← новое
       navigate("/admin/routes");
     },
   });
@@ -360,6 +373,37 @@ export default function AdminRouteEdit() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ← НОВЫЙ БЛОК: Меню шапки */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Меню шапки</CardTitle>
+          <CardDescription>
+            Управляет выпадающим списком «Маршруты» в шапке сайта. Если ни у одного
+            маршрута галочка не стоит — показывается резервный список.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={showInMenu}
+              onCheckedChange={(v) => setShowInMenu(!!v)}
+            />
+            Показывать этот маршрут в меню шапки
+          </label>
+          <div className="grid gap-2 sm:max-w-xs">
+            <Label htmlFor="menuOrder">Порядок в меню (меньше — выше)</Label>
+            <Input
+              id="menuOrder"
+              type="number"
+              step={1}
+              value={menuOrder}
+              onChange={(e) => setMenuOrder(e.target.value)}
+              disabled={!showInMenu}
+            />
           </div>
         </CardContent>
       </Card>

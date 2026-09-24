@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
@@ -14,6 +15,13 @@ import logoMobile2 from "@/assets/images/logo/logom.png";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import FlightSearchForm from "@/components/flight/FlightSearchForm";
+
+type MenuRouteRow = {
+  slug: string;
+  name: string;
+  show_in_menu: boolean;
+  menu_order: number;
+};
 
 const Header = () => {
   const location = useLocation();
@@ -35,6 +43,34 @@ const Header = () => {
   const isBlogNavActive =
     location.pathname === "/blog" || location.pathname.startsWith("/blog/");
   const isMobile = useIsMobile();
+
+  // Пункты меню "Маршруты" в шапке: тянем из API, fallback — статический список.
+  const routesMenuQ = useQuery<MenuRouteRow[]>({
+    queryKey: ["header-routes-menu"],
+    queryFn: () =>
+      fetch("/api/route-pages").then((r) => {
+        if (!r.ok) throw new Error(`${r.status}`);
+        return r.json() as Promise<MenuRouteRow[]>;
+      }),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  const navRouteItems = useMemo(() => {
+    const rows = routesMenuQ.data ?? [];
+    const menu = rows
+      .filter((r) => r.show_in_menu)
+      .sort(
+        (a, b) =>
+          (a.menu_order ?? 0) - (b.menu_order ?? 0) ||
+          a.name.localeCompare(b.name),
+      )
+      .map((r) => ({
+        label: r.name,
+        href: `/routes/${r.slug}`,
+      }));
+    return menu.length > 0 ? menu : popularRoutes;
+  }, [routesMenuQ.data]);
 
   useEffect(() => {
     if (!isHomePage && !isRoutesPage && !isBlogPage) {
@@ -307,7 +343,7 @@ const Header = () => {
               </Link>
               <NavDropdown
                 label="Маршруты"
-                items={popularRoutes}
+                items={navRouteItems}
                 href="/routes"
                 isActive={isActive("/routes") || location.pathname.startsWith("/routes/")}
                 isHomePage={isHomePage && isHeroMode}
@@ -557,7 +593,7 @@ const Header = () => {
             </Link>
             <NavDropdown
               label="Маршруты"
-              items={popularRoutes}
+              items={navRouteItems}
               href="/routes"
               isActive={isActive("/routes") || location.pathname.startsWith("/routes/")}
               isHomePage={isHomePage && isHeroMode}

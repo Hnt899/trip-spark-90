@@ -3,6 +3,7 @@ import { useEditor, EditorContent, type JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Dropcursor from "@tiptap/extension-dropcursor";
+import Link from "@tiptap/extension-link";
 import { Table, TableRow, TableHeader, TableCell } from "@tiptap/extension-table";
 import { BlogImageExtension } from "./BlogImageExtension";
 import { BlogGalleryExtension } from "./BlogGalleryExtension";
@@ -46,6 +47,14 @@ export default function TiptapEditor({ initialBlocks, onChange, anchorLimit }: P
       Dropcursor.configure({ color: "hsl(var(--primary))", width: 3 }),
       Placeholder.configure({
         placeholder: "Начните писать статью…",
+      }),
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        linkOnPaste: true,
+        HTMLAttributes: {
+          rel: "noopener noreferrer nofollow",
+        },
       }),
       Table.configure({ resizable: true }),
       TableRow,

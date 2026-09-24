@@ -23,6 +23,19 @@ type ApiRoute = {
   content_blocks: BlogContentBlock[];
   views: number;
   tabs?: RouteTab[];
+  seo_title?: string | null;
+  seo_description?: string | null;
+};
+
+type RelatedRoute = {
+  id: string;
+  legacy_id: string | null;
+  slug: string;
+  name: string;
+  region: string;
+  rating: number;
+  cover_image_url: string | null;
+  excerpt: string;
 };
 
 const RouteDetail = () => {
@@ -45,7 +58,7 @@ const RouteDetail = () => {
   const apiRoute = apiQ.data;
   const isLoading = apiQ.isLoading;
 
-  // Сбрасываем активный таб при смене маршрута (только при смене id, не при ре-рендере)
+  // Сбрасываем активный таб при смене маршрута
   useEffect(() => {
     if (apiRoute?.id) {
       setActiveTabId("__main__");
@@ -56,15 +69,16 @@ const RouteDetail = () => {
     queryKey: ["related-routes", apiRoute?.region],
     enabled: !!apiRoute?.region,
     queryFn: () =>
-      fetch(`/api/route-pages/related?region=${encodeURIComponent(apiRoute!.region)}&exclude=${apiRoute!.id}`)
-        .then((r) => {
-          if (!r.ok) throw new Error("Failed to fetch related");
-          return r.json();
-        }),
+      fetch(
+        `/api/route-pages/related?region=${encodeURIComponent(apiRoute!.region)}&exclude=${apiRoute!.id}`,
+      ).then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch related");
+        return r.json() as Promise<RelatedRoute[]>;
+      }),
   });
 
   const [relatedPage, setRelatedPage] = useState(0);
-  const [allRelated, setAllRelated] = useState<any[]>([]);
+  const [allRelated, setAllRelated] = useState<RelatedRoute[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
@@ -80,10 +94,10 @@ const RouteDetail = () => {
     try {
       const offset = (relatedPage + 1) * 3;
       const res = await fetch(
-        `/api/route-pages/related?region=${encodeURIComponent(apiRoute.region)}&exclude=${apiRoute.id}&offset=${offset}`
+        `/api/route-pages/related?region=${encodeURIComponent(apiRoute.region)}&exclude=${apiRoute.id}&offset=${offset}`,
       );
       if (!res.ok) throw new Error("Failed to load more");
-      const data = await res.json();
+      const data = (await res.json()) as RelatedRoute[];
       setAllRelated((prev) => [...prev, ...data]);
       setRelatedPage((prev) => prev + 1);
     } catch (e) {
@@ -136,7 +150,9 @@ const RouteDetail = () => {
               loading="lazy"
             />
             {block.caption && (
-              <p className="mt-2 text-center text-sm text-muted-foreground">{block.caption}</p>
+              <p className="mt-2 text-center text-sm text-muted-foreground">
+                {block.caption}
+              </p>
             )}
           </div>
         );
@@ -165,7 +181,7 @@ const RouteDetail = () => {
           <h1 className="heading-gradient mb-6 text-2xl font-bold tracking-tight md:text-4xl">
             Маршрут не найден
           </h1>
-          <Button onClick={() => navigate("/routes/list")}>
+          <Button onClick={() => navigate("/routes")}>
             Вернуться к списку маршрутов
           </Button>
         </main>
@@ -174,15 +190,21 @@ const RouteDetail = () => {
     );
   }
 
+  // Canonical URL — по slug, а не по UUID
+  const canonicalUrl =
+    typeof window !== "undefined" && apiRoute?.slug
+      ? `${window.location.origin}/routes/${apiRoute.slug}`
+      : undefined;
+
   return (
     <div className="min-h-screen bg-[#F5F5FA]">
       <Header />
       <main className="pt-20 md:pt-16">
         <SEO
-          title={apiRoute?.name || routeName || "Маршрут"}
-          description={apiRoute?.excerpt}
+          title={apiRoute?.seo_title || apiRoute?.name || routeName || "Маршрут"}
+          description={apiRoute?.seo_description || apiRoute?.excerpt}
           image={routeImage || undefined}
-          url={window.location.href}
+          url={canonicalUrl}
         />
         {/* Третья шапка с табами — только если есть дополнительные табы */}
         {apiRoute?.tabs && apiRoute.tabs.length > 0 && (
@@ -191,7 +213,6 @@ const RouteDetail = () => {
             activeTabId={activeTabId}
             onChange={(id) => {
               setActiveTabId(id);
-              // Ждём перерендер контента, потом скроллим в начало страницы
               requestAnimationFrame(() => {
                 window.scrollTo(0, 0);
               });
@@ -201,7 +222,7 @@ const RouteDetail = () => {
         <div className="container px-4 py-6 md:px-6 md:py-12">
           <Button
             variant="ghost"
-            onClick={() => navigate("/routes/list")}
+            onClick={() => navigate("/routes")}
             className="mb-4 text-sm md:mb-6 md:text-base"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -246,31 +267,41 @@ const RouteDetail = () => {
                 Похожие маршруты
               </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {allRelated.map((route) => (
-                  <Card
-                    key={route.id}
-                    className="overflow-hidden shadow-md transition-shadow hover:shadow-xl cursor-pointer"
-                    onClick={() => navigate(`/routes/${route.id}`)}
-                  >
-                    {route.cover_image_url && (
-                      <div className="h-40 overflow-hidden md:h-48">
-                        <img
-                          src={route.cover_image_url}
-                          alt={route.name}
-                          className="h-full w-full object-cover transition-transform hover:scale-105"
-                        />
-                      </div>
-                    )}
-                    <CardContent className="p-4">
-                      <h3 className="mb-1 text-lg font-semibold line-clamp-1">{route.name}</h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">{route.excerpt || route.region}</p>
-                      <div className="mt-2 flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-medium">{route.rating}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {allRelated.map((route) => {
+                  // Ключ навигации: slug, если есть. Fallback — id/legacy_id.
+                  const navKey = route.slug || route.legacy_id || route.id;
+                  return (
+                    <Card
+                      key={route.id}
+                      className="overflow-hidden shadow-md transition-shadow hover:shadow-xl cursor-pointer"
+                      onClick={() => navigate(`/routes/${navKey}`)}
+                    >
+                      {route.cover_image_url && (
+                        <div className="h-40 overflow-hidden md:h-48">
+                          <img
+                            src={route.cover_image_url}
+                            alt={route.name}
+                            className="h-full w-full object-cover transition-transform hover:scale-105"
+                          />
+                        </div>
+                      )}
+                      <CardContent className="p-4">
+                        <h3 className="mb-1 text-lg font-semibold line-clamp-1">
+                          {route.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {route.excerpt || route.region}
+                        </p>
+                        <div className="mt-2 flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm font-medium">
+                            {route.rating}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
               {relatedRoutes && relatedRoutes.length === 3 && (

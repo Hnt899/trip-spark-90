@@ -4,13 +4,13 @@ import blogImage from "@/assets/images/features/на блог.png";
 export const HOME_SECTION_ORDER = [
   "hero",
   "features",
-  "recommendedTrains",
-  "routesSection",
+  "recommendedTrains",   // Горящие направления
+  "blogInvite",          // ← переставлено: Актуальные новости для путешественников
+  "routesSection",       // Популярные направления
   "events",
   "inspiration",
   "testimonials",
   "support",
-  "blogInvite",
   "verified",
 ] as const;
 

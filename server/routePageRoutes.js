@@ -223,6 +223,8 @@ function parseBody(body) {
     publishedAt = publishedAt && !Number.isNaN(publishedAt.getTime()) ? publishedAt : null;
   }
 
+  const menuOrderRaw = parseInt(String(body.menu_order ?? "0"), 10);
+
   return {
     data: {
       slug,
@@ -238,6 +240,8 @@ function parseBody(body) {
       published_at: publishedAt,
       seo_title: body.seo_title ? String(body.seo_title).slice(0, 200) : null,
       seo_description: body.seo_description ? String(body.seo_description).slice(0, 500) : null,
+      show_in_menu: !!body.show_in_menu,
+      menu_order: Number.isFinite(menuOrderRaw) ? menuOrderRaw : 0,
     },
   };
 }
@@ -250,10 +254,11 @@ export function registerRoutePublicRoutes(app) {
   app.get("/api/route-pages", async (_req, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT id, legacy_id, slug, name, region, rating, cover_image_url, excerpt, views
+        `SELECT id, legacy_id, slug, name, region, rating, cover_image_url, excerpt, views,
+                show_in_menu, menu_order
          FROM route_pages
          WHERE status = 'published'
-         ORDER BY rating DESC, name ASC`
+         ORDER BY show_in_menu DESC, menu_order ASC, rating DESC, name ASC`
       );
       res.json(rows);
     } catch (e) {
@@ -324,7 +329,8 @@ export function registerAdminRouteRoutes(app) {
   app.get("/api/admin/routes", adminMiddleware, async (_req, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT id, legacy_id, slug, name, region, rating, cover_image_url, status, updated_at
+        `SELECT id, legacy_id, slug, name, region, rating, cover_image_url, status, updated_at,
+                show_in_menu, menu_order
          FROM route_pages
          ORDER BY updated_at DESC`
       );
@@ -366,8 +372,9 @@ export function registerAdminRouteRoutes(app) {
         const { rows } = await pool.query(
           `INSERT INTO route_pages (
             slug, name, legacy_id, region, rating, cover_image_url, excerpt,
-            content_blocks, tabs, status, published_at, author_id, seo_title, seo_description
-          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11,$12,$13,$14)
+            content_blocks, tabs, status, published_at, author_id, seo_title, seo_description,
+            show_in_menu, menu_order
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11,$12,$13,$14,$15,$16)
           RETURNING *`,
           [
             d.slug, d.name, d.legacy_id, d.region, d.rating,
@@ -376,6 +383,8 @@ export function registerAdminRouteRoutes(app) {
             req.userId,
             d.seo_title,
             d.seo_description,
+            d.show_in_menu,
+            d.menu_order,
           ]
         );
         res.status(201).json(rows[0]);
@@ -435,7 +444,9 @@ export function registerAdminRouteRoutes(app) {
             cover_image_url = $7, excerpt = $8, content_blocks = $9::jsonb,
             tabs = $10::jsonb, status = $11, published_at = $12, updated_at = NOW(),
             seo_title = COALESCE(NULLIF($13, ''), NULL),
-            seo_description = COALESCE(NULLIF($14, ''), NULL)
+            seo_description = COALESCE(NULLIF($14, ''), NULL),
+            show_in_menu = $15,
+            menu_order = $16
           WHERE id = $1::uuid
           RETURNING *`,
           [
@@ -453,6 +464,12 @@ export function registerAdminRouteRoutes(app) {
             publishedAt,
             b.seo_title !== undefined ? (b.seo_title ? String(b.seo_title).slice(0, 200) : null) : cur.seo_title,
             b.seo_description !== undefined ? (b.seo_description ? String(b.seo_description).slice(0, 500) : null) : cur.seo_description,
+            b.show_in_menu !== undefined ? !!b.show_in_menu : cur.show_in_menu,
+            b.menu_order !== undefined
+              ? (Number.isFinite(parseInt(String(b.menu_order), 10))
+                  ? parseInt(String(b.menu_order), 10)
+                  : 0)
+              : cur.menu_order,
           ]
         );
         res.json(rows[0]);

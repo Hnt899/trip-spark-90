@@ -41,10 +41,12 @@ import {
   Route,
   Link2,
   Plane,
-  Link,
+  Anchor,
+  Hash,
 } from "lucide-react";
 import { toggleAnchorOnActiveBlock, countAnchors } from "@/lib/tiptapAnchors";
 import { AnchorLinkDialog } from "./AnchorLinkDialog";
+import { LinkDialog } from "./LinkDialog";
 
 function Tip({
   children,
@@ -166,6 +168,7 @@ export function TiptapToolbar({
   anchorLimit?: number;
 }) {
   const [anchorDialogOpen, setAnchorDialogOpen] = useState(false);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const anchorCount = countAnchors(editor);
   const limitReached = anchorLimit != null && anchorCount >= anchorLimit;
   const isAnchorActive =
@@ -295,7 +298,7 @@ export function TiptapToolbar({
               }}
               aria-label="Якорь"
             >
-              <Link2 className="h-4 w-4" />
+              <Anchor className="h-4 w-4" />
               {anchorLimit != null && (
                 <span className="ml-1 text-[10px] tabular-nums opacity-70">
                   {anchorCount}/{anchorLimit}
@@ -305,8 +308,8 @@ export function TiptapToolbar({
           </Tip>
 
           <Tip
-            label="Ссылка"
-            description="Делает выделенный текст ссылкой на обычный или табличный якорь."
+            label="Ссылка на якорь"
+            description="Делает выделенный текст ссылкой на обычный или табличный якорь внутри статьи."
           >
             <Button
               type="button"
@@ -315,8 +318,26 @@ export function TiptapToolbar({
               className="h-9 px-2.5"
               onClick={() => setAnchorDialogOpen(true)}
             >
-              <Link className="h-4 w-4" />
+              <Hash className="h-4 w-4" />
             </Button>
+          </Tip>
+
+          <Tip
+            label="Ссылка"
+            shortcut="Ctrl+K"
+            description="Превращает выделенный текст в кликабельную ссылку. Можно указать внешний URL или внутренний путь."
+          >
+            <Toggle
+              size="sm"
+              pressed={
+                editor.isActive("link") &&
+                !String(editor.getAttributes("link").href || "").startsWith("#")
+              }
+              onPressedChange={() => setLinkDialogOpen(true)}
+              aria-label="Ссылка"
+            >
+              <Link2 className="h-4 w-4" />
+            </Toggle>
           </Tip>
 
           <Separator orientation="vertical" className="mx-1 h-6" />
@@ -550,6 +571,11 @@ export function TiptapToolbar({
         editor={editor}
         open={anchorDialogOpen}
         onOpenChange={setAnchorDialogOpen}
+      />
+      <LinkDialog
+        editor={editor}
+        open={linkDialogOpen}
+        onOpenChange={setLinkDialogOpen}
       />
     </>
   );
