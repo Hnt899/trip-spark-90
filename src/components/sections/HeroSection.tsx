@@ -10,6 +10,7 @@ import type { HeroFields } from "@/types/pageContent";
 import { CmsEditable } from "@/components/cms/CmsEditable";
 import { cmsColorStyle } from "@/lib/cmsStyle";
 import FlightSearchForm from "@/components/flight/FlightSearchForm";
+import WhiteLabelBusPortal from "@/components/WhiteLabelBusPortal";
 
 type TravelType = "train" | "flight" | "bus";
 
@@ -19,7 +20,8 @@ const HeroSection = () => {
   const titleText = hero.title || "Путешествие это легко!";
   const titleColor = hero.titleColor;
   const heroSrc = mediaOrFallback(hero.videoFlight, heroImage);
-  const travelType: TravelType = "flight";
+  // ===== АКТИВНАЯ ВКЛАДКА (Авиабилеты / Автобусы; Поезда скрыты) =====
+  const [travelType, setTravelType] = useState<TravelType>("flight");
 
   // ===== СОСТОЯНИЕ ДЛЯ ПЕРЕКЛЮЧАТЕЛЯ =====
   const [tripType, setTripType] = useState<"round" | "one">("round");
@@ -111,31 +113,46 @@ const HeroSection = () => {
               </h1>
             </div>
 
-            {/* Форма поиска — только авиа (поезда и автобусы скрыты) */}
+            {/* Форма поиска — Авиабилеты / Автобусы (поезда скрыты) */}
             <div ref={formRef} className="bg-black/40 backdrop-blur-xl rounded-lg ring-1 ring-white/10 ring-offset-0 p-4 md:p-5 space-y-4">
-              <Tabs value={travelType} defaultValue="flight" className="w-full">
+              <Tabs value={travelType} onValueChange={(v) => setTravelType(v as TravelType)} className="w-full">
                 {/* ===== ВЕРХНЯЯ СТРОКА ===== */}
                 <div className="w-full pb-3 border-b border-white/10">
                   <div className="flex items-center justify-between w-full gap-2">
-                    {/* Левая часть: кнопка "Авиабилеты" */}
+                    {/* Левая часть: вкладки "Авиабилеты" / "Автобусы" */}
                     <TabsList className="flex items-center gap-1 bg-white/10 p-1 h-10 flex-shrink-0">
                       <TabsTrigger
                         value="flight"
-                        className="flex items-center justify-center text-sm font-medium px-3 py-1.5 rounded-md bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm whitespace-nowrap"
+                        className={cn(
+                          "flex items-center justify-center text-sm font-medium px-3 py-1.5 rounded-md whitespace-nowrap transition-all",
+                          travelType === "flight"
+                            ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
+                            : "text-white/70 hover:text-white"
+                        )}
                       >
                         <Plane className="h-5 w-5 mr-2" />
                         <span className="tab-text">Авиабилеты</span>
                       </TabsTrigger>
+                      <TabsTrigger
+                        value="bus"
+                        className={cn(
+                          "flex items-center justify-center text-sm font-medium px-3 py-1.5 rounded-md whitespace-nowrap transition-all",
+                          travelType === "bus"
+                            ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
+                            : "text-white/70 hover:text-white"
+                        )}
+                      >
+                        <Bus className="h-5 w-5 mr-2" />
+                        <span className="tab-text">Автобусы</span>
+                      </TabsTrigger>
+                      {/* Вкладка "Поезда" скрыта (не удалять) */}
                       <TabsTrigger value="train" className="hidden" aria-hidden>
                         <Train className="h-5 w-5" />
                       </TabsTrigger>
-                      <TabsTrigger value="bus" className="hidden" aria-hidden>
-                        <Bus className="h-5 w-5" />
-                      </TabsTrigger>
                     </TabsList>
 
-                    {/* Правая часть: переключатели */}
-                    <div className="flex items-center gap-2">
+                    {/* Правая часть: переключатели (только для авиабилетов) */}
+                    <div className={cn("flex items-center gap-2", travelType !== "flight" && "invisible")}>
                       {/* Десктопная версия (от md) */}
                       <div className="hidden md:flex items-center gap-1 rounded-md p-1 bg-white/10 flex-shrink-0">
                         <button
@@ -188,7 +205,10 @@ const HeroSection = () => {
                     tripType={tripType}
                   />
                 </TabsContent>
-                <TabsContent value="bus" className="hidden" aria-hidden />
+                <TabsContent value="bus" className="mt-0">
+                  {/* White Label модуль — ТОЛЬКО для автобусов */}
+                  <WhiteLabelBusPortal />
+                </TabsContent>
               </Tabs>
             </div>
           </div>
