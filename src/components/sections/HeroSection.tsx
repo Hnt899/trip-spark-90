@@ -20,33 +20,25 @@ const HeroSection = () => {
   const titleText = hero.title || "Путешествие это легко!";
   const titleColor = hero.titleColor;
   const heroSrc = mediaOrFallback(hero.videoFlight, heroImage);
-  // ===== АКТИВНАЯ ВКЛАДКА (Авиабилеты / Автобусы; Поезда скрыты) =====
-  const [travelType, setTravelType] = useState<TravelType>("flight");
 
-  // ===== СОСТОЯНИЕ ДЛЯ ПЕРЕКЛЮЧАТЕЛЯ =====
+  const [travelType, setTravelType] = useState<TravelType>("flight");
   const [tripType, setTripType] = useState<"round" | "one">("round");
 
   return (
     <CmsEditable sectionId="hero">
       <section id="hero-section" className="relative min-h-screen flex items-center overflow-hidden">
-        {/* Фон с изображением и затемнением под формой */}
+        {/* Фон */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img
             key={heroSrc}
             src={heroSrc}
             alt=""
             className={cn(
-              // Мобилка: сдвигаем вправо, чтобы попал самолёт
-              // Десктоп (md+): центр 30%
               "w-full h-full object-cover",
               "object-[75%_30%] md:object-[center_30%]"
             )}
-            style={{
-              height: "120%",
-              transform: "translateY(-10%)",
-            }}
+            style={{ height: "120%", transform: "translateY(-10%)" }}
           />
-          {/* Затемнение фона под формой */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
         </div>
 
@@ -61,25 +53,41 @@ const HeroSection = () => {
                 )}
                 style={cmsColorStyle(titleColor)}
               >
-                {titleColor?.trim() ? (
-                  titleText
-                ) : (
-                  (() => {
-                    const text = titleText;
-                    const letters = text.split("");
-                    const animationDuration = 0.23;
-                    const totalCycleDuration = letters.length * animationDuration;
-                    const spaceIdx = text.indexOf(" ");
-                    const firstWordEnd = spaceIdx > 0 ? spaceIdx : Math.min(text.length, 12);
+                {titleColor?.trim()
+                  ? titleText
+                  : (() => {
+                      const text = titleText;
+                      const letters = text.split("");
+                      const animationDuration = 0.23;
+                      const totalCycleDuration = letters.length * animationDuration;
+                      const spaceIdx = text.indexOf(" ");
+                      const firstWordEnd =
+                        spaceIdx > 0 ? spaceIdx : Math.min(text.length, 12);
 
-                    return (
-                      <>
-                        <span className="whitespace-nowrap inline-block">
-                          {letters.slice(0, firstWordEnd).map((letter, index) => {
-                            const delay = index * animationDuration;
+                      return (
+                        <>
+                          <span className="whitespace-nowrap inline-block">
+                            {letters.slice(0, firstWordEnd).map((letter, index) => {
+                              const delay = index * animationDuration;
+                              return (
+                                <span
+                                  key={index}
+                                  className="inline-block"
+                                  style={{
+                                    animation: `letterWave ${totalCycleDuration}s ease-in-out ${delay}s infinite`,
+                                    animationFillMode: "both",
+                                  }}
+                                >
+                                  {letter === " " ? "\u00A0" : letter}
+                                </span>
+                              );
+                            })}
+                          </span>
+                          {letters.slice(firstWordEnd).map((letter, index) => {
+                            const delay = (firstWordEnd + index) * animationDuration;
                             return (
                               <span
-                                key={index}
+                                key={firstWordEnd + index}
                                 className="inline-block"
                                 style={{
                                   animation: `letterWave ${totalCycleDuration}s ease-in-out ${delay}s infinite`,
@@ -90,70 +98,71 @@ const HeroSection = () => {
                               </span>
                             );
                           })}
-                        </span>
-                        {letters.slice(firstWordEnd).map((letter, index) => {
-                          const delay = (firstWordEnd + index) * animationDuration;
-                          return (
-                            <span
-                              key={firstWordEnd + index}
-                              className="inline-block"
-                              style={{
-                                animation: `letterWave ${totalCycleDuration}s ease-in-out ${delay}s infinite`,
-                                animationFillMode: "both",
-                              }}
-                            >
-                              {letter === " " ? "\u00A0" : letter}
-                            </span>
-                          );
-                        })}
-                      </>
-                    );
-                  })()
-                )}
+                        </>
+                      );
+                    })()}
               </h1>
             </div>
 
-            {/* Форма поиска — Авиабилеты / Автобусы (поезда скрыты) */}
-            <div ref={formRef} className="bg-black/40 backdrop-blur-xl rounded-lg ring-1 ring-white/10 ring-offset-0 p-4 md:p-5 space-y-4">
-              <Tabs value={travelType} onValueChange={(v) => setTravelType(v as TravelType)} className="w-full">
+            {/* Форма поиска */}
+            <div
+              ref={formRef}
+              className="bg-black/40 backdrop-blur-xl rounded-lg ring-1 ring-white/10 ring-offset-0 p-4 md:p-5 space-y-4"
+            >
+              <Tabs
+                value={travelType}
+                onValueChange={(v) => setTravelType(v as TravelType)}
+                className="w-full"
+              >
                 {/* ===== ВЕРХНЯЯ СТРОКА ===== */}
                 <div className="w-full pb-3 border-b border-white/10">
                   <div className="flex items-center justify-between w-full gap-2">
-                    {/* Левая часть: вкладки "Авиабилеты" / "Автобусы" */}
-                    <TabsList className="flex items-center gap-1 bg-white/10 p-1 h-10 flex-shrink-0">
+                    {/* Левая часть: вкладки. На мобилке — только иконки, на десктопе — иконка + текст */}
+                    <TabsList className="flex items-center gap-1 bg-white/10 p-1 h-11 flex-shrink-0">
                       <TabsTrigger
                         value="flight"
+                        aria-label="Авиабилеты"
                         className={cn(
-                          "flex items-center justify-center text-sm font-medium px-3 py-1.5 rounded-md whitespace-nowrap transition-all",
+                          "flex items-center justify-center h-9 px-2 md:px-3 rounded-md transition-all gap-2",
                           travelType === "flight"
                             ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
                             : "text-white/70 hover:text-white"
                         )}
                       >
-                        <Plane className="h-5 w-5 mr-2" />
-                        <span className="tab-text">Авиабилеты</span>
+                        <Plane className="h-5 w-5" />
+                        <span className="hidden md:inline text-sm font-medium">
+                          Авиабилеты
+                        </span>
                       </TabsTrigger>
                       <TabsTrigger
                         value="bus"
+                        aria-label="Автобусы"
                         className={cn(
-                          "flex items-center justify-center text-sm font-medium px-3 py-1.5 rounded-md whitespace-nowrap transition-all",
+                          "flex items-center justify-center h-9 px-2 md:px-3 rounded-md transition-all gap-2",
                           travelType === "bus"
                             ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
                             : "text-white/70 hover:text-white"
                         )}
                       >
-                        <Bus className="h-5 w-5 mr-2" />
-                        <span className="tab-text">Автобусы</span>
+                        <Bus className="h-5 w-5" />
+                        <span className="hidden md:inline text-sm font-medium">
+                          Автобусы
+                        </span>
                       </TabsTrigger>
-                      {/* Вкладка "Поезда" скрыта (не удалять) */}
+                      {/* Поезда скрыты, не удалять */}
                       <TabsTrigger value="train" className="hidden" aria-hidden>
                         <Train className="h-5 w-5" />
                       </TabsTrigger>
                     </TabsList>
 
                     {/* Правая часть: переключатели (только для авиабилетов) */}
-                    <div className={cn("flex items-center gap-2", travelType !== "flight" && "invisible")}>
-                      {/* Десктопная версия (от md) */}
+                    <div
+                      className={cn(
+                        "flex items-center gap-2 flex-1 justify-end min-w-0",
+                        travelType !== "flight" && "invisible"
+                      )}
+                    >
+                      {/* Десктоп */}
                       <div className="hidden md:flex items-center gap-1 rounded-md p-1 bg-white/10 flex-shrink-0">
                         <button
                           type="button"
@@ -169,7 +178,7 @@ const HeroSection = () => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => { setTripType("one"); }}
+                          onClick={() => setTripType("one")}
                           className={cn(
                             "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
                             tripType === "one"
@@ -181,9 +190,12 @@ const HeroSection = () => {
                         </button>
                       </div>
 
-                      {/* Мобильная версия (до md) */}
-                      <div className="md:hidden flex-1 min-w-0">
-                        <Select value={tripType} onValueChange={(v) => setTripType(v as "round" | "one")}>
+                      {/* Мобилка */}
+                      <div className="md:hidden flex-1 min-w-0 max-w-[180px]">
+                        <Select
+                          value={tripType}
+                          onValueChange={(v) => setTripType(v as "round" | "one")}
+                        >
                           <SelectTrigger className="w-full h-10 bg-white/10 border-white/20 text-white [&>svg]:text-white">
                             <SelectValue placeholder="Тип поездки" />
                           </SelectTrigger>
@@ -198,15 +210,14 @@ const HeroSection = () => {
                 </div>
 
                 <TabsContent value="train" className="hidden" aria-hidden />
-                <TabsContent value="flight" className="mt-0">
-                  <FlightSearchForm 
-                    variant="hero" 
+                <TabsContent value="flight" className="mt-4">
+                  <FlightSearchForm
+                    variant="hero"
                     showTripTypeToggle={false}
                     tripType={tripType}
                   />
                 </TabsContent>
-                <TabsContent value="bus" className="mt-0">
-                  {/* White Label модуль — ТОЛЬКО для автобусов */}
+                <TabsContent value="bus" className="mt-4">
                   <WhiteLabelBusPortal />
                 </TabsContent>
               </Tabs>
