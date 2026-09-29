@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Star, Plane, BedDouble } from "lucide-react";
+import { Search, Star, Plane } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import heroTrain from "@/assets/images/hero/hero-train.jpg";
@@ -37,13 +37,15 @@ type ApiRoute = {
   excerpt: string;
 };
 
+// 👇 Ссылка для кнопки
+const TICKETS_LINK = "https://ts-trip.ru/";
+
 const RouteList = () => {
   const [activeRegion, setActiveRegion] = useState("Все регионы");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  // Загружаем регионы из API для табов
   const regionsQuery = useQuery<Region[]>({
     queryKey: ["regions"],
     queryFn: () =>
@@ -55,7 +57,6 @@ const RouteList = () => {
     staleTime: 60_000,
   });
 
-  // Формируем список регионов для табов: "Все регионы" + загруженные из API
   const regions = useMemo(() => {
     const apiRegions = regionsQuery.data ?? [];
     return ["Все регионы", ...apiRegions.map((r) => r.name)];
@@ -72,7 +73,6 @@ const RouteList = () => {
     staleTime: 60_000,
   });
 
-  // Только данные из API — без хардкода
   const routes = useMemo<RouteItem[]>(() => {
     const apiRoutes = apiQ.data ?? [];
     return apiRoutes.map((ar) => ({
@@ -147,7 +147,9 @@ const RouteList = () => {
             <div className="rounded-lg bg-white p-3 shadow-sm md:p-4">
               <div className="flex flex-wrap items-center gap-2 md:gap-4">
                 {regionsQuery.isPending ? (
-                  <span className="text-xs text-[#0A8FE8]/70">Загрузка регионов...</span>
+                  <span className="text-xs text-[#0A8FE8]/70">
+                    Загрузка регионов...
+                  </span>
                 ) : (
                   regions.map((region) => (
                     <button
@@ -218,20 +220,16 @@ const RouteList = () => {
                   </h2>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row md:gap-4">
+                  {/* Контрастная кнопка: тёмно-синяя заливка + белый текст */}
                   <Button
+                    asChild
                     size="lg"
-                    className="w-full rounded-full bg-white px-4 py-4 text-base font-semibold text-[#0A8FE8] hover:bg-white/90 sm:w-auto md:px-6 md:py-6 md:text-lg"
+                    className="w-full rounded-full border border-white/20 bg-[#0B5FD9] px-5 py-4 text-base font-semibold text-white shadow-lg shadow-[#0B5FD9]/30 transition-colors hover:bg-[#0A53C0] sm:w-auto md:px-7 md:py-6 md:text-lg"
                   >
-                    <Plane className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-                    Найти билеты
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="w-full rounded-full border-white bg-white/10 px-4 py-4 text-base font-semibold text-white hover:bg-white/20 sm:w-auto md:px-6 md:py-6 md:text-lg"
-                  >
-                    <BedDouble className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-                    Выбрать отель
+                    <a href={TICKETS_LINK}>
+                      <Plane className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                      Купить билеты сейчас
+                    </a>
                   </Button>
                 </div>
               </div>
@@ -240,7 +238,7 @@ const RouteList = () => {
                 <div className="relative h-full w-full overflow-hidden rounded-l-3xl bg-gray-200">
                   <img
                     src={heroTrain}
-                    alt="Отель"
+                    alt="Поезд"
                     className="h-full w-full object-cover"
                   />
                 </div>

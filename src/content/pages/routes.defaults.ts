@@ -213,7 +213,7 @@ export const routesPageDefaults: PageContentDocument = {
           "Хотите узнавать о новых трендах раньше всех? Подписывайтесь на наш Instagram!",
         paragraphColor: "",
         ctaLabel: "Перейти в Instagram",
-        ctaHref: "https://instagram.com/tudasuda",
+        ctaHref: "https://instagram.com/tstripru",
         image: "",
         bottomText:
           "Если у вас было яркое путешествие, пишите нам в Instagram, и мы можем сделать про вас блог или сделать из вашего маршрута статью.",
