@@ -153,6 +153,16 @@ function patchItem(
   onPatch({ [key]: next });
 }
 
+/**
+ * Парсит число из поля ввода. Пустое значение → 0.
+ * ВАЖНО: использовать вместо `Number(v) || 0`, иначе введённый ноль
+ * превращается в NaN/дефолт и элемент на странице «скрывается».
+ */
+function toNumberOrZero(v: string): number {
+  const n = Number(String(v).replace(/\s+/g, "").replace(",", "."));
+  return Number.isFinite(n) ? n : 0;
+}
+
 type AdminRouteRow = {
   id: string;
   legacy_id: string | null;
@@ -490,7 +500,7 @@ export function AdminPageSectionFields({
               <Field label="Куда" value={String(it.to || "")} onChange={(v) => patchItem(items, i, { to: v }, onPatch)} />
               <Field label="Описание" value={String(it.description || "")} onChange={(v) => patchItem(items, i, { description: v }, onPatch)} />
               <Field label="Тег" value={String(it.tag || "")} onChange={(v) => patchItem(items, i, { tag: v }, onPatch)} />
-              <Field label="Скидка %" value={String(it.discount ?? "")} onChange={(v) => patchItem(items, i, { discount: Number(v) || 0 }, onPatch)} />
+              <Field label="Скидка %" value={String(it.discount ?? "")} onChange={(v) => patchItem(items, i, { discount: toNumberOrZero(v) }, onPatch)} />
               <Field label="Старая цена" value={String(it.oldPrice || "")} onChange={(v) => patchItem(items, i, { oldPrice: v }, onPatch)} />
               <Field label="Новая цена" value={String(it.newPrice || "")} onChange={(v) => patchItem(items, i, { newPrice: v }, onPatch)} />
               <Field label="Ссылка (опц.)" value={String(it.href || "")} onChange={(v) => patchItem(items, i, { href: v }, onPatch)} />
@@ -535,7 +545,7 @@ export function AdminPageSectionFields({
               <Field label="Откуда" value={String(it.from || "")} onChange={(v) => patchItem(routes, i, { from: v }, onPatch, "routes")} />
               <Field label="Куда" value={String(it.to || "")} onChange={(v) => patchItem(routes, i, { to: v }, onPatch, "routes")} />
               <Field label="В пути" value={String(it.duration || "")} onChange={(v) => patchItem(routes, i, { duration: v }, onPatch, "routes")} />
-              <Field label="Цена от" value={String(it.minPrice ?? "")} onChange={(v) => patchItem(routes, i, { minPrice: Number(v) || 0 }, onPatch, "routes")} />
+              <Field label="Цена от" value={String(it.minPrice ?? "")} onChange={(v) => patchItem(routes, i, { minPrice: toNumberOrZero(v) }, onPatch, "routes")} />
               <div className="flex items-center gap-2">
                 <Checkbox
                   checked={it.isPopular === true}
