@@ -6,10 +6,10 @@ import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Star, Plane } from "lucide-react";
+import { Search, Star } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import heroTrain from "@/assets/images/hero/hero-train.jpg";
+import heroTrain from "@/assets/images/people/семья.jpg";
 
 interface RouteItem {
   id: string;
@@ -38,7 +38,7 @@ type ApiRoute = {
 };
 
 // 👇 Ссылка для кнопки
-const TICKETS_LINK = "https://ts-trip.ru/";
+const TICKETS_LINK = "https://avia.ts-trip.ru/";
 
 const RouteList = () => {
   const [activeRegion, setActiveRegion] = useState("Все регионы");
@@ -210,10 +210,10 @@ const RouteList = () => {
               <div className="flex flex-col justify-center space-y-4 md:space-y-6">
                 <div className="space-y-1 text-white md:space-y-2">
                   <h2 className="text-2xl font-bold md:text-3xl lg:text-4xl">
-                    Забронировать жильё
+                    Купить билеты
                   </h2>
                   <h2 className="text-2xl font-bold md:text-3xl lg:text-4xl">
-                    и купить билеты можно
+                    прямо сейчас можно
                   </h2>
                   <h2 className="text-2xl font-bold md:text-3xl lg:text-4xl">
                     на TudaSuda
@@ -227,7 +227,6 @@ const RouteList = () => {
                     className="w-full rounded-full border border-white/20 bg-[#0B5FD9] px-5 py-4 text-base font-semibold text-white shadow-lg shadow-[#0B5FD9]/30 transition-colors hover:bg-[#0A53C0] sm:w-auto md:px-7 md:py-6 md:text-lg"
                   >
                     <a href={TICKETS_LINK}>
-                      <Plane className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                       Купить билеты сейчас
                     </a>
                   </Button>
