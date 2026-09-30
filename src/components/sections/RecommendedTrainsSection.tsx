@@ -143,14 +143,19 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
       ? f.items.map((item, i) => {
           const def = DEFAULT_DESTINATIONS[i] ?? DEFAULT_DESTINATIONS[0];
           const discountRaw = item.discount ?? def.discount;
+          // Ноль — валидное значение: не подменяем его дефолтом через `|| 0 → NaN`
           const discount =
-            typeof discountRaw === "number" ? discountRaw : Number(discountRaw) || def.discount;
+            typeof discountRaw === "number"
+              ? discountRaw
+              : Number.isFinite(Number(discountRaw))
+                ? Number(discountRaw)
+                : def.discount;
           return {
             from: item.from || def.from,
             to: item.to || def.to,
             image: mediaOrFallback(item.image, def.image),
-            oldPrice: item.oldPrice || def.oldPrice,
-            newPrice: item.newPrice || def.newPrice,
+            oldPrice: item.oldPrice ?? def.oldPrice,
+            newPrice: item.newPrice ?? def.newPrice,
             discount,
             tag: item.tag || def.tag,
             description: item.description || def.description,
