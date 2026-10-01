@@ -1,6 +1,5 @@
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Train, Plane, Bus } from "lucide-react";
+import { Plane, Train, Bus } from "lucide-react";
 import { useRef, useState } from "react";
 import heroImage from "@/assets/images/transport/samoletzxc.png";
 import { cn } from "@/lib/utils";
@@ -10,9 +9,9 @@ import type { HeroFields } from "@/types/pageContent";
 import { CmsEditable } from "@/components/cms/CmsEditable";
 import { cmsColorStyle } from "@/lib/cmsStyle";
 import FlightSearchForm from "@/components/flight/FlightSearchForm";
-import WhiteLabelBusPortal from "@/components/WhiteLabelBusPortal";
 
-type TravelType = "train" | "flight" | "bus";
+// URL поддомена с White Label для автобусов/поездов
+const BUS_PORTAL_URL = "https://trainandbus.ts-trip.ru/";
 
 const HeroSection = () => {
   const formRef = useRef<HTMLDivElement>(null);
@@ -21,7 +20,7 @@ const HeroSection = () => {
   const titleColor = hero.titleColor;
   const heroSrc = mediaOrFallback(hero.videoFlight, heroImage);
 
-  const [travelType, setTravelType] = useState<TravelType>("flight");
+  const [travelType, setTravelType] = useState<"flight" | "bus">("flight");
   const [tripType, setTripType] = useState<"round" | "one">("round");
 
   return (
@@ -109,118 +108,119 @@ const HeroSection = () => {
               ref={formRef}
               className="bg-black/40 backdrop-blur-xl rounded-lg ring-1 ring-white/10 ring-offset-0 p-4 md:p-5 space-y-4"
             >
-              <Tabs
-                value={travelType}
-                onValueChange={(v) => setTravelType(v as TravelType)}
-                className="w-full"
-              >
-                {/* ===== ВЕРХНЯЯ СТРОКА ===== */}
-                <div className="w-full pb-3 border-b border-white/10">
-                  <div className="flex items-center justify-between w-full gap-2">
-                    {/* Левая часть: вкладки. На мобилке — только иконки, на десктопе — иконка + текст */}
-                    <TabsList className="flex items-center gap-1 bg-white/10 p-1 h-11 flex-shrink-0">
-                      <TabsTrigger
-                        value="flight"
-                        aria-label="Авиабилеты"
-                        className={cn(
-                          "flex items-center justify-center h-9 px-2 md:px-3 rounded-md transition-all gap-2",
-                          travelType === "flight"
-                            ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
-                            : "text-white/70 hover:text-white"
-                        )}
-                      >
-                        <Plane className="h-5 w-5" />
+              {/* ===== ВЕРХНЯЯ СТРОКА: ДВЕ КНОПКИ ===== */}
+              <div className="w-full pb-3 border-b border-white/10">
+                <div className="flex items-center justify-between w-full gap-2 flex-wrap">
+                  {/* Левая часть: кнопка «Авиабилеты» + кнопка «Поезда/Автобусы» */}
+                  <div className="flex items-center gap-1 bg-white/10 p-1 rounded-md flex-shrink-0">
+                    {/* Кнопка 1: Авиабилеты */}
+                    <button
+                      type="button"
+                      onClick={() => setTravelType("flight")}
+                      aria-label="Авиабилеты"
+                      className={cn(
+                        "flex items-center justify-center h-9 px-2 md:px-3 rounded-md transition-all gap-2",
+                        travelType === "flight"
+                          ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
+                          : "text-white/70 hover:text-white"
+                      )}
+                    >
+                      <Plane className="h-5 w-5" />
+                      <span className="hidden md:inline text-sm font-medium">
+                        Авиабилеты
+                      </span>
+                    </button>
+
+                    {/* Кнопка 2: Поезда/Автобусы — редирект на поддомен */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.location.href = BUS_PORTAL_URL;
+                      }}
+                      aria-label="Поезда и автобусы"
+                      className={cn(
+                        "flex items-center justify-center h-9 px-2 md:px-3 rounded-md transition-all",
+                        "text-white/70 hover:text-white"
+                      )}
+                    >
+                      <span className="flex items-center gap-1">
+                        <Train className="h-5 w-5" />
                         <span className="hidden md:inline text-sm font-medium">
-                          Авиабилеты
+                          Поезда
                         </span>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="bus"
-                        aria-label="Автобусы"
-                        className={cn(
-                          "flex items-center justify-center h-9 px-2 md:px-3 rounded-md transition-all gap-2",
-                          travelType === "bus"
-                            ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
-                            : "text-white/70 hover:text-white"
-                        )}
-                      >
+                      </span>
+                      <span className="mx-1 text-white/40">/</span>
+                      <span className="flex items-center gap-1">
                         <Bus className="h-5 w-5" />
                         <span className="hidden md:inline text-sm font-medium">
                           Автобусы
                         </span>
-                      </TabsTrigger>
-                      {/* Поезда скрыты, не удалять */}
-                      <TabsTrigger value="train" className="hidden" aria-hidden>
-                        <Train className="h-5 w-5" />
-                      </TabsTrigger>
-                    </TabsList>
+                      </span>
+                    </button>
+                  </div>
 
-                    {/* Правая часть: переключатели (только для авиабилетов) */}
-                    <div
-                      className={cn(
-                        "flex items-center gap-2 flex-1 justify-end min-w-0",
-                        travelType !== "flight" && "invisible"
-                      )}
-                    >
-                      {/* Десктоп */}
-                      <div className="hidden md:flex items-center gap-1 rounded-md p-1 bg-white/10 flex-shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => setTripType("round")}
-                          className={cn(
-                            "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
-                            tripType === "round"
-                              ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
-                              : "text-white/70 hover:text-white/90"
-                          )}
-                        >
-                          Туда — Обратно
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setTripType("one")}
-                          className={cn(
-                            "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
-                            tripType === "one"
-                              ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
-                              : "text-white/70 hover:text-white/90"
-                          )}
-                        >
-                          В одну сторону
-                        </button>
-                      </div>
+                  {/* Правая часть: переключатели (только для авиабилетов) */}
+                  <div
+                    className={cn(
+                      "flex items-center gap-2 flex-1 justify-end min-w-0",
+                      travelType !== "flight" && "invisible"
+                    )}
+                  >
+                    {/* Десктоп */}
+                    <div className="hidden md:flex items-center gap-1 rounded-md p-1 bg-white/10 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setTripType("round")}
+                        className={cn(
+                          "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
+                          tripType === "round"
+                            ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
+                            : "text-white/70 hover:text-white/90"
+                        )}
+                      >
+                        Туда — Обратно
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTripType("one")}
+                        className={cn(
+                          "px-4 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap",
+                          tripType === "one"
+                            ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
+                            : "text-white/70 hover:text-white/90"
+                        )}
+                      >
+                        В одну сторону
+                      </button>
+                    </div>
 
-                      {/* Мобилка */}
-                      <div className="md:hidden flex-1 min-w-0 max-w-[180px]">
-                        <Select
-                          value={tripType}
-                          onValueChange={(v) => setTripType(v as "round" | "one")}
-                        >
-                          <SelectTrigger className="w-full h-10 bg-white/10 border-white/20 text-white [&>svg]:text-white">
-                            <SelectValue placeholder="Тип поездки" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-[#1a1a2e] border-white/20 text-white">
-                            <SelectItem value="round">Туда — Обратно</SelectItem>
-                            <SelectItem value="one">В одну сторону</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    {/* Мобилка */}
+                    <div className="md:hidden flex-1 min-w-0 max-w-[180px]">
+                      <Select
+                        value={tripType}
+                        onValueChange={(v) => setTripType(v as "round" | "one")}
+                      >
+                        <SelectTrigger className="w-full h-10 bg-white/10 border-white/20 text-white [&>svg]:text-white">
+                          <SelectValue placeholder="Тип поездки" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1a1a2e] border-white/20 text-white">
+                          <SelectItem value="round">Туда — Обратно</SelectItem>
+                          <SelectItem value="one">В одну сторону</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <TabsContent value="train" className="hidden" aria-hidden />
-                <TabsContent value="flight" className="mt-4">
-                  <FlightSearchForm
-                    variant="hero"
-                    showTripTypeToggle={false}
-                    tripType={tripType}
-                  />
-                </TabsContent>
-                <TabsContent value="bus" className="mt-4">
-                  <WhiteLabelBusPortal />
-                </TabsContent>
-              </Tabs>
+              {/* ===== НИЖНЯЯ ЧАСТЬ: ФОРМА АВИАБИЛЕТОВ ===== */}
+              <div className="mt-4">
+                <FlightSearchForm
+                  variant="hero"
+                  showTripTypeToggle={false}
+                  tripType={tripType}
+                />
+              </div>
             </div>
           </div>
         </div>
