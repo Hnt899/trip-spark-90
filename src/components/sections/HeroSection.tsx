@@ -1,3 +1,4 @@
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plane, Train, Bus } from "lucide-react";
 import { useRef, useState } from "react";
@@ -9,8 +10,16 @@ import type { HeroFields } from "@/types/pageContent";
 import { CmsEditable } from "@/components/cms/CmsEditable";
 import { cmsColorStyle } from "@/lib/cmsStyle";
 import FlightSearchForm from "@/components/flight/FlightSearchForm";
+import WhiteLabelBusPortal from "@/components/WhiteLabelBusPortal";
 
-// URL поддомена с White Label для автобусов/поездов
+type TravelType = "train" | "flight" | "bus";
+
+// ⚙️ РЕЖИМ РАБОТЫ КНОПКИ «Поезда/Автобусы»:
+//   "inline"   — открывает старое меню с вкладками (Поезда/Авиабилеты/Автобусы) — СЕЙЧАС
+//   "redirect" — редиректит на поддомен trainandbus.ts-trip.ru — ВЕРНЁМ, КОГДА УТВЕРДЯТ ДОМЕН
+const BUS_MODE: "inline" | "redirect" = "inline";
+
+// URL поддомена (используется только в режиме "redirect")
 const BUS_PORTAL_URL = "https://trainandbus.ts-trip.ru/";
 
 const HeroSection = () => {
@@ -20,8 +29,18 @@ const HeroSection = () => {
   const titleColor = hero.titleColor;
   const heroSrc = mediaOrFallback(hero.videoFlight, heroImage);
 
-  const [travelType, setTravelType] = useState<"flight" | "bus">("flight");
+  const [travelType, setTravelType] = useState<TravelType>("flight");
   const [tripType, setTripType] = useState<"round" | "one">("round");
+
+  // Клик по кнопке «Поезда/Автобусы»
+  const handleBusClick = () => {
+    if (BUS_MODE === "redirect") {
+      window.location.href = BUS_PORTAL_URL;
+      return;
+    }
+    // "inline" — открываем старое меню на вкладке «Автобусы»
+    setTravelType("bus");
+  };
 
   return (
     <CmsEditable sectionId="hero">
@@ -131,16 +150,16 @@ const HeroSection = () => {
                       </span>
                     </button>
 
-                    {/* Кнопка 2: Поезда/Автобусы — редирект на поддомен */}
+                    {/* Кнопка 2: Поезда/Автобусы */}
                     <button
                       type="button"
-                      onClick={() => {
-                        window.location.href = BUS_PORTAL_URL;
-                      }}
+                      onClick={handleBusClick}
                       aria-label="Поезда и автобусы"
                       className={cn(
                         "flex items-center justify-center h-9 px-2 md:px-3 rounded-md transition-all",
-                        "text-white/70 hover:text-white"
+                        travelType === "bus"
+                          ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
+                          : "text-white/70 hover:text-white"
                       )}
                     >
                       <span className="flex items-center gap-1">
@@ -213,13 +232,22 @@ const HeroSection = () => {
                 </div>
               </div>
 
-              {/* ===== НИЖНЯЯ ЧАСТЬ: ФОРМА АВИАБИЛЕТОВ ===== */}
+              {/* ===== НИЖНЯЯ ЧАСТЬ: ФОРМА ПО ВЫБРАННОМУ ТИПУ ===== */}
+              {/*
+                В режиме "redirect" кнопка «Поезда/Автобусы» сразу уводит на поддомен,
+                поэтому travelType всегда "flight" — показываем только авиаформу.
+                В режиме "inline" кнопка «Поезда/Автобусы» переключает travelType на "bus",
+                и показывается старое меню (авиа + White Label автобусов).
+              */}
               <div className="mt-4">
-                <FlightSearchForm
-                  variant="hero"
-                  showTripTypeToggle={false}
-                  tripType={tripType}
-                />
+                {travelType === "flight" && (
+                  <FlightSearchForm
+                    variant="hero"
+                    showTripTypeToggle={false}
+                    tripType={tripType}
+                  />
+                )}
+                {travelType === "bus" && <WhiteLabelBusPortal />}
               </div>
             </div>
           </div>

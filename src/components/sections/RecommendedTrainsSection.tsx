@@ -110,7 +110,6 @@ const DEFAULT_DESTINATIONS = [
   },
 ];
 
-/** Единая палитра карточки (лого): #0B5FD9 → #0A8FE8 — без конкурирующих голубого/красного */
 const destinationTagClass =
   "bg-[#0B5FD9] shadow-md ring-1 ring-white/25";
 
@@ -125,6 +124,13 @@ const destinationCtaClass = cn(
 );
 
 type Destination = (typeof DEFAULT_DESTINATIONS)[number] & { href?: string };
+
+/** Хелпер: true, если значение не пустое и не "0"/0 */
+function hasValue(v: unknown): boolean {
+  const s = String(v ?? "").trim();
+  if (s === "" || s === "0") return false;
+  return true;
+}
 
 const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectionProps) => {
   const navigate = useNavigate();
@@ -143,7 +149,6 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
       ? f.items.map((item, i) => {
           const def = DEFAULT_DESTINATIONS[i] ?? DEFAULT_DESTINATIONS[0];
           const discountRaw = item.discount ?? def.discount;
-          // Ноль — валидное значение: не подменяем его дефолтом через `|| 0 → NaN`
           const discount =
             typeof discountRaw === "number"
               ? discountRaw
@@ -185,16 +190,14 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
     navigate(`/train-search?${params.toString()}`);
   };
 
-  // Дублируем карточки для бесконечной карусели (только для десктопа)
   const duplicatedDestinations = [...destinations, ...destinations, ...destinations];
 
-  // Автоматическая смена карточек для мобильной версии
   useEffect(() => {
     if (!isMobile) return;
 
     mobileIntervalRef.current = setInterval(() => {
       setCurrentMobileIndex((prevIndex) => (prevIndex + 1) % destinations.length);
-    }, 3000); // Смена каждые 3 секунды
+    }, 3000);
 
     return () => {
       if (mobileIntervalRef.current) {
@@ -207,14 +210,11 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
     const scrollContainer = scrollRef.current;
     if (!scrollContainer) return;
 
-    // Функция для получения ширины карточки - всегда 3 карточки
     const getCardWidth = () => {
-      // Всегда 3 карточки, gap = 24px (gap-6)
       const gap = 24;
       return (scrollContainer.clientWidth - gap * 2) / 3;
     };
 
-    // Устанавливаем начальную позицию на вторую группу карточек (середина)
     const initializeScroll = () => {
       const cardWidth = getCardWidth();
       const gap = 24;
@@ -234,7 +234,6 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
       const singleSetWidth = destinations.length * cardWithGap;
       const { scrollLeft, clientWidth } = scrollContainer;
 
-      // Если прокрутили до конца (третья группа), переходим к началу второй группы
       if (scrollLeft >= singleSetWidth * 2 - clientWidth - 10) {
         isScrolling.current = true;
         const offset = scrollLeft - singleSetWidth * 2;
@@ -242,9 +241,7 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
         setTimeout(() => {
           isScrolling.current = false;
         }, 50);
-      }
-      // Если прокрутили до начала (первая группа), переходим к концу второй группы
-      else if (scrollLeft <= 10) {
+      } else if (scrollLeft <= 10) {
         isScrolling.current = true;
         scrollContainer.scrollLeft = singleSetWidth * 2 + scrollLeft;
         setTimeout(() => {
@@ -259,7 +256,7 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
 
     scrollContainer.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", handleResize);
-    
+
     return () => {
       scrollContainer.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
@@ -269,20 +266,18 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
   const scrollLeft = () => {
     if (scrollRef.current && !isScrolling.current) {
       isScrolling.current = true;
-      const gap = 24; // gap-6 = 24px
+      const gap = 24;
       const containerWidth = scrollRef.current.clientWidth;
-      // Всегда 3 карточки
       const cardWidth = (containerWidth - gap * 2) / 3;
-      // Прокручиваем ровно на одну карточку + gap
       const scrollAmount = cardWidth + gap;
       const currentScroll = scrollRef.current.scrollLeft;
       const targetScroll = Math.round(currentScroll - scrollAmount);
-      
-      scrollRef.current.scrollTo({ 
-        left: targetScroll, 
-        behavior: "smooth" 
+
+      scrollRef.current.scrollTo({
+        left: targetScroll,
+        behavior: "smooth",
       });
-      
+
       setTimeout(() => {
         isScrolling.current = false;
       }, 500);
@@ -292,20 +287,18 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
   const scrollRight = () => {
     if (scrollRef.current && !isScrolling.current) {
       isScrolling.current = true;
-      const gap = 24; // gap-6 = 24px
+      const gap = 24;
       const containerWidth = scrollRef.current.clientWidth;
-      // Всегда 3 карточки
       const cardWidth = (containerWidth - gap * 2) / 3;
-      // Прокручиваем ровно на одну карточку + gap
       const scrollAmount = cardWidth + gap;
       const currentScroll = scrollRef.current.scrollLeft;
       const targetScroll = Math.round(currentScroll + scrollAmount);
-      
-      scrollRef.current.scrollTo({ 
-        left: targetScroll, 
-        behavior: "smooth" 
+
+      scrollRef.current.scrollTo({
+        left: targetScroll,
+        behavior: "smooth",
       });
-      
+
       setTimeout(() => {
         isScrolling.current = false;
       }, 500);
@@ -314,311 +307,317 @@ const RecommendedTrainsSection = ({ surface = "brand" }: RecommendedTrainsSectio
 
   return (
     <CmsEditable sectionId="recommendedTrains">
-    <section className={sectionShellClass(surface, "pt-20 pb-8 md:py-20")}>
-      {/* Декоративные желтые пятна */}
-      {surface === "brand" && (
-      <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
-        {/* Левое пятно - от центра поднимаемся вверх на 30px */}
-        <div 
-          className="absolute rounded-full blur-3xl"
-          style={{
-            width: '400px',
-            height: '400px',
-            left: '-150px',
-            top: 'calc(50% - 30px)',
-            transform: 'translateY(-50%)',
-            background: '#F9B84F',
-            opacity: 0.3,
-          }}
-        />
-        {/* Правое пятно - от центра опускаемся вниз на 30px */}
-        <div 
-          className="absolute rounded-full blur-3xl"
-          style={{
-            width: '400px',
-            height: '400px',
-            right: '-100px',
-            top: 'calc(50% + 30px)',
-            transform: 'translateY(-50%)',
-            background: '#F9B84F',
-            opacity: 0.3,
-          }}
-        />
-      </div>
-      )}
-
-      <div className="container relative z-10">
-        <div className="mb-12 text-center">
-          <h2
-            className={cmsHeadingClass(
-              f.titleColor,
-              "heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight"
-            )}
-            style={cmsColorStyle(f.titleColor)}
-          >
-            {sectionTitle}
-          </h2>
-          <p
-            className={cn("text-lg md:text-xl max-w-2xl mx-auto", sectionLeadClass(surface))}
-            style={cmsColorStyle(f.subtitleColor)}
-          >
-            {sectionSubtitle}
-          </p>
-        </div>
-
-        <div className="relative flex items-center gap-4 hidden md:flex">
-          {/* Стрелка влево */}
-          <button
-            onClick={scrollLeft}
-            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -ml-[10px]"
-            aria-label="Прокрутить влево"
-          >
-            <ChevronLeft className="h-5 w-5 text-[#0B5FD9]" />
-          </button>
-
-          <div className="flex-1 relative overflow-hidden">
+      <section className={sectionShellClass(surface, "pt-20 pb-8 md:py-20")}>
+        {surface === "brand" && (
+          <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
             <div
-              ref={scrollRef}
-              className="flex gap-6 overflow-x-hidden scrollbar-hide pb-4 scroll-smooth snap-x snap-mandatory"
+              className="absolute rounded-full blur-3xl"
               style={{
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
+                width: "400px",
+                height: "400px",
+                left: "-150px",
+                top: "calc(50% - 30px)",
+                transform: "translateY(-50%)",
+                background: "#F9B84F",
+                opacity: 0.3,
               }}
+            />
+            <div
+              className="absolute rounded-full blur-3xl"
+              style={{
+                width: "400px",
+                height: "400px",
+                right: "-100px",
+                top: "calc(50% + 30px)",
+                transform: "translateY(-50%)",
+                background: "#F9B84F",
+                opacity: 0.3,
+              }}
+            />
+          </div>
+        )}
+
+        <div className="container relative z-10">
+          <div className="mb-12 text-center">
+            <h2
+              className={cmsHeadingClass(
+                f.titleColor,
+                "heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight"
+              )}
+              style={cmsColorStyle(f.titleColor)}
             >
-            {duplicatedDestinations.map((destination, index) => {
-              return (
-              <div
-                key={index}
-                className={cn(
-                  "group relative flex-shrink-0 rounded-3xl overflow-hidden",
-                  "bg-card border-2 border-transparent",
-                  "hover:border-primary/30",
-                  "transition-all duration-500 ease-out",
-                  "cursor-pointer",
-                  sectionCardLiftClass(surface),
-                  // Всегда 3 карточки
-                  "w-[calc((100%-3rem)/3)] min-w-[calc((100%-3rem)/3)] max-w-[calc((100%-3rem)/3)] snap-start"
-                )}
-                onClick={() => handleSelectDates(destination)}
-              >
-                {/* Изображение */}
-                <div className="relative h-64 overflow-hidden">
-                  <img
-                    src={destination.image}
-                    alt={`${destination.from} - ${destination.to}`}
-                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                  />
-                  {/* Затемнение при hover */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-500"></div>
-                  
-                  {/* Тег */}
-                  <div
-                    className={cn(
-                      "absolute top-4 left-4 px-3 py-1.5 rounded-full text-white text-sm font-bold",
-                      destinationTagClass
-                    )}
-                  >
-                    {destination.tag}
-                  </div>
-
-                  {/* Скидка — та же гамма, что и тег */}
-                  <div
-                    className={cn(
-                      "absolute top-4 right-4 rounded-full px-4 py-2",
-                      destinationDiscountClass
-                    )}
-                  >
-                    <div className="flex items-center gap-1">
-                      <TrendingDown className="h-5 w-5 text-[#0A8FE8]" strokeWidth={2.25} />
-                      <span className="text-2xl font-extrabold tabular-nums text-[#0B5FD9]">
-                        -{destination.discount}%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Кнопка при hover — главный акцент */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none group-hover:pointer-events-auto">
-                    <Button
-                      size="lg"
-                      className={destinationCtaClass}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSelectDates(destination);
-                      }}
-                    >
-                      <Calendar className="h-5 w-5 mr-2 text-white" strokeWidth={2.25} />
-                      Выбрать даты
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Контент */}
-                <div className="p-6">
-                  {/* Маршрут */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      {destination.from} → {destination.to}
-                    </span>
-                  </div>
-
-                  {/* Описание */}
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {destination.description}
-                  </p>
-
-                  {/* Цены */}
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-2xl md:text-3xl font-extrabold text-foreground">
-                      {destination.newPrice}
-                    </span>
-                    <span className="text-lg text-muted-foreground line-through">
-                      {destination.oldPrice}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              );
-            })}
-            </div>
+              {sectionTitle}
+            </h2>
+            <p
+              className={cn("text-lg md:text-xl max-w-2xl mx-auto", sectionLeadClass(surface))}
+              style={cmsColorStyle(f.subtitleColor)}
+            >
+              {sectionSubtitle}
+            </p>
           </div>
 
-          {/* Стрелка вправо */}
-          <button
-            onClick={scrollRight}
-            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -mr-[10px]"
-            aria-label="Прокрутить вправо"
-          >
-            <ChevronRight className="h-5 w-5 text-[#0B5FD9]" />
-          </button>
-        </div>
-
-        {/* Мобильная версия - карусель ТОЛЬКО для мобильных (одна карточка) */}
-        <div className="md:hidden relative overflow-hidden px-2">
-          <div className="relative w-full overflow-hidden">
-            <div 
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{
-                transform: `translateX(-${currentMobileIndex * 100}%)`,
-              }}
+          <div className="relative flex items-center gap-4 hidden md:flex">
+            <button
+              onClick={scrollLeft}
+              className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -ml-[10px]"
+              aria-label="Прокрутить влево"
             >
-              {destinations.map((destination, index) => (
-                <div
-                  key={index}
-                  onClick={() => handleSelectDates(destination)}
-                  className={cn(
-                    "flex-shrink-0 w-full",
-                    "group relative rounded-3xl overflow-hidden",
-                    "bg-card border-2 border-transparent",
-                    "hover:border-primary/30",
-                    "transition-all duration-500 ease-out",
-                    "cursor-pointer",
-                    sectionCardLiftClass(surface)
-                  )}
-                >
-                  {/* Изображение */}
-                  <div className="relative h-64 overflow-hidden">
-                    <img
-                      src={destination.image}
-                      alt={`${destination.from} - ${destination.to}`}
-                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                    />
-                    {/* Затемнение при hover */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-500"></div>
-                    
-                    {/* Тег */}
-                    <div
-                      className={cn(
-                        "absolute top-4 left-4 px-3 py-1.5 rounded-full text-white text-sm font-bold",
-                        destinationTagClass
-                      )}
-                    >
-                      {destination.tag}
-                    </div>
+              <ChevronLeft className="h-5 w-5 text-[#0B5FD9]" />
+            </button>
 
+            <div className="flex-1 relative overflow-hidden">
+              <div
+                ref={scrollRef}
+                className="flex gap-6 overflow-x-hidden scrollbar-hide pb-4 scroll-smooth snap-x snap-mandatory"
+                style={{
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                }}
+              >
+                {duplicatedDestinations.map((destination, index) => {
+                  const showDiscount = Number(destination.discount) !== 0;
+                  const showNewPrice = hasValue(destination.newPrice);
+                  const showOldPrice = hasValue(destination.oldPrice);
+
+                  return (
                     <div
+                      key={index}
                       className={cn(
-                        "absolute top-4 right-4 rounded-full px-4 py-2",
-                        destinationDiscountClass
+                        "group relative flex-shrink-0 rounded-3xl overflow-hidden",
+                        "bg-card border-2 border-transparent",
+                        "hover:border-primary/30",
+                        "transition-all duration-500 ease-out",
+                        "cursor-pointer",
+                        sectionCardLiftClass(surface),
+                        "w-[calc((100%-3rem)/3)] min-w-[calc((100%-3rem)/3)] max-w-[calc((100%-3rem)/3)] snap-start"
                       )}
+                      onClick={() => handleSelectDates(destination)}
                     >
-                      <div className="flex items-center gap-1">
-                        <TrendingDown className="h-5 w-5 text-[#0A8FE8]" strokeWidth={2.25} />
-                        <span className="text-2xl font-extrabold tabular-nums text-[#0B5FD9]">
-                          -{destination.discount}%
-                        </span>
+                      <div className="relative h-64 overflow-hidden">
+                        <img
+                          src={destination.image}
+                          alt={`${destination.from} - ${destination.to}`}
+                          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-500"></div>
+
+                        {hasValue(destination.tag) && (
+                          <div
+                            className={cn(
+                              "absolute top-4 left-4 px-3 py-1.5 rounded-full text-white text-sm font-bold",
+                              destinationTagClass
+                            )}
+                          >
+                            {destination.tag}
+                          </div>
+                        )}
+
+                        {/* Скидка — только если != 0 */}
+                        {showDiscount && (
+                          <div
+                            className={cn(
+                              "absolute top-4 right-4 rounded-full px-4 py-2",
+                              destinationDiscountClass
+                            )}
+                          >
+                            <div className="flex items-center gap-1">
+                              <TrendingDown className="h-5 w-5 text-[#0A8FE8]" strokeWidth={2.25} />
+                              <span className="text-2xl font-extrabold tabular-nums text-[#0B5FD9]">
+                                -{destination.discount}%
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none group-hover:pointer-events-auto">
+                          <Button
+                            size="lg"
+                            className={destinationCtaClass}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectDates(destination);
+                            }}
+                          >
+                            <Calendar className="h-5 w-5 mr-2 text-white" strokeWidth={2.25} />
+                            Выбрать даты
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="p-6">
+                        <div className="flex items-center gap-2 mb-3">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            {destination.from} → {destination.to}
+                          </span>
+                        </div>
+
+                        {hasValue(destination.description) && (
+                          <p className="text-sm text-muted-foreground mb-4">
+                            {destination.description}
+                          </p>
+                        )}
+
+                        {showNewPrice && (
+                          <div className="flex items-baseline gap-3">
+                            <span className="text-2xl md:text-3xl font-extrabold text-foreground">
+                              {destination.newPrice}
+                            </span>
+                            {showOldPrice && (
+                              <span className="text-lg text-muted-foreground line-through">
+                                {destination.oldPrice}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            </div>
 
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none group-hover:pointer-events-auto">
-                      <Button
-                        size="lg"
-                        className={destinationCtaClass}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSelectDates(destination);
-                        }}
-                      >
-                        <Calendar className="h-5 w-5 mr-2 text-white" strokeWidth={2.25} />
-                        Выбрать даты
-                      </Button>
+            <button
+              onClick={scrollRight}
+              className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -mr-[10px]"
+              aria-label="Прокрутить вправо"
+            >
+              <ChevronRight className="h-5 w-5 text-[#0B5FD9]" />
+            </button>
+          </div>
+
+          {/* Мобильная версия */}
+          <div className="md:hidden relative overflow-hidden px-2">
+            <div className="relative w-full overflow-hidden">
+              <div
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{
+                  transform: `translateX(-${currentMobileIndex * 100}%)`,
+                }}
+              >
+                {destinations.map((destination, index) => {
+                  const showDiscount = Number(destination.discount) !== 0;
+                  const showNewPrice = hasValue(destination.newPrice);
+                  const showOldPrice = hasValue(destination.oldPrice);
+
+                  return (
+                    <div
+                      key={index}
+                      onClick={() => handleSelectDates(destination)}
+                      className={cn(
+                        "flex-shrink-0 w-full",
+                        "group relative rounded-3xl overflow-hidden",
+                        "bg-card border-2 border-transparent",
+                        "hover:border-primary/30",
+                        "transition-all duration-500 ease-out",
+                        "cursor-pointer",
+                        sectionCardLiftClass(surface)
+                      )}
+                    >
+                      <div className="relative h-64 overflow-hidden">
+                        <img
+                          src={destination.image}
+                          alt={`${destination.from} - ${destination.to}`}
+                          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-500"></div>
+
+                        {hasValue(destination.tag) && (
+                          <div
+                            className={cn(
+                              "absolute top-4 left-4 px-3 py-1.5 rounded-full text-white text-sm font-bold",
+                              destinationTagClass
+                            )}
+                          >
+                            {destination.tag}
+                          </div>
+                        )}
+
+                        {showDiscount && (
+                          <div
+                            className={cn(
+                              "absolute top-4 right-4 rounded-full px-4 py-2",
+                              destinationDiscountClass
+                            )}
+                          >
+                            <div className="flex items-center gap-1">
+                              <TrendingDown className="h-5 w-5 text-[#0A8FE8]" strokeWidth={2.25} />
+                              <span className="text-2xl font-extrabold tabular-nums text-[#0B5FD9]">
+                                -{destination.discount}%
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none group-hover:pointer-events-auto">
+                          <Button
+                            size="lg"
+                            className={destinationCtaClass}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectDates(destination);
+                            }}
+                          >
+                            <Calendar className="h-5 w-5 mr-2 text-white" strokeWidth={2.25} />
+                            Выбрать даты
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="p-6">
+                        <div className="flex items-center gap-2 mb-3">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            {destination.from} → {destination.to}
+                          </span>
+                        </div>
+
+                        {hasValue(destination.description) && (
+                          <p className="text-sm text-muted-foreground mb-4">
+                            {destination.description}
+                          </p>
+                        )}
+
+                        {showNewPrice && (
+                          <div className="flex items-baseline gap-3">
+                            <span className="text-2xl font-extrabold text-foreground">
+                              {destination.newPrice}
+                            </span>
+                            {showOldPrice && (
+                              <span className="text-lg text-muted-foreground line-through">
+                                {destination.oldPrice}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  );
+                })}
+              </div>
+            </div>
 
-                  {/* Контент */}
-                  <div className="p-6">
-                    {/* Маршрут */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
-                        {destination.from} → {destination.to}
-                      </span>
-                    </div>
-
-                    {/* Описание */}
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {destination.description}
-                    </p>
-
-                    {/* Цены */}
-                    <div className="flex items-baseline gap-3">
-                      <span className="text-2xl font-extrabold text-foreground">
-                        {destination.newPrice}
-                      </span>
-                      <span className="text-lg text-muted-foreground line-through">
-                        {destination.oldPrice}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+            <div className="flex justify-center gap-2 mt-4 mb-4">
+              {destinations.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setCurrentMobileIndex(index);
+                    if (mobileIntervalRef.current) {
+                      clearInterval(mobileIntervalRef.current);
+                    }
+                    mobileIntervalRef.current = setInterval(() => {
+                      setCurrentMobileIndex((prevIndex) => (prevIndex + 1) % destinations.length);
+                    }, 3000);
+                  }}
+                  className={carouselDotClass(surface, index === currentMobileIndex)}
+                  aria-label={`Перейти к карточке ${index + 1}`}
+                />
               ))}
             </div>
           </div>
-
-          {/* Индикаторы для мобильной версии */}
-          <div className="flex justify-center gap-2 mt-4 mb-4">
-            {destinations.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setCurrentMobileIndex(index);
-                  // Перезапускаем интервал при ручном переключении
-                  if (mobileIntervalRef.current) {
-                    clearInterval(mobileIntervalRef.current);
-                  }
-                  mobileIntervalRef.current = setInterval(() => {
-                    setCurrentMobileIndex((prevIndex) => (prevIndex + 1) % destinations.length);
-                  }, 3000);
-                }}
-                className={carouselDotClass(surface, index === currentMobileIndex)}
-                aria-label={`Перейти к карточке ${index + 1}`}
-              />
-            ))}
-          </div>
         </div>
-      </div>
-
-    </section>
+      </section>
     </CmsEditable>
   );
 };
