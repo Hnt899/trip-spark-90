@@ -38,7 +38,7 @@ type ApiRoute = {
 };
 
 // 👇 Ссылка для кнопки
-const TICKETS_LINK = "https://ts-trip.ru//";
+const TICKETS_LINK = "https://ts-trip.ru/";
 
 const RouteList = () => {
   const [activeRegion, setActiveRegion] = useState("Все регионы");
