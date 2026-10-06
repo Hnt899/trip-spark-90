@@ -10,6 +10,19 @@ import type { GuidePost } from "@/types/guideCms";
 import BlogBlockRenderer from "@/components/blog/BlogBlockRenderer";
 import ArticleTabs from "@/components/blog/ArticleTabs";
 
+/**
+ * Нормализует slug: убирает всё, что не латиница/цифры/дефисы.
+ * Нужно для обратной совместимости со старыми ссылками,
+ * где slug был сгенерирован с запятыми и точками.
+ */
+function normalizeSlug(slug: string): string {
+  return decodeURIComponent(slug)
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/gi, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 export default function GuideArticlePage() {
   const { category, slug } = useParams<{ category: string; slug: string }>();
 
@@ -17,18 +30,34 @@ export default function GuideArticlePage() {
     window.scrollTo(0, 0);
   }, [category, slug]);
 
+  const normalizedSlug = slug ? normalizeSlug(slug) : "";
+
   // ===== useQuery ПЕРЕД УСЛОВНЫМ ВОЗВРАТОМ =====
   const q = useQuery({
-    queryKey: ["guide-post", category, slug],
-    enabled: Boolean(category && slug),
+    queryKey: ["guide-post", category, normalizedSlug],
+    enabled: Boolean(category && normalizedSlug),
     queryFn: async () => {
       try {
         return await apiFetch<GuidePost>(
-          `/api/guide/posts/by-category/${encodeURIComponent(category || "")}/${encodeURIComponent(slug || "")}`,
+          `/api/guide/posts/by-category/${encodeURIComponent(category || "")}/${encodeURIComponent(normalizedSlug)}`,
         );
       } catch (e) {
         const err = e as Error & { status?: number };
-        if (err.status === 404) return null;
+        if (err.status === 404) {
+          // Резервный вариант: попробовать оригинальный slug (вдруг в БД он именно такой)
+          if (slug && slug !== normalizedSlug) {
+            try {
+              return await apiFetch<GuidePost>(
+                `/api/guide/posts/by-category/${encodeURIComponent(category || "")}/${encodeURIComponent(slug)}`,
+              );
+            } catch (e2) {
+              const err2 = e2 as Error & { status?: number };
+              if (err2.status === 404) return null;
+              throw e2;
+            }
+          }
+          return null;
+        }
         throw e;
       }
     },

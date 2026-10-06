@@ -1,7 +1,8 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plane, Train, Bus } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import heroImage from "@/assets/images/transport/samoletzxc.png";
 import { cn } from "@/lib/utils";
 import { usePageSectionFields } from "@/contexts/PageCmsContext";
@@ -14,13 +15,52 @@ import WhiteLabelBusPortal from "@/components/WhiteLabelBusPortal";
 
 type TravelType = "train" | "flight" | "bus";
 
-// ⚙️ РЕЖИМ РАБОТЫ КНОПКИ «Поезда/Автобусы»:
-//   "inline"   — открывает старое меню с вкладками (Поезда/Авиабилеты/Автобусы) — СЕЙЧАС
-//   "redirect" — редиректит на поддомен trainandbus.ts-trip.ru — ВЕРНЁМ, КОГДА УТВЕРДЯТ ДОМЕН
 const BUS_MODE: "inline" | "redirect" = "inline";
-
-// URL поддомена (используется только в режиме "redirect")
 const BUS_PORTAL_URL = "https://trainandbus.ts-trip.ru/";
+
+function renderAnimatedTitle(text: string) {
+  const animationDuration = 0.23;
+  const words = text.split(/\s+/).filter(Boolean);
+  const totalLetters = words.reduce((acc, w) => acc + w.length, 0);
+  const totalCycleDuration = totalLetters * animationDuration;
+
+  let letterIndex = 0;
+
+  return (
+    <>
+      {words.map((word, wordIdx) => {
+        const wordNode = (
+          <span key={`w-${wordIdx}`} className="inline-block whitespace-nowrap">
+            {word.split("").map((letter, idx) => {
+              const delay = letterIndex * animationDuration;
+              letterIndex += 1;
+              return (
+                <span
+                  key={`l-${idx}`}
+                  className="inline-block"
+                  style={{
+                    animation: `letterWave ${totalCycleDuration}s ease-in-out ${delay}s infinite`,
+                    animationFillMode: "both",
+                  }}
+                >
+                  {letter}
+                </span>
+              );
+            })}
+          </span>
+        );
+        return wordIdx < words.length - 1 ? (
+          <span key={`sp-${wordIdx}`}>
+            {wordNode}
+            {" "}
+          </span>
+        ) : (
+          wordNode
+        );
+      })}
+    </>
+  );
+}
 
 const HeroSection = () => {
   const formRef = useRef<HTMLDivElement>(null);
@@ -29,23 +69,31 @@ const HeroSection = () => {
   const titleColor = hero.titleColor;
   const heroSrc = mediaOrFallback(hero.videoFlight, heroImage);
 
+  const location = useLocation();
   const [travelType, setTravelType] = useState<TravelType>("flight");
   const [tripType, setTripType] = useState<"round" | "one">("round");
 
-  // Клик по кнопке «Поезда/Автобусы»
+  // Если пришли с location.state.travelType — переключаем вкладку
+  useEffect(() => {
+    const state = location.state as { travelType?: "flight" | "bus" } | null;
+    if (state?.travelType) {
+      setTravelType(state.travelType);
+      // Чистим state из history, чтобы при F5 не залипало
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   const handleBusClick = () => {
     if (BUS_MODE === "redirect") {
       window.location.href = BUS_PORTAL_URL;
       return;
     }
-    // "inline" — открываем старое меню на вкладке «Автобусы»
     setTravelType("bus");
   };
 
   return (
     <CmsEditable sectionId="hero">
       <section id="hero-section" className="relative min-h-screen flex items-center overflow-hidden">
-        {/* Фон */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img
             key={heroSrc}
@@ -62,7 +110,6 @@ const HeroSection = () => {
 
         <div className="container relative z-10 py-20">
           <div className="max-w-4xl mx-auto">
-            {/* H1 */}
             <div className="text-center mb-12">
               <h1
                 className={cn(
@@ -71,68 +118,17 @@ const HeroSection = () => {
                 )}
                 style={cmsColorStyle(titleColor)}
               >
-                {titleColor?.trim()
-                  ? titleText
-                  : (() => {
-                      const text = titleText;
-                      const letters = text.split("");
-                      const animationDuration = 0.23;
-                      const totalCycleDuration = letters.length * animationDuration;
-                      const spaceIdx = text.indexOf(" ");
-                      const firstWordEnd =
-                        spaceIdx > 0 ? spaceIdx : Math.min(text.length, 12);
-
-                      return (
-                        <>
-                          <span className="whitespace-nowrap inline-block">
-                            {letters.slice(0, firstWordEnd).map((letter, index) => {
-                              const delay = index * animationDuration;
-                              return (
-                                <span
-                                  key={index}
-                                  className="inline-block"
-                                  style={{
-                                    animation: `letterWave ${totalCycleDuration}s ease-in-out ${delay}s infinite`,
-                                    animationFillMode: "both",
-                                  }}
-                                >
-                                  {letter === " " ? "\u00A0" : letter}
-                                </span>
-                              );
-                            })}
-                          </span>
-                          {letters.slice(firstWordEnd).map((letter, index) => {
-                            const delay = (firstWordEnd + index) * animationDuration;
-                            return (
-                              <span
-                                key={firstWordEnd + index}
-                                className="inline-block"
-                                style={{
-                                  animation: `letterWave ${totalCycleDuration}s ease-in-out ${delay}s infinite`,
-                                  animationFillMode: "both",
-                                }}
-                              >
-                                {letter === " " ? "\u00A0" : letter}
-                              </span>
-                            );
-                          })}
-                        </>
-                      );
-                    })()}
+                {titleColor?.trim() ? titleText : renderAnimatedTitle(titleText)}
               </h1>
             </div>
 
-            {/* Форма поиска */}
             <div
               ref={formRef}
               className="bg-black/40 backdrop-blur-xl rounded-lg ring-1 ring-white/10 ring-offset-0 p-4 md:p-5 space-y-4"
             >
-              {/* ===== ВЕРХНЯЯ СТРОКА: ДВЕ КНОПКИ ===== */}
               <div className="w-full pb-3 border-b border-white/10">
                 <div className="flex items-center justify-between w-full gap-2 flex-wrap">
-                  {/* Левая часть: кнопка «Авиабилеты» + кнопка «Поезда/Автобусы» */}
                   <div className="flex items-center gap-1 bg-white/10 p-1 rounded-md flex-shrink-0">
-                    {/* Кнопка 1: Авиабилеты */}
                     <button
                       type="button"
                       onClick={() => setTravelType("flight")}
@@ -150,7 +146,6 @@ const HeroSection = () => {
                       </span>
                     </button>
 
-                    {/* Кнопка 2: Поезда/Автобусы */}
                     <button
                       type="button"
                       onClick={handleBusClick}
@@ -178,14 +173,12 @@ const HeroSection = () => {
                     </button>
                   </div>
 
-                  {/* Правая часть: переключатели (только для авиабилетов) */}
                   <div
                     className={cn(
                       "flex items-center gap-2 flex-1 justify-end min-w-0",
                       travelType !== "flight" && "invisible"
                     )}
                   >
-                    {/* Десктоп */}
                     <div className="hidden md:flex items-center gap-1 rounded-md p-1 bg-white/10 flex-shrink-0">
                       <button
                         type="button"
@@ -213,7 +206,6 @@ const HeroSection = () => {
                       </button>
                     </div>
 
-                    {/* Мобилка */}
                     <div className="md:hidden flex-1 min-w-0 max-w-[180px]">
                       <Select
                         value={tripType}
@@ -232,13 +224,6 @@ const HeroSection = () => {
                 </div>
               </div>
 
-              {/* ===== НИЖНЯЯ ЧАСТЬ: ФОРМА ПО ВЫБРАННОМУ ТИПУ ===== */}
-              {/*
-                В режиме "redirect" кнопка «Поезда/Автобусы» сразу уводит на поддомен,
-                поэтому travelType всегда "flight" — показываем только авиаформу.
-                В режиме "inline" кнопка «Поезда/Автобусы» переключает travelType на "bus",
-                и показывается старое меню (авиа + White Label автобусов).
-              */}
               <div className="mt-4">
                 {travelType === "flight" && (
                   <FlightSearchForm

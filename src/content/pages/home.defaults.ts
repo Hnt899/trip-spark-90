@@ -215,7 +215,8 @@ export const homePageDefaults: PageContentDocument = {
             borderColor: "",
             textColor: "",
             priceColor: "",
-          },
+            href: "",
+            },
           {
             from: "Москва",
             to: "Казань",
@@ -225,6 +226,7 @@ export const homePageDefaults: PageContentDocument = {
             borderColor: "",
             textColor: "",
             priceColor: "",
+            href: "",
           },
           {
             from: "Москва",
@@ -235,6 +237,7 @@ export const homePageDefaults: PageContentDocument = {
             borderColor: "",
             textColor: "",
             priceColor: "",
+            href: "",
           },
           {
             from: "Санкт-Петербург",
@@ -245,6 +248,7 @@ export const homePageDefaults: PageContentDocument = {
             borderColor: "",
             textColor: "",
             priceColor: "",
+            href: "",
           },
           {
             from: "Казань",
@@ -255,6 +259,7 @@ export const homePageDefaults: PageContentDocument = {
             borderColor: "",
             textColor: "",
             priceColor: "",
+            href: "",
           },
           {
             from: "Тверь",
@@ -265,6 +270,7 @@ export const homePageDefaults: PageContentDocument = {
             borderColor: "",
             textColor: "",
             priceColor: "",
+            href: "",
           },
           {
             from: "Москва",
@@ -275,6 +281,7 @@ export const homePageDefaults: PageContentDocument = {
             borderColor: "",
             textColor: "",
             priceColor: "",
+            href: "",
           },
         ],
       },

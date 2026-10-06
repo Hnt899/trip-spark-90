@@ -1,0 +1,2141 @@
+﻿================================================================
+FILE: src\pages\admin\AdminPageSectionFields.tsx
+================================================================
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { uploadImages } from "@/lib/uploadImages";
+import { CmsColorField } from "@/components/cms/CmsColorField";
+import { apiFetch } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { Upload } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+function Field({
+  label,
+  value,
+  onChange,
+  multiline,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  multiline?: boolean;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      {multiline ? (
+        <Textarea value={value} onChange={(e) => onChange(e.target.value)} rows={3} />
+      ) : (
+        <Input value={value} onChange={(e) => onChange(e.target.value)} />
+      )}
+    </div>
+  );
+}
+
+function MediaField({
+  label,
+  value,
+  onChange,
+  accept,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  accept: string;
+}) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="URL или загрузите файл"
+      />
+      <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-primary">
+        <Upload className="h-3.5 w-3.5" />
+        {busy ? "Загрузка…" : "Загрузить файл"}
+        <input
+          type="file"
+          accept={accept}
+          className="hidden"
+          disabled={busy}
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setBusy(true);
+            try {
+              const urls = await uploadImages([file]);
+              if (urls[0]) onChange(urls[0]);
+            } catch (err) {
+              console.error(err);
+              alert(err instanceof Error ? err.message : "Ошибка загрузки");
+            } finally {
+              setBusy(false);
+              e.target.value = "";
+            }
+          }}
+        />
+      </label>
+    </div>
+  );
+}
+
+/** Double-click header to rename (updates the underlying string). */
+function DblRename({
+  value,
+  onChange,
+  hint = "Двойной клик — переименовать",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  hint?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  useEffect(() => {
+    if (!editing) setDraft(value);
+  }, [value, editing]);
+
+  if (editing) {
+    return (
+      <Input
+        autoFocus
+        value={draft}
+        className="h-7 text-xs font-semibold"
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => {
+          onChange(draft.trim() || value);
+          setEditing(false);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            onChange(draft.trim() || value);
+            setEditing(false);
+          }
+          if (e.key === "Escape") setEditing(false);
+        }}
+      />
+    );
+  }
+
+  return (
+    <p
+      title={hint}
+      onDoubleClick={() => {
+        setDraft(value);
+        setEditing(true);
+      }}
+      className="cursor-text rounded px-0.5 text-xs font-semibold hover:bg-muted"
+    >
+      {value || "Без названия"}
+    </p>
+  );
+}
+
+function patchItem(
+  items: unknown[],
+  i: number,
+  patch: Record<string, unknown>,
+  onPatch: (p: Record<string, unknown>) => void,
+  key = "items"
+) {
+  const next = [...items] as Record<string, unknown>[];
+  next[i] = { ...(next[i] as object), ...patch };
+  onPatch({ [key]: next });
+}
+
+/**
+ * Парсит число из поля ввода. Пустое значение → 0.
+ * ВАЖНО: использовать вместо `Number(v) || 0`, иначе введённый ноль
+ * превращается в NaN/дефолт и элемент на странице «скрывается».
+ */
+function toNumberOrZero(v: string): number {
+  const n = Number(String(v).replace(/\s+/g, "").replace(",", "."));
+  return Number.isFinite(n) ? n : 0;
+}
+
+type AdminRouteRow = {
+  id: string;
+  legacy_id: string | null;
+  slug: string;
+  name: string;
+  rating: number;
+  cover_image_url: string | null;
+  status?: string;
+};
+
+type AdminBlogRow = {
+  id: string;
+  slug: string;
+  title: string;
+  cover_image_url: string | null;
+  status?: string;
+};
+
+function DayItemLinkPicker({
+  kind,
+  refId,
+  onPick,
+}: {
+  kind: string;
+  refId: string;
+  onPick: (patch: Record<string, unknown>) => void;
+}) {
+  const routesQ = useQuery({
+    queryKey: ["admin-routes-picker"],
+    queryFn: () => apiFetch<AdminRouteRow[]>("/api/admin/routes"),
+  });
+  const blogQ = useQuery({
+    queryKey: ["admin-blog-picker"],
+    queryFn: () => apiFetch<AdminBlogRow[]>("/api/admin/blog/posts"),
+  });
+
+  const mode = kind === "route" || kind === "blog" ? kind : "custom";
+
+  return (
+    <div className="space-y-2 rounded-md bg-muted/40 p-2">
+      <Label className="text-xs text-muted-foreground">Привязка</Label>
+      <Select
+        value={mode}
+        onValueChange={(v) => {
+          if (v === "custom") {
+            onPick({ kind: "custom", refId: "" });
+          } else {
+            onPick({ kind: v, refId: "" });
+          }
+        }}
+      >
+        <SelectTrigger className="h-8">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="custom">Своя ссылка</SelectItem>
+          <SelectItem value="route">Маршрут из CMS</SelectItem>
+          <SelectItem value="blog">Статья блога</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {mode === "route" && (
+        <Select
+          value={refId || undefined}
+          onValueChange={(id) => {
+            const row = (routesQ.data || []).find((r) => r.id === id);
+            if (!row) return;
+            const pathId = row.legacy_id || row.slug || row.id;
+            onPick({
+              kind: "route",
+              refId: row.id,
+              name: row.name,
+              href: `/routes/${pathId}`,
+              rating: row.rating ?? 0,
+              image: row.cover_image_url || "",
+            });
+          }}
+        >
+          <SelectTrigger className="h-8">
+            <SelectValue placeholder={routesQ.isLoading ? "Загрузка…" : "Выберите маршрут"} />
+          </SelectTrigger>
+          <SelectContent>
+            {(routesQ.data || []).map((r) => (
+              <SelectItem key={r.id} value={r.id}>
+                {r.name}
+                {r.status === "published" ? "" : " (черновик)"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {mode === "blog" && (
+        <Select
+          value={refId || undefined}
+          onValueChange={(id) => {
+            const row = (blogQ.data || []).find((r) => r.id === id);
+            if (!row) return;
+            onPick({
+              kind: "blog",
+              refId: row.id,
+              name: row.title,
+              href: `/blog/${row.slug}`,
+              image: row.cover_image_url || "",
+            });
+          }}
+        >
+          <SelectTrigger className="h-8">
+            <SelectValue placeholder={blogQ.isLoading ? "Загрузка…" : "Выберите статью"} />
+          </SelectTrigger>
+          <SelectContent>
+            {(blogQ.data || []).map((r) => (
+              <SelectItem key={r.id} value={r.id}>
+                {r.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      <p className="text-[10px] text-muted-foreground leading-snug">
+        Выберите маршрут или статью — название, ссылка и фото подставятся сами.
+        Либо режим «Своя ссылка» и укажите URL вручную.
+      </p>
+    </div>
+  );
+}
+
+function ArticlePicker({
+  value,
+  onChange,
+}: {
+  value: string[];
+  onChange: (ids: string[]) => void;
+}) {
+  const postsQ = useQuery({
+    queryKey: ["admin-blog-posts-news-picker"],
+    queryFn: () =>
+      apiFetch<AdminBlogRow[]>("/api/admin/blog/posts"),
+  });
+
+  const posts = postsQ.data || [];
+  const selected = value.slice(0, 10);
+
+  const toggle = (id: string) => {
+    if (selected.includes(id)) {
+      onChange(selected.filter((x) => x !== id));
+    } else {
+      if (selected.length >= 10) return;
+      onChange([...selected, id]);
+    }
+  };
+
+  const move = (id: string, dir: -1 | 1) => {
+    const idx = selected.indexOf(id);
+    if (idx < 0) return;
+    const next = [...selected];
+    const j = idx + dir;
+    if (j < 0 || j >= next.length) return;
+    [next[idx], next[j]] = [next[j], next[idx]];
+    onChange(next);
+  };
+
+  return (
+    <div className="space-y-2 rounded-md border p-3">
+      <Label className="text-sm font-semibold">
+        Статьи в слайдере ({selected.length}/10)
+      </Label>
+      <p className="text-[11px] text-muted-foreground">
+        Выберите до 10 статей. Если не выбрано ни одной — покажем 6 последних.
+      </p>
+
+      {selected.length > 0 && (
+        <ul className="space-y-1">
+          {selected.map((id, i) => {
+            const p = posts.find((x) => x.id === id);
+            return (
+              <li
+                key={id}
+                className="flex items-center gap-1 rounded border bg-muted/30 px-2 py-1 text-xs"
+              >
+                <span className="flex-1 truncate">{p?.title || id}</span>
+                <button
+                  type="button"
+                  className="px-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                  onClick={() => move(id, -1)}
+                  disabled={i === 0}
+                  title="Выше"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  className="px-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                  onClick={() => move(id, 1)}
+                  disabled={i === selected.length - 1}
+                  title="Ниже"
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  className="px-1 text-destructive"
+                  onClick={() => toggle(id)}
+                  title="Убрать"
+                >
+                  ✕
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <div className="max-h-64 space-y-1 overflow-y-auto rounded border p-2">
+        {postsQ.isLoading ? (
+          <p className="text-xs text-muted-foreground">Загрузка…</p>
+        ) : posts.length === 0 ? (
+          <p className="text-xs text-muted-foreground">Нет статей</p>
+        ) : (
+          posts.map((p) => {
+            const isSelected = selected.includes(p.id);
+            const isDisabled = !isSelected && selected.length >= 10;
+            return (
+              <label
+                key={p.id}
+                className={cn(
+                  "flex cursor-pointer items-center gap-2 rounded p-1 text-xs hover:bg-muted",
+                  isDisabled && "cursor-not-allowed opacity-50",
+                )}
+              >
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  disabled={isDisabled}
+                  onChange={() => toggle(p.id)}
+                />
+                <span className="flex-1 truncate">{p.title}</span>
+                {p.status && p.status !== "published" ? (
+                  <span className="shrink-0 text-[10px] text-muted-foreground">
+                    {p.status === "draft" ? "черновик" : p.status}
+                  </span>
+                ) : null}
+              </label>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function AdminPageSectionFields({
+  sectionId,
+  fields,
+  onPatch,
+}: {
+  sectionId: string;
+  fields: Record<string, unknown>;
+  onPatch: (patch: Record<string, unknown>) => void;
+}) {
+  const str = (key: string) => String(fields[key] ?? "");
+
+  if (sectionId === "hero") {
+    return (
+      <div className="space-y-3">
+        <Field label="Заголовок" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <MediaField label="Видео: поезд" value={str("videoTrain")} onChange={(v) => onPatch({ videoTrain: v })} accept="video/mp4,video/webm" />
+        <MediaField label="Видео: самолёт" value={str("videoFlight")} onChange={(v) => onPatch({ videoFlight: v })} accept="video/mp4,video/webm" />
+        <MediaField label="Видео: автобус" value={str("videoBus")} onChange={(v) => onPatch({ videoBus: v })} accept="video/mp4,video/webm" />
+      </div>
+    );
+  }
+
+  if (sectionId === "features") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Заголовок" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="Подзаголовок" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Цвет подзаголовка" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        {items.map((raw, i) => {
+          const it = raw as Record<string, string>;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <p className="text-xs font-semibold text-muted-foreground">Карточка {i + 1}</p>
+              <DblRename
+                value={it.title || `Карточка ${i + 1}`}
+                onChange={(v) => patchItem(items, i, { title: v }, onPatch)}
+              />
+              <Field label="Заголовок" value={it.title || ""} onChange={(v) => patchItem(items, i, { title: v }, onPatch)} />
+              <CmsColorField label="Цвет заголовка" value={it.titleColor || ""} onChange={(v) => patchItem(items, i, { titleColor: v }, onPatch)} />
+              <Field label="Описание" value={it.description || ""} onChange={(v) => patchItem(items, i, { description: v }, onPatch)} multiline />
+              <CmsColorField label="Цвет описания" value={it.descriptionColor || ""} onChange={(v) => patchItem(items, i, { descriptionColor: v }, onPatch)} />
+              <Field label="Полный текст (модалка)" value={it.fullDescription || ""} onChange={(v) => patchItem(items, i, { fullDescription: v }, onPatch)} multiline />
+              <CmsColorField label="Цвет фона карточки" value={it.bgColor || ""} onChange={(v) => patchItem(items, i, { bgColor: v }, onPatch)} />
+              <CmsColorField label="Цвет иконки" value={it.iconBgColor || ""} onChange={(v) => patchItem(items, i, { iconBgColor: v }, onPatch)} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "recommendedTrains") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Заголовок" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="Подзаголовок" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Цвет подзаголовка" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        {items.map((raw, i) => {
+          const it = raw as Record<string, string | number>;
+          const pairLabel = `${String(it.from || "")} → ${String(it.to || "")}`;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <DblRename
+                value={pairLabel}
+                onChange={(v) => {
+                  const parts = v.split(/\s*→\s*|\s*->\s*/);
+                  if (parts.length >= 2) {
+                    patchItem(items, i, {
+                      from: parts[0].trim(),
+                      to: parts.slice(1).join("→").trim(),
+                    }, onPatch);
+                  } else {
+                    patchItem(items, i, { from: v.trim() }, onPatch);
+                  }
+                }}
+              />
+              <Field label="Откуда" value={String(it.from || "")} onChange={(v) => patchItem(items, i, { from: v }, onPatch)} />
+              <Field label="Куда" value={String(it.to || "")} onChange={(v) => patchItem(items, i, { to: v }, onPatch)} />
+              <Field label="Описание" value={String(it.description || "")} onChange={(v) => patchItem(items, i, { description: v }, onPatch)} />
+              <Field label="Тег" value={String(it.tag || "")} onChange={(v) => patchItem(items, i, { tag: v }, onPatch)} />
+              <Field label="Скидка %" value={String(it.discount ?? "")} onChange={(v) => patchItem(items, i, { discount: toNumberOrZero(v) }, onPatch)} />
+              <Field label="Старая цена" value={String(it.oldPrice || "")} onChange={(v) => patchItem(items, i, { oldPrice: v }, onPatch)} />
+              <Field label="Новая цена" value={String(it.newPrice || "")} onChange={(v) => patchItem(items, i, { newPrice: v }, onPatch)} />
+              <Field label="Ссылка (опц.)" value={String(it.href || "")} onChange={(v) => patchItem(items, i, { href: v }, onPatch)} />
+              <MediaField label="Фото" value={String(it.image || "")} accept="image/*" onChange={(v) => patchItem(items, i, { image: v }, onPatch)} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "routesSection") {
+    const routes = Array.isArray(fields.routes) ? fields.routes : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Заголовок" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="Подзаголовок" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Цвет подзаголовка" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        {routes.map((raw, i) => {
+          const it = raw as Record<string, string | number | boolean>;
+          const pairLabel = `${String(it.from || "")} → ${String(it.to || "")}`;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <DblRename
+                value={pairLabel}
+                onChange={(v) => {
+                  const parts = v.split(/\s*→\s*|\s*->\s*/);
+                  if (parts.length >= 2) {
+                    patchItem(
+                      routes,
+                      i,
+                      { from: parts[0].trim(), to: parts.slice(1).join("→").trim() },
+                      onPatch,
+                      "routes"
+                    );
+                  } else {
+                    patchItem(routes, i, { from: v.trim() }, onPatch, "routes");
+                  }
+                }}
+              />
+              <Field label="Откуда" value={String(it.from || "")} onChange={(v) => patchItem(routes, i, { from: v }, onPatch, "routes")} />
+              <Field label="Куда" value={String(it.to || "")} onChange={(v) => patchItem(routes, i, { to: v }, onPatch, "routes")} />
+              <Field label="В пути" value={String(it.duration || "")} onChange={(v) => patchItem(routes, i, { duration: v }, onPatch, "routes")} />
+              <Field label="Цена от" value={String(it.minPrice ?? "")} onChange={(v) => patchItem(routes, i, { minPrice: toNumberOrZero(v) }, onPatch, "routes")} />
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={it.isPopular === true}
+                  onCheckedChange={(c) => patchItem(routes, i, { isPopular: c === true }, onPatch, "routes")}
+                  id={`pop-${i}`}
+                />
+                <Label htmlFor={`pop-${i}`} className="text-xs">
+                  Популярный (обводка)
+                </Label>
+              </div>
+              <CmsColorField label="Цвет обводки" value={String(it.borderColor || "")} onChange={(v) => patchItem(routes, i, { borderColor: v }, onPatch, "routes")} />
+              <CmsColorField label="Цвет текста" value={String(it.textColor || "")} onChange={(v) => patchItem(routes, i, { textColor: v }, onPatch, "routes")} />
+              <CmsColorField label="Цвет цены" value={String(it.priceColor || "")} onChange={(v) => patchItem(routes, i, { priceColor: v }, onPatch, "routes")} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "events") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Заголовок" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="Подзаголовок" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Цвет подзаголовка" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        <Field label="Кнопка «Ещё»" value={str("moreLabel")} onChange={(v) => onPatch({ moreLabel: v })} />
+        <Field label="Ссылка «Ещё»" value={str("moreHref")} onChange={(v) => onPatch({ moreHref: v })} />
+        {items.map((raw, i) => {
+          const it = raw as Record<string, string>;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <p className="text-xs font-semibold">{it.city || `Событие ${i + 1}`}</p>
+              <Field label="Город" value={it.city || ""} onChange={(v) => patchItem(items, i, { city: v }, onPatch)} />
+              <Field label="Возраст" value={it.age || ""} onChange={(v) => patchItem(items, i, { age: v }, onPatch)} />
+              <Field label="Цена" value={it.price || ""} onChange={(v) => patchItem(items, i, { price: v }, onPatch)} />
+              <Field label="Артист / событие" value={it.artist || ""} onChange={(v) => patchItem(items, i, { artist: v }, onPatch)} />
+              <Field label="Дата" value={it.date || ""} onChange={(v) => patchItem(items, i, { date: v }, onPatch)} />
+              <Field label="Площадка" value={it.venue || ""} onChange={(v) => patchItem(items, i, { venue: v }, onPatch)} />
+              <Field label="Ссылка (клик)" value={it.href || ""} onChange={(v) => patchItem(items, i, { href: v }, onPatch)} />
+              <Field label="Градиент (tailwind, запасной)" value={it.color || ""} onChange={(v) => patchItem(items, i, { color: v }, onPatch)} />
+              <CmsColorField label="Цвет заставки" value={it.bgColor || ""} onChange={(v) => patchItem(items, i, { bgColor: v }, onPatch)} />
+              <MediaField label="Фото заставки" value={it.image || ""} accept="image/*" onChange={(v) => patchItem(items, i, { image: v }, onPatch)} />
+              <CmsColorField label="Цвет текста" value={it.textColor || ""} onChange={(v) => patchItem(items, i, { textColor: v }, onPatch)} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "inspiration") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Заголовок" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="Подзаголовок" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Цвет подзаголовка" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        {items.map((raw, i) => {
+          const it = raw as Record<string, string>;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <p className="text-xs font-semibold">{it.name || `Маршрут ${i + 1}`}</p>
+              <Field label="Название" value={it.name || ""} onChange={(v) => patchItem(items, i, { name: v }, onPatch)} />
+              <CmsColorField label="Цвет названия" value={it.titleColor || ""} onChange={(v) => patchItem(items, i, { titleColor: v }, onPatch)} />
+              <Field label="Описание" value={it.description || ""} onChange={(v) => patchItem(items, i, { description: v }, onPatch)} multiline />
+              <CmsColorField label="Цвет описания" value={it.descriptionColor || ""} onChange={(v) => patchItem(items, i, { descriptionColor: v }, onPatch)} />
+              <Field label="Ссылка" value={it.href || ""} onChange={(v) => patchItem(items, i, { href: v }, onPatch)} />
+              <MediaField label="Фото" value={it.image || ""} accept="image/*" onChange={(v) => patchItem(items, i, { image: v }, onPatch)} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "testimonials") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Заголовок" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="Подзаголовок" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Цвет подзаголовка" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        {items.map((raw, i) => {
+          const it = raw as Record<string, unknown>;
+          const gallery = Array.isArray(it.gallery) ? (it.gallery as string[]) : [];
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <p className="text-xs font-semibold">{String(it.name || `Отзыв ${i + 1}`)}</p>
+              <Field label="ID" value={String(it.id ?? "")} onChange={(v) => patchItem(items, i, { id: Number(v) || v }, onPatch)} />
+              <Field label="Имя" value={String(it.name || "")} onChange={(v) => patchItem(items, i, { name: v }, onPatch)} />
+              <Field label="Текст на карточке" value={String(it.text || "")} onChange={(v) => patchItem(items, i, { text: v }, onPatch)} multiline />
+              <Field label="Маршрут" value={String(it.route || "")} onChange={(v) => patchItem(items, i, { route: v }, onPatch)} />
+              <Field label="Дата" value={String(it.date || "")} onChange={(v) => patchItem(items, i, { date: v }, onPatch)} />
+              <MediaField label="Аватар" value={String(it.avatar || "")} accept="image/*" onChange={(v) => patchItem(items, i, { avatar: v }, onPatch)} />
+              <MediaField label="Фото карточки" value={String(it.photo || "")} accept="image/*" onChange={(v) => patchItem(items, i, { photo: v }, onPatch)} />
+              <Field label="Текст внутри отзыва" value={String(it.body || "")} onChange={(v) => patchItem(items, i, { body: v }, onPatch)} multiline />
+              <MediaField
+                label="Доп. фото в отзыве (добавить)"
+                value=""
+                accept="image/*"
+                onChange={(v) => patchItem(items, i, { gallery: [...gallery, v] }, onPatch)}
+              />
+              {gallery.length > 0 && (
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  {gallery.map((g, gi) => (
+                    <li key={gi} className="flex items-center gap-2">
+                      <span className="truncate flex-1">{g}</span>
+                      <button
+                        type="button"
+                        className="text-destructive"
+                        onClick={() =>
+                          patchItem(
+                            items,
+                            i,
+                            { gallery: gallery.filter((_, x) => x !== gi) },
+                            onPatch
+                          )
+                        }
+                      >
+                        удалить
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "blogInvite") {
+    const articleIds = Array.isArray(fields.articleIds)
+      ? (fields.articleIds as string[])
+      : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Бейдж" value={str("badge")} onChange={(v) => onPatch({ badge: v })} />
+        <Field label="Заголовок" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="Подзаголовок" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Цвет подзаголовка" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        <Field label="Кнопка" value={str("ctaLabel")} onChange={(v) => onPatch({ ctaLabel: v })} />
+        <Field label="Ссылка кнопки" value={str("ctaHref")} onChange={(v) => onPatch({ ctaHref: v })} />
+
+        <ArticlePicker
+          value={articleIds}
+          onChange={(ids) => onPatch({ articleIds: ids })}
+        />
+      </div>
+    );
+  }
+
+  if (sectionId === "support") {
+    return (
+      <div className="space-y-3">
+        <Field label="Заголовок" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="Подзаголовок" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} />
+        <CmsColorField label="Цвет подзаголовка" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        <Field label="Описание 1" value={str("description1")} onChange={(v) => onPatch({ description1: v })} multiline />
+        <Field label="Описание 2" value={str("description2")} onChange={(v) => onPatch({ description2: v })} multiline />
+        <CmsColorField label="Цвет описаний" value={str("textColor")} onChange={(v) => onPatch({ textColor: v })} />
+        <Field label="Заголовок контактов" value={str("contactHeading")} onChange={(v) => onPatch({ contactHeading: v })} />
+        <Field label="CTA чата" value={str("chatCta")} onChange={(v) => onPatch({ chatCta: v })} />
+      </div>
+    );
+  }
+
+  if (sectionId === "verified") {
+    return (
+      <div className="space-y-3">
+        <Field label="Бейдж слева" value={str("badgeLeft")} onChange={(v) => onPatch({ badgeLeft: v })} />
+        <Field label="Бейдж справа" value={str("badgeRight")} onChange={(v) => onPatch({ badgeRight: v })} />
+        <Field label="Заголовок" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="Описание" value={str("description")} onChange={(v) => onPatch({ description: v })} multiline />
+        <CmsColorField label="Цвет описания" value={str("descriptionColor")} onChange={(v) => onPatch({ descriptionColor: v })} />
+        <Field label="Кнопка" value={str("ctaLabel")} onChange={(v) => onPatch({ ctaLabel: v })} />
+        <Field label="Ссылка" value={str("ctaHref")} onChange={(v) => onPatch({ ctaHref: v })} />
+      </div>
+    );
+  }
+
+  if (sectionId === "routesHero") {
+    const advantages = Array.isArray(fields.advantages) ? fields.advantages : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Заголовок, строка 1" value={str("titleLine1")} onChange={(v) => onPatch({ titleLine1: v })} />
+        <Field label="Заголовок, строка 2" value={str("titleLine2")} onChange={(v) => onPatch({ titleLine2: v })} />
+        <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <MediaField label="Видео или URL" value={str("videoUrl")} onChange={(v) => onPatch({ videoUrl: v })} accept="video/mp4,video/webm" />
+        {advantages.map((adv, i) => {
+          const a = adv as Record<string, string>;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <p className="text-xs font-semibold">Плашка {i + 1}</p>
+              <Field label="Число" value={a.number || ""} onChange={(v) => patchItem(advantages, i, { number: v }, onPatch, "advantages")} />
+              <Field label="Заголовок" value={a.title || ""} onChange={(v) => patchItem(advantages, i, { title: v }, onPatch, "advantages")} />
+              <Field label="Описание" value={a.description || ""} multiline onChange={(v) => patchItem(advantages, i, { description: v }, onPatch, "advantages")} />
+              <CmsColorField label="Цвет текста" value={a.textColor || ""} onChange={(v) => patchItem(advantages, i, { textColor: v }, onPatch, "advantages")} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "heroRoutes") {
+    const cards = Array.isArray(fields.cards) ? fields.cards : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Мобильный заголовок (акцент)" value={str("mobileTitleAccent")} onChange={(v) => onPatch({ mobileTitleAccent: v })} />
+        <Field label="Мобильный заголовок (остальное)" value={str("mobileTitleRest")} onChange={(v) => onPatch({ mobileTitleRest: v })} />
+        <CmsColorField label="Цвет акцента" value={str("accentColor")} onChange={(v) => onPatch({ accentColor: v })} />
+        {cards.map((card, i) => {
+          const c = card as Record<string, string>;
+          return (
+            <div key={c.id || i} className="space-y-2 rounded-md border p-3">
+              <DblRename
+                value={c.title || c.id || `Карточка ${i + 1}`}
+                onChange={(v) => patchItem(cards, i, { title: v }, onPatch, "cards")}
+              />
+              <Field label="Название" value={c.title || ""} onChange={(v) => patchItem(cards, i, { title: v }, onPatch, "cards")} />
+              <CmsColorField label="Цвет названия" value={c.titleColor || ""} onChange={(v) => patchItem(cards, i, { titleColor: v }, onPatch, "cards")} />
+              <Field label="Описание" value={c.description || ""} multiline onChange={(v) => patchItem(cards, i, { description: v }, onPatch, "cards")} />
+              <Field label="Ссылка" value={c.href || ""} onChange={(v) => patchItem(cards, i, { href: v }, onPatch, "cards")} />
+              <MediaField label="Фото" value={c.image || ""} accept="image/*" onChange={(v) => patchItem(cards, i, { image: v }, onPatch, "cards")} />
+              <MediaField label="Фото hover" value={c.hoverImage || ""} accept="image/*" onChange={(v) => patchItem(cards, i, { hoverImage: v }, onPatch, "cards")} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "regionsDay") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Префикс" value={str("titlePrefix")} onChange={(v) => onPatch({ titlePrefix: v })} />
+        <Field label="Акцент" value={str("titleAccent")} onChange={(v) => onPatch({ titleAccent: v })} />
+        <CmsColorField label="Цвет акцента" value={str("accentColor")} onChange={(v) => onPatch({ accentColor: v })} />
+        {items.map((item, i) => {
+          const it = item as Record<string, string | number>;
+          return (
+            <div key={String(it.id || i)} className="space-y-2 rounded-md border p-3">
+              <DblRename
+                value={String(it.name || `Карточка ${i + 1}`)}
+                onChange={(v) => patchItem(items, i, { name: v }, onPatch)}
+              />
+              <DayItemLinkPicker
+                kind={String(it.kind || "custom")}
+                refId={String(it.refId || "")}
+                onPick={(patch) => patchItem(items, i, patch, onPatch)}
+              />
+              <Field label="Название" value={String(it.name || "")} onChange={(v) => patchItem(items, i, { name: v }, onPatch)} />
+              <Field label="Рейтинг" value={String(it.rating ?? "")} onChange={(v) => patchItem(items, i, { rating: Number(v) || 0 }, onPatch)} />
+              <Field
+                label="Ссылка"
+                value={String(it.href || "")}
+                onChange={(v) => patchItem(items, i, { href: v, kind: "custom" }, onPatch)}
+              />
+              <MediaField label="Фото" value={String(it.image || "")} accept="image/*" onChange={(v) => patchItem(items, i, { image: v }, onPatch)} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (sectionId === "process") {
+    return (
+      <div className="space-y-3">
+        <Field label="Заголовок" value={str("title")} onChange={(v) => onPatch({ title: v })} multiline />
+        <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="Абзац" value={str("paragraph")} onChange={(v) => onPatch({ paragraph: v })} multiline />
+        <CmsColorField label="Цвет абзаца" value={str("paragraphColor")} onChange={(v) => onPatch({ paragraphColor: v })} />
+        <Field label="Кнопка" value={str("ctaLabel")} onChange={(v) => onPatch({ ctaLabel: v })} />
+        <Field label="Ссылка" value={str("ctaHref")} onChange={(v) => onPatch({ ctaHref: v })} />
+        <MediaField label="Изображение" value={str("image")} onChange={(v) => onPatch({ image: v })} accept="image/*" />
+        <Field label="Нижний текст" value={str("bottomText")} onChange={(v) => onPatch({ bottomText: v })} multiline />
+        <CmsColorField label="Цвет нижнего текста" value={str("bottomColor")} onChange={(v) => onPatch({ bottomColor: v })} />
+      </div>
+    );
+  }
+
+  if (sectionId === "photographers") {
+    const items = Array.isArray(fields.items) ? fields.items : [];
+    return (
+      <div className="space-y-3">
+        <Field label="Eyebrow" value={str("eyebrow")} onChange={(v) => onPatch({ eyebrow: v })} />
+        <CmsColorField label="Цвет eyebrow" value={str("eyebrowColor")} onChange={(v) => onPatch({ eyebrowColor: v })} />
+        <Field label="Заголовок" value={str("title")} onChange={(v) => onPatch({ title: v })} />
+        <CmsColorField label="Цвет заголовка" value={str("titleColor")} onChange={(v) => onPatch({ titleColor: v })} />
+        <Field label="Подзаголовок" value={str("subtitle")} onChange={(v) => onPatch({ subtitle: v })} multiline />
+        <CmsColorField label="Цвет подзаголовка" value={str("subtitleColor")} onChange={(v) => onPatch({ subtitleColor: v })} />
+        {items.map((item, i) => {
+          const it = item as Record<string, string>;
+          return (
+            <div key={i} className="space-y-2 rounded-md border p-3">
+              <p className="text-xs font-semibold">Фотограф {i + 1}</p>
+              <Field label="Имя" value={it.name || ""} onChange={(v) => patchItem(items, i, { name: v }, onPatch)} />
+              <Field label="Хэндл" value={it.handle || ""} onChange={(v) => patchItem(items, i, { handle: v }, onPatch)} />
+              <Field label="Ссылка" value={it.href || ""} onChange={(v) => patchItem(items, i, { href: v }, onPatch)} />
+              <MediaField label="Аватар" value={it.avatar || ""} accept="image/*" onChange={(v) => patchItem(items, i, { avatar: v }, onPatch)} />
+              <MediaField label="Фото" value={it.image || ""} accept="image/*" onChange={(v) => patchItem(items, i, { image: v }, onPatch)} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <p className="text-sm text-muted-foreground">
+      Для этого блока пока доступны только показ/скрытие и порядок.
+    </p>
+  );
+}
+
+================================================================
+FILE: src\components\sections\RoutesSection.tsx
+================================================================
+import { ArrowRight, Plane, Train, Hotel, Bus, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { cities } from "@/data/cities";
+import { useState, useMemo } from "react";
+import type { SectionSurface } from "@/lib/sectionSurface";
+import {
+  sectionCardLiftClass,
+  sectionLeadClass,
+  sectionShellClass,
+} from "@/lib/sectionSurface";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import type { RoutesSectionFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle, cmsHeadingClass } from "@/lib/cmsStyle";
+
+interface PopularRoute {
+  from: string;
+  to: string;
+  minPrice: number;
+  isPopular: boolean;
+  duration?: string;
+  borderColor?: string;
+  textColor?: string;
+  priceColor?: string;
+}
+
+interface TransportOption {
+  type: "flight" | "train" | "bus";
+  duration: string;
+  price: number;
+  available: boolean;
+  details?: string;
+  badge?: string;
+}
+
+interface RouteData {
+  [key: string]: {
+    flight?: TransportOption;
+    train?: TransportOption;
+    bus?: TransportOption;
+  };
+}
+
+interface RoutesSectionProps {
+  surface?: SectionSurface;
+}
+
+const DEFAULT_POPULAR_ROUTES: PopularRoute[] = [
+  { from: "Москва", to: "Санкт-Петербург", minPrice: 2950, isPopular: true, duration: "3ч 55м" },
+  { from: "Москва", to: "Казань", minPrice: 1850, isPopular: true, duration: "11ч 30м" },
+  { from: "Москва", to: "Нижний Новгород", minPrice: 650, isPopular: false, duration: "3ч 40м" },
+  { from: "Санкт-Петербург", to: "Москва", minPrice: 2950, isPopular: true, duration: "3ч 55м" },
+  { from: "Казань", to: "Москва", minPrice: 1850, isPopular: false, duration: "11ч 30м" },
+  { from: "Тверь", to: "Москва", minPrice: 550, isPopular: false, duration: "1ч 40м" },
+  { from: "Москва", to: "Сочи", minPrice: 2500, isPopular: true, duration: "24ч" },
+];
+
+const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
+  const navigate = useNavigate();
+  const [calcFrom, setCalcFrom] = useState("Москва");
+  const [calcTo, setCalcTo] = useState("Сочи");
+  const [selectedTransport, setSelectedTransport] = useState<"flight" | "train" | "bus" | null>(null);
+  const f = usePageSectionFields<RoutesSectionFields>("routesSection");
+  const sectionTitle = f.title || "Популярные направления";
+  const sectionSubtitle = f.subtitle || "Самые востребованные маршруты с актуальными ценами";
+
+  const popularRoutes: PopularRoute[] =
+    Array.isArray(f.routes) && f.routes.length > 0
+      ? f.routes.map((r) => ({
+          from: r.from || "",
+          to: r.to || "",
+          minPrice: typeof r.minPrice === "number" ? r.minPrice : Number(r.minPrice) || 0,
+          isPopular: Boolean(r.isPopular),
+          duration: r.duration,
+          borderColor: r.borderColor,
+          textColor: r.textColor,
+          priceColor: r.priceColor,
+        }))
+      : DEFAULT_POPULAR_ROUTES;
+
+  const routeData: RouteData = {
+    "Москва-Сочи": {
+      flight: { type: "flight", duration: "4,5ч", price: 4500, available: true, details: "2,5ч + 2ч до аэропорта = 4,5ч" },
+      train: { type: "train", duration: "24ч", price: 3000, available: true, badge: "сэкономите ночь в отеле" },
+      bus: { type: "bus", duration: "18ч", price: 2500, available: true },
+    },
+    "Москва-Санкт-Петербург": {
+      flight: { type: "flight", duration: "3,5ч", price: 3500, available: true, details: "1,5ч + 2ч до аэропорта = 3,5ч" },
+      train: { type: "train", duration: "3ч 55м", price: 2950, available: true },
+      bus: { type: "bus", duration: "8ч", price: 1800, available: false },
+    },
+    "Москва-Казань": {
+      flight: { type: "flight", duration: "4ч", price: 4200, available: true, details: "2ч + 2ч до аэропорта = 4ч" },
+      train: { type: "train", duration: "11ч 30м", price: 1850, available: true },
+      bus: { type: "bus", duration: "12ч", price: 1500, available: true },
+    },
+    "Москва-Нижний Новгород": {
+      flight: { type: "flight", duration: "3,5ч", price: 3800, available: false, details: "1,5ч + 2ч до аэропорта = 3,5ч" },
+      train: { type: "train", duration: "3ч 40м", price: 650, available: true },
+      bus: { type: "bus", duration: "6ч", price: 800, available: true },
+    },
+  };
+
+  const currentRouteData = useMemo(() => {
+    const routeKey = `${calcFrom}-${calcTo}`;
+    return routeData[routeKey] || {
+      flight: { type: "flight" as const, duration: "—", price: 0, available: false },
+      train: { type: "train" as const, duration: "—", price: 0, available: false },
+      bus: { type: "bus" as const, duration: "—", price: 0, available: false },
+    };
+  }, [calcFrom, calcTo]);
+
+  const handleRouteChange = () => {
+    setSelectedTransport(null);
+  };
+
+  const handleRouteClick = (from: string, to: string, transportType?: "train" | "flight" | "bus") => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const params = new URLSearchParams({
+      from,
+      to,
+      date: tomorrow.toISOString().split("T")[0],
+      passengers: "1",
+      ticketType: "all",
+    });
+
+    if (transportType === "flight") {
+      navigate(`/flight-search?${params.toString()}`);
+    } else if (transportType === "bus") {
+      navigate(`/bus-search?${params.toString()}`);
+    } else {
+      navigate(`/train-search?${params.toString()}`);
+    }
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("ru-RU").format(price);
+  };
+
+  return (
+    <CmsEditable sectionId="routesSection">
+      <section className={sectionShellClass(surface, "py-16 md:py-24")}>
+        {surface === "brand" && (
+          <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
+            <div
+              className="absolute rounded-full blur-3xl"
+              style={{
+                width: "400px",
+                height: "400px",
+                left: "-150px",
+                top: "calc(50% - 30px)",
+                transform: "translateY(-50%)",
+                background: "#F9B84F",
+                opacity: 0.3,
+              }}
+            />
+            <div
+              className="absolute rounded-full blur-3xl"
+              style={{
+                width: "400px",
+                height: "400px",
+                right: "-100px",
+                top: "calc(50% + 30px)",
+                transform: "translateY(-50%)",
+                background: "#F9B84F",
+                opacity: 0.3,
+              }}
+            />
+          </div>
+        )}
+        <div className="container relative z-10">
+          <div className="mb-12 text-center">
+            <h2
+              className={cmsHeadingClass(
+                f.titleColor,
+                "heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight pb-2 tracking-tight"
+              )}
+              style={cmsColorStyle(f.titleColor)}
+            >
+              {sectionTitle}
+            </h2>
+            <p
+              className={cn("text-lg md:text-xl max-w-2xl mx-auto", sectionLeadClass(surface))}
+              style={cmsColorStyle(f.subtitleColor)}
+            >
+              {sectionSubtitle}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 lg:gap-8 lg:items-stretch">
+            <div className="w-full lg:h-full lg:min-h-0 lg:flex lg:flex-col">
+              <div className="flex flex-col gap-1 md:gap-3 lg:flex-1 lg:min-h-0">
+                {popularRoutes.map((route, index) => (
+                  <div key={index} className="relative lg:flex-1 lg:min-h-0 lg:flex lg:flex-col">
+                    <div
+                      onClick={() => handleRouteClick(route.from, route.to)}
+                      className={cn(
+                        "relative rounded-lg p-3 md:p-5",
+                        "bg-card",
+                        "cursor-pointer",
+                        "lg:flex-1 lg:flex lg:flex-col lg:justify-center",
+                        sectionCardLiftClass(surface),
+                        route.isPopular && !route.borderColor
+                          ? "border-2 border-purple-600"
+                          : !route.isPopular && !route.borderColor
+                            ? "border border-border/60"
+                            : "border-2"
+                      )}
+                      style={route.borderColor ? { borderColor: route.borderColor } : undefined}
+                    >
+                      {/* Десктоп */}
+                      <div className="hidden md:grid md:grid-cols-[1fr_200px_1fr_auto] gap-4 items-center">
+                        <div className="min-w-0">
+                          <span
+                            className="text-base md:text-lg font-semibold text-foreground"
+                            style={cmsColorStyle(route.textColor)}
+                          >
+                            {route.from}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col items-center justify-center relative w-full">
+                          <div
+                            className="text-xs text-muted-foreground mb-1.5 whitespace-nowrap"
+                            style={cmsColorStyle(route.textColor)}
+                          >
+                            В пути: {route.duration || "—"}
+                          </div>
+                          <div className="w-full flex items-center gap-1.5">
+                            <div className="flex-1 h-0.5 bg-border"></div>
+                            <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <div className="flex-1 h-0.5 bg-border"></div>
+                          </div>
+                        </div>
+
+                        <div className="min-w-0 text-right">
+                          <span
+                            className="text-base md:text-lg font-semibold text-foreground"
+                            style={cmsColorStyle(route.textColor)}
+                          >
+                            {route.to}
+                          </span>
+                        </div>
+
+                        {/* Цена — только если > 0 */}
+                        {Number(route.minPrice) > 0 && (
+                          <div className="text-right flex-shrink-0 min-w-[120px]">
+                            <div
+                              className="text-lg md:text-xl font-bold text-foreground"
+                              style={cmsColorStyle(route.priceColor || route.textColor)}
+                            >
+                              от {formatPrice(route.minPrice)} ₽
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Мобилка */}
+                      <div className="md:hidden flex flex-col gap-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span
+                              className="text-sm font-semibold text-foreground truncate"
+                              style={cmsColorStyle(route.textColor)}
+                            >
+                              {route.from}
+                            </span>
+                            <ArrowRight className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                            <span
+                              className="text-sm font-semibold text-foreground truncate"
+                              style={cmsColorStyle(route.textColor)}
+                            >
+                              {route.to}
+                            </span>
+                          </div>
+                          <div
+                            className="text-xs text-muted-foreground whitespace-nowrap"
+                            style={cmsColorStyle(route.textColor)}
+                          >
+                            {route.duration || "—"}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <span>поезд</span>
+                          <span>•</span>
+                          <span>автобус</span>
+                          <span>•</span>
+                          <span>самолёт</span>
+                        </div>
+                        {Number(route.minPrice) > 0 && (
+                          <div className="flex justify-end">
+                            <div
+                              className="text-base font-bold text-foreground"
+                              style={cmsColorStyle(route.priceColor || route.textColor)}
+                            >
+                              от {formatPrice(route.minPrice)} ₽
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Правый калькулятор */}
+            <div
+              className={cn(
+                "lg:h-full lg:min-h-0 lg:flex lg:flex-col",
+                surface === "light" &&
+                  "max-lg:mt-8 max-lg:pt-8 max-lg:border-t-2 max-lg:border-primary/20 max-lg:rounded-t-2xl"
+              )}
+            >
+              <div
+                className={cn(
+                  "rounded-xl p-5 md:p-6 lg:flex-1 lg:flex lg:flex-col lg:min-h-0 lg:rounded-lg",
+                  surface === "light"
+                    ? cn(
+                        "border-2 border-primary/35",
+                        "bg-gradient-to-br from-[#eef1fc] via-white to-[#f5f2ff]",
+                        "shadow-[0_12px_40px_rgba(67,56,202,0.12)]",
+                        "ring-1 ring-inset ring-primary/[0.08]",
+                        "max-lg:shadow-[0_16px_52px_rgba(59,49,179,0.16)]"
+                      )
+                    : cn(
+                        "border-2 border-white/25 bg-white/10 backdrop-blur-md",
+                        "shadow-lg shadow-black/20"
+                      )
+                )}
+              >
+                <div className="mb-6 shrink-0">
+                  <p
+                    className={cn(
+                      "mb-2 text-xs font-semibold uppercase tracking-wide",
+                      surface === "light" ? "text-primary" : "text-white/80"
+                    )}
+                  >
+                    Сравнение транспорта
+                  </p>
+                  <h3
+                    className={cn(
+                      "text-xl font-bold mb-2",
+                      surface === "light" ? "heading-gradient" : "text-white"
+                    )}
+                  >
+                    Сравнить поезд и самолёт
+                  </h3>
+                  <p
+                    className={cn(
+                      "text-sm",
+                      surface === "light" ? "text-muted-foreground" : "text-white/75"
+                    )}
+                  >
+                    Покажем время в пути и реальную выгоду логистики
+                  </p>
+                </div>
+
+                <div className="space-y-4 mb-6 shrink-0">
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1.5 block">Откуда</label>
+                    <Select
+                      value={calcFrom}
+                      onValueChange={(value) => {
+                        setCalcFrom(value);
+                        handleRouteChange();
+                      }}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cities.map((city) => (
+                          <SelectItem key={`calc-from-${city}`} value={city}>
+                            {city}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1.5 block">Куда</label>
+                    <Select
+                      value={calcTo}
+                      onValueChange={(value) => {
+                        setCalcTo(value);
+                        handleRouteChange();
+                      }}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cities.filter(city => city !== calcFrom).map((city) => (
+                          <SelectItem key={`calc-to-${city}`} value={city}>
+                            {city}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-3 mb-6 min-h-0 lg:mb-0 lg:flex-1 lg:flex lg:flex-col">
+                  {currentRouteData.flight && (
+                    <div
+                      onClick={() => currentRouteData.flight?.available && setSelectedTransport("flight")}
+                      className={cn(
+                        "rounded-lg border p-4 cursor-pointer transition-all",
+                        currentRouteData.flight.available
+                          ? selectedTransport === "flight"
+                            ? "border-primary bg-primary/5 shadow-md"
+                            : "border-border bg-muted/30 hover:border-primary/50 hover:bg-primary/5"
+                          : "border-border/50 bg-muted/20 opacity-60 cursor-not-allowed"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Plane className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-semibold text-foreground">Самолёт</span>
+                        </div>
+                        {!currentRouteData.flight.available && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-medium">
+                            <X className="w-3 h-3" />
+                            Распродано
+                          </span>
+                        )}
+                      </div>
+                      {currentRouteData.flight.available ? (
+                        <>
+                          <div className="text-xs text-muted-foreground mb-1">
+                            {currentRouteData.flight.details || (
+                              <span className="font-semibold text-foreground">{currentRouteData.flight.duration}</span>
+                            )}
+                          </div>
+                          <div className="text-sm font-bold text-foreground">
+                            от {formatPrice(currentRouteData.flight.price)} ₽
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-xs text-muted-foreground">Нет доступных рейсов</div>
+                      )}
+                    </div>
+                  )}
+
+                  {currentRouteData.train && (
+                    <div
+                      onClick={() => currentRouteData.train?.available && setSelectedTransport("train")}
+                      className={cn(
+                        "rounded-lg border p-4 cursor-pointer transition-all",
+                        currentRouteData.train.available
+                          ? selectedTransport === "train"
+                            ? "border-primary bg-primary/5 shadow-md"
+                            : "border-border bg-muted/30 hover:border-primary/50 hover:bg-primary/5"
+                          : "border-border/50 bg-muted/20 opacity-60 cursor-not-allowed"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Train className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-semibold text-foreground">Поезд</span>
+                        </div>
+                        {!currentRouteData.train.available && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-medium">
+                            <X className="w-3 h-3" />
+                            Распродано
+                          </span>
+                        )}
+                      </div>
+                      {currentRouteData.train.available ? (
+                        <>
+                          <div className="text-xs text-muted-foreground mb-1">
+                            <span className="font-semibold text-foreground">{currentRouteData.train.duration}</span>
+                          </div>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <div className="text-sm font-bold text-foreground">
+                              от {formatPrice(currentRouteData.train.price)} ₽
+                            </div>
+                            {currentRouteData.train.badge && (
+                              <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-medium w-fit">
+                                <Hotel className="w-3 h-3" />
+                                {currentRouteData.train.badge}
+                              </span>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-xs text-muted-foreground">Нет доступных рейсов</div>
+                      )}
+                    </div>
+                  )}
+
+                  {currentRouteData.bus && (
+                    <div
+                      onClick={() => currentRouteData.bus?.available && setSelectedTransport("bus")}
+                      className={cn(
+                        "rounded-lg border p-4 cursor-pointer transition-all",
+                        currentRouteData.bus.available
+                          ? selectedTransport === "bus"
+                            ? "border-primary bg-primary/5 shadow-md"
+                            : "border-border bg-muted/30 hover:border-primary/50 hover:bg-primary/5"
+                          : "border-border/50 bg-muted/20 opacity-60 cursor-not-allowed"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Bus className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-semibold text-foreground">Автобус</span>
+                        </div>
+                        {!currentRouteData.bus.available && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-medium">
+                            <X className="w-3 h-3" />
+                            Распродано
+                          </span>
+                        )}
+                      </div>
+                      {currentRouteData.bus.available ? (
+                        <>
+                          <div className="text-xs text-muted-foreground mb-1">
+                            <span className="font-semibold text-foreground">{currentRouteData.bus.duration}</span>
+                          </div>
+                          <div className="text-sm font-bold text-foreground">
+                            от {formatPrice(currentRouteData.bus.price)} ₽
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-xs text-muted-foreground">Нет доступных рейсов</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {selectedTransport && (
+                  <div className="mt-4 shrink-0 lg:mt-auto lg:pt-4">
+                    <Button
+                      className="w-full rounded-full"
+                      onClick={() => handleRouteClick(calcFrom, calcTo, selectedTransport)}
+                    >
+                      Показать билеты
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </CmsEditable>
+  );
+};
+
+export default RoutesSection;
+
+================================================================
+FILE: src\content\pages\home.defaults.ts
+================================================================
+import type { PageContentDocument } from "@/types/pageContent";
+import blogImage from "@/assets/images/features/на блог.png";
+
+export const HOME_SECTION_ORDER = [
+  "hero",
+  "features",
+  "recommendedTrains",   // Горящие направления
+  "blogInvite",          // ← переставлено: Актуальные новости для путешественников
+  "routesSection",       // Популярные направления
+  "events",
+  "inspiration",
+  "testimonials",
+  "support",
+  "verified",
+] as const;
+
+export const homePageDefaults: PageContentDocument = {
+  version: 1,
+  sectionOrder: [...HOME_SECTION_ORDER],
+  sections: {
+    hero: {
+      visible: true,
+      fields: {
+        title: "Путешествие это легко!",
+        titleColor: "",
+        videoTrain: "",
+        videoFlight: "",
+        videoBus: "",
+      },
+    },
+    features: {
+      visible: true,
+      fields: {
+        title: "Почему выбирают TudaSuda?",
+        subtitle: "Всё для комфортного путешествия",
+        titleColor: "",
+        subtitleColor: "",
+        items: [
+          {
+            title: "Всё в одном месте",
+            description: "Поиск, бронирование и оплата за минуты",
+            fullDescription:
+              "TudaSuda объединяет все необходимые функции для путешествий в одном удобном интерфейсе. Вы можете найти билеты, выбрать места, оплатить заказ и получить электронные билеты — всё это без перехода на другие сайты. Наш сервис работает с ж/д, авиа и автобусными перевозчиками, предоставляя единую точку доступа ко всем видам транспорта.",
+            bgColor: "",
+            iconBgColor: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            title: "Лучшая цена",
+            description: "Гарантируем выгодные тарифы без скрытых платежей",
+            fullDescription:
+              "Мы сравниваем цены со всех доступных источников и гарантируем, что вы получите лучшую цену на рынке. Прозрачные тарифы без скрытых комиссий и дополнительных платежей. Если вы найдёте дешевле на другом сайте — мы вернём разницу. Наша система автоматически отслеживает изменения цен и предлагает наиболее выгодные варианты.",
+            bgColor: "",
+            iconBgColor: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            title: "Поддержка 24/7",
+            description: "Помогаем в любое время, отвечаем за 2 минуты",
+            fullDescription:
+              "Наша служба поддержки работает круглосуточно, семь дней в неделю. Мы помогаем с бронированием, изменениями, возвратами и любыми вопросами. Среднее время ответа — менее 2 минут. С нами можно связаться через чат, телефон или email. Наши специалисты всегда готовы помочь вам с любыми вопросами, связанными с путешествиями.",
+            bgColor: "",
+            iconBgColor: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            title: "Электронные билеты",
+            description: "Мгновенная выдача и быстрая регистрация",
+            fullDescription:
+              "Получите электронные билеты мгновенно после оплаты. Не нужно ждать доставки или идти в кассу — билеты приходят на вашу почту и сохраняются в личном кабинете. Быстрая регистрация на рейс прямо через наш сервис. Все документы хранятся в безопасном облачном хранилище, доступ к которому у вас есть в любое время.",
+            bgColor: "",
+            iconBgColor: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            title: "Готовые маршруты",
+            description: "Проверенные маршруты по всей России",
+            fullDescription:
+              "Мы предлагаем готовые маршруты по регионам России, которые были проверены тревел-блогерами и журналистами. Каждый маршрут включает подробную информацию о достопримечательностях, удобствах и советы от опытных путешественников. Вы можете выбрать готовый маршрут или создать свой собственный на основе наших рекомендаций.",
+            bgColor: "",
+            iconBgColor: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            title: "Путеводители",
+            description: "Подробные обзоры городов и достопримечательностей",
+            fullDescription:
+              "Подробные путеводители с обзорами городов и достопримечательностей помогут вам спланировать идеальное путешествие. Мы собрали информацию о лучших местах для посещения, ресторанах, отелях и развлечениях. Наши путеводители регулярно обновляются и содержат актуальную информацию от местных экспертов и путешественников.",
+            bgColor: "",
+            iconBgColor: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+        ],
+      },
+    },
+    recommendedTrains: {
+      visible: true,
+      fields: {
+        title: "Горящие направления",
+        subtitle: "Специальные предложения и скидки на популярные маршруты",
+        titleColor: "",
+        subtitleColor: "",
+        items: [
+          {
+            from: "Москва",
+            to: "Санкт-Петербург",
+            image: "",
+            oldPrice: "3 500 ₽",
+            newPrice: "2 800 ₽",
+            discount: 20,
+            tag: "Популярно",
+            description: "Быстрое и комфортное путешествие",
+            href: "",
+          },
+          {
+            from: "Москва",
+            to: "Казань",
+            image: "",
+            oldPrice: "4 200 ₽",
+            newPrice: "2 940 ₽",
+            discount: 30,
+            tag: "Горящее",
+            description: "Скидка на билеты до конца месяца",
+            href: "",
+          },
+          {
+            from: "Санкт-Петербург",
+            to: "Москва",
+            image: "",
+            oldPrice: "3 800 ₽",
+            newPrice: "3 040 ₽",
+            discount: 20,
+            tag: "Популярно",
+            description: "Ежедневные рейсы",
+            href: "",
+          },
+          {
+            from: "Москва",
+            to: "Великий Новгород",
+            image: "",
+            oldPrice: "2 500 ₽",
+            newPrice: "1 500 ₽",
+            discount: 40,
+            tag: "Бюджетно",
+            description: "Отличная цена для путешествия",
+            href: "",
+          },
+          {
+            from: "Санкт-Петербург",
+            to: "Карелия",
+            image: "",
+            oldPrice: "3 200 ₽",
+            newPrice: "2 240 ₽",
+            discount: 30,
+            tag: "Экскурсии",
+            description: "Красивые пейзажи и природа",
+            href: "",
+          },
+          {
+            from: "Москва",
+            to: "Сочи",
+            image: "",
+            oldPrice: "5 500 ₽",
+            newPrice: "3 850 ₽",
+            discount: 30,
+            tag: "Горящее",
+            description: "Отдых у моря по выгодной цене",
+            href: "",
+          },
+          {
+            from: "Казань",
+            to: "Москва",
+            image: "",
+            oldPrice: "4 000 ₽",
+            newPrice: "2 800 ₽",
+            discount: 30,
+            tag: "Популярно",
+            description: "Комфортные поезда",
+            href: "",
+          },
+          {
+            from: "Москва",
+            to: "Нижний Новгород",
+            image: "",
+            oldPrice: "2 800 ₽",
+            newPrice: "1 680 ₽",
+            discount: 40,
+            tag: "Бюджетно",
+            description: "Экономия до 40%",
+            href: "",
+          },
+        ],
+      },
+    },
+    routesSection: {
+      visible: true,
+      fields: {
+        title: "Популярные направления",
+        subtitle: "Самые востребованные маршруты с актуальными ценами",
+        titleColor: "",
+        subtitleColor: "",
+        routes: [
+          {
+            from: "Москва",
+            to: "Санкт-Петербург",
+            minPrice: 2950,
+            isPopular: true,
+            duration: "3ч 55м",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+          {
+            from: "Москва",
+            to: "Казань",
+            minPrice: 1850,
+            isPopular: true,
+            duration: "11ч 30м",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+          {
+            from: "Москва",
+            to: "Нижний Новгород",
+            minPrice: 650,
+            isPopular: false,
+            duration: "3ч 40м",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+          {
+            from: "Санкт-Петербург",
+            to: "Москва",
+            minPrice: 2950,
+            isPopular: true,
+            duration: "3ч 55м",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+          {
+            from: "Казань",
+            to: "Москва",
+            minPrice: 1850,
+            isPopular: false,
+            duration: "11ч 30м",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+          {
+            from: "Тверь",
+            to: "Москва",
+            minPrice: 550,
+            isPopular: false,
+            duration: "1ч 40м",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+          {
+            from: "Москва",
+            to: "Сочи",
+            minPrice: 2500,
+            isPopular: true,
+            duration: "24ч",
+            borderColor: "",
+            textColor: "",
+            priceColor: "",
+          },
+        ],
+      },
+    },
+    events: {
+      visible: true,
+      fields: {
+        title: "Повод для путешествия",
+        subtitle: "10 событий, ради которых стоит рвануть в путь",
+        moreLabel: "Ещё",
+        moreHref: "/blog",
+        titleColor: "",
+        subtitleColor: "",
+        items: [
+          {
+            city: "Краснодар",
+            age: "12+",
+            price: "от 2500",
+            artist: "ARTIC & ASTI",
+            date: "23 октября",
+            venue: "Ледовый дворец",
+            color: "from-red-900 to-red-700",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "Казань",
+            age: "18+",
+            price: "от 2500",
+            artist: "Anna Asti. Шоу «Царица»",
+            date: "9 ноября",
+            venue: "Татнефть Арена",
+            color: "from-pink-700 to-pink-500",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "Петербург",
+            age: "12+",
+            price: "от 2500",
+            artist: "Баста",
+            date: "20 декабря",
+            venue: "Газпром Арена",
+            color: "from-orange-800 to-blue-900",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "Москва",
+            age: "16+",
+            price: "от 3000",
+            artist: "Сергей Лазарев",
+            date: "5 ноября",
+            venue: "Crocus City Hall",
+            color: "from-purple-900 to-purple-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "Екатеринбург",
+            age: "18+",
+            price: "от 2800",
+            artist: "Макс Корж",
+            date: "15 ноября",
+            venue: "КРК Уралец",
+            color: "from-blue-900 to-blue-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "Нижний Новгород",
+            age: "12+",
+            price: "от 2200",
+            artist: "Земфира",
+            date: "18 ноября",
+            venue: "КЗ Нагорный",
+            color: "from-green-900 to-green-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "Новосибирск",
+            age: "16+",
+            price: "от 2600",
+            artist: "Би-2",
+            date: "25 ноября",
+            venue: "Дворец Спорта",
+            color: "from-yellow-900 to-yellow-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "Сочи",
+            age: "18+",
+            price: "от 3500",
+            artist: "Мот",
+            date: "1 декабря",
+            venue: "Фестивальный",
+            color: "from-teal-900 to-teal-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "Уфа",
+            age: "12+",
+            price: "от 2400",
+            artist: "Полина Гагарина",
+            date: "8 декабря",
+            venue: "Конгресс-Холл",
+            color: "from-indigo-900 to-indigo-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+          {
+            city: "Владивосток",
+            age: "16+",
+            price: "от 2900",
+            artist: "Монеточка",
+            date: "12 декабря",
+            venue: "Фетисов Арена",
+            color: "from-rose-900 to-rose-600",
+            bgColor: "",
+            image: "",
+            href: "",
+            textColor: "",
+          },
+        ],
+      },
+    },
+    inspiration: {
+      visible: true,
+      fields: {
+        title: "Вдохновение для следующей поездки",
+        subtitle: "Найдите идеи и направления",
+        titleColor: "",
+        subtitleColor: "",
+        items: [
+          {
+            name: "Душевная Армения",
+            description: "Ереван, Севан и древние монастыри",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "Отпуск в Китае",
+            description: "Что стоит знать перед первой поездкой",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "Маршрут по Карелии",
+            description: "Главные места для знакомства с республикой",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "Золотое кольцо России",
+            description: "Древние города и православные святыни",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "Байкал зимой",
+            description: "Невероятная красота ледяного озера",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "Камчатка",
+            description: "Вулканы, гейзеры и дикая природа",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "Алтай",
+            description: "Горы, озёра и бескрайние степи",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "Крым",
+            description: "Южное побережье и горные тропы",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "Якутия",
+            description: "Полюс холода и северное сияние",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+          {
+            name: "Кавказ",
+            description: "Эльбрус и горные аулы",
+            image: "",
+            href: "",
+            titleColor: "",
+            descriptionColor: "",
+          },
+        ],
+      },
+    },
+    testimonials: {
+      visible: true,
+      fields: {
+        title: "Живые истории путешествий",
+        subtitle: "Реальные люди, реальные эмоции, реальные путешествия",
+        titleColor: "",
+        subtitleColor: "",
+        items: [
+          {
+            id: 1,
+            name: "Марина",
+            avatar: "",
+            photo: "",
+            text: "Вот такой вид из окна поезда Москва — Санкт-Петербург",
+            route: "Москва → Санкт-Петербург",
+            date: "15 ноября 2024",
+            body: "Вот такой вид из окна поезда Москва — Санкт-Петербург",
+            gallery: [],
+          },
+          {
+            id: 2,
+            name: "Алексей",
+            avatar: "",
+            photo: "",
+            text: "Поездка прошла идеально, буду ездить через TudaSuda!",
+            route: "Москва → Казань",
+            date: "12 ноября 2024",
+            body: "Поездка прошла идеально, буду ездить через TudaSuda!",
+            gallery: [],
+          },
+          {
+            id: 3,
+            name: "Елена",
+            avatar: "",
+            photo: "",
+            text: "Удобные места, чисто, комфортно. Всё как на фото!",
+            route: "Санкт-Петербург → Москва",
+            date: "10 ноября 2024",
+            body: "Удобные места, чисто, комфортно. Всё как на фото!",
+            gallery: [],
+          },
+          {
+            id: 4,
+            name: "Дмитрий",
+            avatar: "",
+            photo: "",
+            text: "Невероятные виды! Поездка на Байкал — это что-то особенное",
+            route: "Иркутск → Байкал",
+            date: "8 ноября 2024",
+            body: "Невероятные виды! Поездка на Байкал — это что-то особенное",
+            gallery: [],
+          },
+          {
+            id: 5,
+            name: "Анна",
+            avatar: "",
+            photo: "",
+            text: "Отличная цена и сервис. Рекомендую всем друзьям!",
+            route: "Москва → Великий Новгород",
+            date: "5 ноября 2024",
+            body: "Отличная цена и сервис. Рекомендую всем друзьям!",
+            gallery: [],
+          },
+          {
+            id: 6,
+            name: "Сергей",
+            avatar: "",
+            photo: "",
+            text: "Дальневосточные приключения начались! Владивосток ждёт",
+            route: "Москва → Владивосток",
+            date: "3 ноября 2024",
+            body: "Дальневосточные приключения начались! Владивосток ждёт",
+            gallery: [],
+          },
+          {
+            id: 7,
+            name: "Ольга",
+            avatar: "",
+            photo: "",
+            text: "Европейский колорит в России. Калининград — это магия!",
+            route: "Москва → Калининград",
+            date: "1 ноября 2024",
+            body: "Европейский колорит в России. Калининград — это магия!",
+            gallery: [],
+          },
+          {
+            id: 8,
+            name: "Иван",
+            avatar: "",
+            photo: "",
+            text: "Красивые пейзажи Карелии. Природа здесь просто потрясающая",
+            route: "Санкт-Петербург → Карелия",
+            date: "29 октября 2024",
+            body: "Красивые пейзажи Карелии. Природа здесь просто потрясающая",
+            gallery: [],
+          },
+          {
+            id: 9,
+            name: "Татьяна",
+            avatar: "",
+            photo: "",
+            text: "Быстро, удобно, без проблем. TudaSuda — мой выбор!",
+            route: "Санкт-Петербург → Москва",
+            date: "27 октября 2024",
+            body: "Быстро, удобно, без проблем. TudaSuda — мой выбор!",
+            gallery: [],
+          },
+          {
+            id: 10,
+            name: "Михаил",
+            avatar: "",
+            photo: "",
+            text: "Белые ночи в Питере. Это нужно видеть своими глазами!",
+            route: "Москва → Санкт-Петербург",
+            date: "25 октября 2024",
+            body: "Белые ночи в Питере. Это нужно видеть своими глазами!",
+            gallery: [],
+          },
+          {
+            id: 11,
+            name: "Наталья",
+            avatar: "",
+            photo: "",
+            text: "Комфортная поездка, отличный сервис. Обязательно вернусь!",
+            route: "Москва → Сочи",
+            date: "23 октября 2024",
+            body: "Комфортная поездка, отличный сервис. Обязательно вернусь!",
+            gallery: [],
+          },
+        ],
+      },
+    },
+    support: {
+      visible: true,
+      fields: {
+        title: "Умный бот-помощник 24/7",
+        subtitle: "Решаем вопросы быстро и эффективно, работаем круглосуточно",
+        titleColor: "",
+        subtitleColor: "",
+        textColor: "",
+        description1:
+          "Наш умный бот-помощник использует технологии искусственного интеллекта для быстрого решения ваших вопросов. Он понимает контекст, помнит историю диалога и может помочь с выбором билетов, маршрутов и планированием путешествий.",
+        description2:
+          "Если бот не сможет решить вопрос самостоятельно, он мгновенно подключит живого оператора, который продолжит диалог без потери контекста. Все ваши данные защищены и обрабатываются в соответствии с требованиями безопасности.",
+        contactHeading: "Выберите способ связи",
+        chatCta: "Открыть чат с ботом",
+      },
+    },
+    blogInvite: {
+      visible: true,
+      fields: {
+        badge: "Для читателей",
+        title: "Актуальные новости для путешественников",
+        subtitle: "Свежие статьи редакции: советы, лайфхаки и обзоры направлений",
+        titleColor: "",
+        subtitleColor: "",
+        textColor: "",
+        paragraph1: "",
+        paragraph2: "",
+        ctaLabel: "Перейти в блог",
+        ctaHref: "/blog",
+        image: "",
+        articleIds: [],
+      },
+    },
+    verified: {
+      visible: true,
+      fields: {
+        badgeLeft: "Проверено",
+        badgeRight: "TudaSuda",
+        title: "Готовые маршруты для путешествий",
+        titleColor: "",
+        description:
+          "Проверенные тревел-блогерами и журналистами маршруты по всей России. Каждый маршрут включает подробную информацию о достопримечательностях и советы от опытных путешественников.",
+        descriptionColor: "",
+        ctaLabel: "Все маршруты",
+        ctaHref: "/routes/list",
+        polaroids: [],
+      },
+    },
+  },
+};
+

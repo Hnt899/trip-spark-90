@@ -25,6 +25,7 @@ interface PopularRoute {
   borderColor?: string;
   textColor?: string;
   priceColor?: string;
+  href?: string;
 }
 
 interface TransportOption {
@@ -78,6 +79,7 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
           borderColor: r.borderColor,
           textColor: r.textColor,
           priceColor: r.priceColor,
+          href: r.href,
         }))
       : DEFAULT_POPULAR_ROUTES;
 
@@ -117,12 +119,27 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
     setSelectedTransport(null);
   };
 
-  const handleRouteClick = (from: string, to: string, transportType?: "train" | "flight" | "bus") => {
+  /**
+   * Открывает маршрут:
+   *  - если задан `route.href` — идём по нему (внешний URL — в новой вкладке, внутренний — через SPA-навигацию);
+   *  - иначе — текущая логика: /train-search / /flight-search / /bus-search в зависимости от типа транспорта.
+   */
+  const openRoute = (route: PopularRoute, transportType?: "train" | "flight" | "bus") => {
+    const href = (route.href || "").trim();
+    if (href) {
+      if (href.startsWith("http://") || href.startsWith("https://")) {
+        window.open(href, "_blank", "noopener,noreferrer");
+      } else {
+        navigate(href);
+      }
+      return;
+    }
+
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const params = new URLSearchParams({
-      from,
-      to,
+      from: route.from,
+      to: route.to,
       date: tomorrow.toISOString().split("T")[0],
       passengers: "1",
       ticketType: "all",
@@ -197,7 +214,7 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
                 {popularRoutes.map((route, index) => (
                   <div key={index} className="relative lg:flex-1 lg:min-h-0 lg:flex lg:flex-col">
                     <div
-                      onClick={() => handleRouteClick(route.from, route.to)}
+                      onClick={() => openRoute(route)}
                       className={cn(
                         "relative rounded-lg p-3 md:p-5",
                         "bg-card",
@@ -539,7 +556,12 @@ const RoutesSection = ({ surface = "brand" }: RoutesSectionProps) => {
                   <div className="mt-4 shrink-0 lg:mt-auto lg:pt-4">
                     <Button
                       className="w-full rounded-full"
-                      onClick={() => handleRouteClick(calcFrom, calcTo, selectedTransport)}
+                      onClick={() =>
+                        openRoute(
+                          { from: calcFrom, to: calcTo, minPrice: 0, isPopular: false },
+                          selectedTransport
+                        )
+                      }
                     >
                       Показать билеты
                       <ArrowRight className="w-4 h-4 ml-2" />

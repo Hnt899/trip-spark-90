@@ -1,0 +1,684 @@
+﻿================================================================
+FILE: src\utils\slugify.ts
+================================================================
+// Утилита для создания slug из заголовка (транслитерация)
+function transliterate(str: string): string {
+  const map: Record<string, string> = {
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
+    'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+    'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+    'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+    'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+    // Заглавные буквы
+    'А': 'a', 'Б': 'b', 'В': 'v', 'Г': 'g', 'Д': 'd', 'Е': 'e', 'Ё': 'e',
+    'Ж': 'zh', 'З': 'z', 'И': 'i', 'Й': 'y', 'К': 'k', 'Л': 'l', 'М': 'm',
+    'Н': 'n', 'О': 'o', 'П': 'p', 'Р': 'r', 'С': 's', 'Т': 't', 'У': 'u',
+    'Ф': 'f', 'Х': 'h', 'Ц': 'ts', 'Ч': 'ch', 'Ш': 'sh', 'Щ': 'sch',
+    'Ъ': '', 'Ы': 'y', 'Ь': '', 'Э': 'e', 'Ю': 'yu', 'Я': 'ya'
+  };
+  
+  return str
+    .split('')
+    .map(char => {
+      const lowerChar = char.toLowerCase();
+      return map[char] || map[lowerChar] || lowerChar;
+    })
+    .join('');
+}
+
+export function createSlug(title: string): string {
+  return transliterate(title)
+    .replace(/[?«»—()!]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/--+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+
+
+================================================================
+FILE: src\data\blogData.ts
+================================================================
+// Мок-данные для страницы блога
+import trainInterior from "@/assets/images/transport/train-interior.jpg";
+import heroTrain from "@/assets/images/hero/hero-train.jpg";
+import saintPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
+import moscow from "@/assets/images/cities/moscow.jpg";
+import kazan from "@/assets/images/cities/kazan.jpg";
+import novgorod from "@/assets/images/cities/novgorod.jpg";
+import karelia from "@/assets/images/cities/karelia.jpg";
+import interfaceImage from "@/assets/images/features/интерфейс.png";
+import routesImage from "@/assets/images/features/маршруты.png";
+import discountImage from "@/assets/images/features/скидка.png";
+import mobileAppImage from "@/assets/images/features/приложение.png";
+import russiaRoutesImage from "@/assets/images/features/россия м.png";
+import loyaltyImage from "@/assets/images/features/лояльность.png";
+import whiteNightsImage from "@/assets/images/events/белые ночи.jpg";
+import exhibitionImage from "@/assets/images/events/выставка.jpeg";
+import jazzImage from "@/assets/images/events/джаз.jpg";
+import foodImage from "@/assets/images/events/еда.jpg";
+import rockImage from "@/assets/images/events/рок.jpg";
+import theaterImage from "@/assets/images/events/ткатральный фестиаль.jpg";
+import flowersImage from "@/assets/images/events/цветы.jpg";
+import sapsanImage from "@/assets/images/transport/сапсан.jpeg";
+import infrastructureImage from "@/assets/images/features/инфаструктура.png";
+import ecoImage from "@/assets/images/events/эко.jpg";
+import vladivostok1 from "@/assets/images/routes/владивосток 1.jpg";
+import vladivostok2 from "@/assets/images/routes/владивосток 2.jpg";
+import vladivostok3 from "@/assets/images/routes/владивосток 3.jpg";
+import vladivostok4 from "@/assets/images/routes/владивосток 4.jpg";
+import vladivostok5 from "@/assets/images/routes/владивосток 5.jpg";
+import kaliningrad1 from "@/assets/images/routes/калиниград 1.jpg";
+import kaliningrad2 from "@/assets/images/routes/калиниград 2.jpg";
+import kaliningrad3 from "@/assets/images/routes/калиниград 3.jpg";
+import kaliningrad4 from "@/assets/images/routes/калиниград 4.jpg";
+import kaliningrad5 from "@/assets/images/routes/калиниград 5.jpg";
+import baikal1 from "@/assets/images/routes/байкал1.jpg";
+import baikal2 from "@/assets/images/routes/байкал 2.jpg";
+import baikal3 from "@/assets/images/routes/байкал 3.jpg";
+import baikal4 from "@/assets/images/routes/байкал 4.jpg";
+import baikal5 from "@/assets/images/routes/байкал 5.jpg";
+import { createSlug } from "@/utils/slugify";
+
+export interface InfoCardData {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  image: string;
+}
+
+export interface NewsItem {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  buttonText?: string;
+  url?: string;
+}
+
+export interface EventData {
+  id: string;
+  title: string;
+  description: string;
+  city: string;
+  date: string;
+  image: string;
+  url: string;
+  maskType: 'left' | 'right' | 'none';
+  textPosition: 'top' | 'bottom' | 'left' | 'right';
+}
+
+export interface StoryData {
+  id: string;
+  city: string;
+  text: string;
+  images: string[];
+}
+
+export interface TipData {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  url?: string;
+}
+
+// Блок 1: Информационные карточки
+export const infoCards: InfoCardData[] = [
+  {
+    id: '1',
+    type: 'Обновление сайта',
+    title: 'Новый дизайн интерфейса',
+    description: 'Мы обновили дизайн сайта для более удобного поиска билетов и планирования путешествий. Теперь всё стало ещё проще и быстрее.',
+    image: interfaceImage,
+  },
+  {
+    id: '2',
+    type: 'Важно',
+    title: 'Изменения в расписании поездов',
+    description: 'Обратите внимание на изменения в расписании некоторых маршрутов. Проверяйте актуальное время.',
+    image: routesImage,
+  },
+  {
+    id: '3',
+    type: 'Новость',
+    title: 'Скидки на билеты до конца месяца',
+    description: 'Специальное предложение: скидка 15% на все билеты при покупке до конца месяца. Успейте забронировать поездку!',
+    image: discountImage,
+  },
+];
+
+// Блок 2: Новости сайта
+export const siteNews: NewsItem[] = [
+  {
+    id: '1',
+    title: 'Сайт адаптирован под мобильные устройства',
+    description: 'Теперь наш сайт полностью адаптирован для удобного использования на смартфонах и планшетах. Покупайте билеты, планируйте поездки и управляйте бронированиями прямо с телефона. Удобный интерфейс, быстрая загрузка и все функции доступны на любом устройстве. Оптимизированный дизайн для комфортной работы на маленьких экранах.',
+    image: mobileAppImage,
+    buttonText: 'Подробнее',
+  },
+  {
+    id: '2',
+    title: 'Новые маршруты по России',
+    description: 'Добавлены маршруты в Карелию, на Алтай и в другие популярные направления. Откройте для себя новые места! Теперь вы можете добраться до самых живописных уголков нашей страны с комфортом. Регулярные рейсы, удобное расписание и выгодные цены. Планируйте свои путешествия заранее и экономьте до 30% на билетах.',
+    image: russiaRoutesImage,
+    buttonText: 'Подписаться',
+  },
+  {
+    id: '3',
+    title: 'Система лояльности',
+    description: 'Накопительные баллы за каждую поездку. Обменивайте их на скидки и бесплатные билеты. Чем больше вы путешествуете, тем больше бонусов получаете. Участвуйте в специальных акциях, получайте привилегии и эксклюзивные предложения. Начните копить баллы уже сегодня и получите первый подарок после третьей поездки.',
+    image: loyaltyImage,
+    buttonText: 'Узнать больше',
+  },
+];
+
+// Блок 3: Мероприятия
+export const events: EventData[] = [
+  {
+    id: '1',
+    title: 'Фестиваль "Белые ночи"',
+    description: 'Крупнейший музыкальный фестиваль в Санкт-Петербурге',
+    city: 'Санкт-Петербург',
+    date: '15-20 июня',
+    image: whiteNightsImage,
+    url: 'https://example.com/event1',
+    maskType: 'none',
+    textPosition: 'bottom',
+  },
+  {
+    id: '2',
+    title: 'Выставка современного искусства',
+    description: 'Работы известных художников со всего мира',
+    city: 'Москва',
+    date: '10-25 мая',
+    image: exhibitionImage,
+    url: 'https://example.com/event2',
+    maskType: 'left',
+    textPosition: 'left',
+  },
+  {
+    id: '3',
+    title: 'Джазовый концерт',
+    description: 'Вечер джазовой музыки в историческом центре',
+    city: 'Казань',
+    date: '5 мая',
+    image: jazzImage,
+    url: 'https://example.com/event3',
+    maskType: 'none',
+    textPosition: 'left',
+  },
+  {
+    id: '4',
+    title: 'Театральный фестиваль',
+    description: 'Лучшие спектакли сезона',
+    city: 'Екатеринбург',
+    date: '12-18 мая',
+    image: theaterImage,
+    url: 'https://example.com/event4',
+    maskType: 'none',
+    textPosition: 'top',
+  },
+  {
+    id: '5',
+    title: 'Кулинарный мастер-класс',
+    description: 'Учимся готовить блюда русской кухни',
+    city: 'Новгород',
+    date: '8 мая',
+    image: foodImage,
+    url: 'https://example.com/event5',
+    maskType: 'none',
+    textPosition: 'right',
+  },
+  {
+    id: '6',
+    title: 'Фестиваль цветов',
+    description: 'Весенний праздник в парке',
+    city: 'Сочи',
+    date: '20-22 мая',
+    image: flowersImage,
+    url: 'https://example.com/event6',
+    maskType: 'right',
+    textPosition: 'right',
+  },
+  {
+    id: '7',
+    title: 'Рок-концерт под открытым небом',
+    description: 'Выступления популярных групп',
+    city: 'Краснодар',
+    date: '25 мая',
+    image: rockImage,
+    url: 'https://example.com/event7',
+    maskType: 'none',
+    textPosition: 'bottom',
+  },
+];
+
+// Блок 4: Новости РЖД
+export const rzdNews: NewsItem[] = [
+  {
+    id: '1',
+    title: 'Новые скоростные поезда "Сапсан"',
+    description: 'Расширение маршрутной сети скоростных поездов. Теперь "Сапсан" курсирует по новым направлениям.',
+    image: sapsanImage,
+    buttonText: 'Читать новость',
+  },
+  {
+    id: '2',
+    title: 'Обновление инфраструктуры вокзалов',
+    description: 'Реконструкция крупнейших железнодорожных вокзалов для повышения комфорта пассажиров.',
+    image: infrastructureImage,
+    buttonText: 'Читать новость',
+  },
+  {
+    id: '3',
+    title: 'Экологические инициативы РЖД',
+    description: 'Переход на экологичные виды топлива и внедрение энергосберегающих технологий.',
+    image: ecoImage,
+    buttonText: 'Читать новость',
+  },
+];
+
+// Блок 5: Сторисы
+export const stories: StoryData[] = [
+  {
+    id: '1',
+    city: 'Санкт-Петербург',
+    text: 'Путешествие по Северной столице',
+    images: [saintPetersburg, moscow, kazan, novgorod, karelia],
+  },
+  {
+    id: '2',
+    city: 'Москва',
+    text: 'Выходные в столице',
+    images: [saintPetersburg, moscow, kazan, novgorod, karelia],
+  },
+  {
+    id: '3',
+    city: 'Казань',
+    text: 'Красота Татарстана',
+    images: [saintPetersburg, moscow, kazan, novgorod, karelia],
+  },
+  {
+    id: '4',
+    city: 'Сочи',
+    text: 'Отдых на Чёрном море',
+    images: [saintPetersburg, moscow, kazan, novgorod, karelia],
+  },
+  {
+    id: '5',
+    city: 'Екатеринбург',
+    text: 'Уральские просторы',
+    images: [saintPetersburg, moscow, kazan, novgorod, karelia],
+  },
+  {
+    id: '6',
+    city: 'Новгород',
+    text: 'Древняя Русь',
+    images: [saintPetersburg, moscow, kazan, novgorod, karelia],
+  },
+  {
+    id: '7',
+    city: 'Краснодар',
+    text: 'Южная жемчужина',
+    images: [saintPetersburg, moscow, kazan, novgorod, karelia],
+  },
+  {
+    id: '8',
+    city: 'Владивосток',
+    text: 'Тихоокеанское побережье',
+    images: [vladivostok1, vladivostok2, vladivostok3, vladivostok4, vladivostok5],
+  },
+  {
+    id: '9',
+    city: 'Калининград',
+    text: 'Балтийское море',
+    images: [kaliningrad4,kaliningrad1, kaliningrad2, kaliningrad3, kaliningrad5],
+  },
+  {
+    id: '10',
+    city: 'Иркутск',
+    text: 'Байкал ждёт',
+    images: [baikal5, baikal1, baikal2, baikal3, baikal4 ],
+  },
+];
+
+// Блок 6: Советы
+export const tips: TipData[] = [
+  {
+    id: '1',
+    title: 'Когда покупать билеты на поезда?',
+    description: 'Узнайте оптимальное время для покупки билетов, чтобы сэкономить и гарантировать наличие мест. Советы по раннему бронированию и специальным предложениям.',
+    image: trainInterior,
+    url: `/guide/passenger/${createSlug("Когда покупать билеты на поезда?")}`,
+  },
+  {
+    id: '2',
+    title: 'Как перевезти животное?',
+    description: 'Полное руководство по перевозке домашних животных в поезде: документы, правила, требования к перевозке и советы для комфортного путешествия с питомцем.',
+    image: heroTrain,
+    url: `/guide/passenger/${createSlug("Как перевезти животное?")}`,
+  },
+  {
+    id: '3',
+    title: 'Как летать с маленьким ребёнком?',
+    description: 'Практические советы для родителей: что взять с собой, как подготовить ребёнка к полёту, особенности перелёта с детьми и как сделать путешествие комфортным.',
+    image: saintPetersburg,
+    url: `/guide/passenger/${createSlug("Как летать с маленьким ребёнком?")}`,
+  },
+  {
+    id: '4',
+    title: 'Что делать, если я заболел в дороге?',
+    description: 'Важная информация о том, как получить медицинскую помощь во время путешествия, какие документы нужны и куда обращаться в экстренной ситуации.',
+    image: moscow,
+    url: `/guide/passenger/${createSlug("Что делать, если я заболел в дороге?")}`,
+  },
+];
+
+
+
+================================================================
+FILE: src\data\navLinks.ts
+================================================================
+import { createSlug } from "@/utils/slugify";
+
+export interface NavLinkItem {
+  label: string;
+  href: string;
+}
+
+// Популярные маршруты (топ-5)
+export const popularRoutes: NavLinkItem[] = [
+  { label: "Краснодарский край", href: "/routes/9" },
+  { label: "Иркутск и Байкал", href: "/routes/28" },
+  { label: "Камчатка", href: "/routes/38" },
+  { label: "Крым", href: "/routes/15" },
+  { label: "Сочи и окрестности", href: "/routes/17" },
+];
+
+// Популярные темы из справочной (3 основных раздела)
+export const faqTopics: NavLinkItem[] = [
+  { label: "ЖД", href: "/reference#trains" },
+  { label: "Авиа", href: "/reference#flights" },
+  { label: "Автобус", href: "/reference#buses" },
+];
+
+// Популярные темы из путеводителя (топ-10)
+export const guidesList: NavLinkItem[] = [
+  { label: "Что делать, если я заболел в дороге?", href: `/guide/passenger/${createSlug("Что делать, если я заболел в дороге?")}` },
+  { label: "Что делать, если украли документы?", href: `/guide/passenger/${createSlug("Что делать, если украли документы?")}` },
+  { label: "По какому документу брать билет?", href: `/guide/passenger/${createSlug("По какому документу брать билет?")}` },
+  { label: "Где искать потерянные вещи?", href: `/guide/passenger/${createSlug("Где искать потерянные вещи?")}` },
+  { label: "Как работает страховка в билете?", href: `/guide/passenger/${createSlug("Как работает страховка в билете?")}` },
+  { label: "Как перевезти животное?", href: `/guide/passenger/${createSlug("Как перевезти животное?")}` },
+  { label: "Что делать, если опоздали на самолет?", href: `/guide/passenger/${createSlug("Что делать, если опоздали на самолет?")}` },
+  { label: "Как летать с маленьким ребёнком?", href: `/guide/passenger/${createSlug("Как летать с маленьким ребёнком?")}` },
+  { label: "FAQ про здоровье", href: `/guide/analysis/${createSlug("FAQ про здоровье")}` },
+  { label: "Москва", href: `/guide/russia/${createSlug("Москва")}` },
+];
+
+
+
+================================================================
+FILE: src\pages\guide\GuideArticlePage.tsx
+================================================================
+import { useEffect } from "react";
+import { Link, Navigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { apiFetch } from "@/lib/api";
+import type { GuidePost } from "@/types/guideCms";
+import BlogBlockRenderer from "@/components/blog/BlogBlockRenderer";
+import ArticleTabs from "@/components/blog/ArticleTabs";
+
+export default function GuideArticlePage() {
+  const { category, slug } = useParams<{ category: string; slug: string }>();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [category, slug]);
+
+  // ===== useQuery ПЕРЕД УСЛОВНЫМ ВОЗВРАТОМ =====
+  const q = useQuery({
+    queryKey: ["guide-post", category, slug],
+    enabled: Boolean(category && slug),
+    queryFn: async () => {
+      try {
+        return await apiFetch<GuidePost>(
+          `/api/guide/posts/by-category/${encodeURIComponent(category || "")}/${encodeURIComponent(slug || "")}`,
+        );
+      } catch (e) {
+        const err = e as Error & { status?: number };
+        if (err.status === 404) return null;
+        throw e;
+      }
+    },
+  });
+
+  // ===== ТЕПЕРЬ УСЛОВИЕ ПОСЛЕ ХУКА =====
+  if (!category || !slug) {
+    return <Navigate to="/guide" replace />;
+  }
+
+  if (q.isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="flex min-h-[50vh] items-center justify-center pt-[calc(var(--site-header-height)+2rem)]">
+          <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (q.isError) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="mx-auto max-w-xl px-4 py-[calc(var(--site-header-height)+3rem)] text-center">
+          <h1 className="text-2xl font-bold text-foreground">Ошибка загрузки</h1>
+          <p className="mt-2 text-muted-foreground">Попробуйте обновить страницу.</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const post = q.data;
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="mx-auto max-w-xl px-4 py-[calc(var(--site-header-height)+3rem)] text-center">
+          <h1 className="text-2xl font-bold text-foreground">Статья не найдена</h1>
+          <p className="mt-2 text-muted-foreground">Проверьте ссылку или вернитесь к путеводителю.</p>
+          <div className="mt-6">
+            <Link to="/guide" className="text-primary hover:underline">
+              Вернуться к путеводителю
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="container max-w-4xl pt-24 pb-12 md:pt-32">
+        <div className="mb-8 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <Link to="/guide" className="hover:text-primary">
+            Путеводитель
+          </Link>
+          <span>/</span>
+          <span>{post.category_name}</span>
+          <span>/</span>
+          <span className="text-foreground">{post.title}</span>
+        </div>
+
+        <h1 className="heading-gradient mb-6 text-3xl font-bold tracking-tight md:text-4xl">{post.title}</h1>
+        {post.excerpt ? <p className="mb-8 text-lg leading-relaxed text-muted-foreground">{post.excerpt}</p> : null}
+        <ArticleTabs blocks={post.content_blocks} />
+        <BlogBlockRenderer blocks={post.content_blocks} />
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+================================================================
+FILE: src\App.tsx
+================================================================
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { useEffect } from "react";
+import Index from "./pages/Index";
+import RoutesPage from "./pages/Routes";
+import RouteList from "./pages/RouteList";
+import RouteDetail from "./pages/RouteDetail";
+import Reference from "./pages/Reference";
+import Blog from "./pages/Blog";
+import BlogArticlePage from "./pages/BlogArticlePage";
+import Guide from "./pages/GuideCms";
+import GuideArticlePage from "./pages/guide/GuideArticlePage";
+import TrainSearchResults from "./pages/TrainSearchResults";
+import FlightSearch from "./pages/FlightSearch";
+import BusSearch from "./pages/BusSearch";
+import HotelSearch from "./pages/HotelSearch";
+import SelectSeats from "./pages/SelectSeats";
+import Checkout from "./pages/Checkout";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
+import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminBlogList from "./pages/admin/AdminBlogList";
+import AdminBlogEdit from "./pages/admin/AdminBlogEdit";
+import AdminRouteList from "./pages/admin/AdminRouteList";
+import AdminRouteEdit from "./pages/admin/AdminRouteEdit";
+import AdminReferenceList from "./pages/admin/AdminReferenceList";
+import AdminReferenceEdit from "./pages/admin/AdminReferenceEdit";
+import AdminGuideList from "./pages/admin/AdminGuideList";
+import AdminGuideEdit from "./pages/admin/AdminGuideEdit";
+import AdminPageEditor from "./pages/admin/AdminPageEditor";
+import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
+import AdminRegions from "./pages/admin/AdminRegions";
+import AdminSEO from "./pages/admin/AdminSEO";
+import NotFound from "./pages/NotFound";
+import TestimonialDetail from "./pages/TestimonialDetail";
+import ChatWidget from "./components/ChatWidget";
+import ScrollToTop, { YandexMetrikaPageTracker } from "./components/ScrollToTop";
+
+// Reference pages
+import Trains from "./pages/reference/Trains";
+import Flights from "./pages/reference/Flights";
+import FlightArticle from "./pages/reference/FlightArticle";
+import Buses from "./pages/reference/Buses";
+import BusArticle from "./pages/reference/BusArticle";
+import TrainArticle from "./pages/reference/TrainArticle";
+
+const queryClient = new QueryClient();
+
+const App = () => {
+  // Отключаем перезагрузку при переключении между вкладками
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // Ничего не делаем - просто предотвращаем возможную перезагрузку
+      if (document.hidden) {
+        // Вкладка скрыта - сохраняем состояние
+      } else {
+        // Вкладка активна - восстанавливаем состояние (автоматически React)
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    // Отключаем кэширование страницы браузером для предотвращения полной перезагрузки
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted) {
+        // Страница загружена из bfcache - ничего не делаем
+      }
+    });
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <YandexMetrikaPageTracker />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/routes" element={<RoutesPage />} />
+              <Route path="/routes/list" element={<RouteList />} />
+              <Route path="/routes/:id" element={<RouteDetail />} />
+              <Route path="/reference" element={<Reference />} />
+              <Route path="/reference/trains" element={<Trains />} />
+              <Route path="/reference/flights" element={<Flights />} />
+              <Route path="/reference/flights/:slug" element={<FlightArticle />} />
+              <Route path="/reference/buses" element={<Buses />} />
+              <Route path="/reference/buses/:slug" element={<BusArticle />} />
+              <Route path="/reference/trains/:slug" element={<TrainArticle />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogArticlePage />} />
+              <Route path="/guide" element={<Guide />} />
+              <Route path="/guide/:category/:slug" element={<GuideArticlePage />} />
+              <Route path="/train-search" element={<TrainSearchResults />} />
+              <Route path="/flight-search" element={<FlightSearch />} />
+              <Route path="/bus-search" element={<BusSearch />} />
+              <Route path="/hotel-search" element={<HotelSearch />} />
+              <Route path="/select-seats" element={<SelectSeats />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment/success" element={<PaymentSuccess />} />
+              <Route path="/payment/cancel" element={<PaymentCancel />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="blog" element={<AdminBlogList />} />
+                <Route path="blog/:postId" element={<AdminBlogEdit />} />
+                <Route path="routes" element={<AdminRouteList />} />
+                <Route path="routes/:routeId" element={<AdminRouteEdit />} />
+                <Route path="reference" element={<AdminReferenceList />} />
+                <Route path="reference/:postId" element={<AdminReferenceEdit />} />
+                <Route path="guide" element={<AdminGuideList />} />
+                <Route path="guide/:postId" element={<AdminGuideEdit />} />
+                <Route path="regions" element={<AdminRegions />} />
+                <Route path="seo" element={<AdminSEO />} />
+                <Route path="pages/:pageKey" element={<AdminPageEditor />} />
+                <Route path="subscriptions" element={<AdminSubscriptions />} />
+              </Route>
+              <Route path="/testimonials/:id" element={<TestimonialDetail />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+          <ChatWidget />
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
+
+export default App;
+
+

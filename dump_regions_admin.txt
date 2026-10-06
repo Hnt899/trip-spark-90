@@ -1,0 +1,1471 @@
+﻿================================================================
+FILE: src\pages\admin\AdminRegions.tsx
+================================================================
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Map, Pencil, Trash2, Plus, GripVertical } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+interface Region {
+  id: string;
+  name: string;
+  slug: string;
+  sort_order: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface RouteInRegion {
+  id: string;
+  legacy_id?: string;
+  slug?: string;
+  name: string;
+}
+
+function SortableRegionRow({
+  region,
+  onEdit,
+  onDelete,
+}: {
+  region: Region;
+  onEdit: (r: Region) => void;
+  onDelete: (r: Region) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: region.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-3 rounded-lg border bg-card p-3"
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab text-muted-foreground hover:text-foreground"
+      >
+        <GripVertical className="h-5 w-5" />
+      </button>
+      <div className="flex-1">
+        <div className="font-medium">{region.name}</div>
+        <div className="text-sm text-muted-foreground">/{region.slug}</div>
+      </div>
+      <Button variant="ghost" size="icon" onClick={() => onEdit(region)}>
+        <Pencil className="h-4 w-4" />
+      </Button>
+      <Button variant="ghost" size="icon" onClick={() => onDelete(region)}>
+        <Trash2 className="h-4 w-4 text-destructive" />
+      </Button>
+    </div>
+  );
+}
+
+export default function AdminRegions() {
+  const queryClient = useQueryClient();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingRegion, setEditingRegion] = useState<Region | null>(null);
+  const [deleteRegion, setDeleteRegion] = useState<Region | null>(null);
+  const [deleteError, setDeleteError] = useState<{
+    routeCount: number;
+    routes: RouteInRegion[];
+  } | null>(null);
+  const [formData, setFormData] = useState({ name: "", slug: "" });
+  const [formError, setFormError] = useState("");
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  function slugify(str: string): string {
+    const map: Record<string, string> = {
+      а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "e", ж: "zh",
+      з: "z", и: "i", й: "y", к: "k", л: "l", м: "m", н: "n", о: "o",
+      п: "p", р: "r", с: "s", т: "t", у: "u", ф: "f", х: "h", ц: "c",
+      ч: "ch", ш: "sh", щ: "sch", ъ: "", ы: "y", ь: "", э: "e", ю: "yu",
+      я: "ya",
+    };
+    return String(str || "")
+      .toLowerCase()
+      .split("")
+      .map((c) => (map[c] !== undefined ? map[c] : c))
+      .join("")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .replace(/-{2,}/g, "-")
+      .slice(0, 64);
+  }
+
+  const { data: regions = [] } = useQuery<Region[]>({
+    queryKey: ["admin-regions"],
+    queryFn: () => apiFetch<Region[]>("/api/admin/regions"),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: { name: string; slug?: string }) =>
+      apiFetch<Region>("/api/admin/regions", {
+        method: "POST",
+        body: JSON.stringify(data), // ← фикс: JSON.stringify
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-regions"] });
+      queryClient.invalidateQueries({ queryKey: ["regions"] });
+      setDialogOpen(false);
+      setFormData({ name: "", slug: "" });
+      setFormError("");
+    },
+    onError: (e: any) => {
+      setFormError(e?.message || "Не удалось создать регион");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Region> }) =>
+      apiFetch<Region>(`/api/admin/regions/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data), // ← фикс
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-regions"] });
+      queryClient.invalidateQueries({ queryKey: ["regions"] });
+      setDialogOpen(false);
+      setEditingRegion(null);
+      setFormData({ name: "", slug: "" });
+      setFormError("");
+    },
+    onError: (e: any) => {
+      setFormError(e?.message || "Не удалось сохранить регион");
+    },
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: (items: { id: string }[]) =>
+      apiFetch<{ ok: boolean }>("/api/admin/regions/reorder", {
+        method: "PUT",
+        body: JSON.stringify({ items }), // ← фикс
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-regions"] });
+      queryClient.invalidateQueries({ queryKey: ["regions"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<{ ok: boolean }>(`/api/admin/regions/${id}`, {
+        method: "DELETE",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-regions"] });
+      setDeleteRegion(null);
+      setDeleteError(null);
+    },
+    onError: (e: any) => {
+      // apiFetch бросает Error с полем status и, возможно, data
+      if (e?.status === 409) {
+        const count = e?.routeCount || e?.data?.routeCount || 0;
+        setDeleteError({ routeCount: count, routes: [] });
+      }
+    },
+  });
+
+  function handleDragEnd(event: any) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = regions.findIndex((r) => r.id === active.id);
+    const newIndex = regions.findIndex((r) => r.id === over.id);
+    const newOrder = arrayMove(regions, oldIndex, newIndex).map((r) => ({
+      id: r.id,
+    }));
+    reorderMutation.mutate(newOrder);
+  }
+
+  function openCreate() {
+    setEditingRegion(null);
+    setFormData({ name: "", slug: "" });
+    setFormError("");
+    setDialogOpen(true);
+  }
+
+  function openEdit(region: Region) {
+    setEditingRegion(region);
+    setFormData({ name: region.name, slug: region.slug });
+    setFormError("");
+    setDialogOpen(true);
+  }
+
+  function handleNameChange(value: string) {
+    setFormData((f) => ({
+      ...f,
+      name: value,
+      slug: f.slug || slugify(value),
+    }));
+  }
+
+  function submitForm() {
+    const name = formData.name.trim();
+    if (!name) {
+      setFormError("Введите название");
+      return;
+    }
+    const slug = formData.slug.trim().toLowerCase() || slugify(name);
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+      setFormError("Slug: только латиница, цифры и дефисы");
+      return;
+    }
+    setFormError("");
+    if (editingRegion) {
+      updateMutation.mutate({
+        id: editingRegion.id,
+        data: { name, slug },
+      });
+    } else {
+      createMutation.mutate({ name, slug });
+    }
+  }
+
+  function confirmDelete(region: Region) {
+    setDeleteRegion(region);
+    setDeleteError(null);
+    deleteMutation.mutate(region.id);
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="flex items-center gap-2">
+          <Map className="h-5 w-5" />
+          Регионы
+        </CardTitle>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button type="button" onClick={openCreate}>
+              <Plus className="mr-2 h-4 w-4" />
+              Добавить регион
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {editingRegion ? "Редактировать регион" : "Новый регион"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <label className="text-sm font-medium">Название</label>
+                <Input
+                  value={formData.name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  placeholder="Например: Центр"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Slug (URL)</label>
+                <Input
+                  value={formData.slug}
+                  onChange={(e) =>
+                    setFormData((f) => ({ ...f, slug: e.target.value }))
+                  }
+                  placeholder="Например: centr"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Только латиница, цифры и дефисы (автогенерация из названия)
+                </p>
+              </div>
+              {formError ? (
+                <p className="text-sm text-destructive">{formError}</p>
+              ) : null}
+              <Button
+                type="button"
+                onClick={submitForm}
+                className="w-full"
+                disabled={createMutation.isPending || updateMutation.isPending}
+              >
+                {createMutation.isPending || updateMutation.isPending
+                  ? "..."
+                  : editingRegion
+                    ? "Сохранить"
+                    : "Создать"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </CardHeader>
+      <CardContent>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={regions.map((r) => r.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-2">
+              {regions.map((region) => (
+                <SortableRegionRow
+                  key={region.id}
+                  region={region}
+                  onEdit={openEdit}
+                  onDelete={confirmDelete}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      </CardContent>
+
+      <AlertDialog
+        open={!!deleteRegion}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteRegion(null);
+            setDeleteError(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить регион?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteError ? (
+                <div className="space-y-3">
+                  <p className="font-medium text-destructive">
+                    В регионе «{deleteRegion?.name}» есть {deleteError.routeCount}{" "}
+                    маршрут(ов). Нельзя удалить регион, пока в нём есть маршруты.
+                  </p>
+                  <p className="text-sm">
+                    Сначала перенесите маршруты в другой регион через страницу
+                    редактирования маршрута.
+                  </p>
+                </div>
+              ) : (
+                `Вы уверены, что хотите удалить регион «${deleteRegion?.name}»? Это действие нельзя отменить.`
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
+  );
+}
+
+================================================================
+FILE: src\pages\admin\AdminRouteEdit.tsx
+================================================================
+import { useEffect, useRef, useState, useCallback, lazy, Suspense } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Loader2, Trash2, Plus, Pencil, ChevronUp, ChevronDown } from "lucide-react";
+import CoverUpload from "@/components/admin/CoverUpload";
+import type { BlogContentBlock, RouteTab } from "@/types/blogContent";
+
+const TiptapEditor = lazy(() => import("@/components/editor/TiptapEditor"));
+
+type Loaded = {
+  id: string;
+  slug: string;
+  name: string;
+  legacy_id: string | null;
+  region: string;
+  rating: number;
+  cover_image_url: string | null;
+  excerpt: string;
+  content_blocks?: BlogContentBlock[];
+  tabs?: RouteTab[];
+  status: string;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  show_in_menu?: boolean | null;   // ← новое
+  menu_order?: number | null;      // ← новое
+};
+
+export default function AdminRouteEdit() {
+  const { routeId } = useParams<{ routeId: string }>();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const isNew = routeId === "new";
+
+  const { data: regionsData = [] } = useQuery({
+    queryKey: ["admin-regions-list"],
+    queryFn: () => apiFetch<Array<{ id: string; name: string; slug: string }>>("/api/admin/regions"),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const [slug, setSlug] = useState("");
+  const [name, setName] = useState("");
+  const [legacyId, setLegacyId] = useState("");
+  const [region, setRegion] = useState("");
+  const [rating, setRating] = useState("0");
+  const [coverUrl, setCoverUrl] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [contentBlocks, setContentBlocks] = useState<BlogContentBlock[]>([]);
+  const [tabs, setTabs] = useState<RouteTab[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string>("__main__");
+  const [status, setStatus] = useState<"draft" | "published">("draft");
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
+  const [showInMenu, setShowInMenu] = useState(false);   // ← новое
+  const [menuOrder, setMenuOrder] = useState("0");       // ← новое
+
+  const hydratedRef = useRef<string | null>(null);
+  const [editorKey, setEditorKey] = useState(0);
+
+  const loadQ = useQuery({
+    queryKey: ["admin-route-page", routeId],
+    enabled: !isNew && !!routeId,
+    queryFn: () => apiFetch<Loaded>(`/api/admin/routes/id/${routeId}`),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
+  useEffect(() => {
+    if (!isNew) return;
+    hydratedRef.current = null;
+    setSlug("");
+    setName("");
+    setLegacyId("");
+    setRegion("");
+    setRating("0");
+    setCoverUrl("");
+    setExcerpt("");
+    setContentBlocks([]);
+    setTabs([]);
+    setActiveTabId("__main__");
+    setStatus("draft");
+    setSeoTitle("");
+    setSeoDescription("");
+    setShowInMenu(false);
+    setMenuOrder("0");
+    setEditorKey((k) => k + 1);
+  }, [isNew, routeId]);
+
+  useEffect(() => {
+    if (isNew) return;
+    const row = loadQ.data;
+    if (!row || !routeId) return;
+    if (hydratedRef.current === routeId) return;
+    hydratedRef.current = routeId;
+
+    setSlug(row.slug);
+    setName(row.name);
+    setLegacyId(row.legacy_id || "");
+    setRegion(row.region || "");
+    setRating(String(row.rating ?? 0));
+    setCoverUrl(row.cover_image_url || "");
+    setExcerpt(row.excerpt || "");
+    setContentBlocks(
+      Array.isArray(row.content_blocks) ? row.content_blocks : [],
+    );
+    setTabs(Array.isArray(row.tabs) ? row.tabs : []);
+    setStatus(row.status === "published" ? "published" : "draft");
+    setSeoTitle(row.seo_title || "");
+    setSeoDescription(row.seo_description || "");
+    setShowInMenu(!!row.show_in_menu);
+    setMenuOrder(String(row.menu_order ?? 0));
+    setActiveTabId("__main__");
+    setEditorKey((k) => k + 1);
+  }, [isNew, routeId, loadQ.data]);
+
+  const handleEditorChange = useCallback((blocks: BlogContentBlock[]) => {
+    if (activeTabId === "__main__") {
+      setContentBlocks(blocks);
+    } else {
+      setTabs((prev) =>
+        prev.map((t) => (t.id === activeTabId ? { ...t, blocks } : t))
+      );
+    }
+  }, [activeTabId]);
+
+  const anchorLimit = (() => {
+    const routeBlock = contentBlocks.find((b) => b.type === "routeByDays") as
+      | { type: "routeByDays"; image: string; days: { label: string; title: string; description: string }[] }
+      | undefined;
+    return routeBlock?.days?.length || undefined;
+  })();
+
+  const addNewTab = () => {
+    const newTab: RouteTab = {
+      id: `tab_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      title: "Новый этап",
+      blocks: [],
+    };
+    const newTitle = prompt("Название этапа:", "Новый этап");
+    if (newTitle && newTitle.trim()) {
+      newTab.title = newTitle.trim();
+    }
+    setTabs((prev) => [...prev, newTab]);
+    setActiveTabId(newTab.id);
+    setEditorKey((k) => k + 1);
+  };
+
+  const renameTab = (id: string) => {
+    const tab = tabs.find((t) => t.id === id);
+    if (!tab) return;
+    const newTitle = prompt("Название этапа:", tab.title);
+    if (newTitle && newTitle.trim()) {
+      setTabs((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, title: newTitle.trim() } : t))
+      );
+    }
+  };
+
+  const deleteTab = (id: string) => {
+    if (!confirm("Удалить этот этап?")) return;
+    setTabs((prev) => prev.filter((t) => t.id !== id));
+    if (activeTabId === id) {
+      setActiveTabId("__main__");
+      setEditorKey((k) => k + 1);
+    }
+  };
+
+  const moveTab = (index: number, direction: -1 | 1) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= tabs.length) return;
+    setTabs((prev) => {
+      const newArr = [...prev];
+      const [removed] = newArr.splice(index, 1);
+      newArr.splice(newIndex, 0, removed);
+      return newArr;
+    });
+  };
+
+  const saveMut = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        slug: slug.trim().toLowerCase(),
+        name: name.trim(),
+        legacy_id: legacyId.trim() || null,
+        region: region.trim(),
+        rating: parseFloat(rating) || 0,
+        cover_image_url: coverUrl.trim() || null,
+        excerpt: excerpt.trim(),
+        content_blocks: contentBlocks,
+        tabs,
+        status,
+        seo_title: seoTitle.trim() || null,
+        seo_description: seoDescription.trim() || null,
+        show_in_menu: showInMenu,                                // ← новое
+        menu_order: parseInt(menuOrder, 10) || 0,                // ← новое
+      };
+      if (isNew) {
+        return apiFetch<Loaded>("/api/admin/routes", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+      }
+      return apiFetch<Loaded>(`/api/admin/routes/id/${routeId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["admin-route-pages"] });
+      qc.invalidateQueries({ queryKey: ["admin-route-page", routeId] });
+      qc.invalidateQueries({ queryKey: ["route-page-public"] });
+      qc.invalidateQueries({ queryKey: ["header-routes-menu"] });   // ← новое
+      if (isNew && data?.id) {
+        navigate(`/admin/routes/${data.id}`, { replace: true });
+      }
+    },
+  });
+
+  const delMut = useMutation({
+    mutationFn: () =>
+      apiFetch(`/api/admin/routes/id/${routeId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-route-pages"] });
+      qc.invalidateQueries({ queryKey: ["route-page-public"] });
+      qc.invalidateQueries({ queryKey: ["header-routes-menu"] });   // ← новое
+      navigate("/admin/routes");
+    },
+  });
+
+  if (!isNew && loadQ.isLoading) {
+    return (
+      <div className="flex justify-center py-24 text-muted-foreground">
+        <Loader2 className="h-10 w-10 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isNew && loadQ.isError) {
+    return (
+      <p className="text-destructive">
+        Не удалось загрузить маршрут.{" "}
+        <Link to="/admin/routes" className="underline">
+          К списку
+        </Link>
+      </p>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold tracking-tight">
+          {isNew ? "Новый маршрут" : "Редактирование маршрута"}
+        </h1>
+        <Button variant="outline" asChild>
+          <Link to="/admin/routes">← К списку</Link>
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Метаданные</CardTitle>
+          <CardDescription>
+            Slug — латиница и дефисы, уникальный идентификатор.
+            Legacy ID — числовой ID из старых данных (1–40), если нужна совместимость.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="slug">Slug</Label>
+              <Input
+                id="slug"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="sochi-i-okrestnosti"
+                className="font-mono text-sm"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="legacyId">Legacy ID (необязательно)</Label>
+              <Input
+                id="legacyId"
+                value={legacyId}
+                onChange={(e) => setLegacyId(e.target.value)}
+                placeholder="17"
+                className="font-mono text-sm"
+              />
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="name">Название маршрута</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Сочи и окрестности"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="excerpt">Краткое описание</Label>
+            <Textarea
+              id="excerpt"
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <CoverUpload
+            value={coverUrl}
+            onChange={setCoverUrl}
+            label="Обложка"
+          />
+          <div className="grid gap-2 sm:grid-cols-3 sm:gap-4">
+            <div className="grid gap-2">
+              <Label>Регион</Label>
+              <Select value={region} onValueChange={setRegion}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(regionsData || []).map((r) => (
+                    <SelectItem key={r.id} value={r.name}>
+                      {r.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="rating">Рейтинг (0–10)</Label>
+              <Input
+                id="rating"
+                type="number"
+                min={0}
+                max={10}
+                step={0.1}
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Статус</Label>
+              <Select
+                value={status}
+                onValueChange={(v) => setStatus(v as "draft" | "published")}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Черновик</SelectItem>
+                  <SelectItem value="published">Опубликовано</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ← НОВЫЙ БЛОК: Меню шапки */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Меню шапки</CardTitle>
+          <CardDescription>
+            Управляет выпадающим списком «Маршруты» в шапке сайта. Если ни у одного
+            маршрута галочка не стоит — показывается резервный список.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={showInMenu}
+              onCheckedChange={(v) => setShowInMenu(!!v)}
+            />
+            Показывать этот маршрут в меню шапки
+          </label>
+          <div className="grid gap-2 sm:max-w-xs">
+            <Label htmlFor="menuOrder">Порядок в меню (меньше — выше)</Label>
+            <Input
+              id="menuOrder"
+              type="number"
+              step={1}
+              value={menuOrder}
+              onChange={(e) => setMenuOrder(e.target.value)}
+              disabled={!showInMenu}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>SEO</CardTitle>
+          <CardDescription>
+            Title и Description для поисковых систем. Если пусто — возьмётся название и краткое описание.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-2">
+            <Label htmlFor="seoTitle">SEO Title (до 200 символов)</Label>
+            <Input
+              id="seoTitle"
+              value={seoTitle}
+              onChange={(e) => setSeoTitle(e.target.value)}
+              maxLength={200}
+              placeholder={name || "Заголовок для поисковиков"}
+            />
+            <p className="text-xs text-muted-foreground">{seoTitle.length}/200</p>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="seoDescription">SEO Description (до 500 символов)</Label>
+            <Textarea
+              id="seoDescription"
+              value={seoDescription}
+              onChange={(e) => setSeoDescription(e.target.value)}
+              maxLength={500}
+              rows={3}
+              placeholder={excerpt || "Краткое описание для поисковиков"}
+            />
+            <p className="text-xs text-muted-foreground">{seoDescription.length}/500</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card id="route-editor">
+        <CardHeader>
+          <CardTitle>Этапы маршрута</CardTitle>
+          <CardDescription>
+            Создавайте отдельные разделы с текстом, фото, галереями — они появятся на сайте третьей закреплённой шапкой с табами.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-2">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTabId("__main__");
+                setEditorKey((k) => k + 1);
+                requestAnimationFrame(() => {
+                  window.scrollTo(0, 0);
+                });
+              }}
+              className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
+                activeTabId === "__main__"
+                  ? "bg-[#0A8FE8] text-white shadow-sm"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              Основной
+            </button>
+            {tabs.map((tab, index) => (
+              <div key={tab.id} className="flex items-center gap-1 rounded-full bg-slate-100 pr-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTabId(tab.id);
+                    setEditorKey((k) => k + 1);
+                    requestAnimationFrame(() => {
+                      window.scrollTo(0, 0);
+                    });
+                  }}
+                  className={`rounded-full px-4 py-2 font-medium whitespace-nowrap transition-colors ${
+                    activeTabId === tab.id
+                      ? "bg-[#0A8FE8] text-white shadow-sm"
+                      : "text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {tab.title}
+                </button>
+                <div className="flex items-center gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() => moveTab(index, -1)}
+                    disabled={index === 0}
+                    className="p-1 rounded hover:bg-slate-200 disabled:opacity-30"
+                    title="Вверх"
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveTab(index, 1)}
+                    disabled={index === tabs.length - 1}
+                    className="p-1 rounded hover:bg-slate-200 disabled:opacity-30"
+                    title="Вниз"
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => renameTab(tab.id)}
+                    className="p-1 rounded hover:bg-slate-200"
+                    title="Переименовать"
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteTab(tab.id)}
+                    className="p-1 rounded hover:bg-red-100 text-red-600"
+                    title="Удалить"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addNewTab}
+              className="rounded-full"
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              Новый этап
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Описание маршрута</CardTitle>
+          <CardDescription>
+            Подробное описание: достопримечательности, советы, фотографии, галереи.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0 sm:p-4">
+          <Suspense
+            fallback={
+              <div className="flex justify-center py-12 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            }
+          >
+            <TiptapEditor
+              key={`${activeTabId}-${editorKey}`}
+              initialBlocks={
+                activeTabId === "__main__"
+                  ? contentBlocks
+                  : (tabs.find((t) => t.id === activeTabId)?.blocks || [])
+              }
+              onChange={handleEditorChange}
+              anchorLimit={anchorLimit}
+            />
+          </Suspense>
+        </CardContent>
+      </Card>
+
+      <div className="flex flex-wrap gap-3">
+        <Button
+          type="button"
+          onClick={() => saveMut.mutate()}
+          disabled={saveMut.isPending}
+        >
+          {saveMut.isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : null}
+          Сохранить
+        </Button>
+        {!isNew ? (
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={delMut.isPending}
+            onClick={() => {
+              if (confirm("Удалить маршрут из базы?")) delMut.mutate();
+            }}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Удалить
+          </Button>
+        ) : null}
+      </div>
+      {saveMut.isError ? (
+        <p className="text-sm text-destructive">
+          {(saveMut.error as Error)?.message || "Ошибка сохранения"}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+================================================================
+FILE: src\pages\admin\AdminRouteList.tsx
+================================================================
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { apiFetch } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Loader2, Plus, Star } from "lucide-react";
+
+type Row = {
+  id: string;
+  legacy_id: string | null;
+  slug: string;
+  name: string;
+  region: string;
+  rating: number;
+  status: string;
+  updated_at: string;
+};
+
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  return String(err);
+}
+
+function errorStatus(err: unknown): number | undefined {
+  return (err as Error & { status?: number })?.status;
+}
+
+export default function AdminRouteList() {
+  const q = useQuery({
+    queryKey: ["admin-route-pages"],
+    queryFn: () => apiFetch<Row[]>("/api/admin/routes"),
+    retry: false,
+  });
+
+  const errText = q.isError ? errorMessage(q.error) : "";
+  const errCode = q.isError ? errorStatus(q.error) : undefined;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Маршруты (CMS)</h1>
+          <p className="text-muted-foreground">
+            Страницы маршрутов в PostgreSQL. На сайте они подменяют захардкоженные
+            карточки при совпадении legacy_id.
+          </p>
+        </div>
+        <Button asChild>
+          <Link to="/admin/routes/new">
+            <Plus className="mr-2 h-4 w-4" />
+            Новый маршрут
+          </Link>
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Все маршруты</CardTitle>
+          <CardDescription>Черновики и опубликованные</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {q.isLoading ? (
+            <div className="flex justify-center py-12 text-muted-foreground">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : q.isError ? (
+            <div className="space-y-3 text-sm">
+              <p className="font-medium text-destructive">
+                Не удалось загрузить список.
+              </p>
+              <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 font-mono text-xs text-destructive">
+                {errText || "Неизвестная ошибка"}
+                {errCode != null ? ` (HTTP ${errCode})` : ""}
+              </p>
+              <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
+                <li>
+                  Запущена ли миграция{" "}
+                  <code className="rounded bg-muted px-1">003_route_pages.sql</code>?
+                </li>
+                <li>
+                  Запущен ли API:{" "}
+                  <code className="rounded bg-muted px-1">npm run server</code>
+                </li>
+              </ul>
+            </div>
+          ) : !q.data?.length ? (
+            <p className="text-muted-foreground">Пока нет маршрутов в базе.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Название</TableHead>
+                  <TableHead>Регион</TableHead>
+                  <TableHead>Рейтинг</TableHead>
+                  <TableHead>Статус</TableHead>
+                  <TableHead className="text-right">Действия</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {q.data.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell className="max-w-[240px] font-medium">
+                      {row.name}
+                      {row.legacy_id && (
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          #{row.legacy_id}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm">{row.region}</TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1 text-sm">
+                        <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                        {Number(row.rating).toFixed(1)}
+                      </span>
+                    </TableCell>
+                    <TableCell>{row.status}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/admin/routes/${row.id}`}>Править</Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+
+================================================================
+FILE: src\components\sections\RegionsRoutesSection.tsx
+================================================================
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import type { SectionSurface } from "@/lib/sectionSurface";
+import { sectionHeadingAccentClass, sectionYellowGlow } from "@/lib/sectionSurface";
+import { usePageSectionFields } from "@/contexts/PageCmsContext";
+import { mediaOrFallback } from "@/lib/pageContentMerge";
+import type { RegionsDayFields } from "@/types/pageContent";
+import { CmsEditable } from "@/components/cms/CmsEditable";
+import { cmsColorStyle } from "@/lib/cmsStyle";
+import karelia from "@/assets/images/cities/karelia.jpg";
+import moscow from "@/assets/images/cities/moscow.jpg";
+import stPetersburg from "@/assets/images/cities/saint-petersburg.jpg";
+import kazan from "@/assets/images/cities/kazan.jpg";
+import novgorod from "@/assets/images/cities/novgorod.jpg";
+
+interface RegionRoute {
+  name: string;
+  image: string;
+  rating: number;
+  href?: string;
+}
+
+const regions: RegionRoute[] = [
+  { name: "Архангельская область", image: karelia, rating: 9.3 },
+  { name: "Мурманская область", image: karelia, rating: 9.3 },
+  { name: "ХМАО - Югра", image: karelia, rating: 9.9 },
+  { name: "Калининградская область", image: karelia, rating: 9.3 },
+  { name: "Краснодарский край", image: karelia, rating: 10 },
+  { name: "Москва", image: moscow, rating: 9.5 },
+  { name: "Санкт-Петербург", image: stPetersburg, rating: 9.7 },
+  { name: "Казань", image: kazan, rating: 9.4 },
+  { name: "Великий Новгород", image: novgorod, rating: 9.2 },
+];
+
+/** Как рейтинг в первом блоке «Маршруты» (HeroRoutes): стекло, без зелёного */
+function RegionRatingBadge({ rating }: { rating: number }) {
+  return (
+    <div className="absolute bottom-4 left-4 z-10">
+      <span className="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/25 px-3 py-1.5 backdrop-blur-sm drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] text-white">
+        <span className="text-base font-bold tabular-nums leading-none">{rating}</span>
+        <span className="text-white/70 text-xs leading-none">/10</span>
+      </span>
+    </div>
+  );
+}
+
+const RegionsRoutesSection = ({ surface = "brand" }: { surface?: SectionSurface }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [cardWidth, setCardWidth] = useState(450);
+  const [mobileCurrent, setMobileCurrent] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const mobileTrackRef = useRef<HTMLDivElement | null>(null);
+  const f = usePageSectionFields<RegionsDayFields>("regionsDay");
+  const titlePrefix = f.titlePrefix || "Make Your ";
+  const titleAccent = f.titleAccent || "DAY";
+  const displayRegions: RegionRoute[] =
+    Array.isArray(f.items) && f.items.length > 0
+      ? f.items.map((item, i) => ({
+          name: item.name || regions[i]?.name || "",
+          image: mediaOrFallback(item.image, regions[i]?.image ?? karelia),
+          rating: typeof item.rating === "number" ? item.rating : regions[i]?.rating ?? 0,
+          href: item.href || "/routes/list",
+        }))
+      : regions.map((r) => ({ ...r, href: "/routes/list" }));
+
+  useEffect(() => {
+    const updateCardWidth = () => {
+      if (scrollContainerRef.current) {
+        const screenWidth = window.innerWidth;
+        
+        if (screenWidth >= 1024) {
+          // Для больших экранов - уменьшенные карточки для 3 штук с местом для кнопок по бокам
+          // Используем фиксированную ширину карточек, чтобы оставить место для кнопок
+          const newWidth = 385; // Уменьшенная ширина карточек, чтобы все 3 поместились
+          setCardWidth(newWidth);
+        } else if (screenWidth >= 768) {
+          // Для средних экранов - уменьшенные карточки
+          const newWidth = 320;
+          setCardWidth(newWidth);
+        } else {
+          // Для маленьких экранов - уменьшенные карточки
+          const newWidth = 280;
+          setCardWidth(newWidth);
+        }
+      }
+    };
+
+    updateCardWidth();
+    window.addEventListener("resize", updateCardWidth);
+    return () => window.removeEventListener("resize", updateCardWidth);
+  }, []);
+
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = cardWidth + 24;
+      scrollContainerRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = cardWidth + 24;
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollContainerRef.current) {
+        const scrollLeft = scrollContainerRef.current.scrollLeft;
+        const newIndex = Math.round(scrollLeft / (cardWidth + 24));
+        setCurrentIndex(newIndex);
+      }
+    };
+
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
+  }, [cardWidth]);
+
+  return (
+    <CmsEditable sectionId="regionsDay">
+    <section className="pt-2 pb-20 md:py-20 relative overflow-hidden">
+      <div className="container relative z-10">
+        <div className="flex flex-col items-center text-center mb-8 md:mb-12">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">
+            <span className={surface === "light" ? "text-[#21252E]" : "text-white"}>{titlePrefix}</span>
+            <span
+              className={f.accentColor?.trim() ? undefined : sectionHeadingAccentClass(surface)}
+              style={
+                cmsColorStyle(f.accentColor) ||
+                (surface === "brand" && !f.accentColor?.trim() ? sectionYellowGlow : undefined)
+              }
+            >
+              {titleAccent}
+            </span>
+          </h2>
+          <p className={cn("text-base md:text-lg max-w-2xl mx-auto px-4", surface === "light" ? "text-[#21252E]/80" : "text-white/80")}>
+            Откройте для себя уникальные регионы России и создайте незабываемое путешествие
+          </p>
+        </div>
+      </div>
+
+      <div className="relative">
+        {/* Десктопная версия - горизонтальный скролл */}
+        <div className="hidden md:block max-w-7xl mx-auto px-4 md:px-6 lg:px-8 relative">
+          {/* Кнопка влево */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={scrollLeft}
+            className={cn(
+              "absolute top-1/2 -translate-y-1/2 z-10 rounded-full shadow-lg w-12 h-12 hidden lg:flex",
+              surface === "light"
+                ? "border-2 border-[#0A8FE8]/50 bg-white text-primary hover:bg-[#0A8FE8]/10 hover:border-[#0A8FE8]"
+                : "border-0 bg-white/90 backdrop-blur-sm hover:bg-white",
+            )}
+            style={{ left: '-26px' }}
+          >
+            <ChevronLeft className="w-5 h-5 text-primary" />
+          </Button>
+
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-6 overflow-x-auto pb-4 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          >
+            {displayRegions.map((region, index) => {
+              const href = region.href || "/routes/list";
+              const card = (
+                <Card className="h-full w-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+                  <div className="relative">
+                    <img
+                      src={region.image}
+                      alt={region.name}
+                      className="w-full h-96 object-cover rounded-t-lg"
+                    />
+                    <RegionRatingBadge rating={region.rating} />
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="text-lg font-semibold text-foreground">{region.name}</h3>
+                  </CardContent>
+                </Card>
+              );
+              const wrapClass = "flex-shrink-0 block";
+              const wrapStyle = { width: `${cardWidth}px` };
+              return href.startsWith("http") ? (
+                <a key={index} href={href} target="_blank" rel="noopener noreferrer" className={wrapClass} style={wrapStyle}>
+                  {card}
+                </a>
+              ) : (
+                <Link key={index} to={href} className={wrapClass} style={wrapStyle}>
+                  {card}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Кнопка вправо */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={scrollRight}
+            className={cn(
+              "absolute top-1/2 -translate-y-1/2 z-10 rounded-full shadow-lg w-12 h-12 hidden lg:flex",
+              surface === "light"
+                ? "border-2 border-[#0A8FE8]/50 bg-white text-primary hover:bg-[#0A8FE8]/10 hover:border-[#0A8FE8]"
+                : "border-0 bg-white/90 backdrop-blur-sm hover:bg-white",
+            )}
+            style={{ right: '-15px' }}
+          >
+            <ChevronRight className="w-5 h-5 text-primary" />
+          </Button>
+        </div>
+
+        {/* Мобильная версия - карусель с точками */}
+        <div className="md:hidden relative overflow-hidden px-2">
+          <div 
+            className="relative w-full overflow-hidden"
+            onTouchStart={(e) => setTouchStart(e.targetTouches[0].clientX)}
+            onTouchMove={(e) => setTouchEnd(e.targetTouches[0].clientX)}
+            onTouchEnd={() => {
+              if (!touchStart || !touchEnd) return;
+              
+              const distance = touchStart - touchEnd;
+              const minSwipeDistance = 50;
+
+              if (distance > minSwipeDistance) {
+                setMobileCurrent((prev) => Math.min(displayRegions.length - 1, prev + 1));
+              }
+              
+              if (distance < -minSwipeDistance) {
+                setMobileCurrent((prev) => Math.max(0, prev - 1));
+              }
+              
+              setTouchStart(0);
+              setTouchEnd(0);
+            }}
+          >
+            <div 
+              ref={mobileTrackRef}
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{
+                transform: `translateX(-${mobileCurrent * 100}%)`,
+              }}
+            >
+              {displayRegions.map((region, index) => {
+                const href = region.href || "/routes/list";
+                const card = (
+                  <Card className="flex-shrink-0 w-full overflow-hidden shadow-lg cursor-pointer">
+                    <div className="relative">
+                      <img
+                        src={region.image}
+                        alt={region.name}
+                        className="w-full h-64 object-cover rounded-t-lg"
+                      />
+                      <RegionRatingBadge rating={region.rating} />
+                    </div>
+                    <CardContent className="p-4">
+                      <h3 className="text-lg font-semibold text-foreground">{region.name}</h3>
+                    </CardContent>
+                  </Card>
+                );
+                return (
+                  <div key={index} className="w-full flex-shrink-0">
+                    {href.startsWith("http") ? (
+                      <a href={href} target="_blank" rel="noopener noreferrer">
+                        {card}
+                      </a>
+                    ) : (
+                      <Link to={href}>{card}</Link>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Индикаторы для мобильной версии */}
+          <div className="flex justify-center gap-2 mt-4 mb-4">
+            {displayRegions.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setMobileCurrent(index)}
+                className={cn(
+                  "h-2 rounded-full transition-all duration-300",
+                  index === mobileCurrent
+                    ? "bg-white w-8"
+                    : "bg-white/50 w-2"
+                )}
+                aria-label={`Перейти к карточке ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+    </CmsEditable>
+  );
+};
+
+export default RegionsRoutesSection;
+
+

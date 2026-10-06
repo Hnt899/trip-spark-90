@@ -546,16 +546,26 @@ export function AdminPageSectionFields({
               <Field label="Куда" value={String(it.to || "")} onChange={(v) => patchItem(routes, i, { to: v }, onPatch, "routes")} />
               <Field label="В пути" value={String(it.duration || "")} onChange={(v) => patchItem(routes, i, { duration: v }, onPatch, "routes")} />
               <Field label="Цена от" value={String(it.minPrice ?? "")} onChange={(v) => patchItem(routes, i, { minPrice: toNumberOrZero(v) }, onPatch, "routes")} />
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={it.isPopular === true}
-                  onCheckedChange={(c) => patchItem(routes, i, { isPopular: c === true }, onPatch, "routes")}
-                  id={`pop-${i}`}
-                />
-                <Label htmlFor={`pop-${i}`} className="text-xs">
-                  Популярный (обводка)
-                </Label>
-              </div>
+              <Field label="Цена от" value={String(it.minPrice ?? "")} onChange={(v) => patchItem(routes, i, { minPrice: toNumberOrZero(v) }, onPatch, "routes")} />
+<Field
+  label="Ссылка (опц. — куда вести карточку)"
+  value={String(it.href ?? "")}
+  onChange={(v) => patchItem(routes, i, { href: v }, onPatch, "routes")}
+/>
+<p className="text-[10px] text-muted-foreground leading-snug -mt-1">
+  Если пусто — карточка ведёт на поиск билетов (текущая логика).
+  Можно указать внешний URL (https://...) или внутренний путь (/routes/...).
+</p>
+<div className="flex items-center gap-2">
+  <Checkbox
+    checked={it.isPopular === true}
+    onCheckedChange={(c) => patchItem(routes, i, { isPopular: c === true }, onPatch, "routes")}
+    id={`pop-${i}`}
+  />
+  <Label htmlFor={`pop-${i}`} className="text-xs">
+    Популярный (обводка)
+  </Label>
+</div>
               <CmsColorField label="Цвет обводки" value={String(it.borderColor || "")} onChange={(v) => patchItem(routes, i, { borderColor: v }, onPatch, "routes")} />
               <CmsColorField label="Цвет текста" value={String(it.textColor || "")} onChange={(v) => patchItem(routes, i, { textColor: v }, onPatch, "routes")} />
               <CmsColorField label="Цвет цены" value={String(it.priceColor || "")} onChange={(v) => patchItem(routes, i, { priceColor: v }, onPatch, "routes")} />

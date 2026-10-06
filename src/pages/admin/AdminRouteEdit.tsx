@@ -27,6 +27,9 @@ import type { BlogContentBlock, RouteTab } from "@/types/blogContent";
 
 const TiptapEditor = lazy(() => import("@/components/editor/TiptapEditor"));
 
+// Sentinel-значение для «Без региона» (Radix не любит пустую строку в SelectItem)
+const REGION_NONE = "__none__";
+
 type Loaded = {
   id: string;
   slug: string;
@@ -41,8 +44,8 @@ type Loaded = {
   status: string;
   seo_title?: string | null;
   seo_description?: string | null;
-  show_in_menu?: boolean | null;   // ← новое
-  menu_order?: number | null;      // ← новое
+  show_in_menu?: boolean | null;
+  menu_order?: number | null;
 };
 
 export default function AdminRouteEdit() {
@@ -70,8 +73,8 @@ export default function AdminRouteEdit() {
   const [status, setStatus] = useState<"draft" | "published">("draft");
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
-  const [showInMenu, setShowInMenu] = useState(false);   // ← новое
-  const [menuOrder, setMenuOrder] = useState("0");       // ← новое
+  const [showInMenu, setShowInMenu] = useState(false);
+  const [menuOrder, setMenuOrder] = useState("0");
 
   const hydratedRef = useRef<string | null>(null);
   const [editorKey, setEditorKey] = useState(0);
@@ -210,8 +213,8 @@ export default function AdminRouteEdit() {
         status,
         seo_title: seoTitle.trim() || null,
         seo_description: seoDescription.trim() || null,
-        show_in_menu: showInMenu,                                // ← новое
-        menu_order: parseInt(menuOrder, 10) || 0,                // ← новое
+        show_in_menu: showInMenu,
+        menu_order: parseInt(menuOrder, 10) || 0,
       };
       if (isNew) {
         return apiFetch<Loaded>("/api/admin/routes", {
@@ -228,7 +231,7 @@ export default function AdminRouteEdit() {
       qc.invalidateQueries({ queryKey: ["admin-route-pages"] });
       qc.invalidateQueries({ queryKey: ["admin-route-page", routeId] });
       qc.invalidateQueries({ queryKey: ["route-page-public"] });
-      qc.invalidateQueries({ queryKey: ["header-routes-menu"] });   // ← новое
+      qc.invalidateQueries({ queryKey: ["header-routes-menu"] });
       if (isNew && data?.id) {
         navigate(`/admin/routes/${data.id}`, { replace: true });
       }
@@ -241,7 +244,7 @@ export default function AdminRouteEdit() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-route-pages"] });
       qc.invalidateQueries({ queryKey: ["route-page-public"] });
-      qc.invalidateQueries({ queryKey: ["header-routes-menu"] });   // ← новое
+      qc.invalidateQueries({ queryKey: ["header-routes-menu"] });
       navigate("/admin/routes");
     },
   });
@@ -333,11 +336,16 @@ export default function AdminRouteEdit() {
           <div className="grid gap-2 sm:grid-cols-3 sm:gap-4">
             <div className="grid gap-2">
               <Label>Регион</Label>
-              <Select value={region} onValueChange={setRegion}>
+              {/* value="" не работает в Radix — используем REGION_NONE */}
+              <Select
+                value={region || REGION_NONE}
+                onValueChange={(v) => setRegion(v === REGION_NONE ? "" : v)}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Выберите" />
+                  <SelectValue placeholder="Без региона" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={REGION_NONE}>Без региона</SelectItem>
                   {(regionsData || []).map((r) => (
                     <SelectItem key={r.id} value={r.name}>
                       {r.name}
@@ -345,6 +353,9 @@ export default function AdminRouteEdit() {
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Можно оставить «Без региона» — маршрут будет виден на сайте, но не привязан к региону.
+              </p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="rating">Рейтинг (0–10)</Label>
@@ -377,7 +388,7 @@ export default function AdminRouteEdit() {
         </CardContent>
       </Card>
 
-      {/* ← НОВЫЙ БЛОК: Меню шапки */}
+      {/* Блок «Меню шапки» */}
       <Card>
         <CardHeader>
           <CardTitle>Меню шапки</CardTitle>

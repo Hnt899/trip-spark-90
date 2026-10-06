@@ -15,61 +15,120 @@ declare global {
 
 const WL_SCRIPT_SRC = "https://tripandfly.ru/embedded-portal/embedded.js";
 const WL_PARTNER_ID = "ippilipenko_wl";
+const WL_TAG = "wl-embedded-portal";
+
+type WlStatus = "loading" | "ready" | "error";
 
 /**
  * White Label модуль поиска АВТОБУСОВ (tripandfly embedded portal).
- * Отображается ТОЛЬКО на вкладке «Автобусы» в hero-форме.
  *
- * На мобилке контейнер центрирован и не растягивается шире экрана.
+ * ВАЖНО (по требованию Tripandfly):
+ *  - тег `<wl-embedded-portal>` должен быть в DOM ДО загрузки `embedded.js`;
+ *  - после загрузки скрипта — «прокачиваем» существующий тег через
+ *    `customElements.upgrade(el)`, чтобы скрипт его подхватил.
  */
 const WhiteLabelBusPortal = () => {
-  const [status, setStatus] = useState<"loading" | "ready" | "error">(
-    "loading"
-  );
+  const [status, setStatus] = useState<WlStatus>("loading");
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (document.querySelector(`script[src="${WL_SCRIPT_SRC}"]`)) {
-      setStatus("ready");
-      return;
-    }
+    let cancelled = false;
 
-    const script = document.createElement("script");
-    script.type = "module";
-    script.src = WL_SCRIPT_SRC;
-    script.async = true;
+    const init = async () => {
+      // 1. Ждём, пока React точно отрендерит <wl-embedded-portal>
+      await new Promise<void>((r) => requestAnimationFrame(() => r()));
+      if (cancelled) return;
 
-    script.onload = () => {
-      console.info("[WL] embedded.js успешно загружен");
-      setStatus("ready");
-    };
+      const el = containerRef.current?.querySelector(
+        WL_TAG
+      ) as HTMLElement | null;
 
-    script.onerror = () => {
-      console.warn(
-        "[WL] embedded.js не загрузился (вероятно, CORS на стороне Tripandfly)."
+      if (!el) {
+        console.warn(`[WL] <${WL_TAG}> не найден в DOM`);
+        setStatus("error");
+        return;
+      }
+
+      // 2. Скрипт уже загружен и custom element зарегистрирован?
+      if (customElements.get(WL_TAG)) {
+        customElements.upgrade(el);
+        console.info("[WL] custom element уже зарегистрирован, тег «прокачан»");
+        setStatus("ready");
+        return;
+      }
+
+      // 3. Скрипт уже в DOM, но ещё не загрузился? Дождаться.
+      let script = document.querySelector<HTMLScriptElement>(
+        `script[src="${WL_SCRIPT_SRC}"]`
       );
-      setStatus("error");
+
+      if (!script) {
+        script = document.createElement("script");
+        script.type = "module";
+        script.src = WL_SCRIPT_SRC;
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      // 4. Ждём загрузки скрипта
+      await new Promise<void>((resolve, reject) => {
+        if (script!.dataset.loaded === "true") {
+          resolve();
+          return;
+        }
+        const onLoad = () => {
+          script!.dataset.loaded = "true";
+          resolve();
+        };
+        const onError = () =>
+          reject(new Error("embedded.js не загрузился (CORS?)"));
+        script!.addEventListener("load", onLoad, { once: true });
+        script!.addEventListener("error", onError, { once: true });
+      });
+
+      if (cancelled) return;
+
+      // 5. После загрузки — «прокачиваем» наш тег
+      if (customElements.get(WL_TAG)) {
+        customElements.upgrade(el);
+        console.info("[WL] embedded.js загружен, элемент «прокачан»");
+        setStatus("ready");
+      } else {
+        console.warn(
+          `[WL] embedded.js загружен, но custom element <${WL_TAG}> не зарегистрирован`
+        );
+        setStatus("error");
+      }
     };
 
-    document.body.appendChild(script);
+    void init().catch((e) => {
+      if (cancelled) return;
+      console.warn("[WL] ошибка инициализации:", e);
+      setStatus("error");
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
-    // Внешний контейнер: центрируем по горизонтали, ограничиваем ширину
     <div
       ref={containerRef}
       className="mx-auto w-full max-w-full md:max-w-[600px]"
     >
-      {/* Внутренний контейнер: min-height 400px (моб), 600px (десктоп) */}
-      <div
-        className="mx-auto flex min-h-[400px] w-full max-w-full items-center justify-center overflow-hidden rounded-lg bg-white/95 p-2 shadow-inner md:min-h-[600px] md:p-4"
-      >
-        {status === "ready" ? (
-          <div className="w-full">
-            <wl-embedded-portal partnerid={WL_PARTNER_ID} />
-          </div>
-        ) : (
-          <div className="flex h-full min-h-[380px] w-full flex-col items-center justify-center gap-3 p-6 text-center md:min-h-[580px]">
+      <div className="relative mx-auto flex min-h-[400px] w-full max-w-full items-center justify-center overflow-hidden rounded-lg bg-white/95 p-2 shadow-inner md:min-h-[600px] md:p-4">
+        {/*
+          ТЕГ РЕНДЕРИТСЯ ВСЕГДА И СРАЗУ — до подключения скрипта.
+          Спиннер/ошибка — поверх, через absolute, чтобы тег оставался в DOM
+          и не размонтировался при смене статуса.
+        */}
+        <div className="w-full">
+          <wl-embedded-portal partnerid={WL_PARTNER_ID} />
+        </div>
+
+        {status !== "ready" && (
+          <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white/85 p-6 text-center backdrop-blur-sm">
             {status === "loading" ? (
               <>
                 <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0A8FE8] border-t-transparent" />

@@ -85,6 +85,8 @@ export type RoutesSectionRouteFields = {
   borderColor?: string;
   textColor?: string;
   priceColor?: string;
+  /** Опциональная ссылка: если задана — карточка ведёт на неё, иначе на /train-search?... */
+  href?: string;
 };
 
 export type RoutesSectionFields = {

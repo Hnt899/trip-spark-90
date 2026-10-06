@@ -25,9 +25,10 @@ function transliterate(str: string): string {
 
 export function createSlug(title: string): string {
   return transliterate(title)
-    .replace(/[?«»—()!]/g, "")
+    // Всё, что НЕ латиница, НЕ цифры и НЕ пробел/дефис — удаляем
+    .replace(/[^a-z0-9\s-]/gi, "")
     .replace(/\s+/g, "-")
-    .replace(/--+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
 }
-
