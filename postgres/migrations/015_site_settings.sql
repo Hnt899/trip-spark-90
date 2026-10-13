@@ -1,4 +1,4 @@
--- Site settings: глобальные настройки сайта (footer и др.), JSONB по ключам
+-- Site settings: РіР»РѕР±Р°Р»СЊРЅС‹Рµ РЅР°СЃС‚СЂРѕР№РєРё СЃР°Р№С‚Р° (footer Рё РґСЂ.), JSONB РїРѕ РєР»СЋС‡Р°Рј
 CREATE TABLE IF NOT EXISTS site_settings (
   key TEXT PRIMARY KEY,
   value_json JSONB NOT NULL DEFAULT '{}'::jsonb,
