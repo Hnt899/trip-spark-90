@@ -1,0 +1,1750 @@
+﻿================================================================
+FILE: server\uploadRoute.js
+================================================================
+import { Router } from "express";
+import multer from "multer";
+import crypto from "crypto";
+import path from "path";
+import fs from "fs";
+import sharp from "sharp";
+import { adminMiddleware } from "./authMiddleware.js";
+
+const UPLOAD_DIR = path.resolve("uploads");
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || ".bin";
+    const name = crypto.randomUUID() + ext;
+    cb(null, name);
+  },
+});
+
+const ALLOWED_IMAGE_MIME = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "image/avif",
+]);
+
+const ALLOWED_VIDEO_MIME = new Set([
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+]);
+
+const ALLOWED_MIME = new Set([...ALLOWED_IMAGE_MIME, ...ALLOWED_VIDEO_MIME]);
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 200 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!ALLOWED_MIME.has(file.mimetype)) {
+      return cb(new Error("Only image or video files are allowed"));
+    }
+    cb(null, true);
+  },
+});
+
+const router = Router();
+
+// Обработка изображений для маршрутов: обрезать/растянуть до 896x560
+async function processRouteImage(inputPath, outputPath) {
+  await sharp(inputPath)
+    .resize(896, 560, {
+      fit: "cover",
+      position: "center",
+    })
+    .toFile(outputPath);
+}
+
+router.post(
+  "/api/upload/route",
+  adminMiddleware,
+  upload.array("files", 20),
+  async (req, res) => {
+    const files = req.files || [];
+    
+    const urls = [];
+    
+    for (const file of files) {
+      if (ALLOWED_IMAGE_MIME.has(file.mimetype)) {
+        // Обрабатываем изображение: обрезаем/растягиваем до 896x560
+        const ext = path.extname(file.filename);
+        const processedFilename = `route_${crypto.randomUUID()}${ext}`;
+        const processedPath = path.join(UPLOAD_DIR, processedFilename);
+        
+        try {
+          await processRouteImage(file.path, processedPath);
+          // Удаляем оригинал
+          fs.unlinkSync(file.path);
+          urls.push(`/uploads/${processedFilename}`);
+        } catch (err) {
+          console.error("Error processing route image:", err);
+          // Если ошибка обработки, используем оригинал
+          urls.push(`/uploads/${file.filename}`);
+        }
+      } else {
+        // Видео или другие файлы оставляем как есть
+        urls.push(`/uploads/${file.filename}`);
+      }
+    }
+    
+    res.json({ urls });
+  },
+);
+
+// Старый эндпоинт для остальных загрузок (без обработки)
+router.post(
+  "/api/upload",
+  adminMiddleware,
+  upload.array("files", 20),
+  (req, res) => {
+    const files = req.files || [];
+    const urls = files.map((f) => `/uploads/${f.filename}`);
+    res.json({ urls });
+  },
+);
+
+router.use((err, _req, res, _next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({
+        error: "Файл слишком большой. Максимум 200 МБ для видео/изображений.",
+      });
+    }
+    return res.status(400).json({ error: err.message });
+  }
+  if (err?.message) {
+    return res.status(400).json({ error: err.message });
+  }
+  res.status(500).json({ error: "Upload failed" });
+});
+
+export { router as uploadRouter, UPLOAD_DIR };
+
+================================================================
+FILE: server\registerApiRoutes.js
+================================================================
+import express from "express";
+import bcrypt from "bcryptjs";
+import { authenticator } from "otplib";
+import { pool } from "./db.js";
+import {
+  signAccessToken,
+  signPre2faToken,
+  authMiddleware,
+  pre2faMiddleware,
+  formatUser,
+  getUserById,
+} from "./authMiddleware.js";
+import { registerAdminRoutes } from "./adminApiRoutes.js";
+import { registerBlogPublicRoutes } from "./blogRoutes.js";
+import { registerRoutePublicRoutes } from "./routePageRoutes.js";
+import { registerReferencePublicRoutes } from "./referenceRoutes.js";
+import { registerGuidePublicRoutes } from "./guideRoutes.js";
+import { registerPagePublicRoutes } from "./pageContentRoutes.js";
+import { registerSubscriptionRoutes } from "./subscriptionRoutes.js";
+import { registerRegionRoutes } from "./regionRoutes.js";
+import { registerSeoRoutes } from "./seoRoutes.js";
+import { sendExolveSms } from "./sendSms.js";
+import { sendEmailOtp } from "./emailOtp.js";
+import { registerRzdTrainSearchRoutes } from "./rzdTrainSearchRoutes.js";
+import { registerYookassaPaymentRoutes } from "./yookassaPayments.js";
+
+function normalizePhoneE164(input) {
+  const digits = input.replace(/\D/g, "");
+  if (digits.startsWith("8")) return "+7" + digits.slice(1);
+  if (digits.startsWith("7")) return "+" + digits;
+  return "+7" + digits;
+}
+
+function randomDigits(n) {
+  let s = "";
+  for (let i = 0; i < n; i++) s += Math.floor(Math.random() * 10);
+  return s;
+}
+
+/**
+ * @param {import('express').Express} app
+ */
+export function registerApiRoutes(app) {
+  registerRzdTrainSearchRoutes(app);
+  registerYookassaPaymentRoutes(app);
+
+  // --- Auth: session ---
+  app.get("/api/auth/session", authMiddleware, async (req, res) => {
+    const row = await getUserById(pool, req.userId);
+    if (!row) return res.status(401).json({ error: "Unauthorized" });
+    res.json({
+      user: formatUser(row),
+      access_token: req.headers.authorization?.replace(/^Bearer\s+/i, "") || "",
+    });
+  });
+
+  // --- Auth: password login (email or phone) ---
+  app.post("/api/auth/login", express.json(), async (req, res) => {
+    const { email, phone, password } = req.body || {};
+    if (!password) return res.status(400).json({ error: "password required" });
+
+    let loginEmail = email ? String(email).trim().toLowerCase() : null;
+    if (!loginEmail && phone) {
+      const normalized = normalizePhoneE164(phone);
+      const last10 = normalized.replace(/\D/g, "").slice(-10);
+      const { rows: matches } = await pool.query(
+        `SELECT email FROM user_profiles
+         WHERE length(regexp_replace(COALESCE(phone,''), '[^0-9]', '', 'g')) >= 10
+         AND right(regexp_replace(COALESCE(phone,''), '[^0-9]', '', 'g'), 10) = $1
+         LIMIT 1`,
+        [last10]
+      );
+      if (matches[0]?.email) loginEmail = matches[0].email.trim().toLowerCase();
+      if (!loginEmail) {
+        const digits = normalized.replace(/\D/g, "");
+        const tempEmail = `${digits}@temp.com`;
+        const { rows: u } = await pool.query(
+          `SELECT email FROM users WHERE email = $1`,
+          [tempEmail]
+        );
+        if (u[0]?.email) loginEmail = u[0].email;
+      }
+    }
+    if (!loginEmail)
+      return res.status(400).json({ error: "email or phone required" });
+
+    const { rows } = await pool.query(`SELECT * FROM users WHERE email = $1`, [
+      loginEmail,
+    ]);
+    const row = rows[0];
+    if (!row || !(await bcrypt.compare(password, row.password_hash))) {
+      return res.status(401).json({ error: "Invalid login credentials" });
+    }
+    const { rows: fa } = await pool.query(
+      `SELECT is_2fa_enabled($1::uuid) AS en`,
+      [row.id]
+    );
+    if (fa[0]?.en) {
+      const preAuthToken = signPre2faToken(row.id, row.email);
+      return res.json({
+        requires2FA: true,
+        userEmail: row.email,
+        preAuthToken,
+      });
+    }
+    const access_token = signAccessToken(
+      row.id,
+      row.email,
+      row.raw_user_meta,
+      row.is_admin
+    );
+    res.json({ user: formatUser(row), access_token });
+  });
+
+  app.post("/api/auth/2fa-login/send-email", pre2faMiddleware, async (req, res) => {
+    const email = req.pre2faEmail;
+    const code = randomDigits(6);
+    const exp = new Date(Date.now() + 10 * 60 * 1000);
+    await pool.query(
+      `INSERT INTO email_otp_challenges (email, code, purpose, expires_at) VALUES ($1, $2, '2fa_login', $3)`,
+      [email.toLowerCase(), code, exp.toISOString()]
+    );
+    try {
+      await sendEmailOtp(email, code, "2fa_login");
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ error: e.message || "Email send failed" });
+    }
+    res.json({ ok: true });
+  });
+
+  app.post("/api/auth/2fa-login/verify", pre2faMiddleware, express.json(), async (req, res) => {
+    const { code } = req.body || {};
+    const email = req.pre2faEmail.toLowerCase();
+    if (!code) return res.status(400).json({ error: "code required" });
+    const { rows } = await pool.query(
+      `SELECT * FROM email_otp_challenges WHERE email = $1 AND code = $2 AND purpose = '2fa_login' AND used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1`,
+      [email, String(code).trim()]
+    );
+    if (!rows.length)
+      return res.status(400).json({ error: "Invalid or expired code" });
+    await pool.query(`UPDATE email_otp_challenges SET used = true WHERE id = $1`, [
+      rows[0].id,
+    ]);
+    const row = await getUserById(pool, req.pre2faUserId);
+    if (!row) return res.status(400).json({ error: "User not found" });
+    const access_token = signAccessToken(
+      row.id,
+      row.email,
+      row.raw_user_meta,
+      row.is_admin
+    );
+    res.json({ user: formatUser(row), access_token });
+  });
+
+  // --- Email OTP (signup / login) ---
+  app.post("/api/auth/email/send-otp", express.json(), async (req, res) => {
+    const { email } = req.body || {};
+    if (!email || !String(email).includes("@"))
+      return res.status(400).json({ error: "valid email required" });
+    const em = String(email).trim().toLowerCase();
+    const code = randomDigits(6);
+    const exp = new Date(Date.now() + 10 * 60 * 1000);
+    const purpose = "email_auth";
+    await pool.query(
+      `INSERT INTO email_otp_challenges (email, code, purpose, expires_at) VALUES ($1, $2, $3, $4)`,
+      [em, code, purpose, exp.toISOString()]
+    );
+    try {
+      await sendEmailOtp(em, code, purpose);
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ error: e.message || "Email send failed" });
+    }
+    res.json({ ok: true });
+  });
+
+  app.post("/api/auth/email/verify-otp", express.json(), async (req, res) => {
+    const { email, token, isRegistration } = req.body || {};
+    if (!email || !token)
+      return res.status(400).json({ error: "email and token required" });
+    const em = String(email).trim().toLowerCase();
+    const { rows: ch } = await pool.query(
+      `SELECT * FROM email_otp_challenges WHERE email = $1 AND code = $2 AND purpose = 'email_auth' AND used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1`,
+      [em, String(token).trim()]
+    );
+    if (!ch.length)
+      return res.status(400).json({ error: "Invalid or expired code" });
+    await pool.query(`UPDATE email_otp_challenges SET used = true WHERE id = $1`, [
+      ch[0].id,
+    ]);
+
+    let row = (
+      await pool.query(`SELECT * FROM users WHERE email = $1`, [em])
+    ).rows[0];
+
+    if (!row) {
+      if (!isRegistration)
+        return res.status(400).json({ error: "User not found" });
+      const autoPassword =
+        Math.random().toString(36).slice(-12) +
+        Math.random().toString(36).slice(-12);
+      const hash = await bcrypt.hash(autoPassword, 10);
+      const meta = { has_password: false, auto_password: autoPassword };
+      const ins = await pool.query(
+        `INSERT INTO users (email, password_hash, raw_user_meta) VALUES ($1, $2, $3::jsonb) RETURNING *`,
+        [em, hash, JSON.stringify(meta)]
+      );
+      row = ins.rows[0];
+    }
+
+    const access_token = signAccessToken(
+      row.id,
+      row.email,
+      row.raw_user_meta,
+      row.is_admin
+    );
+    res.json({ user: formatUser(row), access_token });
+  });
+
+  // --- SMS (отключено; вернём позже с Exolve) ---
+  app.post("/api/auth/sms/send", express.json(), (_req, res) => {
+    return res.status(503).json({
+      success: false,
+      error: "Вход по SMS временно отключён. Используйте email или пароль.",
+    });
+  });
+
+  app.post("/api/auth/sms/verify", express.json(), (_req, res) => {
+    return res.status(503).json({
+      error: "Вход по SMS временно отключён. Используйте email или пароль.",
+    });
+  });
+
+  // --- Update current user (auth.users parity) ---
+  app.patch("/api/auth/me", authMiddleware, express.json(), async (req, res) => {
+    const { phone, email, password, user_metadata } = req.body || {};
+    const row = await getUserById(pool, req.userId);
+    if (!row) return res.status(404).json({ error: "Not found" });
+
+    let newEmail = row.email;
+    let newPhone = row.phone;
+    let newHash = row.password_hash;
+    let meta = row.raw_user_meta || {};
+
+    if (user_metadata && typeof user_metadata === "object") {
+      meta = { ...meta, ...user_metadata };
+    }
+    if (phone) {
+      newPhone = normalizePhoneE164(phone);
+    }
+    if (email && String(email).includes("@")) {
+      newEmail = String(email).trim().toLowerCase();
+    }
+    if (password) {
+      newHash = await bcrypt.hash(password, 10);
+      meta = { ...meta, has_password: true };
+    }
+
+    try {
+      await pool.query(
+        `UPDATE users SET email = $2, phone = $3, password_hash = $4, raw_user_meta = $5::jsonb WHERE id = $1`,
+        [req.userId, newEmail, newPhone, newHash, JSON.stringify(meta)]
+      );
+    } catch (e) {
+      if (e.code === "23505")
+        return res.status(400).json({ error: "Email already in use" });
+      throw e;
+    }
+    const updated = await getUserById(pool, req.userId);
+    res.json({ user: formatUser(updated) });
+  });
+
+  // --- User profiles ---
+  app.get("/api/user-profiles/me", authMiddleware, async (req, res) => {
+    const { rows } = await pool.query(
+      `SELECT * FROM user_profiles WHERE user_id = $1`,
+      [req.userId]
+    );
+    res.json(rows[0] || null);
+  });
+
+  app.put("/api/user-profiles/me", authMiddleware, express.json(), async (req, res) => {
+    const body = req.body || {};
+    const { rows: existing } = await pool.query(
+      `SELECT id FROM user_profiles WHERE user_id = $1`,
+      [req.userId]
+    );
+    if (existing.length) {
+      const { rows } = await pool.query(
+        `UPDATE user_profiles SET
+          first_name = $2, last_name = $3, patronymic = $4, phone = $5, email = $6, birth_date = $7,
+          updated_at = NOW()
+        WHERE user_id = $1 RETURNING *`,
+        [
+          req.userId,
+          body.first_name ?? null,
+          body.last_name ?? null,
+          body.patronymic ?? null,
+          body.phone ?? null,
+          body.email ?? null,
+          body.birth_date ?? null,
+        ]
+      );
+      return res.json(rows[0]);
+    }
+    const { rows } = await pool.query(
+      `INSERT INTO user_profiles (user_id, first_name, last_name, patronymic, phone, email, birth_date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [
+        req.userId,
+        body.first_name ?? null,
+        body.last_name ?? null,
+        body.patronymic ?? null,
+        body.phone ?? null,
+        body.email ?? null,
+        body.birth_date ?? null,
+      ]
+    );
+    res.json(rows[0]);
+  });
+
+  // --- Passengers ---
+  app.get("/api/passengers", authMiddleware, async (req, res) => {
+    const { rows } = await pool.query(
+      `SELECT * FROM passengers WHERE user_id = $1 ORDER BY created_at DESC`,
+      [req.userId]
+    );
+    res.json(rows);
+  });
+
+  app.post("/api/passengers", authMiddleware, express.json(), async (req, res) => {
+    const b = req.body || {};
+    const { rows } = await pool.query(
+      `INSERT INTO passengers (user_id, display_name, name, surname, patronymic, gender, passport_series, passport_number, birth_date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [
+        req.userId,
+        b.display_name ?? null,
+        b.name,
+        b.surname,
+        b.patronymic ?? null,
+        b.gender ?? null,
+        b.passport_series,
+        b.passport_number,
+        b.birth_date,
+      ]
+    );
+    res.json(rows[0]);
+  });
+
+  app.patch("/api/passengers/:id", authMiddleware, express.json(), async (req, res) => {
+    const b = req.body || {};
+    const { rows } = await pool.query(
+      `UPDATE passengers SET
+        display_name = $3, name = $4, surname = $5, patronymic = $6, gender = $7,
+        passport_series = $8, passport_number = $9, birth_date = $10, updated_at = NOW()
+      WHERE id = $1 AND user_id = $2 RETURNING *`,
+      [
+        req.params.id,
+        req.userId,
+        b.display_name ?? null,
+        b.name,
+        b.surname,
+        b.patronymic ?? null,
+        b.gender ?? null,
+        b.passport_series,
+        b.passport_number,
+        b.birth_date,
+      ]
+    );
+    if (!rows.length) return res.status(404).json({ error: "Not found" });
+    res.json(rows[0]);
+  });
+
+  app.delete("/api/passengers/:id", authMiddleware, async (req, res) => {
+    const r = await pool.query(
+      `DELETE FROM passengers WHERE id = $1 AND user_id = $2`,
+      [req.params.id, req.userId]
+    );
+    if (!r.rowCount) return res.status(404).json({ error: "Not found" });
+    res.json({ ok: true });
+  });
+
+  // --- Tickets ---
+  app.get("/api/tickets", authMiddleware, async (req, res) => {
+    const { rows } = await pool.query(
+      `SELECT * FROM tickets WHERE user_id = $1 ORDER BY created_at DESC`,
+      [req.userId]
+    );
+    res.json(rows);
+  });
+
+  app.get("/api/tickets/by-order/:orderNumber", authMiddleware, async (req, res) => {
+    const { rows } = await pool.query(
+      `SELECT * FROM tickets WHERE order_number = $1 AND user_id = $2`,
+      [req.params.orderNumber, req.userId]
+    );
+    res.json(rows[0] || null);
+  });
+
+  app.get("/api/tickets/:id", authMiddleware, async (req, res) => {
+    const { rows } = await pool.query(
+      `SELECT * FROM tickets WHERE id = $1::uuid AND user_id = $2`,
+      [req.params.id, req.userId]
+    );
+    res.json(rows[0] || null);
+  });
+
+  app.post("/api/tickets", authMiddleware, express.json(), async (req, res) => {
+    const b = req.body || {};
+    const { rows } = await pool.query(
+      `INSERT INTO tickets (
+        user_id, order_number, transport_type, total_price, tickets_data,
+        from_city, to_city, departure_date, electronic_registration_status, payment_status
+      ) VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10) RETURNING *`,
+      [
+        req.userId,
+        b.order_number,
+        b.transport_type,
+        b.total_price,
+        JSON.stringify(b.tickets_data || []),
+        b.from_city,
+        b.to_city,
+        b.departure_date,
+        b.electronic_registration_status || "pending",
+        b.payment_status || "pending",
+      ]
+    );
+    res.json(rows[0]);
+  });
+
+  app.patch("/api/tickets/:id", authMiddleware, express.json(), async (req, res) => {
+    const allowed = [
+      "electronic_registration_status",
+      "order_status",
+      "payment_status",
+      "payment_transaction_id",
+      "payment_paid_at",
+      "payment_method",
+      "payment_raw",
+    ];
+    const b = req.body || {};
+    const sets = [];
+    const vals = [req.params.id, req.userId];
+    let i = 3;
+    for (const k of allowed) {
+      if (b[k] !== undefined) {
+        sets.push(
+          k === "payment_raw" ? `payment_raw = $${i}::jsonb` : `${k} = $${i}`
+        );
+        vals.push(k === "payment_raw" ? JSON.stringify(b[k]) : b[k]);
+        i++;
+      }
+    }
+    if (!sets.length) return res.status(400).json({ error: "No fields" });
+    sets.push("updated_at = NOW()");
+    const { rows } = await pool.query(
+      `UPDATE tickets SET ${sets.join(", ")} WHERE id = $1 AND user_id = $2 RETURNING *`,
+      vals
+    );
+    if (!rows.length) return res.status(404).json({ error: "Not found" });
+    res.json(rows[0]);
+  });
+
+  // --- Certificates ---
+  app.post("/api/rpc/expire_old_certificates", authMiddleware, async (req, res) => {
+    await pool.query(`SELECT expire_old_certificates()`);
+    res.json({ ok: true });
+  });
+
+  app.post("/api/rpc/create_certificate", authMiddleware, express.json(), async (req, res) => {
+    const { p_transport_type, p_amount, p_order_id } = req.body || {};
+    const { rows } = await pool.query(
+      `SELECT * FROM create_certificate($1::uuid, $2::text, $3::numeric, $4::uuid)`,
+      [req.userId, p_transport_type, p_amount, p_order_id || null]
+    );
+    res.json(rows[0] || null);
+  });
+
+  app.post("/api/rpc/is_2fa_enabled", authMiddleware, express.json(), async (req, res) => {
+    const uid = req.body?.p_user_id || req.userId;
+    if (uid !== req.userId)
+      return res.status(403).json({ error: "Forbidden" });
+    const { rows } = await pool.query(`SELECT is_2fa_enabled($1::uuid) AS v`, [uid]);
+    res.json({ data: rows[0]?.v ?? false });
+  });
+
+  app.get("/api/certificates", authMiddleware, async (req, res) => {
+    const tt = req.query.transport_type;
+    const all = req.query.all === "1" || req.query.all === "true";
+    let q = `SELECT * FROM certificates WHERE user_id = $1`;
+    const p = [req.userId];
+    if (!all) {
+      q += ` AND status = 'active' AND expires_at > NOW()`;
+    }
+    if (tt) {
+      q += ` AND transport_type = $${p.length + 1}`;
+      p.push(tt);
+    }
+    q += ` ORDER BY amount DESC`;
+    const { rows } = await pool.query(q, p);
+    res.json(rows);
+  });
+
+  app.get("/api/certificates/by-code/:code", authMiddleware, async (req, res) => {
+    const { rows } = await pool.query(
+      `SELECT * FROM certificates WHERE certificate_code = $1 AND user_id = $2`,
+      [req.params.code, req.userId]
+    );
+    res.json(rows[0] || null);
+  });
+
+  app.patch("/api/certificates/:id", authMiddleware, express.json(), async (req, res) => {
+    const b = req.body || {};
+    const { rows } = await pool.query(
+      `UPDATE certificates SET
+        status = COALESCE($3, status),
+        used_at = COALESCE($4, used_at),
+        updated_at = NOW()
+      WHERE id = $1 AND user_id = $2 RETURNING *`,
+      [req.params.id, req.userId, b.status, b.used_at ?? null]
+    );
+    if (!rows.length) return res.status(404).json({ error: "Not found" });
+    res.json(rows[0]);
+  });
+
+  // --- 2FA ---
+  app.post("/api/2fa/generate-secret", authMiddleware, async (req, res) => {
+    const { rows } = await pool.query(
+      `SELECT generate_2fa_secret($1::uuid) AS j`,
+      [req.userId]
+    );
+    let j = rows[0]?.j;
+    if (typeof j === "string") {
+      try {
+        j = JSON.parse(j);
+      } catch {
+        j = {};
+      }
+    }
+    res.json(j && typeof j === "object" ? j : {});
+  });
+
+  app.get("/api/2fa/status", authMiddleware, async (req, res) => {
+    const { rows } = await pool.query(
+      `SELECT enabled FROM user_2fa WHERE user_id = $1`,
+      [req.userId]
+    );
+    res.json({ enabled: rows[0]?.enabled ?? false });
+  });
+
+  app.post("/api/2fa/verify-totp", authMiddleware, express.json(), async (req, res) => {
+    const { token } = req.body || {};
+    if (!token) return res.status(400).json({ error: "token required" });
+    const { rows } = await pool.query(
+      `SELECT secret, enabled FROM user_2fa WHERE user_id = $1`,
+      [req.userId]
+    );
+    const u = rows[0];
+    if (!u?.enabled || !u.secret)
+      return res.json({ valid: false, error: "2FA not configured" });
+    const valid = authenticator.verify({ token: String(token), secret: u.secret });
+    if (valid) {
+      await pool.query(
+        `UPDATE user_2fa SET last_used_at = NOW(), updated_at = NOW() WHERE user_id = $1`,
+        [req.userId]
+      );
+    }
+    res.json({ valid, error: valid ? undefined : "Invalid token" });
+  });
+
+  app.post("/api/2fa/enable", authMiddleware, express.json(), async (req, res) => {
+    await pool.query(
+      `INSERT INTO user_2fa (user_id, secret, enabled, backup_codes)
+       VALUES ($1, '', false, ARRAY[]::text[])
+       ON CONFLICT (user_id) DO NOTHING`,
+      [req.userId]
+    );
+    await pool.query(
+      `UPDATE user_2fa SET enabled = true, updated_at = NOW() WHERE user_id = $1`,
+      [req.userId]
+    );
+    res.json({ ok: true });
+  });
+
+  app.post("/api/2fa/disable", authMiddleware, async (req, res) => {
+    await pool.query(`SELECT disable_2fa($1::uuid)`, [req.userId]);
+    res.json({ ok: true });
+  });
+
+  app.post("/api/2fa/use-backup", authMiddleware, express.json(), async (req, res) => {
+    const { code } = req.body || {};
+    const { rows } = await pool.query(
+      `SELECT use_backup_code($1::uuid, $2) AS ok`,
+      [req.userId, String(code || "")]
+    );
+    res.json({ data: rows[0]?.ok ?? false });
+  });
+
+  app.post("/api/2fa/profile/send-email", authMiddleware, express.json(), async (req, res) => {
+    const { email } = req.body || {};
+    if (!email) return res.status(400).json({ error: "email required" });
+    const em = String(email).trim().toLowerCase();
+    const code = randomDigits(6);
+    const exp = new Date(Date.now() + 10 * 60 * 1000);
+    await pool.query(
+      `INSERT INTO email_otp_challenges (email, code, purpose, expires_at) VALUES ($1, $2, '2fa_profile_setup', $3)`,
+      [em, code, exp.toISOString()]
+    );
+    try {
+      await sendEmailOtp(em, code, "2fa_profile_setup");
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ error: e.message || "Email send failed" });
+    }
+    res.json({ ok: true });
+  });
+
+  app.post("/api/2fa/profile/verify-email", authMiddleware, express.json(), async (req, res) => {
+    const { email, code } = req.body || {};
+    if (!email || !code)
+      return res.status(400).json({ error: "email and code required" });
+    const em = String(email).trim().toLowerCase();
+    const { rows } = await pool.query(
+      `SELECT * FROM email_otp_challenges WHERE email = $1 AND code = $2 AND purpose = '2fa_profile_setup' AND used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1`,
+      [em, String(code).trim()]
+    );
+    if (!rows.length)
+      return res.status(400).json({ error: "Invalid or expired code" });
+    await pool.query(`UPDATE email_otp_challenges SET used = true WHERE id = $1`, [
+      rows[0].id,
+    ]);
+    res.json({ ok: true });
+  });
+
+  // --- Security logs ---
+  app.post("/api/logs", express.json({ limit: "32kb" }), async (req, res) => {
+    const b = req.body || {};
+    try {
+      await pool.query(
+        `INSERT INTO security_logs (level, message, user_id, ip_address, user_agent, metadata)
+         VALUES ($1, $2, $3, $4, $5, $6::jsonb)`,
+        [
+          b.level || "info",
+          String(b.message || "").slice(0, 2000),
+          b.user_id || null,
+          b.ip_address || null,
+          b.user_agent ? String(b.user_agent).slice(0, 500) : null,
+          JSON.stringify(b.metadata || {}),
+        ]
+      );
+    } catch (e) {
+      console.error("log insert", e);
+    }
+    res.json({ ok: true });
+  });
+
+  app.get("/api/auth/public/profile-by-phone", async (req, res) => {
+    const phone = req.query.phone;
+    if (!phone) return res.status(400).json({ error: "phone required" });
+    const { rows } = await pool.query(
+      `SELECT email, user_id, phone FROM user_profiles WHERE phone = $1 LIMIT 1`,
+      [String(phone)]
+    );
+    res.json(rows[0] || null);
+  });
+
+  app.post("/api/auth/match-profiles-last10", express.json(), async (req, res) => {
+    const last10 = String(req.body?.last10 || "")
+      .replace(/\D/g, "")
+      .slice(-10);
+    if (last10.length < 10) return res.json({ matches: [] });
+    const { rows } = await pool.query(
+      `SELECT email, user_id, phone FROM user_profiles
+       WHERE length(regexp_replace(COALESCE(phone,''), '[^0-9]', '', 'g')) >= 10
+       AND right(regexp_replace(COALESCE(phone,''), '[^0-9]', '', 'g'), 10) = $1`,
+      [last10]
+    );
+    res.json({ matches: rows });
+  });
+
+  // --- OTP SMS count (optional; client may skip) ---
+  app.get("/api/auth/sms/count-recent", async (req, res) => {
+    const phone = req.query.phone;
+    if (!phone) return res.status(400).json({ error: "phone required" });
+    const normalized = normalizePhoneE164(String(phone));
+    const digits = normalized.replace(/\D/g, "");
+    const phoneWithPlus = "+" + digits;
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { rows } = await pool.query(
+      `SELECT id FROM verification_codes WHERE (phone = $1 OR phone = $2 OR phone LIKE $3) AND created_at >= $4`,
+      [phoneWithPlus, digits, `%${digits.slice(-10)}`, oneHourAgo]
+    );
+    res.json({ count: rows.length });
+  });
+
+  registerBlogPublicRoutes(app);
+  registerRoutePublicRoutes(app);
+  registerReferencePublicRoutes(app);
+  registerGuidePublicRoutes(app);
+  registerPagePublicRoutes(app);
+  registerSubscriptionRoutes(app);
+  registerRegionRoutes(app);
+  registerSeoRoutes(app);
+  registerAdminRoutes(app);
+}
+
+
+================================================================
+FILE: server\index.js
+================================================================
+import express from "express";
+import cors from "cors";
+import fetch from "node-fetch";
+import rateLimit from "express-rate-limit";
+import { registerApiRoutes } from "./registerApiRoutes.js";
+import { uploadRouter, UPLOAD_DIR } from "./uploadRoute.js";
+import travelpayoutsProxy from './travelpayoutsProxy.js';
+import { readFileSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT || 4000;
+
+// ===== OLLAMA (локальная модель) =====
+const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434/api/chat";
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5-coder:3b";
+
+// ===== ЗАГРУЗКА СЛОВАРЯ ГОРОДОВ =====
+const citiesPath = path.join(__dirname, '../src/data/cities.json');
+let cityToIata = {};
+try {
+  const citiesData = JSON.parse(readFileSync(citiesPath, 'utf-8'));
+  citiesData.forEach(item => {
+    if (item.type === 'city' || item.type === 'airport') {
+      cityToIata[item.name] = item.code;
+      if (item.city_name) {
+        cityToIata[item.city_name] = item.code;
+      }
+    }
+  });
+  console.log(`[SERVER] Загружено ${Object.keys(cityToIata).length} IATA-кодов`);
+} catch (err) {
+  console.error('[SERVER] Не удалось загрузить cities.json:', err.message);
+}
+
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.set("trust proxy", 1);
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+        return cb(null, true);
+      }
+      cb(new Error("CORS"));
+    },
+    credentials: true,
+  }),
+);
+app.use(express.json({ limit: "1mb" }));
+
+app.use("/travelpayouts", travelpayoutsProxy);
+
+// ===== RATE LIMITING =====
+const generalRateLimit = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 100,
+  message: {
+    error: "Слишком много запросов. Подождите немного и попробуйте снова.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const chatRateLimit = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 10,
+  message: {
+    error: "Слишком много запросов к чату. Подождите минуту и попробуйте снова.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use("/api", generalRateLimit);
+
+app.use("/uploads", express.static(UPLOAD_DIR));
+app.use(uploadRouter);
+registerApiRoutes(app);
+
+app.get("/api/ping", (req, res) => {
+  res.json({ ok: true, message: "server is alive" });
+});
+
+// ===== SYSTEM PROMPT =====
+const SYSTEM_PROMPT = `
+Ты — ИИ-помощник сервиса по поиску авиабилетов TudaSuda. Твоя задача — помочь пользователю найти билеты и сформировать ссылку на поиск.
+
+## Твоя роль
+- Ты помогаешь только с поиском авиабилетов и путешествиями.
+- Если пользователь спрашивает что-то не по теме (погода, новости, политика, еда, фильмы и т.д.) — вежливо откажи и предложи вернуться к теме билетов.
+- Отвечай кратко (2–4 предложения), но задавай уточняющие вопросы, если не хватает данных.
+
+## Какие данные нужно собрать
+Чтобы сформировать ссылку на White Label, тебе нужно узнать у пользователя:
+1. **Откуда** — город вылета (например, Москва).
+2. **Куда** — город прибытия (например, Сочи).
+3. **Дата вылета** — в формате ДД.ММ.ГГГГ (например, 20.08.2026).
+4. **Дата возврата** (если нужна) — опционально.
+5. **Количество пассажиров** — взрослые, дети (2–11 лет), младенцы (до 2 лет).
+6. **Класс** — эконом или бизнес (по умолчанию эконом).
+
+## Как задавать вопросы
+- Если пользователь сказал "хочу в Сочи" — спроси: "Откуда вы летите?".
+- Если пользователь сказал "из Москвы" — спроси: "На какую дату?".
+- Спрашивай по одному вопросу за раз, не засыпай пользователя списком.
+- Если пользователь дал неполную информацию — вежливо уточни.
+
+## Формирование ссылки на White Label
+Когда все данные собраны, сформируй ссылку в формате:
+\`https://avia.ts-trip.ru/?flightSearch=[IATA_откуда][дата_ДДММ][IATA_куда][количество_взрослых]\`
+
+**Пример:**
+- Откуда: Москва (IATA: MOW)
+- Куда: Сочи (IATA: AER)
+- Дата вылета: 20 августа 2026 → код: 2008
+- Пассажиры: 2 взрослых, 1 ребёнок → код: 21
+
+Ссылка: \`https://avia.ts-trip.ru/?flightSearch=MOW2008AER21\`
+
+**Важно:**
+- Если пользователь не указал дату — используй завтрашнюю дату.
+- Если не указал пассажиров — поставь 1 взрослого.
+- Если есть обратная дата — добавь параметр \`&returnDate=[ДДММ]\`.
+- Если есть дети или младенцы — добавь \`&children=[число]\` и \`&infants=[число]\`.
+
+## Ограничения
+- Ты не даёшь советы по бронированию отелей, аренде авто, экскурсиям — только авиабилеты.
+- Ты не имеешь доступа к реальным ценам и расписанию — только формируешь ссылку.
+- Если пользователь спрашивает "сколько стоят билеты" — ответь: "Цены вы увидите на странице поиска по сформированной ссылке".
+- Не отвечай на вопросы о политике, религии, здоровье, финансах.
+- Если не знаешь IATA-код города — скажи об этом и предложи пользователю уточнить название.
+
+## Пример диалога
+Пользователь: "Хочу слетать в Сочи"
+Бот: "Откуда вы планируете лететь?"
+Пользователь: "Из Москвы"
+Бот: "На какую дату?"
+Пользователь: "20 августа, на неделю"
+Бот: "Сколько пассажиров?"
+Пользователь: "Двое взрослых и ребёнок"
+Бот: "Отлично! Вот ссылка для поиска билетов Москва → Сочи на 20 августа: https://avia.ts-trip.ru/?flightSearch=MOW2008AER21"
+`;
+
+// ===== ФУНКЦИИ ДЛЯ ПАРСИНГА =====
+function extractCity(text) {
+  const patterns = [
+    /из\s*([А-Яа-яA-Za-z\s-]+?)(?:\s*(?:в|,|\.|$))/i,
+    /в\s*([А-Яа-яA-Za-z\s-]+?)(?:\s*(?:на|,|\.|$))/i,
+    /([А-Яа-яA-Za-z\s-]+?)\s*[→—–-]\s*([А-Яа-яA-Za-z\s-]+?)(?:\s|$)/,
+  ];
+  
+  let origin = null, destination = null;
+  const matchArrow = text.match(patterns[2]);
+  if (matchArrow) {
+    return { origin: matchArrow[1].trim(), destination: matchArrow[2].trim() };
+  }
+  const matchFrom = text.match(patterns[0]);
+  if (matchFrom) {
+    origin = matchFrom[1].trim();
+  }
+  const matchTo = text.match(patterns[1]);
+  if (matchTo) {
+    destination = matchTo[1].trim();
+  }
+  return { origin, destination };
+}
+
+function extractDate(text) {
+  const match = text.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+  if (match) return `${match[1]}${match[2]}`;
+  const match2 = text.match(/\b(\d{2})(\d{2})\b/);
+  return match2 ? match2[0] : null;
+}
+
+function extractPassengers(text) {
+  const adults = text.match(/(\d+)\s*взрослых?/i);
+  const children = text.match(/(\d+)\s*детей?/i);
+  const infants = text.match(/(\d+)\s*младенцев?/i);
+  return {
+    adults: adults ? parseInt(adults[1]) : 1,
+    children: children ? parseInt(children[1]) : 0,
+    infants: infants ? parseInt(infants[1]) : 0
+  };
+}
+
+// ===== ЧАТ-БОТ =====
+app.post("/api/support/chat", chatRateLimit, async (req, res) => {
+  const { message, history = [] } = req.body || {};
+
+  if (!message || typeof message !== "string") {
+    return res.status(400).json({ error: "message is required" });
+  }
+
+  try {
+    const messages = [
+      { role: "system", content: SYSTEM_PROMPT },
+      ...history.slice(-10),
+      { role: "user", content: message }
+    ];
+
+    const response = await fetch(OLLAMA_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: OLLAMA_MODEL,
+        messages: messages,
+        stream: false,
+        options: {
+          temperature: 0.6,
+          max_tokens: 256
+        }
+      })
+    });
+
+    if (!response.ok) {
+      console.error("[Ollama] Error:", response.status);
+      return res.json({
+        reply: "Сервис модели сейчас недоступен. Попробуйте позже.",
+      });
+    }
+
+    const data = await response.json();
+    let replyText = data.message?.content;
+
+    if (!replyText) {
+      console.error("[Ollama] Unexpected response:", data);
+      return res.json({
+        reply: "Сервис модели сейчас недоступен. Попробуйте позже.",
+      });
+    }
+
+    replyText = replyText.trim();
+
+    // ===== ПЫТАЕМСЯ СФОРМИРОВАТЬ ССЫЛКУ =====
+    const { origin: originName, destination: destName } = extractCity(replyText);
+    const dateCode = extractDate(replyText);
+    const passengers = extractPassengers(replyText);
+
+    let link = null;
+
+    if (originName && destName) {
+      const originCode = cityToIata[originName];
+      const destCode = cityToIata[destName];
+      const finalDate = dateCode || new Date(Date.now() + 86400000).toISOString().slice(0, 5).replace('-', '');
+
+      if (originCode && destCode) {
+        const adultCode = Math.min(passengers.adults || 1, 9);
+        const childrenCode = Math.min(passengers.children || 0, 9);
+        const infantsCode = Math.min(passengers.infants || 0, 9);
+        const passengerToken = `${adultCode}${childrenCode}${infantsCode}`;
+
+        link = `https://avia.ts-trip.ru/?flightSearch=${originCode}${finalDate}${destCode}${passengerToken}`;
+      }
+    }
+
+    if (link) {
+      replyText += `\n\n🔗 Вот ваша ссылка для поиска: ${link}`;
+    } else {
+      replyText += `\n\nℹ️ Чтобы я мог сформировать ссылку, укажите город вылета и прибытия. Например: "из Москвы в Сочи"`;
+    }
+
+    return res.json({ reply: replyText });
+  } catch (err) {
+    console.error("[Ollama] request failed:", err);
+    return res.status(500).json({ error: "Ollama API error" });
+  }
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server listening on http://localhost:${PORT}`);
+  console.log(`Using Ollama model: ${OLLAMA_MODEL}`);
+});
+
+================================================================
+FILE: postgres\migrations\009_page_cms.sql
+================================================================
+-- Page CMS: draft/published JSON overrides for Home and Routes landing pages
+
+CREATE TABLE IF NOT EXISTS page_contents (
+  page_key TEXT PRIMARY KEY CHECK (page_key IN ('home', 'routes')),
+  draft_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  published_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  locked_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  locked_at TIMESTAMPTZ,
+  updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+DROP TRIGGER IF EXISTS update_page_contents_updated_at ON page_contents;
+CREATE TRIGGER update_page_contents_updated_at
+  BEFORE UPDATE ON page_contents
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS page_content_revisions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  page_key TEXT NOT NULL CHECK (page_key IN ('home', 'routes')),
+  snapshot JSONB NOT NULL,
+  action TEXT NOT NULL CHECK (action IN (
+    'save_draft', 'publish', 'reset_page', 'reset_section', 'restore'
+  )),
+  section_id TEXT,
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_page_content_revisions_page_created
+  ON page_content_revisions(page_key, created_at DESC);
+
+INSERT INTO page_contents (page_key, draft_json, published_json)
+VALUES
+  ('home', '{}'::jsonb, '{}'::jsonb),
+  ('routes', '{}'::jsonb, '{}'::jsonb)
+ON CONFLICT (page_key) DO NOTHING;
+
+
+================================================================
+FILE: postgres\schema.sql
+================================================================
+-- Standalone PostgreSQL schema (no Supabase auth schema).
+-- Apply once to a fresh database: psql $DATABASE_URL -f postgres/schema.sql
+
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- ---------------------------------------------------------------------------
+-- users (replaces auth.users for this application)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  phone TEXT,
+  is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+  raw_user_meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone) WHERE phone IS NOT NULL;
+
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+CREATE TRIGGER update_users_updated_at
+  BEFORE UPDATE ON users
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ---------------------------------------------------------------------------
+-- Core tables
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  first_name TEXT,
+  last_name TEXT,
+  patronymic TEXT,
+  phone TEXT,
+  email TEXT,
+  birth_date DATE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id);
+
+DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
+CREATE TRIGGER update_user_profiles_updated_at
+  BEFORE UPDATE ON user_profiles
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS passengers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  display_name TEXT,
+  name TEXT NOT NULL,
+  surname TEXT NOT NULL,
+  patronymic TEXT,
+  gender TEXT,
+  passport_series TEXT NOT NULL,
+  passport_number TEXT NOT NULL,
+  birth_date DATE NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_passengers_user_id ON passengers(user_id);
+
+DROP TRIGGER IF EXISTS update_passengers_updated_at ON passengers;
+CREATE TRIGGER update_passengers_updated_at
+  BEFORE UPDATE ON passengers
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  order_number TEXT NOT NULL UNIQUE,
+  status TEXT NOT NULL DEFAULT 'pending',
+  total_amount DECIMAL(10, 2) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+
+DROP TRIGGER IF EXISTS update_orders_updated_at ON orders;
+CREATE TRIGGER update_orders_updated_at
+  BEFORE UPDATE ON orders
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS tickets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  order_number TEXT NOT NULL,
+  transport_type TEXT NOT NULL CHECK (transport_type IN ('train', 'flight', 'bus')),
+  total_price DECIMAL(10, 2) NOT NULL,
+  tickets_data JSONB NOT NULL,
+  from_city TEXT NOT NULL,
+  to_city TEXT NOT NULL,
+  departure_date DATE NOT NULL,
+  electronic_registration_status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (electronic_registration_status IN ('pending', 'confirmed')),
+  order_status TEXT DEFAULT 'active' CHECK (order_status IN ('active', 'refunded', 'exchanged')),
+  payment_status TEXT DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed', 'cancelled')),
+  payment_transaction_id TEXT,
+  payment_paid_at TIMESTAMPTZ,
+  payment_method TEXT,
+  payment_raw JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_tickets_user_id ON tickets(user_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_order_number ON tickets(order_number);
+CREATE INDEX IF NOT EXISTS idx_tickets_created_at ON tickets(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_tickets_payment_transaction_id ON tickets(payment_transaction_id)
+  WHERE payment_transaction_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tickets_payment_status ON tickets(payment_status) WHERE payment_status IS NOT NULL;
+
+DROP TRIGGER IF EXISTS update_tickets_updated_at ON tickets;
+CREATE TRIGGER update_tickets_updated_at
+  BEFORE UPDATE ON tickets
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS verification_codes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  phone TEXT NOT NULL,
+  code TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  used BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_verification_codes_phone ON verification_codes(phone);
+CREATE INDEX IF NOT EXISTS idx_verification_codes_code ON verification_codes(code);
+CREATE INDEX IF NOT EXISTS idx_verification_codes_expires_at ON verification_codes(expires_at);
+
+CREATE TABLE IF NOT EXISTS certificates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  certificate_code TEXT NOT NULL UNIQUE,
+  transport_type TEXT NOT NULL CHECK (transport_type IN ('train', 'flight', 'bus')),
+  amount DECIMAL(10, 2) NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'used', 'expired')),
+  used_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ NOT NULL,
+  order_id UUID REFERENCES tickets(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_certificates_user_id ON certificates(user_id);
+CREATE INDEX IF NOT EXISTS idx_certificates_code ON certificates(certificate_code);
+CREATE INDEX IF NOT EXISTS idx_certificates_status ON certificates(status);
+
+DROP TRIGGER IF EXISTS update_certificates_updated_at ON certificates;
+CREATE TRIGGER update_certificates_updated_at
+  BEFORE UPDATE ON certificates
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS security_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  level TEXT NOT NULL CHECK (level IN ('info', 'warn', 'error', 'security')),
+  message TEXT NOT NULL,
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  ip_address TEXT,
+  user_agent TEXT,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_security_logs_created_at ON security_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_security_logs_user_id ON security_logs(user_id);
+
+CREATE TABLE IF NOT EXISTS user_2fa (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  secret TEXT NOT NULL,
+  enabled BOOLEAN DEFAULT false,
+  backup_codes TEXT[],
+  last_used_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_2fa_user_id ON user_2fa(user_id);
+
+DROP TRIGGER IF EXISTS update_user_2fa_updated_at ON user_2fa;
+CREATE TRIGGER update_user_2fa_updated_at
+  BEFORE UPDATE ON user_2fa
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS email_otp_challenges (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL,
+  code TEXT NOT NULL,
+  purpose TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  used BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_otp_email ON email_otp_challenges(email);
+
+-- ---------------------------------------------------------------------------
+-- Functions
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION cleanup_expired_codes()
+RETURNS void AS $$
+BEGIN
+  DELETE FROM verification_codes
+  WHERE expires_at < NOW() OR used = TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION generate_certificate_code()
+RETURNS TEXT AS $$
+DECLARE
+  code TEXT;
+  exists_check INTEGER;
+BEGIN
+  LOOP
+    code := LPAD(FLOOR(RANDOM() * 10000000000)::TEXT, 10, '0');
+    SELECT COUNT(*) INTO exists_check FROM certificates WHERE certificate_code = code;
+    EXIT WHEN exists_check = 0;
+  END LOOP;
+  RETURN code;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION expire_old_certificates()
+RETURNS void AS $$
+BEGIN
+  UPDATE certificates
+  SET status = 'expired', updated_at = NOW()
+  WHERE status = 'active' AND expires_at < NOW();
+
+  UPDATE certificates
+  SET status = 'expired', updated_at = NOW()
+  WHERE status = 'used'
+    AND used_at IS NOT NULL
+    AND used_at < NOW() - INTERVAL '1 day';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION create_certificate(
+  p_user_id UUID,
+  p_transport_type TEXT,
+  p_amount DECIMAL,
+  p_order_id UUID DEFAULT NULL
+)
+RETURNS TABLE (
+  id UUID,
+  certificate_code TEXT,
+  amount DECIMAL,
+  expires_at TIMESTAMPTZ
+) AS $$
+DECLARE
+  v_code TEXT;
+  v_expires_at TIMESTAMPTZ;
+  v_cert_id UUID;
+  v_amount DECIMAL(10,2);
+BEGIN
+  v_code := generate_certificate_code();
+  v_expires_at := NOW() + INTERVAL '1 month';
+
+  INSERT INTO certificates (
+    user_id, certificate_code, transport_type, amount, status, expires_at, order_id
+  ) VALUES (
+    p_user_id, v_code, p_transport_type, p_amount, 'active', v_expires_at, p_order_id
+  )
+  RETURNING certificates.id, certificates.certificate_code, certificates.amount, certificates.expires_at
+  INTO v_cert_id, v_code, v_amount, v_expires_at;
+
+  RETURN QUERY SELECT v_cert_id, v_code, v_amount, v_expires_at;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION generate_2fa_secret(p_user_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_secret TEXT;
+  v_backup_codes TEXT[];
+  v_result JSONB;
+BEGIN
+  v_secret := encode(gen_random_bytes(20), 'base64');
+  v_backup_codes := ARRAY(
+    SELECT LPAD(TO_HEX((RANDOM() * 4294967295)::BIGINT), 8, '0')
+    FROM generate_series(1, 10)
+  );
+
+  INSERT INTO user_2fa (user_id, secret, backup_codes, enabled)
+  VALUES (p_user_id, v_secret, v_backup_codes, false)
+  ON CONFLICT (user_id)
+  DO UPDATE SET
+    secret = EXCLUDED.secret,
+    backup_codes = EXCLUDED.backup_codes,
+    enabled = false,
+    updated_at = NOW();
+
+  v_result := jsonb_build_object('secret', v_secret, 'backup_codes', to_jsonb(v_backup_codes));
+  RETURN v_result;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION enable_2fa(p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE user_2fa SET enabled = true, updated_at = NOW() WHERE user_id = p_user_id;
+  RETURN FOUND;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION disable_2fa(p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE user_2fa SET enabled = false, updated_at = NOW() WHERE user_id = p_user_id;
+  RETURN FOUND;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION is_2fa_enabled(p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_enabled BOOLEAN;
+BEGIN
+  SELECT enabled INTO v_enabled FROM user_2fa WHERE user_id = p_user_id;
+  RETURN COALESCE(v_enabled, false);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION use_backup_code(p_user_id UUID, p_code TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_backup_codes TEXT[];
+  v_code_index INT;
+BEGIN
+  SELECT backup_codes INTO v_backup_codes FROM user_2fa WHERE user_id = p_user_id;
+  SELECT array_position(v_backup_codes, p_code) INTO v_code_index;
+  IF v_code_index IS NULL THEN
+    RETURN false;
+  END IF;
+  v_backup_codes := array_remove(v_backup_codes, p_code);
+  UPDATE user_2fa
+  SET backup_codes = v_backup_codes, last_used_at = NOW(), updated_at = NOW()
+  WHERE user_id = p_user_id;
+  RETURN true;
+END;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Blog (CMS): статьи с JSON-блоками контента
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS blog_posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  excerpt TEXT NOT NULL DEFAULT '',
+  cover_image_url TEXT,
+  content_blocks JSONB NOT NULL DEFAULT '[]'::jsonb,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+  published_at TIMESTAMPTZ,
+  reading_minutes INT NOT NULL DEFAULT 5 CHECK (reading_minutes >= 1 AND reading_minutes <= 240),
+  badges TEXT[] NOT NULL DEFAULT ARRAY['own']::text[],
+  channel TEXT NOT NULL DEFAULT 'tudasuda' CHECK (channel IN ('tudasuda', 'partners', 'special')),
+  tag_ids TEXT[] NOT NULL DEFAULT '{}'::text[],
+  editors_pick BOOLEAN NOT NULL DEFAULT false,
+  partner_carousel BOOLEAN NOT NULL DEFAULT false,
+  sponsored_grid BOOLEAN NOT NULL DEFAULT false,
+  related_post_ids UUID[] NOT NULL DEFAULT '{}'::uuid[],
+  views INT NOT NULL DEFAULT 0,
+  author_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_blog_posts_published_at ON blog_posts (published_at DESC)
+  WHERE status = 'published';
+
+DROP TRIGGER IF EXISTS update_blog_posts_updated_at ON blog_posts;
+CREATE TRIGGER update_blog_posts_updated_at
+  BEFORE UPDATE ON blog_posts
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS blog_tag_groups (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_blog_tag_groups_sort
+  ON blog_tag_groups(sort_order, name);
+
+DROP TRIGGER IF EXISTS update_blog_tag_groups_updated_at ON blog_tag_groups;
+CREATE TRIGGER update_blog_tag_groups_updated_at
+  BEFORE UPDATE ON blog_tag_groups
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS blog_tags (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_blog_tags_name ON blog_tags(name);
+
+DROP TRIGGER IF EXISTS update_blog_tags_updated_at ON blog_tags;
+CREATE TRIGGER update_blog_tags_updated_at
+  BEFORE UPDATE ON blog_tags
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS blog_tag_group_links (
+  tag_id UUID NOT NULL REFERENCES blog_tags(id) ON DELETE CASCADE,
+  group_id UUID NOT NULL REFERENCES blog_tag_groups(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (tag_id, group_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_blog_tag_group_links_group
+  ON blog_tag_group_links(group_id, tag_id);
+
+-- ---------------------------------------------------------------------------
+-- Reference (CMS): sections + articles with JSON blocks
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS reference_sections (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  parent_id UUID REFERENCES reference_sections(id) ON DELETE SET NULL,
+  moved_from_parent_id UUID REFERENCES reference_sections(id) ON DELETE SET NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('trains', 'flights', 'buses')),
+  slug TEXT NOT NULL,
+  name TEXT NOT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (kind, parent_id, slug)
+);
+
+CREATE INDEX IF NOT EXISTS idx_reference_sections_kind_parent
+  ON reference_sections(kind, parent_id, sort_order, name);
+
+DROP TRIGGER IF EXISTS update_reference_sections_updated_at ON reference_sections;
+CREATE TRIGGER update_reference_sections_updated_at
+  BEFORE UPDATE ON reference_sections
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS reference_posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  section_id UUID NOT NULL REFERENCES reference_sections(id) ON DELETE RESTRICT,
+  kind TEXT NOT NULL CHECK (kind IN ('trains', 'flights', 'buses')),
+  slug TEXT NOT NULL,
+  title TEXT NOT NULL,
+  excerpt TEXT NOT NULL DEFAULT '',
+  content_blocks JSONB NOT NULL DEFAULT '[]'::jsonb,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+  published_at TIMESTAMPTZ,
+  views INT NOT NULL DEFAULT 0,
+  author_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (kind, slug)
+);
+
+CREATE INDEX IF NOT EXISTS idx_reference_posts_section ON reference_posts(section_id);
+CREATE INDEX IF NOT EXISTS idx_reference_posts_kind_status_pub
+  ON reference_posts(kind, status, published_at DESC);
+
+DROP TRIGGER IF EXISTS update_reference_posts_updated_at ON reference_posts;
+CREATE TRIGGER update_reference_posts_updated_at
+  BEFORE UPDATE ON reference_posts
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ---------------------------------------------------------------------------
+-- Guide (CMS): categories + articles with JSON blocks
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS guide_categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  parent_id UUID REFERENCES guide_categories(id) ON DELETE SET NULL,
+  slug TEXT NOT NULL,
+  name TEXT NOT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (parent_id, slug)
+);
+
+CREATE INDEX IF NOT EXISTS idx_guide_categories_parent
+  ON guide_categories(parent_id, sort_order, name);
+
+DROP TRIGGER IF EXISTS update_guide_categories_updated_at ON guide_categories;
+CREATE TRIGGER update_guide_categories_updated_at
+  BEFORE UPDATE ON guide_categories
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS guide_posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  category_id UUID NOT NULL REFERENCES guide_categories(id) ON DELETE RESTRICT,
+  category_slug TEXT NOT NULL,
+  slug TEXT NOT NULL,
+  title TEXT NOT NULL,
+  excerpt TEXT NOT NULL DEFAULT '',
+  content_blocks JSONB NOT NULL DEFAULT '[]'::jsonb,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+  published_at TIMESTAMPTZ,
+  views INT NOT NULL DEFAULT 0,
+  author_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (category_slug, slug)
+);
+
+CREATE INDEX IF NOT EXISTS idx_guide_posts_category ON guide_posts(category_id);
+CREATE INDEX IF NOT EXISTS idx_guide_posts_category_status_pub
+  ON guide_posts(category_slug, status, published_at DESC);
+
+DROP TRIGGER IF EXISTS update_guide_posts_updated_at ON guide_posts;
+CREATE TRIGGER update_guide_posts_updated_at
+  BEFORE UPDATE ON guide_posts
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ---------------------------------------------------------------------------
+-- Page CMS: Home + Routes landing overrides (draft / published JSON)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS page_contents (
+  page_key TEXT PRIMARY KEY CHECK (page_key IN ('home', 'routes')),
+  draft_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  published_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  locked_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  locked_at TIMESTAMPTZ,
+  updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+DROP TRIGGER IF EXISTS update_page_contents_updated_at ON page_contents;
+CREATE TRIGGER update_page_contents_updated_at
+  BEFORE UPDATE ON page_contents
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE IF NOT EXISTS page_content_revisions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  page_key TEXT NOT NULL CHECK (page_key IN ('home', 'routes')),
+  snapshot JSONB NOT NULL,
+  action TEXT NOT NULL CHECK (action IN (
+    'save_draft', 'publish', 'reset_page', 'reset_section', 'restore'
+  )),
+  section_id TEXT,
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_page_content_revisions_page_created
+  ON page_content_revisions(page_key, created_at DESC);
+
+

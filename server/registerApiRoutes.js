@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import bcrypt from "bcryptjs";
 import { authenticator } from "otplib";
 import { pool } from "./db.js";
@@ -19,6 +19,7 @@ import { registerPagePublicRoutes } from "./pageContentRoutes.js";
 import { registerSubscriptionRoutes } from "./subscriptionRoutes.js";
 import { registerRegionRoutes } from "./regionRoutes.js";
 import { registerSeoRoutes } from "./seoRoutes.js";
+import { registerSettingsRoutes } from "./settingsRoutes.js";
 import { sendExolveSms } from "./sendSms.js";
 import { sendEmailOtp } from "./emailOtp.js";
 import { registerRzdTrainSearchRoutes } from "./rzdTrainSearchRoutes.js";
@@ -218,17 +219,17 @@ export function registerApiRoutes(app) {
     res.json({ user: formatUser(row), access_token });
   });
 
-  // --- SMS (отключено; вернём позже с Exolve) ---
+  // --- SMS (РѕС‚РєР»СЋС‡РµРЅРѕ; РІРµСЂРЅС‘Рј РїРѕР·Р¶Рµ СЃ Exolve) ---
   app.post("/api/auth/sms/send", express.json(), (_req, res) => {
     return res.status(503).json({
       success: false,
-      error: "Вход по SMS временно отключён. Используйте email или пароль.",
+      error: "Р’С…РѕРґ РїРѕ SMS РІСЂРµРјРµРЅРЅРѕ РѕС‚РєР»СЋС‡С‘РЅ. РСЃРїРѕР»СЊР·СѓР№С‚Рµ email РёР»Рё РїР°СЂРѕР»СЊ.",
     });
   });
 
   app.post("/api/auth/sms/verify", express.json(), (_req, res) => {
     return res.status(503).json({
-      error: "Вход по SMS временно отключён. Используйте email или пароль.",
+      error: "Р’С…РѕРґ РїРѕ SMS РІСЂРµРјРµРЅРЅРѕ РѕС‚РєР»СЋС‡С‘РЅ. РСЃРїРѕР»СЊР·СѓР№С‚Рµ email РёР»Рё РїР°СЂРѕР»СЊ.",
     });
   });
 
@@ -703,5 +704,7 @@ export function registerApiRoutes(app) {
   registerSubscriptionRoutes(app);
   registerRegionRoutes(app);
   registerSeoRoutes(app);
+  registerSettingsRoutes(app);
   registerAdminRoutes(app);
 }
+

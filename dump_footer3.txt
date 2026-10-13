@@ -1,0 +1,1066 @@
+﻿================================================================
+FILE: src\components\Footer.tsx
+================================================================
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import logoImage from "@/assets/images/logo/logo_full_4.png";
+import { MessageCircle, Mail, ArrowRight, Loader2, Send, Instagram, Share2, Rss } from "lucide-react";
+import { useState } from "react";
+
+const Footer = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "already" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (location.pathname === "/") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      navigate("/");
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 100);
+    }
+  };
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+
+    setStatus("loading");
+    setErrorMsg("");
+
+    try {
+      const res = await fetch("/api/subscriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setStatus("error");
+        setErrorMsg(data?.error || "Не удалось подписаться. Попробуйте позже.");
+        return;
+      }
+
+      if (data?.already) {
+        setStatus("already");
+      } else {
+        setStatus("success");
+        setEmail("");
+      }
+    } catch {
+      setStatus("error");
+      setErrorMsg("Ошибка сети. Попробуйте позже.");
+    }
+  };
+
+  return (
+    <footer className="bg-[#0B0F26] text-white relative overflow-hidden">
+      {/* Декоративные элементы */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+
+      <div className="container relative z-10 py-16 md:py-20">
+        {/* Основной контент */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+          {/* Колонка 1: Логотип и описание */}
+          <div className="lg:col-span-1 space-y-6">
+            <Link 
+              to="/" 
+              onClick={handleLogoClick}
+              className="inline-block relative hover:opacity-90 transition-opacity"
+            >
+              <img 
+                src={logoImage} 
+                alt="TudaSuda" 
+                className="h-20 md:h-24 w-auto object-contain relative z-10"
+              />
+            </Link>
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
+              Сервис для поиска и бронирования билетов на поезда, самолёты и автобусы по всей России.
+            </p>
+            {/* CTA кнопка */}
+            <Button
+              asChild
+              className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <Link to="/" className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5" />
+                Нужна помощь?
+              </Link>
+            </Button>
+          </div>
+
+          {/* Колонка 2: Навигация */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-white mb-6">Навигация</h3>
+            <nav className="flex flex-col gap-4">
+              <Link 
+                to="/" 
+                className="text-muted-foreground hover:text-white transition-colors duration-200 text-sm"
+              >
+                Главная
+              </Link>
+              <Link 
+                to="/routes" 
+                className="text-muted-foreground hover:text-white transition-colors duration-200 text-sm"
+              >
+                Маршруты
+              </Link>
+              <Link 
+                to="/reference" 
+                className="text-muted-foreground hover:text-white transition-colors duration-200 text-sm"
+              >
+                Справочная
+              </Link>
+              <Link 
+                to="/blog" 
+                className="text-muted-foreground hover:text-white transition-colors duration-200 text-sm"
+              >
+                Блог
+              </Link>
+              <Link 
+                to="/guide" 
+                className="text-muted-foreground hover:text-white transition-colors duration-200 text-sm"
+              >
+                Путеводитель
+              </Link>
+            </nav>
+          </div>
+
+          {/* Колонка 3: Поддержка и соцсети */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-white mb-6">Поддержка</h3>
+            <div className="flex flex-col gap-4 mb-6">
+              <a 
+                href="mailto:info@ts-trip.ru" 
+                className="flex items-center gap-3 text-muted-foreground hover:text-white transition-colors duration-200 text-sm group"
+              >
+                <Mail className="w-4 h-4 group-hover:text-primary transition-colors" />
+                <span>info@ts-trip.ru</span>
+              </a>
+            </div>
+            
+            <h3 className="text-lg font-bold text-white mb-4">Мы в соцсетях</h3>
+            <div className="flex gap-3">
+              <a 
+                href="https://t.me/ts_trip_ru" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#229ED9] hover:brightness-110 transition-all"
+                aria-label="Telegram"
+              >
+                <Send className="w-5 h-5 text-white" />
+              </a>
+              <a 
+                href="https://vk.ru/tstrip" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#0077FF] hover:brightness-110 transition-all"
+                aria-label="VK"
+              >
+                <Share2 className="w-5 h-5 text-white" />
+              </a>
+              <a 
+                href="https://www.instagram.com/tstripru" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] hover:brightness-110 transition-all"
+                aria-label="Instagram"
+              >
+                <Instagram className="w-5 h-5 text-white" />
+              </a>
+              <a 
+                href="https://dzen.ru/tstrip" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#000000] hover:brightness-110 transition-all"
+                aria-label="Dzen"
+              >
+                <Rss className="w-5 h-5 text-white" />
+              </a>
+            </div>
+          </div>
+
+          {/* Колонка 4: Подписка */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-white mb-6">Подписка на новости</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+              Получайте актуальные предложения и специальные акции на почту
+            </p>
+            <form onSubmit={handleSubscribe} className="space-y-3">
+              <Input
+                type="email"
+                placeholder="Ваш email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={status === "loading"}
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-primary h-12 disabled:opacity-50"
+                required
+              />
+              <Button
+                type="submit"
+                disabled={status === "loading"}
+                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white font-semibold h-12 shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+              >
+                {status === "loading" ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Отправка…
+                  </>
+                ) : status === "success" ? (
+                  "Спасибо! Подписка оформлена."
+                ) : status === "already" ? (
+                  "Вы уже подписаны."
+                ) : (
+                  <>
+                    Подписаться
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </Button>
+              {status === "error" && (
+                <p className="text-red-400 text-sm">{errorMsg}</p>
+              )}
+            </form>
+          </div>
+        </div>
+
+        {/* Разделительная линия */}
+        <div className="border-t border-white/10 my-12"></div>
+
+        {/* Нижняя часть */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="text-muted-foreground text-sm">
+            © 2025 TudaSuda. Все права защищены.
+          </div>
+          <div className="flex flex-wrap gap-6 text-sm">
+            <Link 
+              to="/reference" 
+              className="text-muted-foreground hover:text-white transition-colors duration-200"
+            >
+              Политика конфиденциальности
+            </Link>
+            <Link 
+              to="/reference" 
+              className="text-muted-foreground hover:text-white transition-colors duration-200"
+            >
+              Условия использования
+            </Link>
+            <Link 
+              to="/reference" 
+              className="text-muted-foreground hover:text-white transition-colors duration-200"
+            >
+              Оферта
+            </Link>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
+
+
+================================================================
+FILE: src\lib\uploadImages.ts
+================================================================
+import Cookies from "js-cookie";
+
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
+export async function uploadImages(files: File[]): Promise<string[]> {
+  const fd = new FormData();
+  for (const f of files) fd.append("files", f);
+
+  const token = Cookies.get("access_token");
+  const headers: HeadersInit = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const url = `${API_BASE}/api/upload`;
+  const res = await fetch(url, { method: "POST", headers, body: fd });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(
+      (data as { error?: string }).error || "Upload failed",
+    );
+  }
+  const data = (await res.json()) as { urls: string[] };
+  return data.urls;
+}
+
+
+================================================================
+FILE: src\lib\api.ts
+================================================================
+import Cookies from "js-cookie";
+
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
+export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  // Бесплатный ngrok иногда отдаёт HTML-заглушку браузеру; для fetch из Vercel это снимает проблему.
+  if (
+    /ngrok/i.test(API_BASE) &&
+    !headers.has("ngrok-skip-browser-warning")
+  ) {
+    headers.set("ngrok-skip-browser-warning", "true");
+  }
+  const token = Cookies.get("access_token");
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  if (
+    !headers.has("Content-Type") &&
+    init?.body &&
+    typeof init.body === "string"
+  ) {
+    headers.set("Content-Type", "application/json");
+  }
+  const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+  const res = await fetch(url, { ...init, headers });
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) {
+    const msg =
+      typeof data.error === "string"
+        ? data.error
+        : res.statusText || "Request failed";
+    const err = new Error(msg) as Error & { status?: number; data?: unknown };
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data as T;
+}
+
+
+================================================================
+FILE: src\pages\admin\AdminPageEditor.tsx
+================================================================
+import { useCallback, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PageCmsProvider } from "@/contexts/PageCmsContext";
+import {
+  getPageDefaults,
+  mergePageContent,
+  toPageOverrides,
+} from "@/lib/pageContentMerge";
+import { renderPageSections, SECTION_LABELS } from "@/components/cms/PageSectionRenderer";
+import { AdminPageSectionFields } from "@/pages/admin/AdminPageSectionFields";
+import type { PageContentDocument, PageKey } from "@/types/pageContent";
+import {
+  ArrowDown,
+  ArrowUp,
+  Eye,
+  EyeOff,
+  History,
+  Loader2,
+  Monitor,
+  Save,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type AdminPagePayload = {
+  pageKey: string;
+  draft: Partial<PageContentDocument>;
+  published: Partial<PageContentDocument>;
+  lock: {
+    lockedBy: string;
+    lockedAt: string;
+    email: string | null;
+    isMine: boolean;
+  } | null;
+  updatedAt: string;
+};
+
+type RevisionRow = {
+  id: string;
+  action: string;
+  section_id: string | null;
+  user_email: string | null;
+  created_at: string;
+};
+
+function isPageKey(v: string | undefined): v is PageKey {
+  return v === "home" || v === "routes";
+}
+
+export default function AdminPageEditor() {
+  const { pageKey: rawKey } = useParams();
+  const pageKey = isPageKey(rawKey) ? rawKey : null;
+  const qc = useQueryClient();
+  const [draft, setDraft] = useState<PageContentDocument | null>(null);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const pageQ = useQuery({
+    queryKey: ["admin-page", pageKey],
+    enabled: !!pageKey,
+    queryFn: () => apiFetch<AdminPagePayload>(`/api/admin/pages/${pageKey}`),
+  });
+
+  useEffect(() => {
+    if (!pageKey || !pageQ.data) return;
+    const merged = mergePageContent(getPageDefaults(pageKey), pageQ.data.draft);
+    setDraft(merged);
+    setSelectedSectionId((prev) => prev || merged.sectionOrder[0] || null);
+  }, [pageKey, pageQ.data]);
+
+  useEffect(() => {
+    if (!pageKey) return;
+    apiFetch(`/api/admin/pages/${pageKey}/lock`, { method: "POST" }).catch(() => {});
+    return () => {
+      apiFetch(`/api/admin/pages/${pageKey}/unlock`, { method: "POST" }).catch(() => {});
+    };
+  }, [pageKey]);
+
+  const revisionsQ = useQuery({
+    queryKey: ["admin-page-revisions", pageKey],
+    enabled: !!pageKey && showHistory,
+    queryFn: () =>
+      apiFetch<{ revisions: RevisionRow[] }>(`/api/admin/pages/${pageKey}/revisions`),
+  });
+
+  const saveMut = useMutation({
+    mutationFn: (doc: PageContentDocument) => {
+      const override = toPageOverrides(getPageDefaults(pageKey!), doc);
+      return apiFetch(`/api/admin/pages/${pageKey}/draft`, {
+        method: "PUT",
+        body: JSON.stringify({ draft: override }),
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-page", pageKey] });
+      qc.invalidateQueries({ queryKey: ["admin-page-revisions", pageKey] });
+    },
+  });
+
+  const publishMut = useMutation({
+    mutationFn: (doc: PageContentDocument) => {
+      const override = toPageOverrides(getPageDefaults(pageKey!), doc);
+      return apiFetch(`/api/admin/pages/${pageKey}/publish`, {
+        method: "POST",
+        body: JSON.stringify({ draft: override }),
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-page", pageKey] });
+      qc.invalidateQueries({ queryKey: ["page-content", pageKey] });
+      qc.invalidateQueries({ queryKey: ["admin-page-revisions", pageKey] });
+    },
+  });
+
+  const resetMut = useMutation({
+    mutationFn: (body: { scope: "page" | "section"; sectionId?: string }) =>
+      apiFetch<{ draft: Partial<PageContentDocument> }>(`/api/admin/pages/${pageKey}/reset`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    onSuccess: (data) => {
+      if (!pageKey) return;
+      setDraft(mergePageContent(getPageDefaults(pageKey), data.draft));
+      qc.invalidateQueries({ queryKey: ["admin-page", pageKey] });
+      qc.invalidateQueries({ queryKey: ["admin-page-revisions", pageKey] });
+    },
+  });
+
+  const restoreMut = useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<{ draft: Partial<PageContentDocument> }>(
+        `/api/admin/pages/${pageKey}/revisions/${id}/restore`,
+        { method: "POST" }
+      ),
+    onSuccess: (data) => {
+      if (!pageKey) return;
+      setDraft(mergePageContent(getPageDefaults(pageKey), data.draft));
+      qc.invalidateQueries({ queryKey: ["admin-page", pageKey] });
+    },
+  });
+
+  const onChange = useCallback((doc: PageContentDocument) => setDraft(doc), []);
+
+  if (!pageKey) {
+    return <p className="text-muted-foreground">Неизвестная страница</p>;
+  }
+
+  if (!isDesktop) {
+    return (
+      <div className="mx-auto max-w-md py-16 text-center">
+        <Monitor className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
+        <h1 className="text-xl font-semibold">Только desktop</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Визуальный редактор страниц доступен на экранах от 1024px.
+        </p>
+        <Button asChild className="mt-6" variant="outline">
+          <Link to="/admin/dashboard">Назад</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  if (pageQ.isLoading || !draft) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const lock = pageQ.data?.lock;
+  const lockedByOther = lock && !lock.isMine;
+  const title = pageKey === "home" ? "Редактор главной" : "Редактор маршрутов";
+
+  return (
+    <div className="-m-6 md:-m-8 flex h-[calc(100vh)] flex-col bg-muted/20">
+      <header className="flex shrink-0 items-center gap-3 border-b bg-card px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-lg font-semibold">{title}</h1>
+          {lock && (
+            <p className="text-xs text-muted-foreground">
+              Блокировка: {lock.isMine ? "вы" : lock.email || "другой админ"}
+            </p>
+          )}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowHistory((v) => !v)}
+        >
+          <History className="mr-1 h-4 w-4" />
+          История
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={lockedByOther || resetMut.isPending}
+          onClick={() => {
+            if (window.confirm("Сбросить всю страницу к дефолтам в коде?")) {
+              resetMut.mutate({ scope: "page" });
+            }
+          }}
+        >
+          Сброс страницы
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={lockedByOther || !draft || saveMut.isPending}
+          onClick={() => draft && saveMut.mutate(draft)}
+        >
+          {saveMut.isPending ? (
+            <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="mr-1 h-4 w-4" />
+          )}
+          Черновик
+        </Button>
+        <Button
+  size="sm"
+  disabled={lockedByOther || !draft || publishMut.isPending}
+  onClick={() => {
+    if (window.confirm("Опубликовать черновик на сайт?")) {
+      if (draft) {
+        publishMut.mutate(draft);
+      }
+    }
+  }}
+>
+  {publishMut.isPending ? (
+    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+  ) : null}
+  Опубликовать
+</Button>
+      </header>
+
+      {lockedByOther && (
+        <div className="bg-amber-50 px-4 py-2 text-sm text-amber-900">
+          Страницу редактирует {lock?.email || "другой администратор"}. Сохранение недоступно.
+        </div>
+      )}
+
+      <div className="flex min-h-0 flex-1">
+        {/* Sections */}
+        <aside className="flex w-56 shrink-0 flex-col border-r bg-card">
+          <p className="px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
+            Блоки
+          </p>
+          <ul className="flex-1 overflow-y-auto px-2 pb-4">
+            {draft.sectionOrder.map((id, index) => {
+              const visible = draft.sections[id]?.visible !== false;
+              return (
+                <li key={id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSectionId(id)}
+                    className={cn(
+                      "mb-1 flex w-full items-center gap-1 rounded-md px-2 py-2 text-left text-sm",
+                      selectedSectionId === id
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-muted"
+                    )}
+                  >
+                    <span className="min-w-0 flex-1 truncate">
+                      {SECTION_LABELS[id] || id}
+                    </span>
+                    {!visible && <EyeOff className="h-3.5 w-3.5 shrink-0 opacity-70" />}
+                  </button>
+                  {selectedSectionId === id && (
+                    <div className="mb-2 flex gap-1 px-1">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        disabled={index === 0}
+                        onClick={() => {
+                          const order = [...draft.sectionOrder];
+                          [order[index - 1], order[index]] = [order[index], order[index - 1]];
+                          setDraft({ ...draft, sectionOrder: order });
+                        }}
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        disabled={index === draft.sectionOrder.length - 1}
+                        onClick={() => {
+                          const order = [...draft.sectionOrder];
+                          [order[index], order[index + 1]] = [order[index + 1], order[index]];
+                          setDraft({ ...draft, sectionOrder: order });
+                        }}
+                      >
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={() => {
+                          const prev = draft.sections[id] || { visible: true, fields: {} };
+                          setDraft({
+                            ...draft,
+                            sections: {
+                              ...draft.sections,
+                              [id]: { ...prev, visible: !visible },
+                            },
+                          });
+                        }}
+                      >
+                        {visible ? (
+                          <Eye className="h-3.5 w-3.5" />
+                        ) : (
+                          <EyeOff className="h-3.5 w-3.5" />
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </aside>
+
+        {/* Preview */}
+        <div className="min-w-0 flex-1 overflow-y-auto bg-white">
+          <PageCmsProvider
+            pageKey={pageKey}
+            content={draft}
+            editMode
+            selectedSectionId={selectedSectionId}
+            setSelectedSectionId={setSelectedSectionId}
+            onChange={onChange}
+          >
+            <div className="pointer-events-auto">{renderPageSections(pageKey, draft)}</div>
+          </PageCmsProvider>
+        </div>
+
+        {/* Fields */}
+        <aside className="flex w-80 shrink-0 flex-col border-l bg-card">
+          <div className="border-b px-3 py-2">
+            <p className="text-sm font-semibold">
+              {selectedSectionId
+                ? SECTION_LABELS[selectedSectionId] || selectedSectionId
+                : "Выберите блок"}
+            </p>
+          </div>
+          <div className="flex-1 overflow-y-auto p-3">
+            {selectedSectionId && (
+              <>
+                <div className="mb-3 flex items-center gap-2">
+                  <Checkbox
+                    id="sec-vis"
+                    checked={draft.sections[selectedSectionId]?.visible !== false}
+                    onCheckedChange={(c) => {
+                      const prev =
+                        draft.sections[selectedSectionId] || {
+                          visible: true,
+                          fields: {},
+                        };
+                      setDraft({
+                        ...draft,
+                        sections: {
+                          ...draft.sections,
+                          [selectedSectionId]: {
+                            ...prev,
+                            visible: c === true,
+                          },
+                        },
+                      });
+                    }}
+                  />
+                  <Label htmlFor="sec-vis" className="text-sm">
+                    Показывать блок
+                  </Label>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mb-4 w-full"
+                  disabled={lockedByOther}
+                  onClick={() => {
+                    if (window.confirm("Сбросить этот блок к дефолту?")) {
+                      resetMut.mutate({
+                        scope: "section",
+                        sectionId: selectedSectionId,
+                      });
+                    }
+                  }}
+                >
+                  Сброс блока
+                </Button>
+                <AdminPageSectionFields
+                  sectionId={selectedSectionId}
+                  fields={
+                    (draft.sections[selectedSectionId]?.fields ||
+                      {}) as Record<string, unknown>
+                  }
+                  onPatch={(patch) => {
+                    const prev =
+                      draft.sections[selectedSectionId] || {
+                        visible: true,
+                        fields: {},
+                      };
+                    setDraft({
+                      ...draft,
+                      sections: {
+                        ...draft.sections,
+                        [selectedSectionId]: {
+                          ...prev,
+                          fields: { ...prev.fields, ...patch },
+                        },
+                      },
+                    });
+                  }}
+                />
+              </>
+            )}
+          </div>
+        </aside>
+
+        {showHistory && (
+          <aside className="flex w-72 shrink-0 flex-col border-l bg-card">
+            <div className="border-b px-3 py-2 text-sm font-semibold">История</div>
+            <ul className="flex-1 overflow-y-auto p-2 text-sm">
+              {revisionsQ.isLoading && (
+                <li className="p-2 text-muted-foreground">Загрузка…</li>
+              )}
+              {(revisionsQ.data?.revisions || []).map((r) => (
+                <li
+                  key={r.id}
+                  className="mb-2 rounded-md border p-2"
+                >
+                  <p className="font-medium">{r.action}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {r.user_email || "—"} ·{" "}
+                    {new Date(r.created_at).toLocaleString("ru-RU")}
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="mt-1 h-7 px-2 text-xs"
+                    disabled={lockedByOther || restoreMut.isPending}
+                    onClick={() => {
+                      if (window.confirm("Восстановить эту версию в черновик?")) {
+                        restoreMut.mutate(r.id);
+                      }
+                    }}
+                  >
+                    Откатить
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
+      </div>
+    </div>
+  );
+}
+
+================================================================
+FILE: src\pages\admin\AdminLayout.tsx
+================================================================
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
+import { LayoutDashboard, FileText, Map, Loader2, BookOpenText, Compass, Home, Route, Mail, Globe } from "lucide-react";
+import { NavLink, Navigate, Outlet } from "react-router-dom";
+
+const nav = [
+  { to: "/admin/dashboard", label: "Статистика", icon: LayoutDashboard },
+  { to: "/admin/blog", label: "Блог (CMS)", icon: FileText },
+  { to: "/admin/routes", label: "Маршруты (CMS)", icon: Map },
+  { to: "/admin/regions", label: "Регионы", icon: Map },
+  { to: "/admin/seo", label: "SEO", icon: Globe },
+  { to: "/admin/reference", label: "Справочная (CMS)", icon: BookOpenText },
+  { to: "/admin/guide", label: "Путеводитель (CMS)", icon: Compass },
+  { to: "/admin/pages/home", label: "Редактор главной", icon: Home },
+  { to: "/admin/pages/routes", label: "Редактор маршрутов", icon: Route },
+  { to: "/admin/subscriptions", label: "Подписки", icon: Mail },
+];
+
+export default function AdminLayout() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center text-muted-foreground">
+        <Loader2 className="h-8 w-8 animate-spin" aria-hidden />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (!user.is_admin) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-24 text-center">
+        <h1 className="text-xl font-semibold">Нет доступа</h1>
+        <p className="mt-2 text-muted-foreground">
+          Вход в админ-панель только для пользователей с ролью администратора.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-muted/30">
+      <div className="flex">
+        <aside className="sticky top-0 flex h-screen w-56 shrink-0 flex-col border-r bg-card px-3 py-6">
+          <div className="mb-8 px-2">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Админ-панель
+            </p>
+            <p className="mt-1 truncate text-sm text-foreground">{user.email}</p>
+          </div>
+          <nav className="flex flex-1 flex-col gap-1">
+            {nav.map(({ to, label, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )
+                }
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+          <NavLink
+            to="/"
+            className="mt-auto rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            ← На сайт
+          </NavLink>
+        </aside>
+        <main className="min-w-0 flex-1 p-6 md:p-8">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}
+
+
+================================================================
+FILE: src\App.tsx
+================================================================
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { useEffect } from "react";
+import Index from "./pages/Index";
+import RoutesPage from "./pages/Routes";
+import RouteList from "./pages/RouteList";
+import RouteDetail from "./pages/RouteDetail";
+import Reference from "./pages/Reference";
+import Blog from "./pages/Blog";
+import BlogArticlePage from "./pages/BlogArticlePage";
+import Guide from "./pages/GuideCms";
+import GuideArticlePage from "./pages/guide/GuideArticlePage";
+import TrainSearchResults from "./pages/TrainSearchResults";
+import FlightSearch from "./pages/FlightSearch";
+import BusSearch from "./pages/BusSearch";
+import HotelSearch from "./pages/HotelSearch";
+import SelectSeats from "./pages/SelectSeats";
+import Checkout from "./pages/Checkout";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
+import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminBlogList from "./pages/admin/AdminBlogList";
+import AdminBlogEdit from "./pages/admin/AdminBlogEdit";
+import AdminRouteList from "./pages/admin/AdminRouteList";
+import AdminRouteEdit from "./pages/admin/AdminRouteEdit";
+import AdminReferenceList from "./pages/admin/AdminReferenceList";
+import AdminReferenceEdit from "./pages/admin/AdminReferenceEdit";
+import AdminGuideList from "./pages/admin/AdminGuideList";
+import AdminGuideEdit from "./pages/admin/AdminGuideEdit";
+import AdminPageEditor from "./pages/admin/AdminPageEditor";
+import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
+import AdminRegions from "./pages/admin/AdminRegions";
+import AdminSEO from "./pages/admin/AdminSEO";
+import NotFound from "./pages/NotFound";
+import TestimonialDetail from "./pages/TestimonialDetail";
+import ChatWidget from "./components/ChatWidget";
+import ScrollToTop, { YandexMetrikaPageTracker } from "./components/ScrollToTop";
+
+// Reference pages
+import Trains from "./pages/reference/Trains";
+import Flights from "./pages/reference/Flights";
+import FlightArticle from "./pages/reference/FlightArticle";
+import Buses from "./pages/reference/Buses";
+import BusArticle from "./pages/reference/BusArticle";
+import TrainArticle from "./pages/reference/TrainArticle";
+
+const queryClient = new QueryClient();
+
+const App = () => {
+  // Отключаем перезагрузку при переключении между вкладками
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // Ничего не делаем - просто предотвращаем возможную перезагрузку
+      if (document.hidden) {
+        // Вкладка скрыта - сохраняем состояние
+      } else {
+        // Вкладка активна - восстанавливаем состояние (автоматически React)
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    // Отключаем кэширование страницы браузером для предотвращения полной перезагрузки
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted) {
+        // Страница загружена из bfcache - ничего не делаем
+      }
+    });
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <YandexMetrikaPageTracker />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/routes" element={<RoutesPage />} />
+              <Route path="/routes/list" element={<RouteList />} />
+              <Route path="/routes/:id" element={<RouteDetail />} />
+              <Route path="/reference" element={<Reference />} />
+              <Route path="/reference/trains" element={<Trains />} />
+              <Route path="/reference/flights" element={<Flights />} />
+              <Route path="/reference/flights/:slug" element={<FlightArticle />} />
+              <Route path="/reference/buses" element={<Buses />} />
+              <Route path="/reference/buses/:slug" element={<BusArticle />} />
+              <Route path="/reference/trains/:slug" element={<TrainArticle />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogArticlePage />} />
+              <Route path="/guide" element={<Guide />} />
+              <Route path="/guide/:category/:slug" element={<GuideArticlePage />} />
+              <Route path="/train-search" element={<TrainSearchResults />} />
+              <Route path="/flight-search" element={<FlightSearch />} />
+              <Route path="/bus-search" element={<BusSearch />} />
+              <Route path="/hotel-search" element={<HotelSearch />} />
+              <Route path="/select-seats" element={<SelectSeats />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment/success" element={<PaymentSuccess />} />
+              <Route path="/payment/cancel" element={<PaymentCancel />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="blog" element={<AdminBlogList />} />
+                <Route path="blog/:postId" element={<AdminBlogEdit />} />
+                <Route path="routes" element={<AdminRouteList />} />
+                <Route path="routes/:routeId" element={<AdminRouteEdit />} />
+                <Route path="reference" element={<AdminReferenceList />} />
+                <Route path="reference/:postId" element={<AdminReferenceEdit />} />
+                <Route path="guide" element={<AdminGuideList />} />
+                <Route path="guide/:postId" element={<AdminGuideEdit />} />
+                <Route path="regions" element={<AdminRegions />} />
+                <Route path="seo" element={<AdminSEO />} />
+                <Route path="pages/:pageKey" element={<AdminPageEditor />} />
+                <Route path="subscriptions" element={<AdminSubscriptions />} />
+              </Route>
+              <Route path="/testimonials/:id" element={<TestimonialDetail />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+          <ChatWidget />
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
+
+export default App;
+
+

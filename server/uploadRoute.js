@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import multer from "multer";
 import crypto from "crypto";
 import path from "path";
@@ -33,14 +33,15 @@ const ALLOWED_VIDEO_MIME = new Set([
   "video/quicktime",
 ]);
 
-const ALLOWED_MIME = new Set([...ALLOWED_IMAGE_MIME, ...ALLOWED_VIDEO_MIME]);
+const ALLOWED_DOC_MIME = new Set(["application/pdf"]);
+const ALLOWED_MIME = new Set([...ALLOWED_IMAGE_MIME, ...ALLOWED_VIDEO_MIME, ...ALLOWED_DOC_MIME]);
 
 const upload = multer({
   storage,
   limits: { fileSize: 200 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (!ALLOWED_MIME.has(file.mimetype)) {
-      return cb(new Error("Only image or video files are allowed"));
+      return cb(new Error("Only image, video or PDF files are allowed"));
     }
     cb(null, true);
   },
@@ -48,7 +49,7 @@ const upload = multer({
 
 const router = Router();
 
-// Обработка изображений для маршрутов: обрезать/растянуть до 896x560
+// РћР±СЂР°Р±РѕС‚РєР° РёР·РѕР±СЂР°Р¶РµРЅРёР№ РґР»СЏ РјР°СЂС€СЂСѓС‚РѕРІ: РѕР±СЂРµР·Р°С‚СЊ/СЂР°СЃС‚СЏРЅСѓС‚СЊ РґРѕ 896x560
 async function processRouteImage(inputPath, outputPath) {
   await sharp(inputPath)
     .resize(896, 560, {
@@ -69,23 +70,23 @@ router.post(
     
     for (const file of files) {
       if (ALLOWED_IMAGE_MIME.has(file.mimetype)) {
-        // Обрабатываем изображение: обрезаем/растягиваем до 896x560
+        // РћР±СЂР°Р±Р°С‚С‹РІР°РµРј РёР·РѕР±СЂР°Р¶РµРЅРёРµ: РѕР±СЂРµР·Р°РµРј/СЂР°СЃС‚СЏРіРёРІР°РµРј РґРѕ 896x560
         const ext = path.extname(file.filename);
         const processedFilename = `route_${crypto.randomUUID()}${ext}`;
         const processedPath = path.join(UPLOAD_DIR, processedFilename);
         
         try {
           await processRouteImage(file.path, processedPath);
-          // Удаляем оригинал
+          // РЈРґР°Р»СЏРµРј РѕСЂРёРіРёРЅР°Р»
           fs.unlinkSync(file.path);
           urls.push(`/uploads/${processedFilename}`);
         } catch (err) {
           console.error("Error processing route image:", err);
-          // Если ошибка обработки, используем оригинал
+          // Р•СЃР»Рё РѕС€РёР±РєР° РѕР±СЂР°Р±РѕС‚РєРё, РёСЃРїРѕР»СЊР·СѓРµРј РѕСЂРёРіРёРЅР°Р»
           urls.push(`/uploads/${file.filename}`);
         }
       } else {
-        // Видео или другие файлы оставляем как есть
+        // Р’РёРґРµРѕ РёР»Рё РґСЂСѓРіРёРµ С„Р°Р№Р»С‹ РѕСЃС‚Р°РІР»СЏРµРј РєР°Рє РµСЃС‚СЊ
         urls.push(`/uploads/${file.filename}`);
       }
     }
@@ -94,7 +95,7 @@ router.post(
   },
 );
 
-// Старый эндпоинт для остальных загрузок (без обработки)
+// РЎС‚Р°СЂС‹Р№ СЌРЅРґРїРѕРёРЅС‚ РґР»СЏ РѕСЃС‚Р°Р»СЊРЅС‹С… Р·Р°РіСЂСѓР·РѕРє (Р±РµР· РѕР±СЂР°Р±РѕС‚РєРё)
 router.post(
   "/api/upload",
   adminMiddleware,
@@ -110,7 +111,7 @@ router.use((err, _req, res, _next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
-        error: "Файл слишком большой. Максимум 200 МБ для видео/изображений.",
+        error: "Р¤Р°Р№Р» СЃР»РёС€РєРѕРј Р±РѕР»СЊС€РѕР№. РњР°РєСЃРёРјСѓРј 200 РњР‘ РґР»СЏ РІРёРґРµРѕ/РёР·РѕР±СЂР°Р¶РµРЅРёР№.",
       });
     }
     return res.status(400).json({ error: err.message });
