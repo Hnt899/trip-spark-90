@@ -1,0 +1,1447 @@
+﻿================================================================
+FILE: src\App.tsx
+================================================================
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { useEffect } from "react";
+import Index from "./pages/Index";
+import RoutesPage from "./pages/Routes";
+import RouteList from "./pages/RouteList";
+import RouteDetail from "./pages/RouteDetail";
+import Reference from "./pages/Reference";
+import Blog from "./pages/Blog";
+import BlogArticlePage from "./pages/BlogArticlePage";
+import Guide from "./pages/GuideCms";
+import GuideArticlePage from "./pages/guide/GuideArticlePage";
+import TrainSearchResults from "./pages/TrainSearchResults";
+import FlightSearch from "./pages/FlightSearch";
+import BusSearch from "./pages/BusSearch";
+import HotelSearch from "./pages/HotelSearch";
+import SelectSeats from "./pages/SelectSeats";
+import Checkout from "./pages/Checkout";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
+import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminBlogList from "./pages/admin/AdminBlogList";
+import AdminBlogEdit from "./pages/admin/AdminBlogEdit";
+import AdminRouteList from "./pages/admin/AdminRouteList";
+import AdminRouteEdit from "./pages/admin/AdminRouteEdit";
+import AdminReferenceList from "./pages/admin/AdminReferenceList";
+import AdminReferenceEdit from "./pages/admin/AdminReferenceEdit";
+import AdminGuideList from "./pages/admin/AdminGuideList";
+import AdminGuideEdit from "./pages/admin/AdminGuideEdit";
+import AdminPageEditor from "./pages/admin/AdminPageEditor";
+import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
+import AdminRegions from "./pages/admin/AdminRegions";
+import AdminSEO from "./pages/admin/AdminSEO";
+import AdminFooter from "./pages/admin/AdminFooter";
+import NotFound from "./pages/NotFound";
+import TestimonialDetail from "./pages/TestimonialDetail";
+import ChatWidget from "./components/ChatWidget";
+import ScrollToTop, { YandexMetrikaPageTracker } from "./components/ScrollToTop";
+
+// Reference pages
+import Trains from "./pages/reference/Trains";
+import Flights from "./pages/reference/Flights";
+import FlightArticle from "./pages/reference/FlightArticle";
+import Buses from "./pages/reference/Buses";
+import BusArticle from "./pages/reference/BusArticle";
+import TrainArticle from "./pages/reference/TrainArticle";
+
+const queryClient = new QueryClient();
+
+const App = () => {
+  // Отключаем перезагрузку при переключении между вкладками
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // Ничего не делаем - просто предотвращаем возможную перезагрузку
+      if (document.hidden) {
+        // Вкладка скрыта - сохраняем состояние
+      } else {
+        // Вкладка активна - восстанавливаем состояние (автоматически React)
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    // Отключаем кэширование страницы браузером для предотвращения полной перезагрузки
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted) {
+        // Страница загружена из bfcache - ничего не делаем
+      }
+    });
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <YandexMetrikaPageTracker />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/routes" element={<RoutesPage />} />
+              <Route path="/routes/list" element={<RouteList />} />
+              <Route path="/routes/:id" element={<RouteDetail />} />
+              <Route path="/reference" element={<Reference />} />
+              <Route path="/reference/trains" element={<Trains />} />
+              <Route path="/reference/flights" element={<Flights />} />
+              <Route path="/reference/flights/:slug" element={<FlightArticle />} />
+              <Route path="/reference/buses" element={<Buses />} />
+              <Route path="/reference/buses/:slug" element={<BusArticle />} />
+              <Route path="/reference/trains/:slug" element={<TrainArticle />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogArticlePage />} />
+              <Route path="/guide" element={<Guide />} />
+              <Route path="/guide/:category/:slug" element={<GuideArticlePage />} />
+              <Route path="/train-search" element={<TrainSearchResults />} />
+              <Route path="/flight-search" element={<FlightSearch />} />
+              <Route path="/bus-search" element={<BusSearch />} />
+              <Route path="/hotel-search" element={<HotelSearch />} />
+              <Route path="/select-seats" element={<SelectSeats />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment/success" element={<PaymentSuccess />} />
+              <Route path="/payment/cancel" element={<PaymentCancel />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="blog" element={<AdminBlogList />} />
+                <Route path="blog/:postId" element={<AdminBlogEdit />} />
+                <Route path="routes" element={<AdminRouteList />} />
+                <Route path="routes/:routeId" element={<AdminRouteEdit />} />
+                <Route path="reference" element={<AdminReferenceList />} />
+                <Route path="reference/:postId" element={<AdminReferenceEdit />} />
+                <Route path="guide" element={<AdminGuideList />} />
+                <Route path="guide/:postId" element={<AdminGuideEdit />} />
+                <Route path="regions" element={<AdminRegions />} />
+		<Route path="footer" element={<AdminFooter />} />
+                <Route path="seo" element={<AdminSEO />} />
+                <Route path="pages/:pageKey" element={<AdminPageEditor />} />
+                <Route path="subscriptions" element={<AdminSubscriptions />} />
+              </Route>
+              <Route path="/testimonials/:id" element={<TestimonialDetail />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+          <ChatWidget />
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
+
+export default App;
+
+
+================================================================
+FILE: src\components\Header.tsx
+================================================================
+import { useState, useEffect, useMemo } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import AuthModal from "@/components/AuthModal";
+import NavDropdown from "@/components/NavDropdown";
+import { popularRoutes, faqTopics } from "@/data/navLinks";
+import { Train, Bus, Plane, User, Search, Menu } from "lucide-react";
+import { cn } from "@/lib/utils";
+import logoImage from "@/assets/images/logo/logo.png";
+import logoWhiteImage from "@/assets/images/logo/logo w.png";
+import logoMobile from "@/assets/images/logo/logo-mobile.png";
+import logoMobile2 from "@/assets/images/logo/logom.png";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
+import FlightSearchForm from "@/components/flight/FlightSearchForm";
+import WhiteLabelBusPortal from "@/components/WhiteLabelBusPortal";
+
+type MenuRouteRow = {
+  slug: string;
+  name: string;
+  show_in_menu: boolean;
+  menu_order: number;
+};
+
+type SearchTravelType = "flight" | "bus";
+
+const Header = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [fromLabel, setFromLabel] = useState<string | undefined>();
+  const [toLabel, setToLabel] = useState<string | undefined>();
+  const [showStickySearch, setShowStickySearch] = useState(false);
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+  const [isHeroMode, setIsHeroMode] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileBookingOpen, setMobileBookingOpen] = useState(false);
+  const [travelType, setTravelType] = useState<SearchTravelType>("flight");
+
+  const isActive = (path: string) => location.pathname === path;
+  const isHomePage = location.pathname === "/";
+  const isRoutesPage = location.pathname === "/routes";
+  const isBlogPage =
+    location.pathname === "/blog" || location.pathname.startsWith("/blog/");
+  const isBlogNavActive =
+    location.pathname === "/blog" || location.pathname.startsWith("/blog/");
+  const isMobile = useIsMobile();
+
+  // При каждой смене страницы — сбрасываем на «Авиа»,
+  // чтобы после редиректа с «ЖД/Автобус» не залипало на пустой вкладке.
+  useEffect(() => {
+    // Если пришли с state.travelType — не сбрасываем на "flight"
+    const state = location.state as { travelType?: SearchTravelType } | null;
+    if (state?.travelType) return;
+    setTravelType("flight");
+  }, [location.pathname, location.state]);
+
+  // Пункты меню «Маршруты» в шапке
+  const routesMenuQ = useQuery<MenuRouteRow[]>({
+    queryKey: ["header-routes-menu"],
+    queryFn: () =>
+      fetch("/api/route-pages").then((r) => {
+        if (!r.ok) throw new Error(`${r.status}`);
+        return r.json() as Promise<MenuRouteRow[]>;
+      }),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  const navRouteItems = useMemo(() => {
+    const rows = routesMenuQ.data ?? [];
+    const menu = rows
+      .filter((r) => r.show_in_menu)
+      .sort(
+        (a, b) =>
+          (a.menu_order ?? 0) - (b.menu_order ?? 0) ||
+          a.name.localeCompare(b.name),
+      )
+      .map((r) => ({
+        label: r.name,
+        href: `/routes/${r.slug}`,
+      }));
+    return menu.length > 0 ? menu : popularRoutes;
+  }, [routesMenuQ.data]);
+
+  useEffect(() => {
+    if (!isHomePage && !isRoutesPage && !isBlogPage) {
+      setShowStickySearch(false);
+      setIsAnimatingOut(false);
+      setIsHeroMode(false);
+      return;
+    }
+
+    if (isMobile) {
+      const handleScroll = () => {
+        const heroSection = document.getElementById("hero-section");
+        const featuresSection = isHomePage ? document.getElementById("features-section") : null;
+        const heroRect = heroSection ? heroSection.getBoundingClientRect() : null;
+
+        if (heroRect && featuresSection) {
+          const nextSectionRect = featuresSection.getBoundingClientRect();
+          const headerHeight = 64;
+
+          const isHeroVisible = heroRect.bottom > 0;
+          const isNextSectionReached = nextSectionRect.top <= headerHeight;
+          setIsHeroMode(isHeroVisible && !isNextSectionReached);
+        } else if (heroRect) {
+          setIsHeroMode(heroRect.bottom > 0);
+        } else {
+          setIsHeroMode(false);
+        }
+
+        if (isRoutesPage) {
+          setShowStickySearch(heroRect && heroRect.bottom > 0 ? false : true);
+          setIsAnimatingOut(false);
+        } else if (isBlogPage) {
+          setShowStickySearch(window.scrollY > 50);
+          setIsAnimatingOut(false);
+        } else if (isHomePage && heroSection) {
+          const heroBottom = heroSection.getBoundingClientRect().bottom;
+          const showCompact = heroBottom < 72;
+          setShowStickySearch(showCompact);
+          setIsAnimatingOut(false);
+        } else if (!isHomePage && !isRoutesPage && !isBlogPage) {
+          setShowStickySearch(false);
+        }
+      };
+
+      handleScroll();
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      window.addEventListener("resize", handleScroll, { passive: true });
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+        window.removeEventListener("resize", handleScroll);
+      };
+    }
+
+    if (isBlogPage) {
+      const handleScroll = () => {
+        const scrollY = window.scrollY;
+        const shouldShow = scrollY > 50;
+
+        if (shouldShow && !showStickySearch) {
+          setIsAnimatingOut(false);
+          setShowStickySearch(true);
+        } else if (!shouldShow && showStickySearch) {
+          setIsAnimatingOut(true);
+          setTimeout(() => {
+            setShowStickySearch(false);
+            setIsAnimatingOut(false);
+          }, 300);
+        }
+        setIsHeroMode(false);
+      };
+
+      handleScroll();
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      window.addEventListener("resize", handleScroll, { passive: true });
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+        window.removeEventListener("resize", handleScroll);
+      };
+    }
+
+    const handleScroll = () => {
+      const heroSection = document.getElementById("hero-section");
+      const featuresSection = isHomePage ? document.getElementById("features-section") : null;
+
+      if (heroSection) {
+        const heroRect = heroSection.getBoundingClientRect();
+        const heroBottom = heroRect.bottom;
+        const shouldShow = heroBottom < 100;
+
+        if (shouldShow && !showStickySearch) {
+          setIsAnimatingOut(false);
+          setShowStickySearch(true);
+        } else if (!shouldShow && showStickySearch && (isHomePage || isRoutesPage)) {
+          setIsAnimatingOut(true);
+          setTimeout(() => {
+            setShowStickySearch(false);
+            setIsAnimatingOut(false);
+          }, 300);
+        }
+      }
+
+      if (heroSection && featuresSection) {
+        const heroRect = heroSection.getBoundingClientRect();
+        const nextSectionRect = featuresSection.getBoundingClientRect();
+        const headerHeight = 96;
+
+        const isHeroVisible = heroRect.bottom > 0;
+        const isNextSectionReached = nextSectionRect.top <= headerHeight;
+
+        setIsHeroMode(isHeroVisible && !isNextSectionReached);
+      } else if (heroSection) {
+        const heroRect = heroSection.getBoundingClientRect();
+        setIsHeroMode(heroRect.bottom > 0);
+      } else {
+        setIsHeroMode(false);
+      }
+    };
+
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [isHomePage, isRoutesPage, isBlogPage, showStickySearch, isMobile]);
+
+  type SearchFormVariant = "headerDesktop" | "headerMobileSheet";
+
+  /**
+   * Клик по «ЖД/Автобус»:
+   * 1) Плавно закрываем все открытые Sheet.
+   * 2) Переходим на главную (без ?travel=bus — hero откроется на «Авиа»).
+   * 3) Плавно скроллим к hero-блоку.
+   */
+  const handleBusRedirect = () => {
+    setMobileMenuOpen(false);
+    setMobileBookingOpen(false);
+  
+    window.setTimeout(() => {
+      // Передаём сигнал через state — HeroSection прочитает и переключит вкладку
+      navigate("/", { state: { travelType: "bus" } });
+  
+      window.requestAnimationFrame(() => {
+        const hero = document.getElementById("hero-section");
+        if (hero) {
+          const top = hero.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({ top, behavior: "smooth" });
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+    }, 180);
+  };
+  const renderSearchForm = (variant: SearchFormVariant) => {
+    const isSheet = variant === "headerMobileSheet";
+    return (
+      <div
+        className={cn(
+          "rounded-xl border border-border/80 bg-card/95 backdrop-blur-sm shadow-sm space-y-3",
+          isSheet ? "p-4 rounded-2xl shadow-md" : "p-3"
+        )}
+      >
+        {/* Две кнопки: Авиа / ЖД-Автобус */}
+        <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-md">
+          <button
+            type="button"
+            onClick={() => setTravelType("flight")}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 h-9 px-2 rounded-md transition-all text-sm font-medium",
+              travelType === "flight"
+                ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
+                : "text-foreground/70 hover:text-foreground"
+            )}
+            aria-label="Авиабилеты"
+          >
+            <Plane className="h-4 w-4" />
+            <span className="hidden md:inline">Авиа</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleBusRedirect}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 h-9 px-2 rounded-md transition-all text-sm font-medium",
+              travelType === "bus"
+                ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
+                : "text-foreground/70 hover:text-foreground"
+            )}
+            aria-label="Поезда и автобусы"
+          >
+            <Train className="h-4 w-4" />
+            <span
+              className={cn(
+                "md:hidden mx-0.5",
+                travelType === "bus" ? "text-white/60" : "text-foreground/40"
+              )}
+            >
+              /
+            </span>
+            <Bus className="h-4 w-4" />
+            <span className="hidden md:inline whitespace-nowrap">ЖД/Автобус</span>
+          </button>
+        </div>
+
+        {travelType === "flight" ? (
+          <FlightSearchForm
+            variant={isSheet ? "header-mobile" : "header-desktop"}
+            showTripTypeToggle={false}
+            onFromLabelChange={setFromLabel}
+            onToLabelChange={setToLabel}
+            onSearchComplete={() => {
+              if (isMobile) {
+                setMobileMenuOpen(false);
+                setMobileBookingOpen(false);
+              }
+            }}
+          />
+        ) : (
+          <div className="rounded-lg bg-white p-2">
+            <WhiteLabelBusPortal />
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <header className={cn(
+        "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300",
+        isHomePage && isHeroMode
+          ? "bg-transparent border-b border-white/20 backdrop-blur-md"
+          : "bg-[#F1F5F9] backdrop-blur-md border-b border-[#0B5FD9]/10 shadow-sm"
+      )}>
+        <div className="container">
+          <div className="flex h-16 md:h-24 items-center justify-between gap-2 md:gap-4">
+            {/* Лого */}
+            <Link
+              to="/"
+              className="flex items-center hover:opacity-80 transition-opacity shrink-0 -ml-2 md:ml-0"
+            >
+              <img
+                src={isHomePage && isHeroMode ? logoMobile2 : logoMobile}
+                alt="TudaSuda"
+                className={cn(
+                  "block md:hidden h-14 w-auto max-w-none object-contain transition-all duration-300",
+                  isHomePage && isHeroMode
+                    ? "drop-shadow-lg brightness-110"
+                    : "drop-shadow-sm brightness-110"
+                )}
+              />
+              <img
+                src={isHomePage && isHeroMode ? logoWhiteImage : logoImage}
+                alt="TudaSuda"
+                className={cn(
+                  "hidden md:block h-14 md:h-[84px] w-auto object-contain transition-all duration-300",
+                  isHomePage && isHeroMode
+                    ? "drop-shadow-lg brightness-110"
+                    : "drop-shadow-sm brightness-110"
+                )}
+              />
+            </Link>
+
+            {/* Мобилка: капсула */}
+            {(isHomePage || isRoutesPage || isBlogPage) && isMobile && showStickySearch && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setMobileBookingOpen(true);
+                }}
+                className={cn(
+                  "relative md:hidden flex-1 min-w-0 flex items-center gap-2 h-10 pl-3 pr-3 rounded-full",
+                  "bg-white border border-slate-200/90 text-left shadow-sm",
+                  "transition-transform duration-500 ease-out",
+                  "active:scale-[0.99] hover:brightness-[1.015] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-2"
+                )}
+                aria-label="Открыть поиск"
+              >
+                <span
+                  className={cn(
+                    "pointer-events-none absolute inset-0 z-0 rounded-full opacity-[0.01]",
+                    "shadow-[0_2px_20px_-2px_rgba(10,143,232,0.42),0_0_0_1px_rgba(96,242,255,0.5)]",
+                    "animate-search-pill-glow-opacity motion-reduce:animate-none motion-reduce:opacity-0"
+                  )}
+                  aria-hidden
+                />
+                <Search
+                  className="relative z-[1] h-4 w-4 shrink-0 text-foreground"
+                  strokeWidth={2.25}
+                />
+                <span className="relative z-[1] flex min-w-0 flex-1 items-center gap-2 text-sm leading-tight font-semibold">
+                  {fromLabel && toLabel ? (
+                    <>
+                      <span className="max-w-[42%] min-w-0 shrink truncate text-foreground">{fromLabel}</span>
+                      <span
+                        className="h-[3px] min-h-[3px] min-w-6 flex-1 shrink-0 rounded-full bg-muted-foreground/45 self-center"
+                        aria-hidden
+                      />
+                      <span className="max-w-[42%] min-w-0 shrink truncate text-foreground">{toLabel}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="shrink-0 text-muted-foreground font-normal">Откуда</span>
+                      <span
+                        className="h-[3px] min-h-[3px] min-w-6 flex-1 shrink-0 rounded-full bg-muted-foreground/45 self-center"
+                        aria-hidden
+                      />
+                      <span className="shrink-0 text-muted-foreground font-normal">Куда</span>
+                    </>
+                  )}
+                </span>
+              </button>
+            )}
+
+            <nav className="hidden lg:flex items-center gap-4 flex-1 justify-center">
+              <Link
+                to="/"
+                className={cn(
+                  "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
+                  isActive("/")
+                    ? isHomePage && isHeroMode
+                      ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20"
+                      : "text-primary bg-primary/10 border-transparent"
+                    : isHomePage && isHeroMode
+                      ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                      : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
+                )}
+              >
+                Главная
+              </Link>
+              <NavDropdown
+                label="Маршруты"
+                items={navRouteItems}
+                href="/routes"
+                isActive={isActive("/routes") || location.pathname.startsWith("/routes/")}
+                isHomePage={isHomePage && isHeroMode}
+              />
+              <NavDropdown
+                label="Справочная"
+                items={faqTopics}
+                href="/reference"
+                isActive={isActive("/reference") || location.pathname.startsWith("/reference/")}
+                isHomePage={isHomePage && isHeroMode}
+              />
+              <Link
+                to="/blog"
+                className={cn(
+                  "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
+                  isBlogNavActive
+                    ? isHomePage && isHeroMode
+                      ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20"
+                      : "text-primary bg-primary/10 border-transparent"
+                    : isHomePage && isHeroMode
+                      ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                      : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
+                )}
+              >
+                Блог
+              </Link>
+              <Link
+                to="/guide"
+                className={cn(
+                  "text-lg font-medium transition-colors px-3 py-2 rounded-md border",
+                  isActive("/guide") || location.pathname.startsWith("/guide/")
+                    ? isHomePage && isHeroMode
+                      ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20"
+                      : "text-primary bg-primary/10 border-transparent"
+                    : isHomePage && isHeroMode
+                      ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                      : "text-foreground/80 border-transparent hover:text-primary hover:bg-muted/50"
+                )}
+              >
+                Путеводитель
+              </Link>
+            </nav>
+
+            <div className="flex items-center gap-2 shrink-0">
+              {user ? (
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="icon"
+                  title="Личный кабинет"
+                  className={cn(
+                    "h-10 w-10 md:h-14 md:w-14 [&_svg]:!h-5 [&_svg]:!w-5 md:[&_svg]:!h-8 md:[&_svg]:!w-8 transition-colors rounded-lg",
+                    isHomePage && isHeroMode
+                      ? "bg-black/40 backdrop-blur-md hover:bg-black/50 border-0 [&_svg]:text-white [&_svg]:stroke-white [&_svg]:fill-none"
+                      : "bg-transparent hover:bg-white/50 border-0 [&_svg]:text-primary [&_svg]:stroke-primary [&_svg]:fill-none"
+                  )}
+                >
+                  <Link to="/profile">
+                    <User className="h-5 w-5 md:h-8 md:w-8" strokeWidth={2} />
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setAuthModalOpen(true)}
+                  variant="outline"
+                  className={cn(
+                    "hidden md:inline-flex text-sm md:text-lg font-medium transition-colors px-3 md:px-4 py-1.5 md:py-2 rounded-md border h-auto",
+                    isHomePage && isHeroMode
+                      ? "text-white/90 border-white/30 bg-white/10 hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
+                      : "text-foreground/80 border-border bg-background/50 hover:bg-muted/50 hover:text-foreground"
+                  )}
+                >
+                  Войти
+                </Button>
+              )}
+
+              <Sheet
+                open={mobileBookingOpen}
+                onOpenChange={(open) => {
+                  setMobileBookingOpen(open);
+                  if (open) setMobileMenuOpen(false);
+                }}
+              >
+                <SheetContent
+                  side="top"
+                  hideClose
+                  className={cn(
+                    "w-full max-h-[min(92vh,920px)] overflow-y-auto rounded-b-2xl border-b shadow-xl",
+                    "!px-4 !pb-8 !pt-4 sm:!pt-5 gap-0"
+                  )}
+                >
+                  <SheetHeader className="sr-only">
+                    <SheetTitle>Поиск билетов</SheetTitle>
+                  </SheetHeader>
+                  {renderSearchForm("headerMobileSheet")}
+                </SheetContent>
+              </Sheet>
+
+              <Sheet
+                open={mobileMenuOpen}
+                onOpenChange={(open) => {
+                  setMobileMenuOpen(open);
+                  if (open) setMobileBookingOpen(false);
+                }}
+              >
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      "md:hidden h-10 w-10 transition-colors",
+                      isHomePage && isHeroMode
+                        ? "text-white/90 hover:bg-white/20"
+                        : "text-foreground/80 hover:bg-muted/50"
+                    )}
+                  >
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent
+                  side="right"
+                  closeClassName="top-3 right-3 sm:top-4 sm:right-4"
+                  className="w-[min(100vw-1rem,320px)] sm:w-[360px] overflow-y-auto !pt-14 !px-4 !pb-8"
+                >
+                  <SheetHeader className="sr-only">
+                    <SheetTitle>Навигация и поиск</SheetTitle>
+                  </SheetHeader>
+                  {!user && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full mt-1 h-11 text-base font-medium rounded-xl border-border"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setAuthModalOpen(true);
+                      }}
+                    >
+                      Войти
+                    </Button>
+                  )}
+                  <div
+                    className={cn(
+                      "border-t border-border/60 pt-5",
+                      user ? "mt-2" : "mt-5"
+                    )}
+                  >
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 px-1">
+                      Разделы сайта
+                    </p>
+                    <nav className="flex flex-col gap-1">
+                      <Link
+                        to="/"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "px-4 py-3 rounded-xl text-base font-medium transition-colors",
+                          isActive("/")
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
+                        )}
+                      >
+                        Главная
+                      </Link>
+                      <Link
+                        to="/routes"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "px-4 py-3 rounded-xl text-base font-medium transition-colors",
+                          isActive("/routes") || location.pathname.startsWith("/routes/")
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
+                        )}
+                      >
+                        Маршруты
+                      </Link>
+                      <Link
+                        to="/reference"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "px-4 py-3 rounded-xl text-base font-medium transition-colors",
+                          isActive("/reference") || location.pathname.startsWith("/reference/")
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
+                        )}
+                      >
+                        Справочная
+                      </Link>
+                      <Link
+                        to="/blog"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "px-4 py-3 rounded-xl text-base font-medium transition-colors",
+                          isBlogNavActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
+                        )}
+                      >
+                        Блог
+                      </Link>
+                      <Link
+                        to="/guide"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "px-4 py-3 rounded-xl text-base font-medium transition-colors",
+                          isActive("/guide") || location.pathname.startsWith("/guide/")
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground/80 hover:bg-muted/50 hover:text-foreground"
+                        )}
+                      >
+                        Путеводитель
+                      </Link>
+                    </nav>
+                  </div>
+                  <div className="mt-6">
+                    {renderSearchForm("headerMobileSheet")}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+          </div>
+
+          {(isHomePage || isRoutesPage || isBlogPage) && (showStickySearch || isAnimatingOut) && !isMobile && (
+            <div className={cn(
+              "pb-4 transition-all duration-300",
+              showStickySearch && !isAnimatingOut
+                ? "animate-in slide-in-from-top-2 fade-in"
+                : "animate-out slide-out-to-top-2 fade-out"
+            )}>
+              {renderSearchForm("headerDesktop")}
+            </div>
+          )}
+
+          <nav className="hidden lg:hidden items-center gap-2 pb-4 overflow-x-auto">
+            <Link
+              to="/"
+              className={cn(
+                "text-2xl font-medium transition-colors px-2 py-1 rounded whitespace-nowrap border",
+                isActive("/")
+                  ? isHomePage && isHeroMode
+                    ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20"
+                    : "text-primary bg-primary/10 border-transparent"
+                  : isHomePage && isHeroMode
+                    ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                    : "text-foreground/80 border-transparent hover:text-primary"
+              )}
+            >
+              Главная
+            </Link>
+            <NavDropdown
+              label="Маршруты"
+              items={navRouteItems}
+              href="/routes"
+              isActive={isActive("/routes") || location.pathname.startsWith("/routes/")}
+              isHomePage={isHomePage && isHeroMode}
+            />
+            <NavDropdown
+              label="Справочная"
+              items={faqTopics}
+              href="/reference"
+              isActive={isActive("/reference") || location.pathname.startsWith("/reference/")}
+              isHomePage={isHomePage && isHeroMode}
+            />
+            <Link
+              to="/blog"
+              className={cn(
+                "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap border",
+                isBlogNavActive
+                  ? isHomePage && isHeroMode
+                    ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20"
+                    : "text-primary bg-primary/10 border-transparent"
+                  : isHomePage && isHeroMode
+                    ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                    : "text-foreground/80 border-transparent hover:text-primary"
+              )}
+            >
+              Блог
+            </Link>
+            <Link
+              to="/guide"
+              className={cn(
+                "text-lg font-medium transition-colors px-2 py-1 rounded whitespace-nowrap border",
+                isActive("/guide") || location.pathname.startsWith("/guide/")
+                  ? isHomePage && isHeroMode
+                    ? "text-foreground bg-white/80 backdrop-blur-lg border-foreground/20"
+                    : "text-primary bg-primary/10 border-transparent"
+                  : isHomePage && isHeroMode
+                    ? "text-white/90 border-transparent hover:bg-white/80 hover:backdrop-blur-lg hover:border-foreground/20 hover:text-foreground"
+                    : "text-foreground/80 border-transparent hover:text-primary"
+              )}
+            >
+              Путеводитель
+            </Link>
+          </nav>
+        </div>
+      </header>
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
+    </>
+  );
+};
+
+export default Header;
+
+================================================================
+FILE: src\pages\Auth.tsx
+================================================================
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+
+const Auth = () => {
+  return (
+    <div className="min-h-screen">
+      <Header />
+      <main className="container pt-24 pb-20 md:pt-32">
+        <h1 className="heading-gradient text-3xl md:text-4xl font-bold tracking-tight mb-6">Вход / Регистрация</h1>
+        <p className="text-lg text-muted-foreground mb-8">
+          Введите номер телефона для получения кода подтверждения
+        </p>
+        {/* Компонент авторизации будет здесь */}
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default Auth;
+
+================================================================
+FILE: src\components\AuthModal.tsx
+================================================================
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { useToast } from "@/hooks/use-toast";
+
+interface AuthModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
+  const [step, setStep] = useState<"input" | "otp" | "password" | "2fa">("input");
+  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [isRegistration, setIsRegistration] = useState(false);
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [userEmailFor2FA, setUserEmailFor2FA] = useState("");
+  const { signIn, verifyOTP, signInWithPassword, verify2FACode } = useAuth();
+  const { toast } = useToast();
+
+  const handleSubmitEmail = async () => {
+    const email = emailOrPhone.trim();
+    if (!email) {
+      toast({
+        title: "Ошибка",
+        description: "Введите email",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!email.includes("@")) {
+      toast({
+        title: "Ошибка",
+        description: "Вход по SMS отключён. Укажите корректный email.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await signIn(email);
+    setLoading(false);
+
+    if (error) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось отправить код",
+        variant: "destructive",
+      });
+    } else {
+      setStep("otp");
+      toast({
+        title: "Код отправлен",
+        description: "Проверьте вашу почту",
+      });
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (otp.length !== 6) {
+      toast({
+        title: "Ошибка",
+        description: "Введите полный код из 6 цифр",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    const { error, user } = await verifyOTP(emailOrPhone, otp, isRegistration);
+    setLoading(false);
+
+    if (error) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Неверный код",
+        variant: "destructive",
+      });
+    } else {
+      onOpenChange(false);
+      setStep("input");
+      setEmailOrPhone("");
+      setOtp("");
+      toast({
+        title: "Успешно",
+        description: isRegistration 
+          ? "Регистрация завершена. Вы можете установить пароль в личном кабинете" 
+          : "Вход выполнен",
+      });
+    }
+  };
+
+
+  const handleBackToLogin = () => {
+    setStep("input");
+    setOtp("");
+  };
+
+  const handlePasswordLogin = async () => {
+    const email = emailOrPhone.trim();
+    if (!email || !password) {
+      toast({
+        title: "Ошибка",
+        description: "Введите email и пароль",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!email.includes("@")) {
+      toast({
+        title: "Ошибка",
+        description: "Вход по номеру телефона отключён. Используйте email.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    const { error, requires2FA, userEmail } = await signInWithPassword(emailOrPhone, password);
+    setLoading(false);
+
+    if (error) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Неверный email или пароль",
+        variant: "destructive",
+      });
+    } else if (requires2FA && userEmail) {
+      // Требуется 2FA - переходим на шаг ввода кода
+      setUserEmailFor2FA(userEmail);
+      setStep("2fa");
+      toast({
+        title: "Код отправлен",
+        description: "Мы отправили код подтверждения на вашу почту",
+      });
+    } else {
+      onOpenChange(false);
+      setStep("input");
+      setEmailOrPhone("");
+      setPassword("");
+      toast({
+        title: "Успешно",
+        description: "Вход выполнен",
+      });
+    }
+  };
+
+  const handleVerify2FA = async () => {
+    if (otp.length !== 6) {
+      toast({
+        title: "Ошибка",
+        description: "Введите полный код из 6 цифр",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await verify2FACode(userEmailFor2FA, otp);
+    setLoading(false);
+
+    if (error) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Неверный код",
+        variant: "destructive",
+      });
+    } else {
+      onOpenChange(false);
+      setStep("input");
+      setEmailOrPhone("");
+      setPassword("");
+      setOtp("");
+      setUserEmailFor2FA("");
+      toast({
+        title: "Успешно",
+        description: "Вход выполнен",
+      });
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>
+            {step === "input" && "Вход / Регистрация"}
+            {step === "otp" && "Введите код"}
+            {step === "password" && "Вход по паролю"}
+            {step === "2fa" && "Двухфакторная аутентификация"}
+          </DialogTitle>
+          <DialogDescription>
+            {step === "input" && "Введите email для входа или регистрации"}
+            {step === "otp" && "Мы отправили код на вашу почту"}
+            {step === "password" && "Введите email и пароль для входа"}
+            {step === "2fa" && "Мы отправили код подтверждения на вашу почту"}
+          </DialogDescription>
+        </DialogHeader>
+
+        {step === "input" && (
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="emailOrPhone">Email</Label>
+              <Input
+                id="emailOrPhone"
+                type="email"
+                placeholder="example@mail.com"
+                autoComplete="email"
+                value={emailOrPhone}
+                onChange={(e) => setEmailOrPhone(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSubmitEmail();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => {
+                  setIsRegistration(false);
+                  handleSubmitEmail();
+                }}
+                disabled={loading}
+                className="flex-1"
+              >
+                Войти
+              </Button>
+              <Button
+                onClick={() => {
+                  setIsRegistration(true);
+                  handleSubmitEmail();
+                }}
+                disabled={loading}
+                variant="outline"
+                className="flex-1"
+              >
+                Зарегистрироваться
+              </Button>
+            </div>
+            <div className="text-center text-sm text-muted-foreground">
+              <span>или</span>
+            </div>
+            <Button
+              onClick={() => {
+                setStep("password");
+              }}
+              variant="outline"
+              className="w-full"
+            >
+              Войти по паролю
+            </Button>
+          </div>
+        )}
+
+        {step === "password" && (
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="emailOrPhonePass">Email</Label>
+              <Input
+                id="emailOrPhonePass"
+                type="email"
+                placeholder="example@mail.com"
+                autoComplete="email"
+                value={emailOrPhone}
+                onChange={(e) => setEmailOrPhone(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Пароль</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Введите пароль"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handlePasswordLogin();
+                  }
+                }}
+              />
+            </div>
+            <Button onClick={handlePasswordLogin} disabled={loading} className="w-full">
+              Войти
+            </Button>
+            <Button onClick={handleBackToLogin} variant="ghost" className="w-full">
+              Назад
+            </Button>
+          </div>
+        )}
+
+        {step === "otp" && (
+          <div className="space-y-4 py-4">
+            <div className="flex justify-center">
+              <InputOTP
+                maxLength={6}
+                value={otp}
+                onChange={(value) => setOtp(value)}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+            <Button
+              onClick={handleVerifyOTP}
+              disabled={loading || otp.length !== 6}
+              className="w-full"
+            >
+              Подтвердить
+            </Button>
+            <Button onClick={handleBackToLogin} variant="ghost" className="w-full">
+              Назад
+            </Button>
+          </div>
+        )}
+
+        {step === "2fa" && (
+          <div className="space-y-4 py-4">
+            <div className="flex justify-center">
+              <InputOTP
+                maxLength={6}
+                value={otp}
+                onChange={(value) => setOtp(value)}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+            <Button
+              onClick={handleVerify2FA}
+              disabled={loading || otp.length !== 6}
+              className="w-full"
+            >
+              Подтвердить
+            </Button>
+            <Button 
+              onClick={() => {
+                setStep("password");
+                setOtp("");
+              }} 
+              variant="ghost" 
+              className="w-full"
+            >
+              Назад
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default AuthModal;
+
+
+
+================================================================
+FILE: src\components\Footer.tsx
+================================================================
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import logoImage from "@/assets/images/logo/logo_full_4.png";
+import { MessageCircle, Mail, ArrowRight, Loader2, Send, Instagram, Share2, Rss } from "lucide-react";
+import { useState } from "react";
+import { useFooterContent } from "@/hooks/useFooterContent";
+import type { SocialKind, SocialLink } from "@/types/footerContent";
+
+function socialIcon(kind: SocialKind) {
+  switch (kind) {
+    case "telegram": return <Send className="w-5 h-5 text-white" />;
+    case "vk": return <Share2 className="w-5 h-5 text-white" />;
+    case "instagram": return <Instagram className="w-5 h-5 text-white" />;
+    case "dzen": return <Rss className="w-5 h-5 text-white" />;
+  }
+}
+function socialClass(kind: SocialKind): string {
+  switch (kind) {
+    case "telegram": return "bg-[#229ED9] hover:brightness-110";
+    case "vk": return "bg-[#0077FF] hover:brightness-110";
+    case "instagram": return "bg-gradient-to-br from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] hover:brightness-110";
+    case "dzen": return "bg-[#000000] hover:brightness-110";
+  }
+}
+function socialLabel(kind: SocialKind): string {
+  switch (kind) {
+    case "telegram": return "Telegram"; case "vk": return "VK";
+    case "instagram": return "Instagram"; case "dzen": return "Dzen";
+  }
+}
+
+const Footer = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const footer = useFooterContent();
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle"|"loading"|"success"|"already"|"error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (location.pathname === "/") { window.scrollTo({ top: 0, behavior: "smooth" }); }
+    else { navigate("/"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 100); }
+  };
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setStatus("loading"); setErrorMsg("");
+    try {
+      const res = await fetch("/api/subscriptions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim() }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { setStatus("error"); setErrorMsg(data?.error || "Не удалось подписаться. Попробуйте позже."); return; }
+      if (data?.already) { setStatus("already"); } else { setStatus("success"); setEmail(""); }
+    } catch { setStatus("error"); setErrorMsg("Ошибка сети. Попробуйте позже."); }
+  };
+
+  const visibleSocials: SocialLink[] = footer.socials.filter((s) => s.url && s.url.trim().length > 0);
+  const visibleDocuments = footer.documents.filter((d) => d.label && d.label.trim().length > 0);
+
+  return (
+    <footer className="bg-[#0B0F26] text-white relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+      <div className="container relative z-10 py-16 md:py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+          <div className="lg:col-span-1 space-y-6">
+            <Link to="/" onClick={handleLogoClick} className="inline-block relative hover:opacity-90 transition-opacity">
+              <img src={logoImage} alt="TudaSuda" className="h-20 md:h-24 w-auto object-contain relative z-10" />
+            </Link>
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
+              Сервис для поиска и бронирования билетов на поезда, самолёты и автобусы по всей России.
+            </p>
+            <Button asChild className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
+              <Link to="/" className="flex items-center gap-2"><MessageCircle className="w-5 h-5" />Нужна помощь?</Link>
+            </Button>
+          </div>
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-white mb-6">Навигация</h3>
+            <nav className="flex flex-col gap-4">
+              <Link to="/" className="text-muted-foreground hover:text-white transition-colors duration-200 text-sm">Главная</Link>
+              <Link to="/routes" className="text-muted-foreground hover:text-white transition-colors duration-200 text-sm">Маршруты</Link>
+              <Link to="/reference" className="text-muted-foreground hover:text-white transition-colors duration-200 text-sm">Справочная</Link>
+              <Link to="/blog" className="text-muted-foreground hover:text-white transition-colors duration-200 text-sm">Блог</Link>
+              <Link to="/guide" className="text-muted-foreground hover:text-white transition-colors duration-200 text-sm">Путеводитель</Link>
+            </nav>
+          </div>
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-white mb-6">Поддержка</h3>
+            {footer.email && (
+              <div className="flex flex-col gap-4 mb-6">
+                <a href={`mailto:${footer.email}`} className="flex items-center gap-3 text-muted-foreground hover:text-white transition-colors duration-200 text-sm group">
+                  <Mail className="w-4 h-4 group-hover:text-primary transition-colors" /><span>{footer.email}</span>
+                </a>
+              </div>
+            )}
+            {visibleSocials.length > 0 && (
+              <>
+                <h3 className="text-lg font-bold text-white mb-4">Мы в соцсетях</h3>
+                <div className="flex gap-3">
+                  {visibleSocials.map((s) => (
+                    <a key={s.kind} href={s.url} target="_blank" rel="noopener noreferrer"
+                      className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${socialClass(s.kind)}`}
+                      aria-label={socialLabel(s.kind)}>
+                      {socialIcon(s.kind)}
+                    </a>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-white mb-6">Подписка на новости</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed mb-4">Получайте актуальные предложения и специальные акции на почту</p>
+            <form onSubmit={handleSubscribe} className="space-y-3">
+              <Input type="email" placeholder="Ваш email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={status === "loading"}
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-primary h-12 disabled:opacity-50" required />
+              <Button type="submit" disabled={status === "loading"}
+                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white font-semibold h-12 shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50">
+                {status === "loading" ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Отправка…</>) :
+                 status === "success" ? "Спасибо! Подписка оформлена." :
+                 status === "already" ? "Вы уже подписаны." :
+                 (<>Подписаться<ArrowRight className="w-4 h-4 ml-2" /></>)}
+              </Button>
+              {status === "error" && (<p className="text-red-400 text-sm">{errorMsg}</p>)}
+            </form>
+          </div>
+        </div>
+        <div className="border-t border-white/10 my-12"></div>
+        <div className="flex flex-col gap-6">
+          {footer.freeText && footer.freeText.trim() !== "" && (
+            <div className="text-muted-foreground text-sm whitespace-pre-wrap leading-relaxed">{footer.freeText}</div>
+          )}
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="text-muted-foreground text-sm">{footer.copyright}</div>
+            <div className="flex flex-wrap gap-6 text-sm">
+              {visibleDocuments.map((d, i) => (
+                <a key={i} href={d.fileUrl || "#"} target={d.fileUrl ? "_blank" : undefined} rel={d.fileUrl ? "noopener noreferrer" : undefined}
+                  className={"transition-colors duration-200 " + (d.fileUrl ? "text-muted-foreground hover:text-white" : "text-muted-foreground/60 cursor-not-allowed")}
+                  onClick={(e) => { if (!d.fileUrl) e.preventDefault(); }}>
+                  {d.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
+
+

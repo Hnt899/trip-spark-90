@@ -41,7 +41,7 @@ import AdminSEO from "./pages/admin/AdminSEO";
 import AdminFooter from "./pages/admin/AdminFooter";
 import NotFound from "./pages/NotFound";
 import TestimonialDetail from "./pages/TestimonialDetail";
-import ChatWidget from "./components/ChatWidget";
+// import ChatWidget from "./components/ChatWidget"; // ← скрыт
 import ScrollToTop, { YandexMetrikaPageTracker } from "./components/ScrollToTop";
 
 // Reference pages
@@ -55,23 +55,17 @@ import TrainArticle from "./pages/reference/TrainArticle";
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Отключаем перезагрузку при переключении между вкладками
   useEffect(() => {
     const handleVisibilityChange = () => {
-      // Ничего не делаем - просто предотвращаем возможную перезагрузку
       if (document.hidden) {
-        // Вкладка скрыта - сохраняем состояние
       } else {
-        // Вкладка активна - восстанавливаем состояние (автоматически React)
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     
-    // Отключаем кэширование страницы браузером для предотвращения полной перезагрузки
     window.addEventListener("pageshow", (event) => {
       if (event.persisted) {
-        // Страница загружена из bfcache - ничего не делаем
       }
     });
 
@@ -127,17 +121,16 @@ const App = () => {
                 <Route path="guide" element={<AdminGuideList />} />
                 <Route path="guide/:postId" element={<AdminGuideEdit />} />
                 <Route path="regions" element={<AdminRegions />} />
-		<Route path="footer" element={<AdminFooter />} />
+                <Route path="footer" element={<AdminFooter />} />
                 <Route path="seo" element={<AdminSEO />} />
                 <Route path="pages/:pageKey" element={<AdminPageEditor />} />
                 <Route path="subscriptions" element={<AdminSubscriptions />} />
               </Route>
               <Route path="/testimonials/:id" element={<TestimonialDetail />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-          <ChatWidget />
+          {/* <ChatWidget /> */}
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>

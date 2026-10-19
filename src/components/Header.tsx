@@ -481,20 +481,7 @@ const Header = () => {
                     <User className="h-5 w-5 md:h-8 md:w-8" strokeWidth={2} />
                   </Link>
                 </Button>
-              ) : (
-                <Button
-                  onClick={() => setAuthModalOpen(true)}
-                  variant="outline"
-                  className={cn(
-                    "hidden md:inline-flex text-sm md:text-lg font-medium transition-colors px-3 md:px-4 py-1.5 md:py-2 rounded-md border h-auto",
-                    isHomePage && isHeroMode
-                      ? "text-white/90 border-white/30 bg-white/10 hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
-                      : "text-foreground/80 border-border bg-background/50 hover:bg-muted/50 hover:text-foreground"
-                  )}
-                >
-                  Войти
-                </Button>
-              )}
+                ) : null}
 
               <Sheet
                 open={mobileBookingOpen}
@@ -547,19 +534,6 @@ const Header = () => {
                   <SheetHeader className="sr-only">
                     <SheetTitle>Навигация и поиск</SheetTitle>
                   </SheetHeader>
-                  {!user && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full mt-1 h-11 text-base font-medium rounded-xl border-border"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setAuthModalOpen(true);
-                      }}
-                    >
-                      Войти
-                    </Button>
-                  )}
                   <div
                     className={cn(
                       "border-t border-border/60 pt-5",

@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Instagram } from "lucide-react";
+import { Send } from "lucide-react";
 import instaImage from "@/assets/images/people/insta.jpg";
 import { usePageSectionFields } from "@/contexts/PageCmsContext";
 import { mediaOrFallback } from "@/lib/pageContentMerge";
@@ -15,13 +15,13 @@ const ProcessSection = () => {
     "Мы анализируем пользователей, общаемся с блогерами, чтобы собирать только лучшие маршруты";
   const paragraph =
     f.paragraph ||
-    "Хотите узнавать о новых трендах раньше всех? Подписывайтесь на наш Instagram!";
-  const ctaLabel = f.ctaLabel || "Перейти в Instagram";
-  const ctaHref = f.ctaHref || "https://instagram.com/tstripru";
+    "Хотите узнавать о новых трендах раньше всех? Подписывайтесь на наш Telegram!";
+  const ctaLabel = f.ctaLabel || "Перейти в Telegram";
+  const ctaHref = f.ctaHref || "https://t.me/ts_trip_ru";
   const imageSrc = mediaOrFallback(f.image, instaImage);
   const bottomText =
     f.bottomText ||
-    "Если у вас было яркое путешествие, пишите нам в Instagram, и мы можем сделать про вас блог или сделать из вашего маршрута статью.";
+    "Если у вас было яркое путешествие, пишите нам в Telegram, и мы можем сделать про вас блог или сделать из вашего маршрута статью.";
 
   const openCta = () => {
     if (!ctaHref.trim()) return;
@@ -50,7 +50,7 @@ const ProcessSection = () => {
                 className="h-12 px-8 text-base font-semibold rounded-lg"
                 onClick={openCta}
               >
-                <Instagram className="w-5 h-5 mr-2" />
+                <Send className="w-5 h-5 mr-2" />
                 {ctaLabel}
               </Button>
             </div>

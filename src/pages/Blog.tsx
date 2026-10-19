@@ -30,19 +30,16 @@ import type { BlogTagGroup } from "@/types/blogArticle";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowDown,
-  AtSign,
   BookOpen,
   Bus,
-  Instagram,
   ListFilter,
   Megaphone,
   Plane,
   Radio,
-  Send,
-  Share2,
   Sparkles,
   Train,
 } from "lucide-react";
+import { useFooterContent } from "@/hooks/useFooterContent";
 
 const PAGE_SIZE = 6;
 
@@ -87,44 +84,9 @@ const HERO_TRANSPORT_CYCLE: { Icon: LucideIcon; iconClass: string }[] = [
 
 const HERO_TRANSPORT_INTERVAL_MS = 3200;
 
-const SOCIAL_TILES: {
-  label: string;
-  href: string;
-  Icon: LucideIcon;
-  tileClass: string;
-}[] = [
-  {
-    label: "Telegram",
-    href: "https://t.me/ts_trip_ru",
-    Icon: Send,
-    tileClass:
-      "bg-[#229ED9] shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:brightness-110",
-  },
-  {
-    label: "VK",
-    href: "https://vk.ru/tstrip",
-    Icon: Share2,
-    tileClass:
-      "bg-[#0077FF] shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:brightness-110",
-  },
-  {
-    label: "Instagram",
-    href: "https://www.instagram.com/tstripru",
-    Icon: Instagram,
-    tileClass:
-      "bg-gradient-to-br from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] hover:brightness-110",
-  },
-  {
-    label: "Dzen",
-    href: "https://dzen.ru/tstripru",
-    Icon: AtSign,
-    tileClass:
-      "bg-[#101010] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] hover:bg-[#1a1a1a]",
-  },
-];
-
 const Blog = () => {
   const seo = useSEO("blog");
+  const footer = useFooterContent();
   const { data: remoteArticles = [] } = useQuery({
     queryKey: ["blog-posts-public"],
     queryFn: () => apiFetch<BlogArticle[]>("/api/blog/posts"),
@@ -216,6 +178,10 @@ const Blog = () => {
 
   const heroTransport = HERO_TRANSPORT_CYCLE[heroTransportIdx]!;
   const HeroTransportIcon = heroTransport.Icon;
+
+  const visibleSocials = footer.socials.filter(
+    (s) => s.url && s.url.trim().length > 0
+  );
 
   return (
     <div className="min-h-screen bg-white text-foreground dark:bg-background">
@@ -337,7 +303,6 @@ const Blog = () => {
 
         <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-10">
           <div className="min-w-0 flex-1">
-            {/* Вкладки + сортировка + моб. фильтры */}
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
               <div
                 className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2"
@@ -548,62 +513,75 @@ const Blog = () => {
         </section>
         )}
 
-        <section
-          className="mb-12 w-full min-w-0 rounded-3xl border border-sky-200/85 bg-gradient-to-br from-sky-50/95 via-white to-blue-50/35 p-6 shadow-[0_10px_36px_rgba(56,130,190,0.08)] md:mb-14 md:p-7 dark:border-sky-900/55 dark:from-sky-950/35 dark:via-slate-950 dark:to-blue-950/25"
-          aria-label="Социальные сети TudaSuda"
-        >
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
-            <div className="min-w-0 max-w-xl lg:flex-1">
-              <header>
-                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-sky-300/70 bg-white/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-sky-900 shadow-sm dark:border-sky-800 dark:bg-slate-900/80 dark:text-sky-100">
-                  <Radio className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
-                  Соцсети сервиса
+        {/* Блок «Мы в соцсетях» — данные из админки (footer.socials) */}
+        {visibleSocials.length > 0 && (
+          <section
+            className="mb-12 w-full min-w-0 rounded-3xl border border-sky-200/85 bg-gradient-to-br from-sky-50/95 via-white to-blue-50/35 p-6 shadow-[0_10px_36px_rgba(56,130,190,0.08)] md:mb-14 md:p-7 dark:border-sky-900/55 dark:from-sky-950/35 dark:via-slate-950 dark:to-blue-950/25"
+            aria-label="Социальные сети TudaSuda"
+          >
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+              <div className="min-w-0 max-w-xl lg:flex-1">
+                <header>
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-sky-300/70 bg-white/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-sky-900 shadow-sm dark:border-sky-800 dark:bg-slate-900/80 dark:text-sky-100">
+                    <Radio className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+                    Соцсети сервиса
+                  </div>
+                  <h2
+                    className={cn(
+                      "text-xl font-bold tracking-tight md:text-2xl",
+                      logoGradientText,
+                    )}
+                  >
+                    Мы в соцсетях
+                  </h2>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    Подписывайтесь — рассказываем о новинках, акциях и лайфхаках для
+                    путешествий.
+                  </p>
+                </header>
+                <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
+                  <p>
+                    Нажмите на плитку справа — откроется наша официальная страница в
+                    выбранной сети.
+                  </p>
                 </div>
-                <h2
-                  className={cn(
-                    "text-xl font-bold tracking-tight md:text-2xl",
-                    logoGradientText,
-                  )}
-                >
-                  Мы в соцсетях
-                </h2>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  Подписывайтесь — рассказываем о новинках, акциях и лайфхаках для
-                  путешествий.
-                </p>
-              </header>
-              <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
-                <p>
-                  В Telegram удобно задать вопрос поддержке и следить за
-                  обновлениями сервиса. Во «ВКонтакте» и Instagram делимся
-                  подборками маршрутов и вдохновением для выходных и отпуска.
-                </p>
-                <p>
-                  Нажмите на плитку справа — откроется наша официальная страница в
-                  выбранной сети.
-                </p>
+              </div>
+
+              <div className="mx-auto grid w-full max-w-[280px] shrink-0 grid-cols-2 gap-3 sm:max-w-[300px] sm:gap-4 lg:mx-0">
+                {visibleSocials.map((s) => {
+                  const iconUrl = s.iconLarge || s.iconSmall;
+                  return (
+                    <a
+                      key={s.id}
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${s.label} — открыть в новой вкладке`}
+                      className={cn(
+                        "flex aspect-square items-center justify-center overflow-hidden rounded-2xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-sky-50 dark:focus-visible:ring-offset-slate-950",
+                        iconUrl
+                          ? ""
+                          : s.bgColor || "bg-primary text-white",
+                      )}
+                    >
+                      {iconUrl ? (
+                        <img
+                          src={iconUrl}
+                          alt={s.label}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-4xl font-bold sm:text-5xl">
+                          {(s.label || "?").trim().charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                    </a>
+                  );
+                })}
               </div>
             </div>
-
-            <div className="mx-auto grid w-full max-w-[280px] shrink-0 grid-cols-2 gap-3 sm:max-w-[300px] sm:gap-4 lg:mx-0">
-              {SOCIAL_TILES.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${s.label} — открыть в новой вкладке`}
-                  className={cn(
-                    "flex aspect-square items-center justify-center rounded-2xl text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-sky-50 dark:focus-visible:ring-offset-slate-950",
-                    s.tileClass,
-                  )}
-                >
-                  <s.Icon className="h-10 w-10 drop-shadow-sm sm:h-11 sm:w-11" aria-hidden />
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         <section
           className="mb-16 w-full min-w-0 rounded-3xl border border-[hsl(var(--primary)/0.14)] bg-gradient-to-br from-slate-50/98 via-white to-[hsl(var(--primary)/0.05)] px-6 py-7 shadow-[0_12px_44px_rgba(16,10,111,0.07)] md:px-8 md:py-9 dark:border-primary/30 dark:from-slate-950 dark:via-slate-950 dark:to-primary/[0.08]"
