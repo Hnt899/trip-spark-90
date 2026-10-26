@@ -39,8 +39,11 @@ import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import AdminRegions from "./pages/admin/AdminRegions";
 import AdminSEO from "./pages/admin/AdminSEO";
 import AdminFooter from "./pages/admin/AdminFooter";
+import AdminStaticPages from "./pages/admin/AdminStaticPages";
+import AdminStaticPageEdit from "./pages/admin/AdminStaticPageEdit";
 import NotFound from "./pages/NotFound";
 import TestimonialDetail from "./pages/TestimonialDetail";
+import StaticPage from "./pages/StaticPage";
 // import ChatWidget from "./components/ChatWidget"; // ← скрыт
 import ScrollToTop, { YandexMetrikaPageTracker } from "./components/ScrollToTop";
 
@@ -109,6 +112,10 @@ const App = () => {
               <Route path="/payment/cancel" element={<PaymentCancel />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/profile" element={<Profile />} />
+              
+              {/* ← Статические страницы (FAQ, Privacy, Terms, Offer) */}
+              <Route path="/p/:slug" element={<StaticPage />} />
+
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
@@ -125,7 +132,12 @@ const App = () => {
                 <Route path="seo" element={<AdminSEO />} />
                 <Route path="pages/:pageKey" element={<AdminPageEditor />} />
                 <Route path="subscriptions" element={<AdminSubscriptions />} />
+
+                {/* ← Управление статическими страницами */}
+                <Route path="static-pages" element={<AdminStaticPages />} />
+                <Route path="static-pages/:slug" element={<AdminStaticPageEdit />} />
               </Route>
+
               <Route path="/testimonials/:id" element={<TestimonialDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

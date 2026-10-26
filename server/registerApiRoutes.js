@@ -20,6 +20,7 @@ import { registerSubscriptionRoutes } from "./subscriptionRoutes.js";
 import { registerRegionRoutes } from "./regionRoutes.js";
 import { registerSeoRoutes } from "./seoRoutes.js";
 import { registerSettingsRoutes } from "./settingsRoutes.js";
+import { registerStaticPagesRoutes } from "./staticPagesRoutes.js";
 import { sendExolveSms } from "./sendSms.js";
 import { sendEmailOtp } from "./emailOtp.js";
 import { registerRzdTrainSearchRoutes } from "./rzdTrainSearchRoutes.js";
@@ -44,6 +45,7 @@ function randomDigits(n) {
 export function registerApiRoutes(app) {
   registerRzdTrainSearchRoutes(app);
   registerYookassaPaymentRoutes(app);
+  registerStaticPagesRoutes(app);   // ← регистрация статических страниц
 
   // --- Auth: session ---
   app.get("/api/auth/session", authMiddleware, async (req, res) => {
@@ -219,17 +221,17 @@ export function registerApiRoutes(app) {
     res.json({ user: formatUser(row), access_token });
   });
 
-  // --- SMS (РѕС‚РєР»СЋС‡РµРЅРѕ; РІРµСЂРЅС‘Рј РїРѕР·Р¶Рµ СЃ Exolve) ---
+  // --- SMS (отключено; вернём позже с Exolve) ---
   app.post("/api/auth/sms/send", express.json(), (_req, res) => {
     return res.status(503).json({
       success: false,
-      error: "Р’С…РѕРґ РїРѕ SMS РІСЂРµРјРµРЅРЅРѕ РѕС‚РєР»СЋС‡С‘РЅ. РСЃРїРѕР»СЊР·СѓР№С‚Рµ email РёР»Рё РїР°СЂРѕР»СЊ.",
+      error: "Вход по SMS временно отключён. Используйте email или пароль.",
     });
   });
 
   app.post("/api/auth/sms/verify", express.json(), (_req, res) => {
     return res.status(503).json({
-      error: "Р’С…РѕРґ РїРѕ SMS РІСЂРµРјРµРЅРЅРѕ РѕС‚РєР»СЋС‡С‘РЅ. РСЃРїРѕР»СЊР·СѓР№С‚Рµ email РёР»Рё РїР°СЂРѕР»СЊ.",
+      error: "Вход по SMS временно отключён. Используйте email или пароль.",
     });
   });
 
@@ -705,6 +707,6 @@ export function registerApiRoutes(app) {
   registerRegionRoutes(app);
   registerSeoRoutes(app);
   registerSettingsRoutes(app);
+  registerStaticPagesRoutes(app);   // ← регистрация (ещё раз, чтобы точно было)
   registerAdminRoutes(app);
 }
-
