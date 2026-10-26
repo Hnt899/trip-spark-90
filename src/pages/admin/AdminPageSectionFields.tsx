@@ -170,9 +170,9 @@ type AdminRouteRow = {
   name: string;
   rating: number;
   cover_image_url: string | null;
+  excerpt?: string;          // ← ДОБАВИТЬ
   status?: string;
 };
-
 type AdminBlogRow = {
   id: string;
   slug: string;
@@ -425,7 +425,11 @@ export function AdminPageSectionFields({
   onPatch: (patch: Record<string, unknown>) => void;
 }) {
   const str = (key: string) => String(fields[key] ?? "");
-
+  const routesQ = useQuery({
+    queryKey: ["admin-routes-picker"],
+    queryFn: () => apiFetch<AdminRouteRow[]>("/api/admin/routes"),
+    staleTime: 5 * 60 * 1000,
+  });
   if (sectionId === "hero") {
     return (
       <div className="space-y-3">
@@ -653,6 +657,51 @@ export function AdminPageSectionFields({
               <Field label="Имя" value={String(it.name || "")} onChange={(v) => patchItem(items, i, { name: v }, onPatch)} />
               <Field label="Текст на карточке" value={String(it.text || "")} onChange={(v) => patchItem(items, i, { text: v }, onPatch)} multiline />
               <Field label="Маршрут" value={String(it.route || "")} onChange={(v) => patchItem(items, i, { route: v }, onPatch)} />
+              <div className="space-y-2 rounded-md bg-muted/40 p-2 mt-2">
+  <Label className="text-xs text-muted-foreground">
+    Привязать маршрут (показывается плашкой внизу отзыва)
+  </Label>
+  <Select
+    value={String(it.routeRefId || "__none__")}
+    onValueChange={(id) => {
+      if (id === "__none__") {
+        patchItem(items, i, {
+          routeRefId: "",
+          routeTitle: "",
+          routeSubtitle: "",
+          routeImage: "",
+          routeUrl: "",
+        }, onPatch);
+        return;
+      }
+      const row = (routesQ.data || []).find((r) => r.id === id);
+      if (!row) return;
+      const pathId = row.legacy_id || row.slug || row.id;
+      patchItem(items, i, {
+        routeRefId: row.id,
+        routeTitle: row.name,
+        routeSubtitle: row.excerpt || "",
+        routeImage: row.cover_image_url || "",
+        routeUrl: `/routes/${pathId}`,
+      }, onPatch);
+    }}
+  >
+    <SelectTrigger className="h-8">
+      <SelectValue placeholder="Выберите маршрут" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="__none__">Без маршрута</SelectItem>
+      {(routesQ.data || []).map((r) => (
+        <SelectItem key={r.id} value={r.id}>
+          {r.name}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+  <p className="text-[10px] text-muted-foreground leading-snug">
+    Маршрут будет отображаться плашкой внизу отзыва.
+  </p>
+</div>
               <Field label="Дата" value={String(it.date || "")} onChange={(v) => patchItem(items, i, { date: v }, onPatch)} />
               <MediaField label="Аватар" value={String(it.avatar || "")} accept="image/*" onChange={(v) => patchItem(items, i, { avatar: v }, onPatch)} />
               <MediaField label="Фото карточки" value={String(it.photo || "")} accept="image/*" onChange={(v) => patchItem(items, i, { photo: v }, onPatch)} />

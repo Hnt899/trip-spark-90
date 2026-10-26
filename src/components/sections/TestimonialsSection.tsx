@@ -34,13 +34,28 @@ import {
 } from "@/lib/sectionSurface";
 import { usePageSectionFields } from "@/contexts/PageCmsContext";
 import { mediaOrFallback } from "@/lib/pageContentMerge";
-import type { TestimonialsFields } from "@/types/pageContent";
+import type { TestimonialsFields, TestimonialsItemFields } from "@/types/pageContent";
 import { CmsEditable } from "@/components/cms/CmsEditable";
 import { cmsColorStyle, cmsHeadingClass } from "@/lib/cmsStyle";
 
 interface TestimonialsSectionProps {
   surface?: SectionSurface;
 }
+
+type ResolvedTestimonial = {
+  id: number;
+  name: string;
+  avatar: string;
+  photo: string;
+  text: string;
+  route: string;
+  date: string;
+  routeRefId: string;
+  routeTitle: string;
+  routeSubtitle: string;
+  routeImage: string;
+  routeUrl: string;
+};
 
 const DEFAULT_TESTIMONIALS = [
   {
@@ -157,9 +172,9 @@ const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) =>
   const sectionTitle = f.title || "Живые истории путешествий";
   const sectionSubtitle = f.subtitle || "Реальные люди, реальные эмоции, реальные путешествия";
 
-  const testimonials =
+  const testimonials: ResolvedTestimonial[] =
     Array.isArray(f.items) && f.items.length > 0
-      ? f.items.map((item, i) => {
+      ? f.items.map((item: TestimonialsItemFields, i: number) => {
           const def = DEFAULT_TESTIMONIALS[i] ?? DEFAULT_TESTIMONIALS[0];
           const id = item.id ?? def.id;
           return {
@@ -170,9 +185,21 @@ const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) =>
             text: item.text || def.text,
             route: item.route || def.route,
             date: item.date || def.date,
+            routeRefId: item.routeRefId ?? "",
+            routeTitle: item.routeTitle ?? "",
+            routeSubtitle: item.routeSubtitle ?? "",
+            routeImage: item.routeImage ?? "",
+            routeUrl: item.routeUrl ?? "",
           };
         })
-      : DEFAULT_TESTIMONIALS;
+      : DEFAULT_TESTIMONIALS.map((t) => ({
+          ...t,
+          routeRefId: "",
+          routeTitle: "",
+          routeSubtitle: "",
+          routeImage: "",
+          routeUrl: "",
+        }));
 
   // Дублируем отзывы для бесконечной карусели
   const duplicatedTestimonials = [...testimonials, ...testimonials, ...testimonials];
@@ -182,7 +209,6 @@ const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) =>
     if (!scrollContainer) return;
 
     const getCardWidth = () => {
-      // Всегда 3 карточки в ряду, gap = 16px (1rem)
       const gap = 16;
       const containerWidth = scrollContainer.clientWidth;
       return (containerWidth - gap * 2) / 3;
@@ -239,20 +265,18 @@ const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) =>
   const scrollLeft = () => {
     if (scrollRef.current && !isScrolling.current) {
       isScrolling.current = true;
-      const gap = 16; // gap-4 = 16px = 1rem
+      const gap = 16;
       const containerWidth = scrollRef.current.clientWidth;
-      // Ширина одной карточки: (containerWidth - 2*gap) / 3
       const cardWidth = (containerWidth - gap * 2) / 3;
-      // Прокручиваем ровно на одну карточку + gap
       const scrollAmount = cardWidth + gap;
       const currentScroll = scrollRef.current.scrollLeft;
       const targetScroll = Math.round(currentScroll - scrollAmount);
-      
-      scrollRef.current.scrollTo({ 
-        left: targetScroll, 
-        behavior: "smooth" 
+
+      scrollRef.current.scrollTo({
+        left: targetScroll,
+        behavior: "smooth"
       });
-      
+
       setTimeout(() => {
         isScrolling.current = false;
       }, 500);
@@ -262,20 +286,18 @@ const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) =>
   const scrollRight = () => {
     if (scrollRef.current && !isScrolling.current) {
       isScrolling.current = true;
-      const gap = 16; // gap-4 = 16px = 1rem
+      const gap = 16;
       const containerWidth = scrollRef.current.clientWidth;
-      // Ширина одной карточки: (containerWidth - 2*gap) / 3
       const cardWidth = (containerWidth - gap * 2) / 3;
-      // Прокручиваем ровно на одну карточку + gap
       const scrollAmount = cardWidth + gap;
       const currentScroll = scrollRef.current.scrollLeft;
       const targetScroll = Math.round(currentScroll + scrollAmount);
-      
-      scrollRef.current.scrollTo({ 
-        left: targetScroll, 
-        behavior: "smooth" 
+
+      scrollRef.current.scrollTo({
+        left: targetScroll,
+        behavior: "smooth"
       });
-      
+
       setTimeout(() => {
         isScrolling.current = false;
       }, 500);
@@ -284,301 +306,352 @@ const TestimonialsSection = ({ surface = "brand" }: TestimonialsSectionProps) =>
 
   return (
     <CmsEditable sectionId="testimonials">
-    <section className={sectionShellClass(surface, "py-20")}>
-      {/* Декоративные желтые пятна */}
-      {surface === "brand" && (
-      <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
-        {/* Левое пятно - от центра поднимаемся вверх на 30px */}
-        <div 
-          className="absolute rounded-full blur-3xl"
-          style={{
-            width: '400px',
-            height: '400px',
-            left: '-150px',
-            top: 'calc(50% - 30px)',
-            transform: 'translateY(-50%)',
-            background: '#F9B84F',
-            opacity: 0.3,
-          }}
-        />
-        {/* Правое пятно - от центра опускаемся вниз на 30px */}
-        <div 
-          className="absolute rounded-full blur-3xl"
-          style={{
-            width: '400px',
-            height: '400px',
-            right: '-100px',
-            top: 'calc(50% + 30px)',
-            transform: 'translateY(-50%)',
-            background: '#F9B84F',
-            opacity: 0.3,
-          }}
-        />
-      </div>
-      )}
-
-      <div className="container relative z-10">
-        <div className="mb-12 text-center">
-          <h2
-            className={cmsHeadingClass(
-              f.titleColor,
-              "heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700 leading-tight pb-2 tracking-tight"
-            )}
-            style={cmsColorStyle(f.titleColor)}
-          >
-            {sectionTitle}
-          </h2>
-          <p
-            className={cn(
-              "text-lg md:text-xl max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150",
-              sectionLeadClass(surface)
-            )}
-            style={cmsColorStyle(f.subtitleColor)}
-          >
-            {sectionSubtitle}
-          </p>
-        </div>
-
-        {/* Десктоп версия */}
-        <div className="hidden md:flex relative items-center gap-4">
-          {/* Стрелка влево */}
-          <button
-            onClick={scrollLeft}
-            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -ml-[10px]"
-            aria-label="Прокрутить влево"
-          >
-            <ChevronLeft className="h-5 w-5 text-blue-600" />
-          </button>
-
-          <div className="flex-1 relative overflow-hidden">
+      <section className={sectionShellClass(surface, "py-20")}>
+        {surface === "brand" && (
+          <div className="absolute inset-0 pointer-events-none hidden lg:block z-0">
             <div
-              ref={scrollRef}
-              className="flex gap-4 overflow-x-hidden scrollbar-hide pb-4 snap-x snap-mandatory"
+              className="absolute rounded-full blur-3xl"
               style={{
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-                scrollBehavior: "smooth",
+                width: '400px',
+                height: '400px',
+                left: '-150px',
+                top: 'calc(50% - 30px)',
+                transform: 'translateY(-50%)',
+                background: '#F9B84F',
+                opacity: 0.3,
+              }}
+            />
+            <div
+              className="absolute rounded-full blur-3xl"
+              style={{
+                width: '400px',
+                height: '400px',
+                right: '-100px',
+                top: 'calc(50% + 30px)',
+                transform: 'translateY(-50%)',
+                background: '#F9B84F',
+                opacity: 0.3,
+              }}
+            />
+          </div>
+        )}
+
+        <div className="container relative z-10">
+          <div className="mb-12 text-center">
+            <h2
+              className={cmsHeadingClass(
+                f.titleColor,
+                "heading-gradient text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700 leading-tight pb-2 tracking-tight"
+              )}
+              style={cmsColorStyle(f.titleColor)}
+            >
+              {sectionTitle}
+            </h2>
+            <p
+              className={cn(
+                "text-lg md:text-xl max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150",
+                sectionLeadClass(surface)
+              )}
+              style={cmsColorStyle(f.subtitleColor)}
+            >
+              {sectionSubtitle}
+            </p>
+          </div>
+
+          {/* Десктоп версия */}
+          <div className="hidden md:flex relative items-center gap-4">
+            <button
+              onClick={scrollLeft}
+              className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -ml-[10px]"
+              aria-label="Прокрутить влево"
+            >
+              <ChevronLeft className="h-5 w-5 text-blue-600" />
+            </button>
+
+            <div className="flex-1 relative overflow-hidden">
+              <div
+                ref={scrollRef}
+                className="flex gap-4 overflow-x-hidden scrollbar-hide pb-4 snap-x snap-mandatory"
+                style={{
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                  scrollBehavior: "smooth",
+                }}
+              >
+                {duplicatedTestimonials.map((testimonial, index) => (
+                  <div
+                    key={`${testimonial.id}-${index}`}
+                    className={cn(
+                      "group relative flex-shrink-0 rounded-2xl overflow-hidden",
+                      "bg-card border border-border/50",
+                      "hover:border-primary/30",
+                      "transition-all duration-[1200ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)]",
+                      "cursor-pointer",
+                      sectionCardLiftClass(surface),
+                      "w-[calc((100%-2rem)/3)] min-w-[calc((100%-2rem)/3)] max-w-[calc((100%-2rem)/3)]",
+                      "snap-start",
+                      "animate-in fade-in slide-in-from-bottom-4",
+                      "will-change-transform"
+                    )}
+                    style={{
+                      animationDelay: `${index * 50}ms`,
+                      animationDuration: "600ms",
+                      animationFillMode: "both",
+                    }}
+                  >
+                    <div className="relative h-64 rounded-t-2xl overflow-hidden">
+                      <img
+                        src={testimonial.photo}
+                        alt={testimonial.route}
+                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-[1200ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:opacity-90 pointer-events-none"></div>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-500 pointer-events-none"></div>
+
+                      <div className="absolute top-4 left-4 flex items-center gap-2 z-10 transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:opacity-0 group-hover:pointer-events-none">
+                        <div className="w-12 h-12 rounded-full border-2 border-white/50 overflow-hidden shadow-lg transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)]">
+                          <img
+                            src={testimonial.avatar}
+                            alt={testimonial.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <span className="text-white font-semibold text-sm drop-shadow-lg bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)]">
+                          {testimonial.name}
+                        </span>
+                      </div>
+
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20">
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="bg-white text-[#0A8FE8] hover:bg-white hover:text-[#0A8FE8] border-white shadow-xl font-bold text-base px-6"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/testimonials/${testimonial.id}`);
+                          }}
+                        >
+                          <BookOpen className="h-5 w-5 mr-2 text-[#0A8FE8]" />
+                          Читать
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="p-5 space-y-3 transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:bg-gradient-to-b from-transparent to-card/50">
+                      <p className="text-foreground text-sm leading-relaxed font-medium transition-colors duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:text-foreground/90">
+                        {testimonial.text}
+                      </p>
+
+                      {/* ← ПЛАШКА МАРШРУТА (десктоп) */}
+                      {testimonial.routeUrl && testimonial.routeTitle && (
+                        <a
+                          href={testimonial.routeUrl}
+                          className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 p-2 hover:bg-muted/60 hover:border-primary/40 transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!testimonial.routeUrl.startsWith("http")) {
+                              e.preventDefault();
+                              navigate(testimonial.routeUrl);
+                            }
+                          }}
+                        >
+                          {testimonial.routeImage && (
+                            <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                              <img
+                                src={testimonial.routeImage}
+                                alt={testimonial.routeTitle}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-foreground truncate">
+                              {testimonial.routeTitle}
+                            </p>
+                            {testimonial.routeSubtitle && (
+                              <p className="text-xs text-muted-foreground line-clamp-1">
+                                {testimonial.routeSubtitle}
+                              </p>
+                            )}
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        </a>
+                      )}
+
+                      <div className="flex flex-col gap-2 pt-2 border-t border-border/30 transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:border-primary/20">
+                        <div className="flex items-center gap-2 text-muted-foreground text-xs transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:text-foreground/80 group-hover:gap-3">
+                          <MapPin className="w-3.5 h-3.5 transition-transform duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-110 group-hover:text-primary" />
+                          <span>{testimonial.route}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground text-xs transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:text-foreground/80 group-hover:gap-3">
+                          <Calendar className="w-3.5 h-3.5 transition-transform duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-110 group-hover:text-primary" />
+                          <span>{testimonial.date}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-2">
+                        <div className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-all duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] cursor-pointer group/like hover:gap-2">
+                          <Heart className="w-4 h-4 transition-transform duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] hover:scale-125 hover:fill-primary" />
+                          <span className="text-xs font-medium transition-all duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]">Нравится</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={scrollRight}
+              className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -ml-[7px]"
+              aria-label="Прокрутить вправо"
+            >
+              <ChevronRight className="h-5 w-5 text-blue-600" />
+            </button>
+          </div>
+
+          {/* Мобильная версия */}
+          <div className="md:hidden relative overflow-hidden px-2">
+            <div
+              className="relative w-full overflow-hidden"
+              onTouchStart={(e) => setTouchStart(e.targetTouches[0].clientX)}
+              onTouchMove={(e) => setTouchEnd(e.targetTouches[0].clientX)}
+              onTouchEnd={() => {
+                if (!touchStart || !touchEnd) return;
+
+                const distance = touchStart - touchEnd;
+                const minSwipeDistance = 50;
+
+                if (distance > minSwipeDistance) {
+                  setMobileCurrent((prev) => Math.min(testimonials.length - 1, prev + 1));
+                }
+
+                if (distance < -minSwipeDistance) {
+                  setMobileCurrent((prev) => Math.max(0, prev - 1));
+                }
+
+                setTouchStart(0);
+                setTouchEnd(0);
               }}
             >
-              {duplicatedTestimonials.map((testimonial, index) => (
-                <div
-                  key={`${testimonial.id}-${index}`}
-                  className={cn(
-                    "group relative flex-shrink-0 rounded-2xl overflow-hidden",
-                    "bg-card border border-border/50",
-                    "hover:border-primary/30",
-                    "transition-all duration-[1200ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)]",
-                    "cursor-pointer",
-                    sectionCardLiftClass(surface),
-                    "w-[calc((100%-2rem)/3)] min-w-[calc((100%-2rem)/3)] max-w-[calc((100%-2rem)/3)]",
-                    "snap-start",
-                    "animate-in fade-in slide-in-from-bottom-4",
-                    "will-change-transform"
-                  )}
-                  style={{
-                    animationDelay: `${index * 50}ms`,
-                    animationDuration: "600ms",
-                    animationFillMode: "both",
-                  }}
-                >
-                  {/* Фото в стиле Instagram Story */}
-                  <div className="relative h-64 rounded-t-2xl overflow-hidden">
-                    <img
-                      src={testimonial.photo}
-                      alt={testimonial.route}
-                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                    />
-                    {/* Градиентный оверлей для читаемости текста */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-[1200ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:opacity-90 pointer-events-none"></div>
-                    {/* Затемнение при hover */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-500 pointer-events-none"></div>
+              <div
+                ref={mobileTrackRef}
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{
+                  transform: `translateX(-${mobileCurrent * 100}%)`,
+                }}
+              >
+                {testimonials.map((testimonial, index) => (
+                  <div
+                    key={`${testimonial.id}-${index}`}
+                    onClick={() => navigate(`/testimonials/${testimonial.id}`)}
+                    className={cn(
+                      "flex-shrink-0 w-full",
+                      "group relative rounded-3xl overflow-hidden",
+                      "bg-card border-2 border-transparent",
+                      "transition-all duration-500 ease-out",
+                      "cursor-pointer",
+                      sectionCardLiftClass(surface)
+                    )}
+                  >
+                    <div className="relative h-64 overflow-hidden">
+                      <img
+                        src={testimonial.photo}
+                        alt={testimonial.route}
+                        className="w-full h-full object-cover"
+                      />
 
-                    {/* Аватар и имя пользователя в стиле Instagram */}
-                    <div className="absolute top-4 left-4 flex items-center gap-2 z-10 transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:opacity-0 group-hover:pointer-events-none">
-                      <div className="w-12 h-12 rounded-full border-2 border-white/50 overflow-hidden shadow-lg transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)]">
-                        <img
-                          src={testimonial.avatar}
-                          alt={testimonial.name}
-                          className="w-full h-full object-cover"
-                        />
+                      <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
+                        <div className="w-10 h-10 rounded-full border-2 border-white/50 overflow-hidden shadow-lg">
+                          <img
+                            src={testimonial.avatar}
+                            alt={testimonial.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <span className="text-white font-semibold text-sm drop-shadow-lg bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
+                          {testimonial.name}
+                        </span>
                       </div>
-                      <span className="text-white font-semibold text-sm drop-shadow-lg bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)]">
-                        {testimonial.name}
-                      </span>
                     </div>
 
-                    {/* Кнопка "Читать" при hover */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20">
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        className="bg-white text-[#0A8FE8] hover:bg-white hover:text-[#0A8FE8] border-white shadow-xl font-bold text-base px-6"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/testimonials/${testimonial.id}`);
-                        }}
-                      >
-                        <BookOpen className="h-5 w-5 mr-2 text-[#0A8FE8]" />
-                        Читать
-                      </Button>
+                    <div className="p-6">
+                      <p className="text-foreground text-sm leading-relaxed font-medium mb-4">
+                        {testimonial.text}
+                      </p>
+
+                      {/* ← ПЛАШКА МАРШРУТА (мобилка) */}
+                      {testimonial.routeUrl && testimonial.routeTitle && (
+                        <a
+                          href={testimonial.routeUrl}
+                          className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 p-2 hover:bg-muted/60 hover:border-primary/40 transition-all mb-4"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!testimonial.routeUrl.startsWith("http")) {
+                              e.preventDefault();
+                              navigate(testimonial.routeUrl);
+                            }
+                          }}
+                        >
+                          {testimonial.routeImage && (
+                            <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                              <img
+                                src={testimonial.routeImage}
+                                alt={testimonial.routeTitle}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-foreground truncate">
+                              {testimonial.routeTitle}
+                            </p>
+                            {testimonial.routeSubtitle && (
+                              <p className="text-xs text-muted-foreground line-clamp-1">
+                                {testimonial.routeSubtitle}
+                              </p>
+                            )}
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        </a>
+                      )}
+
+                      <div className="flex flex-col gap-2 pt-2 border-t border-border/30 mb-4">
+                        <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                          <MapPin className="w-3.5 h-3.5" />
+                          <span>{testimonial.route}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span>{testimonial.date}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Heart className="w-4 h-4" />
+                          <span className="text-xs font-medium">Нравится</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            </div>
 
-                  {/* Контент карточки */}
-                  <div className="p-5 space-y-3 transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:bg-gradient-to-b from-transparent to-card/50">
-                    {/* Текст отзыва */}
-                    <p className="text-foreground text-sm leading-relaxed font-medium transition-colors duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:text-foreground/90">
-                      {testimonial.text}
-                    </p>
-
-                    {/* Маршрут и дата */}
-                    <div className="flex flex-col gap-2 pt-2 border-t border-border/30 transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:border-primary/20">
-                      <div className="flex items-center gap-2 text-muted-foreground text-xs transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:text-foreground/80 group-hover:gap-3">
-                        <MapPin className="w-3.5 h-3.5 transition-transform duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-110 group-hover:text-primary" />
-                        <span>{testimonial.route}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground text-xs transition-all duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:text-foreground/80 group-hover:gap-3">
-                        <Calendar className="w-3.5 h-3.5 transition-transform duration-[1000ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-110 group-hover:text-primary" />
-                        <span>{testimonial.date}</span>
-                      </div>
-                    </div>
-
-                    {/* Лайк в стиле соцсетей */}
-                    <div className="flex items-center gap-2 pt-2">
-                      <div className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-all duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] cursor-pointer group/like hover:gap-2">
-                        <Heart className="w-4 h-4 transition-transform duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] hover:scale-125 hover:fill-primary" />
-                        <span className="text-xs font-medium transition-all duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]">Нравится</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <div className="flex justify-center gap-2 mt-4 mb-4">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setMobileCurrent(index)}
+                  className={carouselDotClass(surface, index === mobileCurrent)}
+                  aria-label={`Перейти к карточке ${index + 1}`}
+                />
               ))}
             </div>
           </div>
-
-          {/* Стрелка вправо */}
-          <button
-            onClick={scrollRight}
-            className="flex-shrink-0 z-20 bg-white hover:bg-white shadow-lg rounded-full w-12 h-12 transition-all duration-300 hover:scale-110 flex items-center justify-center -ml-[7px]"
-            aria-label="Прокрутить вправо"
-          >
-            <ChevronRight className="h-5 w-5 text-blue-600" />
-          </button>
         </div>
-
-        {/* Мобильная версия - карусель ТОЛЬКО для мобильных (одна карточка) */}
-        <div className="md:hidden relative overflow-hidden px-2">
-          <div 
-            className="relative w-full overflow-hidden"
-            onTouchStart={(e) => setTouchStart(e.targetTouches[0].clientX)}
-            onTouchMove={(e) => setTouchEnd(e.targetTouches[0].clientX)}
-            onTouchEnd={() => {
-              if (!touchStart || !touchEnd) return;
-              
-              const distance = touchStart - touchEnd;
-              const minSwipeDistance = 50;
-
-              if (distance > minSwipeDistance) {
-                setMobileCurrent((prev) => Math.min(testimonials.length - 1, prev + 1));
-              }
-              
-              if (distance < -minSwipeDistance) {
-                setMobileCurrent((prev) => Math.max(0, prev - 1));
-              }
-              
-              setTouchStart(0);
-              setTouchEnd(0);
-            }}
-          >
-            <div 
-              ref={mobileTrackRef}
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{
-                transform: `translateX(-${mobileCurrent * 100}%)`,
-              }}
-            >
-              {testimonials.map((testimonial, index) => (
-                <div
-                  key={`${testimonial.id}-${index}`}
-                  onClick={() => navigate(`/testimonials/${testimonial.id}`)}
-                  className={cn(
-                    "flex-shrink-0 w-full",
-                    "group relative rounded-3xl overflow-hidden",
-                    "bg-card border-2 border-transparent",
-                    "transition-all duration-500 ease-out",
-                    "cursor-pointer",
-                    sectionCardLiftClass(surface)
-                  )}
-                >
-                  {/* Изображение */}
-                  <div className="relative h-64 overflow-hidden">
-                    <img
-                      src={testimonial.photo}
-                      alt={testimonial.route}
-                      className="w-full h-full object-cover"
-                    />
-                    
-                    {/* Аватар и имя пользователя */}
-                    <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
-                      <div className="w-10 h-10 rounded-full border-2 border-white/50 overflow-hidden shadow-lg">
-                        <img
-                          src={testimonial.avatar}
-                          alt={testimonial.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <span className="text-white font-semibold text-sm drop-shadow-lg bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
-                        {testimonial.name}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Контент */}
-                  <div className="p-6">
-                    {/* Текст отзыва */}
-                    <p className="text-foreground text-sm leading-relaxed font-medium mb-4">
-                      {testimonial.text}
-                    </p>
-
-                    {/* Маршрут и дата */}
-                    <div className="flex flex-col gap-2 pt-2 border-t border-border/30 mb-4">
-                      <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span>{testimonial.route}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>{testimonial.date}</span>
-                      </div>
-                    </div>
-
-                    {/* Лайк */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Heart className="w-4 h-4" />
-                        <span className="text-xs font-medium">Нравится</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Индикаторы для мобильной версии */}
-          <div className="flex justify-center gap-2 mt-4 mb-4">
-            {testimonials.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setMobileCurrent(index)}
-                className={carouselDotClass(surface, index === mobileCurrent)}
-                aria-label={`Перейти к карточке ${index + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
+      </section>
     </CmsEditable>
   );
 };

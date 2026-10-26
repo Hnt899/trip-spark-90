@@ -148,6 +148,13 @@ export type TestimonialsItemFields = {
   date: string;
   body: string;
   gallery: string[];
+
+  /** Привязанный маршрут (опционально). Заполняется в админке. */
+  routeRefId?: string;
+  routeTitle?: string;
+  routeSubtitle?: string;
+  routeImage?: string;
+  routeUrl?: string;
 };
 
 export type TestimonialsFields = {
