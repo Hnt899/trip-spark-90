@@ -44,7 +44,7 @@ import AdminStaticPageEdit from "./pages/admin/AdminStaticPageEdit";
 import NotFound from "./pages/NotFound";
 import TestimonialDetail from "./pages/TestimonialDetail";
 import StaticPage from "./pages/StaticPage";
-// import ChatWidget from "./components/ChatWidget"; // ← скрыт
+// import ChatWidget from "./components/ChatWidget"; // в†ђ СЃРєСЂС‹С‚
 import ScrollToTop, { YandexMetrikaPageTracker } from "./components/ScrollToTop";
 
 // Reference pages
@@ -55,7 +55,14 @@ import Buses from "./pages/reference/Buses";
 import BusArticle from "./pages/reference/BusArticle";
 import TrainArticle from "./pages/reference/TrainArticle";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
 
 const App = () => {
   useEffect(() => {
@@ -113,7 +120,7 @@ const App = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/profile" element={<Profile />} />
               
-              {/* ← Статические страницы (FAQ, Privacy, Terms, Offer) */}
+              {/* в†ђ РЎС‚Р°С‚РёС‡РµСЃРєРёРµ СЃС‚СЂР°РЅРёС†С‹ (FAQ, Privacy, Terms, Offer) */}
               <Route path="/p/:slug" element={<StaticPage />} />
 
               <Route path="/admin" element={<AdminLayout />}>
@@ -133,7 +140,7 @@ const App = () => {
                 <Route path="pages/:pageKey" element={<AdminPageEditor />} />
                 <Route path="subscriptions" element={<AdminSubscriptions />} />
 
-                {/* ← Управление статическими страницами */}
+                {/* в†ђ РЈРїСЂР°РІР»РµРЅРёРµ СЃС‚Р°С‚РёС‡РµСЃРєРёРјРё СЃС‚СЂР°РЅРёС†Р°РјРё */}
                 <Route path="static-pages" element={<AdminStaticPages />} />
                 <Route path="static-pages/:slug" element={<AdminStaticPageEdit />} />
               </Route>

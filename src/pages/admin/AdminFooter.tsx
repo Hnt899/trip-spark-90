@@ -1,6 +1,6 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, Save, Upload, Plus, Trash2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, Save, Upload, Plus, Trash2, Pencil } from "lucide-react";
 import { footerDefaults, mergeFooter } from "@/content/footer.defaults";
 import type {
   FooterFields,
@@ -27,8 +34,17 @@ function newId(): string {
   return "s_" + Math.random().toString(36).slice(2, 10);
 }
 
+type StaticPageRow = {
+  id: string;
+  slug: string;
+  title: string;
+  status: string;
+  updated_at: string;
+};
+
 export default function AdminFooter() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [draft, setDraft] = useState<FooterFields>(footerDefaults);
 
   const q = useQuery({
@@ -40,6 +56,12 @@ export default function AdminFooter() {
         return {};
       }
     },
+  });
+
+  const pagesQ = useQuery({
+    queryKey: ["admin-pages-list"],
+    queryFn: () => apiFetch<StaticPageRow[]>("/api/admin/pages-list"),
+    staleTime: 60_000,
   });
 
   useEffect(() => {
@@ -59,7 +81,6 @@ export default function AdminFooter() {
     onError: (e: Error) => alert("Ошибка: " + e.message),
   });
 
-  // --- Соцсети ---
   const updateSocial = (id: string, patch: Partial<SocialLink>) =>
     setDraft((d) => ({
       ...d,
@@ -86,7 +107,6 @@ export default function AdminFooter() {
       socials: d.socials.filter((s) => s.id !== id),
     }));
 
-  // --- Документы ---
   const setDocument = (index: number, patch: Partial<FooterDocumentLink>) =>
     setDraft((d) => ({
       ...d,
@@ -95,7 +115,6 @@ export default function AdminFooter() {
       ),
     }));
 
-  // --- Важные вопросы ---
   const setImportant = (index: number, patch: Partial<ImportantLink>) =>
     setDraft((d) => ({
       ...d,
@@ -136,6 +155,8 @@ export default function AdminFooter() {
     );
   }
 
+  const pages = pagesQ.data || [];
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -145,7 +166,6 @@ export default function AdminFooter() {
         </Button>
       </div>
 
-      {/* Основное */}
       <Card>
         <CardHeader>
           <CardTitle>Основное</CardTitle>
@@ -181,7 +201,6 @@ export default function AdminFooter() {
         </CardContent>
       </Card>
 
-      {/* Соцсети */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -196,9 +215,6 @@ export default function AdminFooter() {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          {draft.socials.length === 0 && (
-            <p className="text-sm text-muted-foreground">Нет соцсетей.</p>
-          )}
           {draft.socials.map((s) => (
             <div key={s.id} className="rounded-md border p-3 space-y-2">
               <div className="flex items-center justify-between">
@@ -220,7 +236,6 @@ export default function AdminFooter() {
                     onChange={(e) =>
                       updateSocial(s.id, { label: e.target.value })
                     }
-                    placeholder="Telegram, YouTube, Rutube…"
                   />
                 </div>
                 <div className="grid gap-1">
@@ -230,11 +245,9 @@ export default function AdminFooter() {
                     onChange={(e) =>
                       updateSocial(s.id, { url: e.target.value })
                     }
-                    placeholder="https://..."
                   />
                 </div>
               </div>
-
               <div className="grid gap-2 sm:grid-cols-2">
                 <div className="space-y-1">
                   <Label className="text-xs">Маленькая иконка (подвал)</Label>
@@ -243,7 +256,6 @@ export default function AdminFooter() {
                     onChange={(e) =>
                       updateSocial(s.id, { iconSmall: e.target.value })
                     }
-                    placeholder="URL картинки"
                   />
                   <label className="inline-flex cursor-pointer items-center gap-1 text-xs text-primary">
                     <Upload className="h-3 w-3" />
@@ -270,7 +282,6 @@ export default function AdminFooter() {
                     onChange={(e) =>
                       updateSocial(s.id, { iconLarge: e.target.value })
                     }
-                    placeholder="URL картинки"
                   />
                   <label className="inline-flex cursor-pointer items-center gap-1 text-xs text-primary">
                     <Upload className="h-3 w-3" />
@@ -291,17 +302,13 @@ export default function AdminFooter() {
                   </label>
                 </div>
               </div>
-
               <div className="grid gap-1">
-                <Label className="text-xs">
-                  Цвет фона (fallback, если иконки нет)
-                </Label>
+                <Label className="text-xs">Цвет фона (fallback)</Label>
                 <Input
                   value={s.bgColor || ""}
                   onChange={(e) =>
                     updateSocial(s.id, { bgColor: e.target.value })
                   }
-                  placeholder="bg-[#229ED9] или bg-primary"
                 />
               </div>
             </div>
@@ -309,12 +316,13 @@ export default function AdminFooter() {
         </CardContent>
       </Card>
 
-      {/* Важные вопросы */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Важные вопросы</CardTitle>
-            <CardDescription>Ссылки в блоке «ВАЖНЫЕ ВОПРОСЫ» в подвале.</CardDescription>
+            <CardDescription>
+              Выберите страницу — она откроется у пользователя при клике.
+            </CardDescription>
           </div>
           <Button type="button" size="sm" onClick={addImportant}>
             <Plus className="mr-1 h-4 w-4" />
@@ -322,93 +330,124 @@ export default function AdminFooter() {
           </Button>
         </CardHeader>
         <CardContent className="space-y-3">
-          {draft.importantLinks.map((l, i) => (
-            <div key={i} className="rounded-md border p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">
-                  Ссылка {i + 1}
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeImportant(i)}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+          {draft.importantLinks.map((l, i) => {
+            const slug = l.url.startsWith("/p/")
+              ? l.url.replace("/p/", "")
+              : null;
+            return (
+              <div key={i} className="rounded-md border p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    Ссылка {i + 1}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeImportant(i)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-xs">Текст</Label>
+                  <Input
+                    value={l.label}
+                    onChange={(e) => setImportant(i, { label: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-xs">Страница</Label>
+                  <div className="flex gap-2">
+                    <Select
+                      value={l.url}
+                      onValueChange={(v) => setImportant(i, { url: v })}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Выберите страницу" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {pages.map((p) => (
+                          <SelectItem key={p.slug} value={`/p/${p.slug}`}>
+                            {p.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {slug && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => navigate(`/admin/static-pages/${slug}`)}
+                        title="Открыть редактор"
+                      >
+                        <Pencil className="h-4 w-4 mr-1" />
+                        Просмотреть
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label className="text-xs">Текст</Label>
-                <Input
-                  value={l.label}
-                  onChange={(e) => setImportant(i, { label: e.target.value })}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label className="text-xs">URL</Label>
-                <Input
-                  value={l.url}
-                  onChange={(e) => setImportant(i, { url: e.target.value })}
-                  placeholder="https://..."
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </CardContent>
       </Card>
 
-      {/* Документы */}
       <Card>
         <CardHeader>
           <CardTitle>Юридические документы</CardTitle>
           <CardDescription>
-            Загрузите PDF или оставьте URL пустым, чтобы скрыть кнопку.
+            Выберите страницу — она откроется у пользователя при клике.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {draft.documents.map((d, i) => (
-            <div key={i} className="rounded-md border p-3 space-y-2">
-              <div className="grid gap-2">
-                <Label>Название кнопки</Label>
-                <Input
-                  value={d.label}
-                  onChange={(e) => setDocument(i, { label: e.target.value })}
-                />
+          {draft.documents.map((d, i) => {
+            const slug = d.fileUrl.startsWith("/p/")
+              ? d.fileUrl.replace("/p/", "")
+              : null;
+            return (
+              <div key={i} className="rounded-md border p-3 space-y-2">
+                <div className="grid gap-2">
+                  <Label>Название кнопки</Label>
+                  <Input
+                    value={d.label}
+                    onChange={(e) => setDocument(i, { label: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Страница</Label>
+                  <div className="flex gap-2">
+                    <Select
+                      value={d.fileUrl}
+                      onValueChange={(v) => setDocument(i, { fileUrl: v })}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Выберите страницу" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {pages.map((p) => (
+                          <SelectItem key={p.slug} value={`/p/${p.slug}`}>
+                            {p.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {slug && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => navigate(`/admin/static-pages/${slug}`)}
+                        title="Открыть редактор"
+                      >
+                        <Pencil className="h-4 w-4 mr-1" />
+                        Просмотреть
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label>URL файла (PDF)</Label>
-                <Input
-                  value={d.fileUrl}
-                  onChange={(e) => setDocument(i, { fileUrl: e.target.value })}
-                  placeholder="/uploads/..."
-                />
-              </div>
-              <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-primary">
-                <Upload className="h-3.5 w-3.5" />
-                Загрузить PDF
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) {
-                      uploadImages([f])
-                        .then((urls) => {
-                          if (urls[0]) setDocument(i, { fileUrl: urls[0] });
-                        })
-                        .catch((err) =>
-                          alert(
-                            err instanceof Error ? err.message : "Ошибка"
-                          )
-                        );
-                    }
-                    e.target.value = "";
-                  }}
-                />
-              </label>
-            </div>
-          ))}
+            );
+          })}
         </CardContent>
       </Card>
 

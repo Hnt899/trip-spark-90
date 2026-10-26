@@ -1,6 +1,5 @@
-﻿import type { FooterFields, SocialLink } from "@/types/footerContent";
+import type { FooterFields, SocialLink } from "@/types/footerContent";
 
-/** Начальные соцсети — админ сможет изменить/удалить/добавить любые. */
 const defaultSocials: SocialLink[] = [
   {
     id: "telegram",
@@ -32,24 +31,24 @@ export const footerDefaults: FooterFields = {
   email: "info@ts-trip.ru",
   socials: defaultSocials,
   documents: [
-    { label: "Политика конфиденциальности", fileUrl: "" },
-    { label: "Условия использования", fileUrl: "" },
-    { label: "Оферта", fileUrl: "" },
+    { label: "Политика конфиденциальности", fileUrl: "/p/privacy" },
+    { label: "Условия использования", fileUrl: "/p/terms" },
+    { label: "Оферта", fileUrl: "/p/offer" },
   ],
   copyright: "© 2025 TudaSuda. Все права защищены.",
   freeText: "",
   importantLinks: [
     {
       label: "Часто задаваемые вопросы",
-      url: "https://tripandfly.ru/offers_af/frequently-asked-questions",
+      url: "/p/frequently-asked-questions",
     },
     {
-      label: "Правила покупки электронных билетов",
-      url: "https://tripandfly.ru/offers_af/booking-and-payment-rules-af",
+      label: "Политика конфиденциальности",
+      url: "/p/privacy",
     },
     {
-      label: "Правила обмена и возврата электронных билетов",
-      url: "https://tripandfly.ru/offers_af/rules-for-the-exchange-and-return-of-electronic-tickets-af",
+      label: "Условия использования",
+      url: "/p/terms",
     },
   ],
 };
