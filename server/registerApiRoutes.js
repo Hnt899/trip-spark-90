@@ -707,6 +707,5 @@ export function registerApiRoutes(app) {
   registerRegionRoutes(app);
   registerSeoRoutes(app);
   registerSettingsRoutes(app);
-  registerStaticPagesRoutes(app);   // ← регистрация (ещё раз, чтобы точно было)
   registerAdminRoutes(app);
 }

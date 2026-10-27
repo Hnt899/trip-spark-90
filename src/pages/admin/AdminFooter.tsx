@@ -135,13 +135,21 @@ export default function AdminFooter() {
       importantLinks: d.importantLinks.filter((_, i) => i !== index),
     }));
 
+  // ВАЖНО: Принудительно логируем в консоль, чтобы понять, что происходит
   const handleUploadImage = async (
     file: File,
-    setUrl: (url: string) => void
+    socialId: string,
+    field: "iconSmall" | "iconLarge"
   ) => {
     try {
+      console.log(`Начинаем загрузку для соцсети: ${socialId}, поле: ${field}`);
       const urls = await uploadImages([file]);
-      if (urls[0]) setUrl(urls[0]);
+      console.log("Ответ от сервера (URL):", urls);
+      
+      if (urls[0]) {
+        updateSocial(socialId, { [field]: urls[0] });
+        console.log(`Обновили ${field} у ${socialId} на ${urls[0]}`);
+      }
     } catch (e) {
       alert(e instanceof Error ? e.message : "Ошибка загрузки");
     }
@@ -257,6 +265,10 @@ export default function AdminFooter() {
                       updateSocial(s.id, { iconSmall: e.target.value })
                     }
                   />
+                  {/* ДОБАВИЛИ PREVIEW ДЛЯ КАРТИНКИ */}
+                  {s.iconSmall && (
+                     <img src={s.iconSmall} alt="preview" className="h-8 w-8 object-contain border p-1 rounded" />
+                  )}
                   <label className="inline-flex cursor-pointer items-center gap-1 text-xs text-primary">
                     <Upload className="h-3 w-3" />
                     Загрузить
@@ -266,10 +278,7 @@ export default function AdminFooter() {
                       className="hidden"
                       onChange={(e) => {
                         const f = e.target.files?.[0];
-                        if (f)
-                          handleUploadImage(f, (u) =>
-                            updateSocial(s.id, { iconSmall: u })
-                          );
+                        if (f) handleUploadImage(f, s.id, "iconSmall");
                         e.target.value = "";
                       }}
                     />
@@ -283,6 +292,9 @@ export default function AdminFooter() {
                       updateSocial(s.id, { iconLarge: e.target.value })
                     }
                   />
+                  {s.iconLarge && (
+                     <img src={s.iconLarge} alt="preview" className="h-8 w-8 object-contain border p-1 rounded" />
+                  )}
                   <label className="inline-flex cursor-pointer items-center gap-1 text-xs text-primary">
                     <Upload className="h-3 w-3" />
                     Загрузить
@@ -292,10 +304,7 @@ export default function AdminFooter() {
                       className="hidden"
                       onChange={(e) => {
                         const f = e.target.files?.[0];
-                        if (f)
-                          handleUploadImage(f, (u) =>
-                            updateSocial(s.id, { iconLarge: u })
-                          );
+                        if (f) handleUploadImage(f, s.id, "iconLarge");
                         e.target.value = "";
                       }}
                     />

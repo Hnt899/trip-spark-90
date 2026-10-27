@@ -80,10 +80,12 @@ async function insertRevision(pageKey, snapshot, action, userId, sectionId = nul
  * @param {import('express').Express} app
  */
 export function registerPagePublicRoutes(app) {
-  app.get("/api/pages/:key", async (req, res) => {
+  // Не наш ключ (например, slug статической страницы) → отдаём управление дальше,
+  // иначе /api/pages/privacy перехватывался бы здесь и возвращал 404.
+  app.get("/api/pages/:key", async (req, res, next) => {
     const key = String(req.params.key || "");
     if (!isPageKey(key)) {
-      return res.status(404).json({ error: "Unknown page" });
+      return next();
     }
     try {
       const row = await getRow(key);
@@ -103,10 +105,12 @@ export function registerPagePublicRoutes(app) {
  * @param {import('express').Express} app
  */
 export function registerAdminPageRoutes(app) {
-  app.get("/api/admin/pages/:key", adminMiddleware, async (req, res) => {
+  // Симметрично публичному: home/routes обслуживает этот модуль,
+  // остальные slug (статические страницы) — staticPagesRoutes.
+  app.get("/api/admin/pages/:key", adminMiddleware, async (req, res, next) => {
     const key = String(req.params.key || "");
     if (!isPageKey(key)) {
-      return res.status(404).json({ error: "Unknown page" });
+      return next();
     }
     try {
       const row = await getRow(key);

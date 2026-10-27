@@ -1,10 +1,10 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Pencil } from "lucide-react";
+import { Loader2, Pencil, Plus } from "lucide-react";
 
 type Row = {
   id: string;
@@ -22,11 +22,19 @@ export default function AdminStaticPages() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Страницы</h1>
-        <p className="text-muted-foreground">
-          FAQ, политика, условия, оферта — редактируются как блог.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Страницы</h1>
+          <p className="text-muted-foreground">
+            FAQ, политика, условия, оферта — редактируются как блог.
+          </p>
+        </div>
+        <Button asChild>
+          <Link to="/admin/static-pages/new">
+            <Plus className="mr-2 h-4 w-4" />
+            Создать страницу
+          </Link>
+        </Button>
       </div>
 
       <Card>
