@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { useEffect, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import Index from "./pages/Index";
 import ScrollToTop, { YandexMetrikaPageTracker } from "./components/ScrollToTop";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -84,25 +84,6 @@ const PageFallback = () => (
 );
 
 const App = () => {
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-      } else {
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    window.addEventListener("pageshow", (event) => {
-      if (event.persisted) {
-      }
-    });
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
