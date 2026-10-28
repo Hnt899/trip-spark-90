@@ -1,6 +1,6 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plane, Train, Bus } from "lucide-react";
+import { Plane, Train, Bus, Car } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import heroImage from "@/assets/images/transport/samoletzxc.png";
@@ -12,8 +12,9 @@ import { CmsEditable } from "@/components/cms/CmsEditable";
 import { cmsColorStyle } from "@/lib/cmsStyle";
 import FlightSearchForm from "@/components/flight/FlightSearchForm";
 import WhiteLabelBusPortal from "@/components/WhiteLabelBusPortal";
+import TransferWidget from "@/components/transfer/TransferWidget";
 
-type TravelType = "train" | "flight" | "bus";
+type TravelType = "train" | "flight" | "bus" | "transfer";
 
 const BUS_MODE: "inline" | "redirect" = "inline";
 const BUS_PORTAL_URL = "https://trainandbus.ts-trip.ru/";
@@ -72,10 +73,17 @@ const HeroSection = () => {
   const location = useLocation();
   const [travelType, setTravelType] = useState<TravelType>("flight");
   const [tripType, setTripType] = useState<"round" | "one">("round");
+  // Виджет трансфера KiwiTaxi инициализируется один раз на страницу:
+  // после первого открытия вкладки не размонтируем его, иначе он не отрисуется заново.
+  const [transferMounted, setTransferMounted] = useState(false);
+
+  useEffect(() => {
+    if (travelType === "transfer") setTransferMounted(true);
+  }, [travelType]);
 
   // Если пришли с location.state.travelType — переключаем вкладку
   useEffect(() => {
-    const state = location.state as { travelType?: "flight" | "bus" } | null;
+    const state = location.state as { travelType?: "flight" | "bus" | "transfer" } | null;
     if (state?.travelType) {
       setTravelType(state.travelType);
       // Чистим state из history, чтобы при F5 не залипало
@@ -171,6 +179,22 @@ const HeroSection = () => {
                         </span>
                       </span>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setTravelType("transfer")}
+                      aria-label="Трансфер"
+                      className={cn(
+                        "flex items-center justify-center h-9 px-2 md:px-3 rounded-md transition-all gap-2",
+                        travelType === "transfer"
+                          ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
+                          : "text-white/70 hover:text-white"
+                      )}
+                    >
+                      <Car className="h-5 w-5" />
+                      <span className="hidden md:inline text-sm font-medium">
+                        Трансфер
+                      </span>
+                    </button>
                   </div>
 
                   <div
@@ -233,6 +257,16 @@ const HeroSection = () => {
                   />
                 )}
                 {travelType === "bus" && <WhiteLabelBusPortal />}
+                {transferMounted && (
+                  <div
+                    className={cn(
+                      "rounded-lg bg-white p-2",
+                      travelType !== "transfer" && "hidden"
+                    )}
+                  >
+                    <TransferWidget />
+                  </div>
+                )}
               </div>
             </div>
           </div>

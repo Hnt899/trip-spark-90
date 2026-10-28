@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import NavDropdown from "@/components/NavDropdown";
 import { popularRoutes, faqTopics } from "@/data/navLinks";
-import { Train, Bus, Plane, User, Search, Menu } from "lucide-react";
+import { Train, Bus, Plane, Car, User, Search, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logoImage from "@/assets/images/logo/logo.png";
 import logoWhiteImage from "@/assets/images/logo/logo w.png";
@@ -24,7 +24,7 @@ type MenuRouteRow = {
   menu_order: number;
 };
 
-type SearchTravelType = "flight" | "bus";
+type SearchTravelType = "flight" | "bus" | "transfer";
 
 const Header = () => {
   const location = useLocation();
@@ -240,6 +240,30 @@ const Header = () => {
       });
     }, 180);
   };
+
+  /**
+   * «Трансфер»: виджет KiwiTaxi инициализируется один раз на страницу,
+   * поэтому из шапки ведём на hero главной, где он и открывается.
+   */
+  const handleTransferRedirect = () => {
+    setMobileMenuOpen(false);
+    setMobileBookingOpen(false);
+
+    window.setTimeout(() => {
+      navigate("/", { state: { travelType: "transfer" } });
+
+      window.requestAnimationFrame(() => {
+        const hero = document.getElementById("hero-section");
+        if (hero) {
+          const top = hero.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({ top, behavior: "smooth" });
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+    }, 180);
+  };
+
   const renderSearchForm = (variant: SearchFormVariant) => {
     const isSheet = variant === "headerMobileSheet";
     return (
@@ -288,6 +312,20 @@ const Header = () => {
             <Bus className="h-4 w-4" />
             <span className="hidden md:inline whitespace-nowrap">ЖД/Автобус</span>
           </button>
+          <button
+            type="button"
+            onClick={handleTransferRedirect}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 h-9 px-2 rounded-md transition-all text-sm font-medium",
+              travelType === "transfer"
+                ? "bg-gradient-to-r from-[#0B5FD9] via-[#0A8FE8] to-[#0FB5F0] text-white shadow-sm"
+                : "text-foreground/70 hover:text-foreground"
+            )}
+            aria-label="Трансфер"
+          >
+            <Car className="h-4 w-4" />
+            <span className="hidden md:inline whitespace-nowrap">Трансфер</span>
+          </button>
         </div>
 
         {travelType === "flight" ? (
@@ -303,9 +341,13 @@ const Header = () => {
               }
             }}
           />
-        ) : (
+        ) : travelType === "bus" ? (
           <div className="rounded-lg bg-white p-2">
             <WhiteLabelBusPortal />
+          </div>
+        ) : (
+          <div className="rounded-lg bg-white/90 p-3 text-sm text-foreground/70">
+            Подбор трансфера открывается в форме поиска на главной странице.
           </div>
         )}
       </div>
