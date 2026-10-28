@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import PlaceAutocomplete, { type SelectedPlace } from "./PlaceAutocomplete";
+import { buildWhiteLabelSearchUrl } from "@/lib/travelpayouts";
 
 export type FlightSearchFormVariant = "hero" | "header-desktop" | "header-mobile";
 
@@ -182,7 +183,8 @@ const FlightSearchForm = ({
 
     const flightSearch = `${fromPlace.code}${dateToken}${toPlace.code}${passengerToken}`;
 
-    const url = `https://avia.ts-trip.ru/?flightSearch=${flightSearch}`;
+    // Домен перехода зависит от домена сайта: .ru → avia.ts-trip.ru, .com → avia.ts-trip.com
+    const url = buildWhiteLabelSearchUrl(flightSearch);
     window.location.href = url;
     onSearchComplete?.();
   };

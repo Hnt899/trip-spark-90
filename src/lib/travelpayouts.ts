@@ -13,7 +13,37 @@ export interface TravelpayoutsPlace {
 // Относительный путь: запросы идут на тот же домен через Nginx (см. location /travelpayouts),
 // это исключает Mixed Content при HTTPS и 404 при смене хоста.
 const AUTOCOMPLETE_URL = "/travelpayouts";
-const WHITE_LABEL_BASE = "https://avia.ts-trip.ru/";
+
+/**
+ * White Label (поиск авиабилетов) живёт на отдельном поддомене для каждого
+ * домена сайта: ts-trip.ru → avia.ts-trip.ru, ts-trip.com → avia.ts-trip.com.
+ * Для остальных доменов (ts-travel.by, ts-travel.online, localhost) оставляем .ru —
+ * этот поддомен заведомо работает.
+ */
+const WHITE_LABEL_BY_HOST: Record<string, string> = {
+  "ts-trip.ru": "https://avia.ts-trip.ru/",
+  "ts-trip.com": "https://avia.ts-trip.com/",
+};
+
+const DEFAULT_WHITE_LABEL_BASE = "https://avia.ts-trip.ru/";
+
+/** White Label-хост для текущего домена сайта (hostname можно передать явно — для тестов). */
+export function getWhiteLabelBase(hostname?: string): string {
+  const raw =
+    hostname ?? (typeof window !== "undefined" ? window.location.hostname : "");
+  const host = raw.toLowerCase().replace(/^www\./, "");
+  return WHITE_LABEL_BY_HOST[host] || DEFAULT_WHITE_LABEL_BASE;
+}
+
+/**
+ * Ссылка на результаты поиска для текущего домена.
+ * Пример: https://avia.ts-trip.com/?flightSearch=MOW2012LED2
+ */
+export function buildWhiteLabelSearchUrl(flightSearch: string): string {
+  const url = new URL(getWhiteLabelBase());
+  url.searchParams.set("flightSearch", flightSearch);
+  return url.toString();
+}
 
 export interface FlightPassengers {
   adults: number;
@@ -107,7 +137,7 @@ export function buildFlightWhiteLabelUrl(params: FlightSearchParams): string {
   const dateToken = formatDepartureToken(departureDate);
   const flightSearch = `${fromCode}${dateToken}${toCode}${adults}`;
 
-  const url = new URL(WHITE_LABEL_BASE);
+  const url = new URL(getWhiteLabelBase());
   url.searchParams.set("flightSearch", flightSearch);
 
   if (passengers.children > 0) {
