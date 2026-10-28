@@ -54,6 +54,7 @@ services:
       # Единый сертификат на остальные домены (SAN: ts-trip.com, www, ts-travel.by, www, ts-travel.online, www)
       - /etc/letsencrypt/live/ts-trip.com-0001:/etc/letsencrypt/live/ts-trip.com-0001:ro
       - /etc/letsencrypt/archive:/etc/letsencrypt/archive:ro
+      - /etc/letsencrypt/live/trainandbus.ts-trip.ru:/etc/letsencrypt/live/trainandbus.ts-trip.ru:ro
 
 volumes:
   postgres_data:
