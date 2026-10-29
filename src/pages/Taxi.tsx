@@ -27,7 +27,7 @@ const Taxi = () => {
             Укажите откуда и куда — сервис покажет варианты с ценой и временем в пути.
           </p>
 
-          <div className="mt-8 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-border md:p-3">
+          <div className="mt-8 overflow-hidden rounded-2xl shadow-sm ring-1 ring-border">
             <TransferWidget />
           </div>
 
