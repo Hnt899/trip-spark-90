@@ -4,6 +4,9 @@
  */
 export const TAXI_URL = "https://taxi.ts-trip.ru/";
 
+/** Основной сайт — на него ведут внутренние ссылки с поддомена. */
+export const MAIN_SITE_URL = "https://ts-trip.ru";
+
 /** true, если страница открыта на поддомене трансфера. */
 export function isTaxiHost(hostname?: string): boolean {
   const raw =

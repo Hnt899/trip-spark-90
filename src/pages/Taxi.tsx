@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import TransferWidget from "@/components/transfer/TransferWidget";
+import { useMainSiteLinks } from "@/hooks/useMainSiteLinks";
 import { CalendarCheck, MapPin, ShieldCheck } from "lucide-react";
 
 /**
@@ -10,6 +11,9 @@ import { CalendarCheck, MapPin, ShieldCheck } from "lucide-react";
  * виджет — тот же TransferWidget, что был во вкладке на главной.
  */
 const Taxi = () => {
+  // Все внутренние ссылки (лого, меню, подвал) уводим на основной сайт
+  useMainSiteLinks();
+
   return (
     <div className="min-h-screen bg-background">
       <SEO
