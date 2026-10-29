@@ -16,6 +16,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useIsMobile } from "@/hooks/use-mobile";
 import FlightSearchForm from "@/components/flight/FlightSearchForm";
 import WhiteLabelBusPortal from "@/components/WhiteLabelBusPortal";
+import { TAXI_URL } from "@/lib/transfer";
 
 type MenuRouteRow = {
   slug: string;
@@ -242,26 +243,12 @@ const Header = () => {
   };
 
   /**
-   * «Трансфер»: виджет KiwiTaxi инициализируется один раз на страницу,
-   * поэтому из шапки ведём на hero главной, где он и открывается.
+   * «Трансфер»: уводим на отдельный поддомен — там шапка, подвал и виджет.
    */
   const handleTransferRedirect = () => {
     setMobileMenuOpen(false);
     setMobileBookingOpen(false);
-
-    window.setTimeout(() => {
-      navigate("/", { state: { travelType: "transfer" } });
-
-      window.requestAnimationFrame(() => {
-        const hero = document.getElementById("hero-section");
-        if (hero) {
-          const top = hero.getBoundingClientRect().top + window.scrollY;
-          window.scrollTo({ top, behavior: "smooth" });
-        } else {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      });
-    }, 180);
+    window.location.assign(TAXI_URL);
   };
 
   const renderSearchForm = (variant: SearchFormVariant) => {

@@ -12,7 +12,7 @@ import { CmsEditable } from "@/components/cms/CmsEditable";
 import { cmsColorStyle } from "@/lib/cmsStyle";
 import FlightSearchForm from "@/components/flight/FlightSearchForm";
 import WhiteLabelBusPortal from "@/components/WhiteLabelBusPortal";
-import TransferWidget from "@/components/transfer/TransferWidget";
+import { TAXI_URL } from "@/lib/transfer";
 
 type TravelType = "train" | "flight" | "bus" | "transfer";
 
@@ -73,18 +73,15 @@ const HeroSection = () => {
   const location = useLocation();
   const [travelType, setTravelType] = useState<TravelType>("flight");
   const [tripType, setTripType] = useState<"round" | "one">("round");
-  // Виджет трансфера KiwiTaxi инициализируется один раз на страницу:
-  // после первого открытия вкладки не размонтируем его, иначе он не отрисуется заново.
-  const [transferMounted, setTransferMounted] = useState(false);
-
-  useEffect(() => {
-    if (travelType === "transfer") setTransferMounted(true);
-  }, [travelType]);
-
   // Если пришли с location.state.travelType — переключаем вкладку
   useEffect(() => {
     const state = location.state as { travelType?: "flight" | "bus" | "transfer" } | null;
     if (state?.travelType) {
+      // Старые ссылки с ?state=transfer ведём сразу на поддомен
+      if (state.travelType === "transfer") {
+        window.location.assign(TAXI_URL);
+        return;
+      }
       setTravelType(state.travelType);
       // Чистим state из history, чтобы при F5 не залипало
       window.history.replaceState({}, document.title);
@@ -181,7 +178,7 @@ const HeroSection = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setTravelType("transfer")}
+                      onClick={() => window.location.assign(TAXI_URL)}
                       aria-label="Трансфер"
                       className={cn(
                         "flex items-center justify-center h-9 px-2 md:px-3 rounded-md transition-all gap-2",
@@ -257,16 +254,6 @@ const HeroSection = () => {
                   />
                 )}
                 {travelType === "bus" && <WhiteLabelBusPortal />}
-                {transferMounted && (
-                  <div
-                    className={cn(
-                      "rounded-lg bg-white p-2",
-                      travelType !== "transfer" && "hidden"
-                    )}
-                  >
-                    <TransferWidget />
-                  </div>
-                )}
               </div>
             </div>
           </div>

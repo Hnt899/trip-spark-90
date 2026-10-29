@@ -8,12 +8,14 @@ import { lazy, Suspense } from "react";
 import Index from "./pages/Index";
 import ScrollToTop, { YandexMetrikaPageTracker } from "./components/ScrollToTop";
 import AdminLayout from "./pages/admin/AdminLayout";
+import { isTaxiHost } from "@/lib/transfer";
 
 /**
  * Code-splitting: всё, кроме главной, грузится отдельными чанками.
  * Раньше все 50+ страниц (включая админку) были в одном бандле ~3.2 МБ,
  * из-за чего /routes и редакторы админки открывались по 5–8 секунд.
  */
+const Taxi = lazy(() => import("./pages/Taxi"));
 const RoutesPage = lazy(() => import("./pages/Routes"));
 const RouteList = lazy(() => import("./pages/RouteList"));
 const RouteDetail = lazy(() => import("./pages/RouteDetail"));
@@ -95,7 +97,9 @@ const App = () => {
             <YandexMetrikaPageTracker />
             <Suspense fallback={<PageFallback />}>
               <Routes>
-              <Route path="/" element={<Index />} />
+              {/* На поддомене taxi.* корень показывает страницу трансфера */}
+              <Route path="/" element={isTaxiHost() ? <Taxi /> : <Index />} />
+              <Route path="/taxi" element={<Taxi />} />
               <Route path="/routes" element={<RoutesPage />} />
               <Route path="/routes/list" element={<RouteList />} />
               <Route path="/routes/:id" element={<RouteDetail />} />
